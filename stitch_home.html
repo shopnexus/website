@@ -1,0 +1,473 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ShopNexus | Khám Phá Hybrid</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed": "#abefe7",
+                        "primary-fixed-dim": "#85d5c9",
+                        "surface-variant": "#e2e3e0",
+                        "on-primary-container": "#93e4d8",
+                        "surface-container-low": "#f4f4f1",
+                        "surface-tint": "#066a61",
+                        "background": "#f9f9f7",
+                        "tertiary-fixed": "#ffdbcf",
+                        "primary-container": "#00685f",
+                        "on-tertiary": "#ffffff",
+                        "inverse-primary": "#85d5c9",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9f9f7",
+                        "surface": "#f9f9f7",
+                        "primary-fixed": "#a1f1e5",
+                        "tertiary-container": "#924628",
+                        "inverse-on-surface": "#f1f1ef",
+                        "on-surface": "#1a1c1b",
+                        "tertiary": "#742f13",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#8fd3cb",
+                        "on-primary-fixed": "#00201d",
+                        "surface-container": "#eeeeec",
+                        "surface-container-high": "#e8e8e6",
+                        "on-primary-fixed-variant": "#005049",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-fixed": "#00201d",
+                        "outline": "#6e7977",
+                        "on-surface-variant": "#3e4947",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#bec9c6",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "secondary-container": "#a8ece4",
+                        "primary": "#004e47",
+                        "on-tertiary-fixed": "#380d00",
+                        "surface-dim": "#dadad8",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "on-secondary-container": "#266d67",
+                        "secondary": "#216963",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#ffc9b6",
+                        "on-secondary-fixed-variant": "#00504b",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e2e3e0",
+                        "inverse-surface": "#2f3130"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "display": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .active-pill { font-variation-settings: 'FILL' 1; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md px-6 py-4 max-w-[1440px] mx-auto flex justify-between items-center">
+<div class="flex items-center gap-8">
+<span class="font-headline font-extrabold text-xl tracking-tighter text-primary">ShopNexus</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="font-headline text-label-md uppercase tracking-wider text-primary font-bold border-b-2 border-primary pb-1" href="#">Discover</a>
+<a class="font-headline text-label-md uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Archive</a>
+<a class="font-headline text-label-md uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Curations</a>
+</div>
+</div>
+<div class="flex items-center gap-4"><button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button></div>
+</nav>
+<main class="pt-24 pb-32 px-4 md:px-8 max-w-[1440px] mx-auto">
+<!-- Search-Centric Header (Top Section) -->
+<section class="mb-12">
+<div class="flex flex-col md:flex-row gap-4 items-center bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/30">
+<div class="flex items-center gap-3 bg-surface-container rounded-full px-4 py-2 flex-1 w-full">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-body-md placeholder:text-outline-variant" placeholder="Tìm kiếm đồ cũ, đồ thủ công, quà tặng..." type="text">
+</div>
+<div class="flex items-center gap-2 bg-surface-container rounded-full px-4 py-2 shrink-0 cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<span class="text-label-md">TP. Hồ Chí Minh</span>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-bold hover:opacity-90 transition-opacity">
+                    Tìm Kiếm
+                </button>
+</div>
+<div class="flex flex-wrap gap-2 mt-4 overflow-x-auto hide-scrollbar">
+<span class="text-label-sm text-on-surface-variant self-center mr-2">Gợi ý:</span>
+<button class="bg-surface-container-high px-4 py-1.5 rounded-full text-label-sm hover:bg-secondary-container transition-colors">Máy ảnh phim</button>
+<button class="bg-surface-container-high px-4 py-1.5 rounded-full text-label-sm hover:bg-secondary-container transition-colors">Gốm thủ công</button>
+<button class="bg-surface-container-high px-4 py-1.5 rounded-full text-label-sm hover:bg-secondary-container transition-colors">Vinyl xưa</button>
+<button class="bg-surface-container-high px-4 py-1.5 rounded-full text-label-sm hover:bg-secondary-container transition-colors">Túi Canvas</button>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+<!-- Left Sidebar (4 cols) -->
+<aside class="md:col-span-4 space-y-8">
+<!-- Khu Vực Của Bạn -->
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30 overflow-hidden">
+<h3 class="font-headline font-bold text-headline-sm mb-4">Khu Vực Của Bạn</h3>
+<div class="aspect-video rounded-lg overflow-hidden relative mb-4 border border-outline-variant/20">
+<div class="w-full h-full bg-surface-container-high animate-pulse flex items-center justify-center" data-location="Ho Chi Minh City">
+<span class="text-on-surface-variant italic">Đang tải bản đồ khu vực...</span>
+</div>
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-8 h-8 bg-primary rounded-full border-4 border-white shadow-lg animate-bounce"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/10">
+<span class="text-body-sm text-on-surface-variant">Sản phẩm gần đây</span>
+<span class="text-label-md font-bold text-primary">1,240+</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/10">
+<span class="text-body-sm text-on-surface-variant">Người bán cộng đồng</span>
+<span class="text-label-md font-bold text-primary">85</span>
+</div>
+<div class="flex justify-between items-center py-2">
+<span class="text-body-sm text-on-surface-variant">Sự kiện trao đổi</span>
+<span class="text-label-md font-bold text-tertiary">2 diễn ra hôm nay</span>
+</div>
+</div>
+</div>
+<!-- Góc Sưu Tầm -->
+<div class="bg-surface-container-low rounded-xl p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline font-bold text-headline-sm">Góc Sưu Tầm</h3>
+<a class="text-label-sm text-primary underline decoration-2 underline-offset-4" href="#">Xem tất cả</a>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<!-- Collection Cards -->
+<div class="group cursor-pointer">
+<div class="aspect-square rounded-lg overflow-hidden mb-2 bg-white p-1">
+<img class="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-500" data-alt="A collection of vintage film cameras arranged neatly on a wooden desk, soft morning sunlight filtering through a window, muted teal and warm oak tones, professional product photography for a high-end boutique." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCExxnL4KhiKKXZRr0Kkg2zSlN-qgY66E0Kjydii6qeMOBPwIAjSPkDh9AFmpeI2LXJwpUtSXclqIXrDhnPakePGQEo5PQwSjiLAsBtMJYQFThILC2EaIgN62RyjeP7yHMZKDpSbL2io-6hpizpkM_qFNg50A2eszNY_1g2LVRjNOHSgX227yl89kTFVpalcTsPfi5BjQH8rio7QyB4nDkGn8Z_YsyrBmm2LRWA22Wh6DYOKgUa2RQ8ICIWFVejFAj9NCuvLThannE">
+</div>
+<p class="text-label-sm font-bold truncate">Hoài niệm Film</p>
+</div>
+<div class="group cursor-pointer">
+<div class="aspect-square rounded-lg overflow-hidden mb-2 bg-white p-1">
+<img class="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-500" data-alt="A curated selection of handmade ceramic bowls and plates in organic shapes, earthy glazes in shades of forest green and sandstone, minimalist background, soft focus on textures, professional studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-lQkO8_Wiu-jF-Lqw5WrdnX9UbhkDNhd2SB5avDy92FcRleuXjJ--_sbjmPpAIwBRjC9H9vAhROCRGKDy6MdPdCNsm-gtPx81jKpKT1ovNiS4Cf_kJ8iF7RNMlp977m03h-UhM6KKNkf_Q7JHzSWkJPQzmsjIeYlZtARlewuPo9oyA9T1CT_OjlOIGucqkW1Pj6d2keHH3fWvhRZs7SJDrzmoewaTbjN10WXJZzNxsPlKayVIYjhqHu3IiTkD5H195LZDfgFTbQs">
+</div>
+<p class="text-label-sm font-bold truncate">Gốm Nghệ Thuật</p>
+</div>
+<div class="group cursor-pointer">
+<div class="aspect-square rounded-lg overflow-hidden mb-2 bg-white p-1">
+<img class="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-500" data-alt="A close-up shot of several classic vinyl records with artistic cover art, leaning against a vintage wooden speaker, warm nostalgic atmosphere, soft ambient light, high-end minimalist design aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABLt2dHr0sK6GSY9jJMFQPG0KptMWULKZppajQDB7SAZd7LIIYIwX1AjqSwol5kWw-MhMQFZ9TagiT1OWE-5zmKKTiAO431CEjb8PqE7zI0nib0LzzsnLVFl2hGnXHJqtSvIjt8JHvRNXVMsZjzzDxnuyQ3aAW1vud5J3c-g5UiUiJMSHaMoOGR3m4U-FU43Qbzf4da9Rd1WHQgD_Tuhebj1lGt5Cbi-PO1HQF7bJyQbLu5Kgbjgjc7PphA24SsZ44GmeniLW3XjU">
+</div>
+<p class="text-label-sm font-bold truncate">Âm Nhạc Cũ</p>
+</div>
+<div class="group cursor-pointer">
+<div class="aspect-square rounded-lg overflow-hidden mb-2 bg-white p-1">
+<img class="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-500" data-alt="Exquisitely crafted leather journals and pens laid out on a dark leather surface, premium metallic accents, professional shadows, sophisticated dark-teal and bronze color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRN3LAogMSeKk2Ga5FBSqnQEkShxYaMzedXDC2YuGTKwjdV0Ci_O54V9xJ1_OkNw6Jv5X27G-8rhX0gfDf9zbYyBuUJHta4SCz_Nk1VcJQhBjNq_v8sRJSfVQ5Hzc174sgBLCjSU51KnAxFQRIg37SYFHNQP0RQgAfkxxxM54NBM4_MWaN5X8yDfXutQxYT-1qjKRARSj8kvcWIHIwI8a3tdO-o9mtxAlB_JKPYUcdhwkkSt9di1dMAGGp1ARJMCZJD3-7qQm0rD8">
+</div>
+<p class="text-label-sm font-bold truncate">Văn Phòng Phẩm</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content (8 cols) -->
+<div class="md:col-span-8 space-y-12">
+<!-- Refined Hero Section -->
+<section class="relative h-[480px] rounded-2xl overflow-hidden group" style="transform: scale(1);">
+<div class="absolute inset-0">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms]" data-alt="A panoramic scene of a vibrant community flea market in a modern urban park setting, people interacting warmly over tables of unique vintage items, golden hour lighting creating a glowing atmosphere, soft focus background, professional cinematic look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi7xKiudAWN2adGvdyN6lEEnmrrBpeY1yS-TDEIRdVxEl2qC-eavFY7YuLEiG3IYmFfhC4GJKz4knnxihfmUIpRHhUP1DJIavxqD1CwFr1FCyM2_EkKqkjWuk__AvMvWRWSjnQXyuz4uPHnXMXJshbsNu0EhvpeTMxdpxoEEr7nJZMPvuGJsqlrGdIutl0DXiaKsU740dPscDZTOfWzeeOmMugV4Od6vklrxYI__2Yf80hmZGo2VOnVdZ2CbblD6STcScuiPHpEKM">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-10 text-on-primary">
+<span class="inline-block bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-label-sm mb-4 uppercase tracking-widest border border-white/20">Kết nối thực - Giá trị thực</span>
+<h1 class="font-display font-extrabold text-4xl md:text-5xl mb-4 leading-tight">Cùng ShopNexus Viết Tiếp Câu Chuyện Của Những Món Đồ.</h1>
+<p class="text-body-lg text-white/90 max-w-xl mb-8">Nơi gặp gỡ của những tâm hồn trân trọng quá khứ và kiến tạo tương lai bền vững.</p>
+<button class="bg-white text-primary px-8 py-4 rounded-full font-bold shadow-xl hover:bg-surface-container-lowest transition-colors flex items-center gap-2 group/btn">
+                            Khám phá ngay 
+                            <span class="material-symbols-outlined group-hover/btn:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</section>
+<!-- Seller Stories (Horizontal) -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="font-headline font-bold text-headline-md">Câu chuyện người bán</h2>
+<p class="text-body-sm text-on-surface-variant">Lắng nghe hành trình từ những cá nhân đầy tâm huyết.</p>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-2 px-2">
+<!-- Story Card 1 -->
+<div class="min-w-[280px] bg-surface rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="h-40 relative">
+<img class="w-full h-full object-cover" data-alt="A portrait of a young artisan woman working in a well-lit pottery studio, hands covered in clay, smiling gently, soft depth of field, warm indoor lighting, modern professional photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALkNzXYaiXoelSMc5-x4s3DGNwb_APXHUQ1FygPjxTj1Iye6Bx7Yku7b818GnloFZ-zM-LdnRd6pJaUz5LqZ7IRkGvPS8WGcbHG1fTjZ9ck3uz2k9jsH0Auf_EajjOlGTkp7goe95w33LuI0MwX9BIvJ9TUVawX8CgRb7cPFDMam-X_ftsWth4jngMsA9uk0QQq0mJ1k-LhG35WwQY9hDs-tColSWYqyyVz_PF5IOa35j4Xfhv3w04sWUoL4BfP7hW5W8SDW89qfU">
+<div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-label-sm font-bold text-primary">An Ceramics</div>
+</div>
+<div class="p-4">
+<p class="text-body-sm line-clamp-2 italic mb-3">"Mỗi chiếc bát gốm đều mang một hơi thở riêng của người làm ra nó..."</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-label-sm font-semibold uppercase tracking-wider">Người bán tin cậy</span>
+</div>
+</div>
+</div>
+<!-- Story Card 2 -->
+<div class="min-w-[280px] bg-surface rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="h-40 relative">
+<img class="w-full h-full object-cover" data-alt="A middle-aged man with glasses meticulously repairing a vintage mechanical watch in a cluttered but organized workshop, focused expression, detailed macro lighting on watch components, moody and professional aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFU-MmW1BDt8zmooSKxT9RsIpomiclVEdf4N0XmxdXyfzNolAI768jHCNo1hLtWTOKYTLoPbwBPzK7DyFyUyfgbicEaDn9vaQueKQiCdKh0yrZZVcBgvUwgzTmCnVHUGpFPozaw5op4UpQC7_LnESr3KLH8Au3Kf9jC23ezCAX4uDI62bZx0ic6DHohvBowYk4Gpm07rW3ocYIj0KB2bNR7NMuAX5-lVzM77RUBxrtkzfhkqtQRCY8ieUDHyghCS0WaqL5y75d5no">
+<div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-label-sm font-bold text-primary">Vintage Time</div>
+</div>
+<div class="p-4">
+<p class="text-body-sm line-clamp-2 italic mb-3">"Đồng hồ cũ không chỉ xem giờ, nó còn lưu giữ những khoảnh khắc quý giá."</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-label-sm font-semibold uppercase tracking-wider">Người bán tin cậy</span>
+</div>
+</div>
+</div>
+<!-- Story Card 3 -->
+<div class="min-w-[280px] bg-surface rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="h-40 relative">
+<img class="w-full h-full object-cover" data-alt="A creative young artist organizing a shelf of colorful, recycled textile bags in a minimalist shop, natural sunlight, airy and sustainable fashion vibe, teal and neutral palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6p_cUIG6mwWwV_ANfL-mBgSiiERLWrcZrCi14gxfJM9X8WzvbZVNFMjhItxI6r5NMpuDJ1srAObdn4QxUj4Y3t7Mcdhlgv1s8x74tiPKbUJ-MCrqA6tP27o_u1PU-_tN-c1rR9pL1bL-UbirZrJnBImgKctdEZoR4Fe52qAYXa_idBvMK6xyn_Dz5aJiGdmvSYavRvYM8pJH-xcxGG45e16ma-8npU389vOrTNU0CleGTDFsjHNPf08VhoAgYO56j2XRLo78MPrI">
+<div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-label-sm font-bold text-primary">Green Thread</div>
+</div>
+<div class="p-4">
+<p class="text-body-sm line-clamp-2 italic mb-3">"Thời trang bền vững bắt đầu từ việc yêu lại những gì đã cũ."</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-label-sm font-semibold uppercase tracking-wider">Cộng đồng chọn</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Discovery Feed -->
+<section>
+<div class="flex justify-between items-center mb-8">
+<h2 class="font-headline font-bold text-headline-md">Dòng Khám Phá</h2>
+<div class="flex gap-4">
+<button class="text-label-md font-bold text-primary border-b-2 border-primary">Tất cả</button>
+<button class="text-label-md text-on-surface-variant hover:text-primary transition-colors">Vừa đăng</button>
+<button class="text-label-md text-on-surface-variant hover:text-primary transition-colors">Đề xuất</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Product Card Large (Bento Piece) -->
+<div class="md:col-span-2 md:row-span-2 relative group rounded-2xl overflow-hidden shadow-sm cursor-pointer border border-outline-variant/20" style="transform: scale(1);">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A large, beautifully restored wooden chest from the 1920s with intricate metal carvings, placed in a modern minimalist living room, dramatic side lighting highlighting the wood grain, premium furniture catalog style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCm5yiiT-wBdLP0J0YJNuMBC3EnzCkCfv4vtuywwk7EjBwFT4VcowMT875-mzn30V9-UGhkFQBWqJyP-SgDGCx4MJiZNTfFYf7CnLDsIn46c4nBdLYDBxpi2mQUQzDkpnrW1y9lrvfTvPPS9VmXJzKjZABU6WvqOB5o_tFVn_GzbBjlpiTij3yaPrdDDt59x7S6D4dMrnGo5ESCNf_wulWTPSlfnC8cqsXYraE84ay4i8u7xc-21z8Ru5gSIJbGj5onPwbbY0j2R9w">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-sm font-bold mb-2 inline-block">Món đồ đặc biệt</span>
+<h3 class="text-on-primary text-2xl font-bold mb-1">Rương Gỗ Sồi Pháp 1920s</h3>
+<p class="text-white/80 text-body-md mb-4">Một kiệt tác thời gian được phục chế tỉ mỉ bởi nghệ nhân mộc tại Đà Lạt.</p>
+<div class="flex items-center justify-between">
+<span class="text-2xl font-black text-white">4.500.000đ</span>
+<button class="bg-white/20 backdrop-blur-md p-2 rounded-full text-white hover:bg-white hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card Medium -->
+<div class="bg-surface rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 hover:border-primary/40 transition-colors group" style="transform: scale(1);">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="An Olympus OM-1 vintage film camera with a 50mm lens, placed on a moss-green fabric, cinematic lighting, sharp detail on the metallic dials, professional gear photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4iqG3hlHhW1Y-5n2CBvNA30OpNAxzIjhqgoQJ39A0IMA6c3XoOplocyuXLjpoJAbdVjaA6CPPaD-tsHILfnPg5CY90zfAoixNMgSK3Fup-Na0vlQrWFsPsNRgsqI1SPKMnQyVnS7nzflUr1Vw8tv7ddcTYKJC5Vx9vMi1XCqkpciMR4SoLrY_C8WS3x7PpmfV0AxKrYRTw-fOLttDw2Mbfevq4xSI5GfG-j1i_QgvROxO8twmJvppc0DScvenBij21VMfBg611pA">
+<div class="absolute top-3 right-3">
+<button class="bg-white/90 p-2 rounded-full text-on-surface-variant shadow-md">
+<span class="material-symbols-outlined text-sm" data-icon="favorite">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h4 class="font-headline font-bold text-body-md mb-1">Olympus OM-1 + 50mm f1.8</h4>
+<div class="flex items-center gap-2 mb-3">
+<div class="w-5 h-5 rounded-full bg-surface-container-high border border-outline-variant/50"></div>
+<span class="text-label-sm text-on-surface-variant">Phúc Camera</span>
+</div>
+<span class="text-primary font-bold text-label-md">3.200.000đ</span>
+</div>
+</div>
+<!-- Product Card Medium -->
+<div class="bg-surface rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 hover:border-primary/40 transition-colors group" style="transform: scale(1);">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Handcrafted minimalist silver jewelry set including a necklace and earrings, displayed on a clean white textured surface, soft shadows, high-key lighting, elegant and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb9Y_-udrNIHkfs9Gn_f45Jp6aD7SxGsAeEulIsBIU1ibfAEwzvnaDqDMIwY9Q3oVetg6yaxRsqZlq7LOCZZPccS5QnabjVGkGVeuEN_rxBjinVCuy329dwCcYgQj6yo1wXdm4T9DczjiZUO6Fgsuzy1uHuEcSBxw-amVKSOxSxFc_pHBCdFG8u31YGuUzZWGAeGODRiC2h6G7yoPDdumqQiWpMABotJngQ49lCJaLXxwDrAZneorVoyohGDg_fzypgRODD-j0Vvk">
+<div class="absolute top-3 right-3">
+<button class="bg-white/90 p-2 rounded-full text-on-surface-variant shadow-md">
+<span class="material-symbols-outlined text-sm" data-icon="favorite">favorite</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<h4 class="font-headline font-bold text-body-md mb-1">Dây Chuyền Bạc Thủ Công</h4>
+<div class="flex items-center gap-2 mb-3">
+<div class="w-5 h-5 rounded-full bg-surface-container-high border border-outline-variant/50"></div>
+<span class="text-label-sm text-on-surface-variant">Tiệm Bạc Xưa</span>
+</div>
+<span class="text-primary font-bold text-label-md">850.000đ</span>
+</div>
+</div>
+<!-- Editorial Quote / Promotion (Bento Piece) -->
+<div class="bg-primary-container text-on-primary-container p-8 rounded-2xl flex flex-col justify-between">
+<span class="material-symbols-outlined text-4xl opacity-50" data-icon="format_quote">format_quote</span>
+<p class="font-headline font-bold text-headline-sm leading-relaxed mb-6">"Đồ cũ không phải là rác, đó là những câu chuyện đang chờ được kể lại."</p>
+<div class="flex items-center gap-4">
+<div class="h-[2px] flex-1 bg-on-primary-container/30"></div>
+<span class="text-label-sm uppercase tracking-tighter opacity-80">ShopNexus Manifesto</span>
+</div>
+</div>
+<!-- Product Card Small -->
+<div class="bg-surface rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 group" style="transform: scale(1);">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A stack of three vintage Levi's 501 jeans in different blue washes, arranged neatly, studio lighting, focus on fabric texture and stitching, modern thrift store vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxIzgT397yZpdTKCwnLOJs15-67DlkYtB_8NPZ9HQ6C3HznzBmEYfwVwMRAv4B8jrCfGR4yiTruGpuooxPtfgCIizXnFrE3O--aPCdlIRDOniM5-WVEJzcKi4CS7mnI2fyGLnMEz_bSYbp_XqpTndRtWdbLnPMSgkAcswNFWUT9Ifpw-joBIoVnT4dh0VOWwXsmqsNyXFpZYfKaUb1RBYJRc5S3Dm73jjFYlqvMJJ1Napidju2fray6adgj_LfPOfww5sx3gCchWs">
+</div>
+<div class="p-3">
+<h4 class="font-headline font-bold text-label-md truncate mb-1">Levi's 501 Vintage USA</h4>
+<span class="text-primary font-bold text-label-sm">1.100.000đ</span>
+</div>
+</div>
+<!-- Product Card Small -->
+<div class="bg-surface rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 group" style="transform: scale(1);">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A minimalist white porcelain tea set on a bamboo tray, soft morning light, serene zen atmosphere, professional still life photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiUGQfpQPwzZ_RbThCeGGS8IWUfPO6eetMlDmGZ6DAHYrG9xy5xw6ACb_EOn91YsunzA_IJZ6i1cEpacu6iLIuby4C1cL1P1GE90S0e0inm6-3gJokYzZtXnS6ajYS6drZWH9BJ061TXmQXaA8uJ7imdAt2OOJB9pspq4rfdK1QA0Nkz-_YvBpNTo0Xz0BCg7b9pGTzZNY8-g6gaoI5BB4FucoyIhwn5-3og1dnWmWP1ntK_I-NU668tkEqickGwVz9PvssahNn_A">
+</div>
+<div class="p-3">
+<h4 class="font-headline font-bold text-label-md truncate mb-1">Bộ Trà Sứ Trắng Tinh Khiết</h4>
+<span class="text-primary font-bold text-label-sm">450.000đ</span>
+</div>
+</div>
+</div>
+<div class="mt-12 flex justify-center">
+<button class="px-12 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-on-primary transition-all duration-300">
+                            Tải thêm sản phẩm
+                        </button>
+</div>
+</section>
+</div>
+</div>
+<!-- Về ShopNexus Trust Section -->
+<section class="mt-24 pt-16 border-t border-outline-variant/30">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
+<div class="space-y-4">
+<div class="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center mx-auto md:mx-0">
+<span class="material-symbols-outlined text-primary" data-icon="handshake">handshake</span>
+</div>
+<h3 class="font-headline font-bold text-headline-sm">Giao dịch tin cậy</h3>
+<p class="text-body-md text-on-surface-variant">ShopNexus bảo vệ quyền lợi người mua và người bán với hệ thống đánh giá minh bạch và quy trình thanh toán an toàn.</p>
+</div>
+<div class="space-y-4">
+<div class="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center mx-auto md:mx-0">
+<span class="material-symbols-outlined text-primary" data-icon="eco">eco</span>
+</div>
+<h3 class="font-headline font-bold text-headline-sm">Tiêu dùng bền vững</h3>
+<p class="text-body-md text-on-surface-variant">Góp phần giảm thiểu rác thải môi trường bằng cách tái sử dụng và trao đổi những giá trị vẫn còn vẹn nguyên.</p>
+</div>
+<div class="space-y-4">
+<div class="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center mx-auto md:mx-0">
+<span class="material-symbols-outlined text-primary" data-icon="groups">groups</span>
+</div>
+<h3 class="font-headline font-bold text-headline-sm">Cộng đồng gắn kết</h3>
+<p class="text-body-md text-on-surface-variant">Không chỉ là mua bán, đây là nơi những người có cùng sở thích kết nối, học hỏi và chia sẻ niềm đam mê.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-highest w-full py-16 px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="font-headline font-bold text-lg text-primary">ShopNexus</span>
+<p class="font-body text-body-sm text-on-surface-variant text-center md:text-left max-w-xs">© 2024 ShopNexus. Human-centric commerce. Đồng hành cùng cộng đồng yêu đồ cũ Việt Nam.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-body text-body-sm text-on-surface-variant hover:underline decoration-primary decoration-2 underline-offset-4 transition-all duration-200" href="#">The Manifesto</a>
+<a class="font-body text-body-sm text-on-surface-variant hover:underline decoration-primary decoration-2 underline-offset-4 transition-all duration-200" href="#">Transparency</a>
+<a class="font-body text-body-sm text-on-surface-variant hover:underline decoration-primary decoration-2 underline-offset-4 transition-all duration-200" href="#">Safety Hub</a>
+<a class="font-body text-body-sm text-on-surface-variant hover:underline decoration-primary decoration-2 underline-offset-4 transition-all duration-200" href="#">Help</a>
+</div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface shadow-xl md:hidden rounded-t-xl">
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1.5 active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined active-pill" data-icon="explore">explore</span>
+<span class="font-label text-label-sm">Nexus</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label text-label-sm">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="font-label text-label-sm">Saved</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label text-label-sm">Inbox</span>
+</a>
+</nav>
+<!-- FAB (Contextual) -->
+<button class="fixed bottom-24 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-40 md:bottom-8">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        const searchContainer = searchInput.parentElement;
+        
+        searchInput.addEventListener('focus', () => {
+            searchContainer.classList.add('ring-2', 'ring-primary', 'bg-white');
+        });
+        
+        searchInput.addEventListener('blur', () => {
+            searchContainer.classList.remove('ring-2', 'ring-primary', 'bg-white');
+        });
+    </script>
+
+
+</body></html>
