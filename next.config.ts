@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: [
-    "6c1f-2001-ee0-4f03-8030-66dc-2aab-977e-8816.ngrok-free.app",
-  ],
+  // Emit .next/standalone/server.js — a self-contained server with only the
+  // traced dependencies, so the runtime image needs no node_modules install.
+  output: "standalone",
   images: {
     remotePatterns: [
       {
