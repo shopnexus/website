@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// catalog.mock.ts
-// Mock data for listing, SKU, category, tag, review, favorites.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type {
   Category,
@@ -23,7 +19,6 @@ import type {
 import { mockResource, mockAvatarResource } from './common.mock';
 import { mockSellerAccountSummary, mockAccountSummary } from './account.mock';
 
-// ── Categories ────────────────────────────────────────────────────────────────
 
 export const mockCategoryElectronics: Category = {
   id: 'cat_7v2p41ryaj811',
@@ -50,7 +45,6 @@ export const mockCategoryList: CategoryList = {
   data: [mockCategoryElectronics, mockCategoryPhone, mockCategoryFashion],
 };
 
-// ── Tags ──────────────────────────────────────────────────────────────────────
 
 export const mockTagHandmade: Tag = { slug: 'handmade', description: 'Sản phẩm thủ công' };
 export const mockTagVintage: Tag = { slug: 'vintage', description: 'Đồ cổ điển vintage' };
@@ -60,7 +54,6 @@ export const mockTagList: TagList = {
   data: [mockTagHandmade, mockTagVintage, mockTagElectronics],
 };
 
-// ── SKU & Stock ───────────────────────────────────────────────────────────────
 
 export const mockStock: Stock = {
   sku_id: 'sku_vq1wd6ptz3n8k',
@@ -89,7 +82,6 @@ export const mockSkuSecondVariant: Sku = {
   stock: { sku_id: 'sku_variant2nd0001', stock: 2, reserved: 0, available: 2 },
 };
 
-// ── Listing (card) ────────────────────────────────────────────────────────────
 
 export const mockListing: Listing = {
   id: 'spu_1ryaj8117v2p4',
@@ -139,7 +131,6 @@ export const mockListingPage: ListingPage = {
   meta: { page: 1, limit: 10, total_count: null },
 };
 
-// ── Listing Detail ────────────────────────────────────────────────────────────
 
 export const mockListingDetail: ListingDetail = {
   id: 'spu_1ryaj8117v2p4',
@@ -183,7 +174,6 @@ Thông số:
   pending_edit: null,
 };
 
-// ── Reviews ───────────────────────────────────────────────────────────────────
 
 export const mockReviewVoteTally: ReviewVoteTally = {
   helpful: 12,
@@ -228,7 +218,6 @@ export const mockReviewPage: ReviewPage = {
   meta: { next_cursor: null },
 };
 
-// ── Favorites ─────────────────────────────────────────────────────────────────
 
 export const mockFavorite: Favorite = {
   spu_id: 'spu_1ryaj8117v2p4',

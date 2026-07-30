@@ -25,7 +25,6 @@ export default function SettingsForm() {
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
-      {/* Sidebar Navigation (Desktop) / Tab Bar (Mobile) */}
       <aside className="w-full md:w-64 flex-shrink-0">
         <nav className="flex md:flex-col gap-1 overflow-x-auto md:bg-surface-container-low p-2 rounded-xl sticky top-24 hide-scrollbar">
           {TABS.map((tab) => (
@@ -46,10 +45,8 @@ export default function SettingsForm() {
         </nav>
       </aside>
 
-      {/* Settings Panels */}
       <section className="flex-grow space-y-6">
         
-        {/* Shop Profile Section */}
         {activeTab === "profile" && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant shadow-sm">
@@ -59,7 +56,6 @@ export default function SettingsForm() {
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Logo Upload */}
                 <div className="flex flex-col items-center text-center space-y-4">
                   <div className="relative group">
                     <div className="w-32 h-32 rounded-full overflow-hidden bg-surface-container-high border-2 border-dashed border-outline flex items-center justify-center relative">
@@ -75,7 +71,6 @@ export default function SettingsForm() {
                   </div>
                 </div>
                 
-                {/* Name & Bio */}
                 <div className="md:col-span-2 space-y-6">
                   <div className="space-y-2">
                     <label className="font-label-sm text-on-surface-variant uppercase tracking-wider">Tên Cửa hàng</label>
@@ -132,7 +127,6 @@ export default function SettingsForm() {
           </div>
         )}
 
-        {/* Shipping Preferences Section */}
         {activeTab === "shipping" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant shadow-sm">
@@ -174,7 +168,6 @@ export default function SettingsForm() {
           </div>
         )}
 
-        {/* Payments & Security tabs placeholders for UI matching design */}
         {activeTab === "payments" && (
           <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="font-headline font-bold text-xl mb-6">Phương thức Thanh toán</h2>

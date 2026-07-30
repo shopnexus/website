@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// common.mock.ts
-// Mock data for common/shared types (Resource, Option, etc.)
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type { Resource, ResourceID, Option, OptionList, UploadTicket } from '@/types/common.type';
 

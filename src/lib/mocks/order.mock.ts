@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// order.mock.ts
-// Mock data for order, cart, draft, offer, checkout, contact.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type {
   Contact,
@@ -24,7 +20,6 @@ import type {
 } from '@/types/order.type';
 import { mockAccountID, mockSellerAccountID } from './account.mock';
 
-// ── Contact ───────────────────────────────────────────────────────────────────
 
 export const mockContactID: ContactID = 'ctc_kvq1wd6ptz3n8';
 
@@ -74,7 +69,6 @@ export const mockContactList: ContactList = {
   data: [mockContact, mockPickupContact],
 };
 
-// ── Order Address Snapshot ────────────────────────────────────────────────────
 
 export const mockOrderAddress: OrderAddressSnapshot = {
   full_name: mockContact.full_name,
@@ -89,7 +83,6 @@ export const mockOrderAddress: OrderAddressSnapshot = {
   provider_codes: mockContact.provider_codes,
 };
 
-// ── Cart ──────────────────────────────────────────────────────────────────────
 
 export const mockCartItem: CartItem = {
   id: 'crt_3n8kvq1wd6ptz',
@@ -106,7 +99,6 @@ export const mockCartItemPage: CartItemPage = {
   meta: { page: 1, limit: 20, total_count: 2 },
 };
 
-// ── Draft Order ───────────────────────────────────────────────────────────────
 
 const mockDraftSKU: DraftSKUSnapshot = {
   id: 'sku_vq1wd6ptz3n8k',
@@ -140,7 +132,6 @@ export const mockDraftOrderPage: DraftOrderPage = {
   meta: { page: 1, limit: 20, total_count: 1 },
 };
 
-// ── Order Item ────────────────────────────────────────────────────────────────
 
 export const mockOrderItem: OrderItem = {
   id: 'itm_q1wd6ptz3n8kv',
@@ -167,7 +158,6 @@ export const mockOrderItemPage: OrderItemPage = {
   meta: { next_cursor: null },
 };
 
-// ── Order ─────────────────────────────────────────────────────────────────────
 
 export const mockOrder: Order = {
   id: 'ord_fv2cpg50vkrfp',
@@ -208,7 +198,6 @@ export const mockOrderPage: OrderPage = {
   meta: { next_cursor: null },
 };
 
-// ── Offer ─────────────────────────────────────────────────────────────────────
 
 export const mockOffer: Offer = {
   id: 'ofr_ptz3n8kvq1wd6',
@@ -230,7 +219,6 @@ export const mockOfferPage: OfferPage = {
   meta: { next_cursor: null },
 };
 
-// ── Checkout Result ───────────────────────────────────────────────────────────
 
 export const mockCheckoutResult: CheckoutResult = {
   items: [mockOrderItem],

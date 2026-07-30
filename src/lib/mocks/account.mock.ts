@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// account.mock.ts
-// Mock data for account, auth, profile, KYC, device, notification types.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type {
   AccountID,
@@ -22,12 +18,10 @@ import type {
 } from '@/types/account.type';
 import { mockAvatarResource } from './common.mock';
 
-// ── IDs ───────────────────────────────────────────────────────────────────────
 
 export const mockAccountID: AccountID = 'acc_62mxefynht57b';
 export const mockSellerAccountID: AccountID = 'acc_seller1234567';
 
-// ── Profile ───────────────────────────────────────────────────────────────────
 
 export const mockProfile: Profile = {
   name: 'Nguyễn Văn An',
@@ -41,7 +35,6 @@ export const mockProfile: Profile = {
   gender: 'male',
 };
 
-// ── Me (current user) ─────────────────────────────────────────────────────────
 
 export const mockMe: Me = {
   id: mockAccountID,
@@ -57,7 +50,6 @@ export const mockMe: Me = {
   username: 'nguyenvanan',
 };
 
-// ── AccountSummary ────────────────────────────────────────────────────────────
 
 export const mockAccountSummary: AccountSummary = {
   id: mockAccountID,
@@ -86,7 +78,6 @@ export const mockAccountSummaryPage: AccountSummaryPage = {
   meta: { page: 1, limit: 20, total_count: 5 },
 };
 
-// ── PublicAccount (seller page) ───────────────────────────────────────────────
 
 export const mockPublicAccount: PublicAccount = {
   id: mockSellerAccountID,
@@ -98,7 +89,6 @@ export const mockPublicAccount: PublicAccount = {
   description: 'Chuyên bán đồ điện tử cũ, laptop, điện thoại đã qua sử dụng còn mới 90-99%.',
 };
 
-// ── Auth Result ───────────────────────────────────────────────────────────────
 
 export const mockAuthResult: AuthResult = {
   access_token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhY2NfNjJteGVmeW5odDU3YiJ9.mocktoken',
@@ -107,7 +97,6 @@ export const mockAuthResult: AuthResult = {
   account: mockMe,
 };
 
-// ── Devices ───────────────────────────────────────────────────────────────────
 
 export const mockDevice: Device = {
   id: 'dvc_ynht57b62mxef',
@@ -130,7 +119,6 @@ export const mockDeviceList: DeviceList = {
   ],
 };
 
-// ── KYC / Identity Documents ──────────────────────────────────────────────────
 
 export const mockIdentityDocument: IdentityDocument = {
   id: 'idd_57b62mxefynht',
@@ -147,7 +135,6 @@ export const mockIdentityDocumentList: IdentityDocumentList = {
   data: [mockIdentityDocument],
 };
 
-// ── Notifications ─────────────────────────────────────────────────────────────
 
 export const mockNotifications: Notification[] = [
   {
@@ -192,7 +179,6 @@ export const mockNotificationPage: NotificationPage = {
   meta: { next_cursor: null },
 };
 
-// ── Notification Preferences ──────────────────────────────────────────────────
 
 export const mockNotificationPreferences: NotificationPreference[] = [
   { category: 'order', channel: 'in-app', is_enabled: true, is_default: true },

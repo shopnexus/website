@@ -21,7 +21,6 @@ export default function SellPage() {
     <div className="min-h-screen bg-surface-container-lowest py-8 pb-24">
       <div className="max-w-3xl mx-auto px-4 md:px-8">
 
-        {/* Page header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-on-surface flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">sell</span>
@@ -35,20 +34,16 @@ export default function SellPage() {
           </Link>
         </div>
 
-        {/* Step Indicator */}
         <StepIndicator
           steps={["Hình ảnh", "Thông tin", "Giá & Giao hàng"]}
           currentStep={currentStep}
           className="mb-10"
         />
 
-        {/* Card */}
         <div className="bg-surface rounded-3xl border border-outline-variant shadow-sm overflow-hidden">
 
-          {/* Content body */}
           <div className="p-6 md:p-10">
 
-            {/* STEP 0: Images */}
             {currentStep === 0 && (
               <div>
                 <h3 className="text-xl font-bold mb-2">Thêm hình ảnh / video</h3>
@@ -57,14 +52,12 @@ export default function SellPage() {
                 </p>
 
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 mb-8">
-                  {/* Main Upload Box */}
                   <div className="col-span-2 row-span-2 sm:col-span-2 aspect-square bg-surface-container-low border-2 border-dashed border-primary/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-surface-container transition-colors">
                     <span className="material-symbols-outlined text-[48px] text-primary mb-2">add_a_photo</span>
                     <div className="text-sm font-semibold text-primary mb-1">Tải ảnh lên</div>
                     <div className="text-xs text-on-surface-variant">hoặc kéo thả vào đây</div>
                   </div>
 
-                  {/* Image Slots */}
                   {[...Array(6)].map((_, i) => (
                     <div
                       key={i}
@@ -82,7 +75,6 @@ export default function SellPage() {
               </div>
             )}
 
-            {/* STEP 1: Info */}
             {currentStep === 1 && (
               <div className="flex flex-col gap-6">
                 <div>
@@ -154,7 +146,6 @@ export default function SellPage() {
               </div>
             )}
 
-            {/* STEP 2: Price & Delivery */}
             {currentStep === 2 && (
               <div className="flex flex-col gap-6">
                 <div>
@@ -210,7 +201,6 @@ export default function SellPage() {
             )}
           </div>
 
-          {/* Footer Actions */}
           <div className="px-6 md:px-10 py-5 border-t border-outline-variant bg-surface-container-lowest flex justify-between items-center">
             <button
               className="text-primary text-sm font-semibold hover:underline"

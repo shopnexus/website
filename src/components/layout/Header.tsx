@@ -15,7 +15,6 @@ export default function Header(): React.ReactElement | null {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Only render big hero search bar on Home page ("/")
   if (pathname !== "/") {
     return null;
   }
@@ -75,7 +74,6 @@ export default function Header(): React.ReactElement | null {
         </button>
       </form>
 
-      {/* Suggestion Chips */}
       <div className="flex flex-wrap gap-2 mt-4 overflow-x-auto hide-scrollbar items-center">
         <span className="text-label-sm text-on-surface-variant self-center mr-2">Gợi ý:</span>
         {SUGGESTIONS.map((item) => (

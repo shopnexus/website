@@ -15,7 +15,6 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
   const resolvedParams = use(params);
   const shopId = resolvedParams.id;
   
-  // Using the new mock data
   const seller = mockPublicAccount;
   const displayProducts = mockListingPage.data;
 
@@ -30,7 +29,6 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
   return (
     <div className="bg-surface-container-lowest min-h-screen">
       
-      {/* ── Shop Header Background ── */}
       <div className="h-48 md:h-64 bg-surface-container-low w-full relative overflow-hidden">
         <Image src="https://picsum.photos/seed/shopcover/1440/300" alt="Shop Cover" fill className="object-cover opacity-60" />
       </div>
@@ -38,7 +36,6 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
       <div className="max-w-[1440px] mx-auto px-4 md:px-8">
         <div className="flex flex-col lg:flex-row gap-8 relative -top-12">
           
-          {/* ── Left Sidebar (Seller Info) ── */}
           <aside className="w-full lg:w-80 shrink-0">
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-md text-center">
               <div className="relative w-28 h-28 mx-auto rounded-full border-4 border-surface overflow-hidden mb-4 shadow-sm -mt-16 bg-surface">
@@ -91,14 +88,11 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
             </div>
           </aside>
 
-          {/* ── Main Area ── */}
           <div className="flex-1 mt-12 lg:mt-0">
-            {/* Nav Tabs */}
             <div className="mb-6">
               <Tabs tabs={tabs} activeTabId={activeTab} onChange={setActiveTab} />
             </div>
 
-            {/* Content Based on Tab */}
             {activeTab === "store" && (
               <div>
                 <div className="flex items-center justify-between mb-6">

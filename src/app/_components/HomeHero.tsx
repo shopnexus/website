@@ -6,7 +6,6 @@ import Link from "next/link";
 export default function HomeHero(): React.ReactElement {
   return (
     <div className="space-y-12">
-      {/* Refined Hero Section */}
       <section className="relative h-[480px] rounded-2xl overflow-hidden group">
         <div className="absolute inset-0">
           <img

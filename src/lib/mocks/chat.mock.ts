@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// chat.mock.ts
-// Mock data for conversation, message, unread counts.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type {
   Conversation,
@@ -13,7 +9,6 @@ import type {
 import { mockAccountID, mockSellerAccountSummary, mockAccountSummary } from './account.mock';
 import { mockResource } from './common.mock';
 
-// ── Messages ──────────────────────────────────────────────────────────────────
 
 export const mockTextMessage: Message = {
   id: 'msg_buyer0000001a',
@@ -74,7 +69,6 @@ export const mockMessagePage: MessagePage = {
   meta: { next_cursor: null },
 };
 
-// ── Conversations ─────────────────────────────────────────────────────────────
 
 export const mockConversation: Conversation = {
   id: 'cnv_6ptz3n8kvq1wd',
@@ -146,7 +140,6 @@ export const mockConversationPage: ConversationPage = {
   meta: { next_cursor: null },
 };
 
-// ── Unread Counts ─────────────────────────────────────────────────────────────
 
 export const mockChatUnreadCount: ChatUnreadCount = {
   unread: 6,

@@ -11,13 +11,11 @@ const formatPrice = (price: number) =>
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   
-  // Using new mock data
   const product = mockListingDetail;
   const { seller } = product;
 
   return (
     <div className="bg-surface-container-lowest min-h-screen pb-24">
-      {/* ── Breadcrumb ── */}
       <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-4">
         <nav className="flex items-center text-sm text-on-surface-variant font-label-md">
           <Link href="/" className="hover:text-primary transition-colors">Trang chủ</Link>
@@ -30,7 +28,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
       <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* ── Left Column: Images ── */}
           <div className="w-full lg:w-[500px] shrink-0">
             <div className="bg-surface rounded-2xl border border-outline-variant overflow-hidden mb-4 relative aspect-[4/5]">
               {product.images?.[0] ? (
@@ -44,13 +41,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               ) : (
                 <div className="w-full h-full bg-surface-container flex items-center justify-center">No Image</div>
               )}
-              {/* Product Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
                 <Badge variant="surface">{LISTING_CONDITION_VI[product.condition] || product.condition}</Badge>
               </div>
             </div>
             
-            {/* Thumbnail Gallery */}
             {product.images && product.images.length > 1 && (
               <div className="flex gap-4 overflow-x-auto hide-scrollbar">
                 {product.images.map((img, idx) => (
@@ -65,7 +60,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             )}
           </div>
 
-          {/* ── Right Column: Info ── */}
           <div className="flex-1">
             <h1 className="font-headline-md font-bold text-on-surface mb-4">
               {product.name}
@@ -85,7 +79,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             </div>
 
-            {/* Seller Card */}
             <div className="bg-surface rounded-2xl p-6 border border-outline-variant mb-6 flex flex-col sm:flex-row items-center gap-4 shadow-sm">
               <Link href={`/shop/${seller.id}`} className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
                 {seller.avatar?.url ? (
@@ -113,7 +106,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             </div>
 
-            {/* Details Table */}
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 mb-6 shadow-sm">
               <h3 className="font-headline-sm font-bold mb-4">Chi tiết sản phẩm</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-body-md">
@@ -136,7 +128,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             </div>
 
-            {/* Description */}
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <h3 className="font-headline-sm font-bold mb-4">Mô tả</h3>
               <div className="font-body-md text-on-surface leading-relaxed whitespace-pre-wrap">
@@ -147,7 +138,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      {/* ── Sticky Bottom Bar ── */}
       <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 p-4">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-4">
           <div className="hidden sm:flex items-center gap-4">

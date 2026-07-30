@@ -13,7 +13,6 @@ const formatPrice = (price: number) =>
 export default function CheckoutPage(){
   const router = useRouter();
   
-  // Calculate totals from draft orders
   const subtotal = mockDraftOrderPage.data.reduce((total, draft) => {
     return total + draft.snapshot.skus.reduce((acc, sku) => acc + sku.price, 0); // Assuming 1 qty per sku for mock
   }, 0);
@@ -29,7 +28,6 @@ export default function CheckoutPage(){
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
       <div className="max-w-[1200px] mx-auto px-4 md:px-8">
         
-        {/* Step Indicator */}
         <div className="mb-8 hidden md:block">
            <StepIndicator 
              steps={["Giỏ hàng", "Thanh toán", "Xác nhận"]} 
@@ -40,10 +38,8 @@ export default function CheckoutPage(){
         <h1 className="font-headline-md font-bold mb-6">Thanh toán</h1>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* ── Left Column: Forms ── */}
           <div className="flex-1 flex flex-col gap-6">
             
-            {/* Delivery Address */}
             <section className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0Ij48cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iNCIgZmlsbD0iIzAwNGU0NyIvPjxyZWN0IHg9IjIwIiB3aWR0aD0iMjAiIGhlaWdodD0iNCIgZmlsbD0iI2JhMWExYSIvPjwvc3ZnPg==')] bg-repeat-x"></div>
               
@@ -65,7 +61,6 @@ export default function CheckoutPage(){
               </div>
             </section>
 
-            {/* Products & Shipping per shop */}
             <section className="bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-sm">
               <h2 className="font-headline-sm font-bold p-6 border-b border-outline-variant">
                 Sản phẩm
@@ -73,13 +68,11 @@ export default function CheckoutPage(){
               
               {mockDraftOrderPage.data.map((draft, dIdx) => (
                 <div key={draft.id} className={["p-6", dIdx > 0 ? "border-t border-outline-variant border-dashed" : ""].join(" ")}>
-                  {/* Shop Info */}
                   <div className="font-label-md text-on-surface mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[20px]">store</span>
                     Shop {draft.snapshot.seller_id}
                   </div>
                   
-                  {/* Items */}
                   <div className="flex flex-col gap-4 mb-6">
                     {draft.snapshot.skus.map((sku) => (
                       <div key={sku.id} className="flex gap-4">
@@ -104,7 +97,6 @@ export default function CheckoutPage(){
                     ))}
                   </div>
                   
-                  {/* Shipping Selection for this shop */}
                   <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                       <h4 className="font-label-md text-on-surface mb-1 text-primary">Phương thức vận chuyển</h4>
@@ -117,7 +109,6 @@ export default function CheckoutPage(){
                     </div>
                   </div>
                   
-                  {/* Shop Message */}
                   <div className="mt-4 flex flex-col gap-2">
                     <span className="text-label-md text-on-surface-variant font-medium">Lời nhắn cho người bán:</span>
                     <textarea 
@@ -129,7 +120,6 @@ export default function CheckoutPage(){
               ))}
             </section>
 
-            {/* Payment Method */}
             <section className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <h2 className="font-headline-sm font-bold mb-6">Phương thức thanh toán</h2>
               
@@ -153,7 +143,6 @@ export default function CheckoutPage(){
             </section>
           </div>
 
-          {/* ── Right Column: Order Summary ── */}
           <div className="w-full lg:w-[380px] shrink-0">
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 sticky top-24 shadow-sm">
               <h2 className="font-headline-sm font-bold mb-6">Đơn hàng</h2>

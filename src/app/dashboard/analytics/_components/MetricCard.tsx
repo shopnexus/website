@@ -3,7 +3,6 @@ import type { Metric } from "../_hooks/useAnalyticsData";
 export default function MetricCard({ metric }: { metric: Metric }) {
   const isPositive = metric.change > 0;
   
-  // Choose colors based on the icon for variety, matching the design
   let iconBg = "bg-primary-fixed";
   let iconColor = "text-on-primary-fixed";
   

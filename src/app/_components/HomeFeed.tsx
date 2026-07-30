@@ -10,7 +10,6 @@ export default function HomeFeed(): React.ReactElement {
   const [extraProducts, setExtraProducts] = useState<Listing[]>([]);
 
   const handleLoadMore = (): void => {
-    // For demo purposes, we clone the mock items to simulate pagination
     const batchIndex = Math.floor(extraProducts.length / mockListingPage.data.length) + 1;
     const clonedBatch = mockListingPage.data.map((p, idx) => ({
       ...p,

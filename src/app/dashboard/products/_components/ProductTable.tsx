@@ -24,9 +24,7 @@ export default function ProductTable() {
 
   return (
     <div className="w-full">
-      {/* Search and Filter Bar */}
       <section className="bg-surface-container-lowest rounded-xl p-4 mb-8 shadow-sm border border-outline-variant/30 flex flex-col lg:flex-row gap-4 items-center">
-        {/* Search */}
         <div className="relative w-full lg:max-w-md">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
           <input 
@@ -38,7 +36,6 @@ export default function ProductTable() {
           />
         </div>
 
-        {/* Filters */}
         <div className="flex flex-wrap items-center gap-2 w-full lg:flex-1">
           {(
             [
@@ -63,7 +60,6 @@ export default function ProductTable() {
           ))}
         </div>
 
-        {/* Display Toggle */}
         <div className="flex gap-1 bg-surface-container-high p-1 rounded-lg self-end lg:self-auto shrink-0">
           <button 
             onClick={() => setViewMode("list")}
@@ -80,7 +76,6 @@ export default function ProductTable() {
         </div>
       </section>
 
-      {/* Product Table/List Container */}
       <section className="bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-outline-variant/20 overflow-hidden">
         {products.length === 0 ? (
           <div className="p-12 text-center text-on-surface-variant">

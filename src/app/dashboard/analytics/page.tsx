@@ -9,7 +9,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-[1440px] mx-auto pb-12">
-      {/* Header Section */}
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="font-headline font-extrabold text-4xl md:text-5xl text-primary tracking-tight mb-2">Thống kê</h1>
@@ -18,7 +17,6 @@ export default function AnalyticsPage() {
           </p>
         </div>
         
-        {/* Filter Pills */}
         <div className="flex bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/30">
           {(
             [
@@ -43,14 +41,12 @@ export default function AnalyticsPage() {
         </div>
       </header>
 
-      {/* KPI Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {metrics.map((metric) => (
           <MetricCard key={metric.id} metric={metric} />
         ))}
       </div>
 
-      {/* Charts Section */}
       <RevenueChart />
     </div>
   );

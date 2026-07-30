@@ -52,7 +52,6 @@ export default function StepIndicator({
               </span>
             </div>
 
-            {/* Connecting Line */}
             {index < steps.length - 1 && (
               <div className="flex-1 h-px mx-2 relative -top-3">
                 <div

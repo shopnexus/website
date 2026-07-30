@@ -4,7 +4,6 @@ import ProductTable from "./_components/ProductTable";
 export default function MyProductsPage() {
   return (
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto">
-      {/* Header Section */}
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-primary mb-2 font-headline">Sản phẩm của tôi</h1>
@@ -18,7 +17,6 @@ export default function MyProductsPage() {
         </button>
       </header>
 
-      {/* Main Table */}
       <ProductTable />
     </div>
   );

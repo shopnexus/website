@@ -35,7 +35,6 @@ const COLLECTIONS = [
 export default function HomeSidebar(): React.ReactElement {
   return (
     <aside className="md:col-span-4 space-y-8">
-      {/* Khu Vực Của Bạn */}
       <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30 overflow-hidden">
         <h3 className="font-headline font-bold text-headline-sm mb-4">Khu Vực Của Bạn</h3>
         <div className="mb-4">
@@ -57,7 +56,6 @@ export default function HomeSidebar(): React.ReactElement {
         </div>
       </div>
 
-      {/* Góc Sưu Tầm */}
       <div className="bg-surface-container-low rounded-xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-headline font-bold text-headline-sm">Góc Sưu Tầm</h3>

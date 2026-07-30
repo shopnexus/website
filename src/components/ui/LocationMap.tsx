@@ -40,7 +40,6 @@ export default function LocationMap(): React.ReactElement {
         />
       )}
 
-      {/* Overlay Badge & Controls (Only display when coords and mapUrl exist) */}
       {coords && mapUrl && !isLoading && !error && (
         <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
           <div className="bg-surface/90 backdrop-blur-md px-2.5 py-1 rounded-md shadow-sm border border-outline-variant/30 flex items-center gap-1.5 pointer-events-auto">

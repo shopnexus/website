@@ -26,14 +26,12 @@ export default function UnifiedOrders() {
 
   return (
     <main className="pt-8 pb-12 px-6 max-w-[1280px] mx-auto min-h-screen">
-      {/* Header & Toggle Section */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-headline">Quản lý Đơn hàng</h1>
           <p className="text-on-surface-variant max-w-md font-body">Quản lý toàn bộ vòng đời mua bán của bạn từ những món đồ bạn săn được đến những sản phẩm bạn trao đi.</p>
         </div>
         
-        {/* Dual-Role Toggle */}
         <div className="bg-surface-container-high p-1 rounded-xl flex w-full md:w-auto shadow-sm">
           <button 
             onClick={() => toggleRole('buying')}
@@ -58,10 +56,8 @@ export default function UnifiedOrders() {
         </div>
       </header>
 
-      {/* Global Quick Stats */}
       <OrderStatsCard stats={stats} />
 
-      {/* Filters and List Content */}
       <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/20 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           
@@ -94,8 +90,7 @@ export default function UnifiedOrders() {
           
         </div>
 
-        {/* Active Orders Feed */}
-        <OrderFeed orders={orders} prefixLabel={role === 'buying' ? 'Shop:' : ''} />
+        <OrderFeed orders={orders} role={role} />
       </div>
     </main>
   );

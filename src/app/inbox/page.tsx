@@ -18,7 +18,6 @@ export default function InboxPage() {
   const [inputText, setInputText] = useState("");
   const [showChatMobile, setShowChatMobile] = useState(false);
 
-  // Mock resolve
   const activeConv = mockConversationPage.data.find((c) => c.id === activeConvId) || mockConversationPage.data[0];
   const activeContact = activeConv?.counterparty;
   const activeProduct = mockListingDetail; // mocked product
@@ -47,7 +46,6 @@ export default function InboxPage() {
       <div className="w-full h-[calc(100vh-76px)] overflow-hidden">
         <div className="flex h-full border-t border-outline-variant/30 relative w-full">
           
-          {/* ── Left Sidebar: Conversation List ── */}
           <aside
             className={`w-full md:w-[300px] lg:w-[320px] xl:w-[340px] 2xl:w-[360px] shrink-0 bg-surface-container-lowest border-r border-outline-variant/30 flex flex-col h-full absolute md:relative z-20 transition-transform duration-300 ${
               showChatMobile ? "-translate-x-full md:translate-x-0" : "translate-x-0"
@@ -72,7 +70,6 @@ export default function InboxPage() {
               </div>
             </div>
 
-            {/* Filter Tabs */}
             <div className="flex border-b border-outline-variant/20 px-4 bg-surface-container-lowest gap-1.5 pt-1.5 shrink-0 overflow-x-auto no-scrollbar">
               <button
                 className={`py-2 px-2.5 text-xs font-semibold transition-colors border-b-2 whitespace-nowrap ${
@@ -96,7 +93,6 @@ export default function InboxPage() {
               </button>
             </div>
 
-            {/* Conversation List */}
             <div className="flex-1 overflow-y-auto divide-y divide-outline-variant/10">
               {mockConversationPage.data.map((conv) => {
                 const isActive = activeConvId === conv.id;
@@ -149,10 +145,8 @@ export default function InboxPage() {
             </div>
           </aside>
 
-          {/* ── Center Pane: Active Chat Window ── */}
           <section className="flex-1 flex flex-col bg-surface overflow-hidden min-w-0 relative z-10">
             
-            {/* Chat Header */}
             <div className="px-4 py-2.5 md:px-5 md:py-3 flex justify-between items-center border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md shrink-0">
               <div className="flex items-center gap-2.5">
                 <button
@@ -191,7 +185,6 @@ export default function InboxPage() {
               </div>
             </div>
 
-            {/* Messages Display */}
             <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[url('https://www.transparenttextures.com/patterns/tiny-grid.png')] bg-surface-container-lowest/50">
               <div className="flex justify-center">
                 <span className="px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant text-[10px] font-medium rounded-full shadow-2xs">
@@ -271,7 +264,6 @@ export default function InboxPage() {
               })}
             </div>
 
-            {/* Chat Input Area */}
             <div className="p-3 md:p-4 bg-surface border-t border-outline-variant/30 shrink-0">
               <div className="flex items-center gap-1.5 md:gap-2 bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-1.5 md:p-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
                 <button
@@ -319,7 +311,6 @@ export default function InboxPage() {
             </div>
           </section>
 
-          {/* ── Right Sidebar: Product Context & Transaction Info ── */}
           <aside className="hidden lg:flex w-[280px] xl:w-[300px] 2xl:w-[320px] flex-col bg-surface-container-lowest border-l border-outline-variant/30 overflow-y-auto no-scrollbar shrink-0">
             <div className="p-4 md:p-5">
               <h3 className="font-headline text-[11px] font-bold uppercase tracking-wider text-outline mb-4">
@@ -363,7 +354,6 @@ export default function InboxPage() {
                 </div>
               )}
 
-              {/* Seller/Buyer Profile Info */}
               <div className="space-y-5">
                 <div>
                   <h3 className="font-headline text-[11px] font-bold uppercase tracking-wider text-outline mb-3">
@@ -385,7 +375,6 @@ export default function InboxPage() {
                   </div>
                 </div>
 
-                {/* Quick Actions */}
                 <div className="flex flex-col gap-2">
                   <Button
                     variant="primary"

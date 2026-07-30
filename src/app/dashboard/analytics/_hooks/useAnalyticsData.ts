@@ -13,7 +13,6 @@ export interface Metric {
 export function useAnalyticsData() {
   const [timeRange, setTimeRange] = useState<TimeRange>("daily");
 
-  // Mock data that changes slightly based on time range
   const metrics: Metric[] = [
     {
       id: "revenue",
@@ -45,7 +44,6 @@ export function useAnalyticsData() {
     },
   ];
 
-  // Mock chart data
   const revenueChart = [
     { label: "T2", value: 65 },
     { label: "T3", value: 45 },

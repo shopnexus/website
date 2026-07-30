@@ -50,7 +50,6 @@ function SearchPageContent(): React.ReactElement {
     setAppliedPriceTo("");
   };
 
-  // Filter products from mock data
   const filteredProducts = useMemo(() => {
     let result = [...mockListingPage.data];
 
@@ -69,7 +68,6 @@ function SearchPageContent(): React.ReactElement {
       );
     }
 
-    // `Listing` doesn't track seller verification directly in mock data for now, ignoring verified filter.
     
     if (appliedPriceFrom) {
       const minPrice = Number(appliedPriceFrom);
@@ -85,7 +83,6 @@ function SearchPageContent(): React.ReactElement {
       }
     }
 
-    // Sort
     if (sortBy === "price_asc") {
       result.sort((a, b) => a.price - b.price);
     } else if (sortBy === "price_desc") {
@@ -111,7 +108,6 @@ function SearchPageContent(): React.ReactElement {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 w-full">
-      {/* ── Category Navigation Strip (From Stitch Design) ── */}
       <nav className="flex items-center gap-6 mb-8 overflow-x-auto hide-scrollbar pb-3 border-b border-outline-variant/20">
         <button
           type="button"
@@ -155,11 +151,8 @@ function SearchPageContent(): React.ReactElement {
         })}
       </nav>
 
-      {/* ── 12-Column Grid Layout ── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        {/* ── Sidebar Filter Panel (3 cols) ── */}
         <aside className="md:col-span-3 space-y-6 sticky top-24">
-          {/* Local Context / Map Card */}
           <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30">
             <h3 className="font-headline font-bold text-headline-sm mb-4 text-on-surface">
               Khu Vực Của Bạn
@@ -175,7 +168,6 @@ function SearchPageContent(): React.ReactElement {
             </div>
           </div>
 
-          {/* Filters as Clean Cards */}
           <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30 space-y-6">
             <h2 className="font-headline font-bold text-headline-sm text-on-surface">Bộ lọc</h2>
 
@@ -255,9 +247,7 @@ function SearchPageContent(): React.ReactElement {
           </div>
         </aside>
 
-        {/* ── Product Grid Area (9 cols) ── */}
         <section className="md:col-span-9">
-          {/* Results Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div className="font-headline text-headline-sm text-on-surface">
               Tìm thấy <span className="font-bold text-primary">{filteredProducts.length}</span> kết quả
@@ -289,7 +279,6 @@ function SearchPageContent(): React.ReactElement {
             </div>
           </div>
 
-          {/* Active Filter Chips */}
           {(selectedCategory || selectedSubs.length > 0 || verifiedOnly || appliedPriceFrom || appliedPriceTo) && (
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selectedCategory && (
@@ -330,7 +319,6 @@ function SearchPageContent(): React.ReactElement {
             </div>
           )}
 
-          {/* Grid using Card Style (4 columns matching Stitch) */}
           {displayedProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {displayedProducts.map((product) => (
@@ -355,7 +343,6 @@ function SearchPageContent(): React.ReactElement {
             </div>
           )}
 
-          {/* Load More Button matching Homepage & Stitch */}
           {displayedProducts.length > 0 && (
             <div className="mt-12 flex justify-center">
               <button

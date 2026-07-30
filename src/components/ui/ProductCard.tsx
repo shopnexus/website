@@ -31,7 +31,6 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
       </div>
 
       <div className="p-3 flex flex-col flex-1 gap-2">
-        {/* Seller Info */}
         <div className="flex items-center gap-1.5">
           {product.seller?.avatar?.url ? (
             <Image
@@ -51,12 +50,10 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
           </span>
         </div>
 
-        {/* Product Title */}
         <h3 className="font-headline text-[15px] leading-snug text-on-surface line-clamp-2 mt-0.5 font-bold">
           {product.name}
         </h3>
 
-        {/* Bottom Price and Meta */}
         <div className="mt-auto pt-2">
           <div className="flex items-baseline gap-2">
             <span className="font-bold text-[1.25rem] text-primary">{formatPrice(product.price)}</span>

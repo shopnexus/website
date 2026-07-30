@@ -12,7 +12,6 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
   const orderId = resolvedParams.id;
   const order = mockOrderPage.data.find(o => o.id === orderId) || mockOrderPage.data[0]; // Fallback to first order if not found
 
-  // Calculate totals
   const totalAmount = order.items?.reduce((sum, item) => sum + item.total_amount, 0) || 0;
   const shippingFee = 35000; // Mock
 
@@ -20,24 +19,20 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
       <div className="max-w-[1000px] mx-auto px-4 md:px-8">
         
-        {/* Back Navigation */}
         <Link href="/orders" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-label-md">
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           Quay lại Đơn mua
         </Link>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* ── Left Column: Tracking & Items ── */}
           <div className="flex-1 flex flex-col gap-6">
             
-            {/* Status Stepper */}
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6 border-b border-outline-variant border-dashed pb-4">
                 <h2 className="font-headline-sm font-bold">Trạng thái đơn hàng</h2>
                 <span className="font-label-md text-primary font-bold uppercase">{ORDER_STATE_VI[order.state] || order.state}</span>
               </div>
               
-              {/* Stepper Logic (Simplified Mock) */}
               <div className="relative pt-2 pb-8 px-4 sm:px-12">
                 <div className="absolute top-5 left-4 sm:left-12 right-4 sm:right-12 h-1 bg-surface-container-high rounded">
                   <div className="h-full bg-primary rounded w-3/4"></div>
@@ -71,7 +66,6 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               </div>
             </div>
 
-            {/* Items */}
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <div className="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">
                 <h3 className="font-headline-sm font-bold flex items-center gap-2">
@@ -103,10 +97,8 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          {/* ── Right Column: Info & Summary ── */}
           <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-6">
             
-            {/* Delivery Info */}
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <h3 className="font-headline-sm font-bold mb-4">Địa chỉ nhận hàng</h3>
               <div className="flex flex-col gap-1 text-body-sm text-on-surface mb-6">
@@ -124,7 +116,6 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               </div>
             </div>
 
-            {/* Payment Summary */}
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <h3 className="font-headline-sm font-bold mb-4">Thông tin thanh toán</h3>
               <div className="flex flex-col gap-3 text-body-sm text-on-surface-variant border-b border-outline-variant pb-4 mb-4">

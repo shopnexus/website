@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// finance.mock.ts
-// Mock data for wallet, payment session, transaction, bank account, withdrawal, tax.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type {
   Wallet,
@@ -20,7 +16,6 @@ import type {
 } from '@/types/finance.type';
 import { mockAccountID, mockSellerAccountID } from './account.mock';
 
-// ── Wallet ────────────────────────────────────────────────────────────────────
 
 export const mockWallet: Wallet = {
   account_id: mockAccountID,
@@ -42,7 +37,6 @@ export const mockWalletList: WalletList = {
   data: [mockWallet],
 };
 
-// ── Wallet Transactions ───────────────────────────────────────────────────────
 
 export const mockWalletTransactionPage: WalletTransactionPage = {
   data: [
@@ -87,7 +81,6 @@ export const mockWalletTransactionPage: WalletTransactionPage = {
   meta: { next_cursor: null },
 };
 
-// ── Payment Session ───────────────────────────────────────────────────────────
 
 export const mockPaymentSession: PaymentSession = {
   id: 'pay_7bq2xn4tw9yef',
@@ -119,7 +112,6 @@ export const mockPaymentSessionPage: PaymentSessionPage = {
   meta: { next_cursor: null },
 };
 
-// ── Transaction ───────────────────────────────────────────────────────────────
 
 export const mockTransaction: Transaction = {
   id: 'txn_5wtc4mx8jd2qr',
@@ -140,7 +132,6 @@ export const mockTransactionList: TransactionList = {
   data: [mockTransaction],
 };
 
-// ── Bank Account ──────────────────────────────────────────────────────────────
 
 export const mockBankAccount: BankAccount = {
   id: 'bnk_2qr5wtc4mx8jd',
@@ -165,7 +156,6 @@ export const mockBankAccountList: BankAccountList = {
   ],
 };
 
-// ── Withdrawal ────────────────────────────────────────────────────────────────
 
 export const mockWithdrawal: Withdrawal = {
   id: 'pay_withdrawal001',
@@ -195,7 +185,6 @@ export const mockWithdrawalPage: WithdrawalPage = {
   meta: { next_cursor: null },
 };
 
-// ── Tax Info ──────────────────────────────────────────────────────────────────
 
 export const mockTaxInfo: TaxInfo = {
   tax_code: '0123456789',

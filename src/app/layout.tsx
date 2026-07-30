@@ -5,14 +5,12 @@ import Navbar from "@/components/layout/Navbar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
-// Load Manrope for headings and display text
 const manrope = Manrope({
   subsets: ["latin", "vietnamese"],
   variable: "--font-manrope",
   display: "swap",
 });
 
-// Load Inter for body and label text
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
   variable: "--font-inter",
@@ -45,11 +43,6 @@ export default function RootLayout({
       className={`${manrope.variable} ${inter.variable} h-full antialiased`}
     >
       <head>
-        {/*
-         * Material Symbols Outlined — loaded via stylesheet for icon font.
-         * next/font does not support icon fonts (no latin subsetting).
-         * Using a preconnect + stylesheet is the standard approach per Google Fonts docs.
-         */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

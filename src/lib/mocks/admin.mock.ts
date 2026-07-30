@@ -1,13 +1,8 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// admin.mock.ts
-// Mock data for admin/moderator views.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type { AdminAccount, AdminAccountPage, AdminReport, AdminReportPage, AdminIdentityDocument, IdentityDocumentPage } from '@/types/admin.type';
 import { mockAccountID, mockSellerAccountID, mockAccountSummary, mockSellerAccountSummary, mockIdentityDocument } from './account.mock';
 import { mockReport } from './trust.mock';
 
-// ── Admin Account ─────────────────────────────────────────────────────────────
 
 export const mockAdminAccount: AdminAccount = {
   id: mockAccountID,
@@ -57,7 +52,6 @@ export const mockAdminAccountPage: AdminAccountPage = {
   meta: { page: 1, limit: 20, total_count: 3 },
 };
 
-// ── Admin Identity Document Queue ─────────────────────────────────────────────
 
 export const mockAdminIdentityDocument: AdminIdentityDocument = {
   document: {
@@ -86,7 +80,6 @@ export const mockIdentityDocumentPage: IdentityDocumentPage = {
   meta: { page: 1, limit: 20, total_count: 2 },
 };
 
-// ── Admin Report Queue ────────────────────────────────────────────────────────
 
 export const mockAdminReport: AdminReport = {
   report: mockReport,

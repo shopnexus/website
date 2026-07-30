@@ -29,7 +29,6 @@ export default function DashboardPage(){
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {DASHBOARD_STATS.map((stat, idx) => (
           <div key={idx} className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm flex items-center justify-between">
@@ -52,7 +51,6 @@ export default function DashboardPage(){
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Main Panel - My Products */}
         <div className="lg:col-span-2">
           <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
@@ -118,7 +116,6 @@ export default function DashboardPage(){
           </div>
         </div>
 
-        {/* Side Panel - Action Needed */}
         <div className="lg:col-span-1">
           <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
             <div className="p-6 border-b border-outline-variant bg-surface-container-lowest">
@@ -129,7 +126,6 @@ export default function DashboardPage(){
             </div>
             
             <div className="p-6 flex flex-col gap-6">
-              {/* Task Item */}
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div>
@@ -143,7 +139,6 @@ export default function DashboardPage(){
               
               <div className="w-full h-px bg-outline-variant border-dashed"></div>
               
-              {/* Task Item */}
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-start">
                   <div>

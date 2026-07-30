@@ -11,12 +11,10 @@ export default function Navbar(): React.ReactElement {
   const { isScrolledPastHero } = useNavbarScroll();
   const { query, setQuery, handleSearch } = useSearch();
 
-  // Show compact search bar on all pages except Home, OR on Home when scrolled past hero (250px)
   const shouldShowSearchBar = pathname !== "/" || isScrolledPastHero;
 
   return (
     <>
-      {/* Unified TopNavBar for ALL Pages (Stitch MCP UI) */}
       <nav
         className={`sticky top-0 w-full z-50 transition-all duration-300 ${
           isScrolledPastHero
@@ -25,7 +23,6 @@ export default function Navbar(): React.ReactElement {
         }`}
       >
         <div className="px-4 md:px-6 py-3.5 max-w-[1440px] mx-auto flex justify-between items-center gap-3 md:gap-4">
-          {/* Left: Brand + Navigation Links */}
           <div className="flex items-center gap-6 md:gap-8 shrink-0">
             <Link href="/" className="flex items-center gap-2.5 font-headline font-extrabold text-xl tracking-tighter text-primary shrink-0 group">
               <img
@@ -59,7 +56,6 @@ export default function Navbar(): React.ReactElement {
             </div>
           </div>
 
-          {/* Center: Compact Search Bar (with smooth scroll animation when scrolling past hero on Home) */}
           <div
             className={`flex-1 transition-all duration-500 ease-out flex justify-center ${
               shouldShowSearchBar
@@ -94,7 +90,6 @@ export default function Navbar(): React.ReactElement {
             </form>
           </div>
 
-          {/* Right: Minimalist Trailing Actions */}
           <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
             <Link
               href="/notifications"
@@ -160,7 +155,6 @@ export default function Navbar(): React.ReactElement {
                 person
               </span>
             </Link>
-            {/* Create Listing Button right before Notifications */}
             <Link
               href="/sell"
               aria-label="Tạo tin đăng mới"
@@ -173,7 +167,6 @@ export default function Navbar(): React.ReactElement {
         </div>
       </nav>
 
-      {/* BottomNavBar (Mobile Only) */}
       {!pathname?.startsWith("/product") && !pathname?.startsWith("/checkout") && !pathname?.startsWith("/sell") && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center px-4 py-3 bg-surface shadow-xl md:hidden rounded-t-xl border-t border-outline-variant/20">
         <Link

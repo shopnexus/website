@@ -20,10 +20,7 @@ export default function CartPage(){
     setQuantities((prev) => ({ ...prev, [id]: value }));
   };
 
-  // Mock resolve cart item to SPU/SKU details for UI rendering
-  // In a real app, the API would return these details or we fetch them separately.
   const resolvedItems = mockCartItemPage.data.map(item => {
-    // For mock purposes, just assume all items belong to mockListingDetail
     const spu = mockListingDetail;
     const sku = spu.skus?.find(s => s.id === item.sku_id) || spu.skus?.[0];
     return {
@@ -33,7 +30,6 @@ export default function CartPage(){
     };
   });
 
-  // Group by seller
   const groupedItems = resolvedItems.reduce((acc, item) => {
     const sellerId = item.spu.seller.id;
     if (!acc[sellerId]) {
@@ -63,11 +59,9 @@ export default function CartPage(){
         <h1 className="font-headline-md font-bold mb-6">Giỏ hàng của bạn</h1>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* ── Cart Items List ── */}
           <div className="flex-1 flex flex-col gap-6">
             {Object.values(groupedItems).map((group, gIdx) => (
               <div key={gIdx} className="bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-sm">
-                {/* Shop Header */}
                 <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
                   <div className="flex items-center gap-3">
                     <input type="checkbox" className="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary focus:ring-offset-background" defaultChecked />
@@ -81,7 +75,6 @@ export default function CartPage(){
                   </Link>
                 </div>
 
-                {/* Items */}
                 <div className="flex flex-col">
                   {group.items.map(({ cartItem, spu, sku }, iIdx) => (
                     <div key={cartItem.id} className={["p-6 flex flex-col sm:flex-row gap-4", iIdx > 0 ? "border-t border-outline-variant" : ""].join(" ")}>
@@ -123,7 +116,6 @@ export default function CartPage(){
                   ))}
                 </div>
                 
-                {/* Shop Footer / Voucher */}
                 <div className="px-6 py-4 border-t border-outline-variant border-dashed flex items-center gap-4">
                   <span className="material-symbols-outlined text-primary">local_offer</span>
                   <input type="text" placeholder="Nhập mã giảm giá của Shop" className="flex-1 bg-transparent text-body-sm outline-none placeholder:text-outline-variant" />
@@ -133,7 +125,6 @@ export default function CartPage(){
             ))}
           </div>
 
-          {/* ── Order Summary ── */}
           <div className="w-full lg:w-[380px] shrink-0">
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 sticky top-24 shadow-sm">
               <h2 className="font-headline-sm font-bold mb-6">Tóm tắt đơn hàng</h2>

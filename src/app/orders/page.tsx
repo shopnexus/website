@@ -43,12 +43,10 @@ export default function OrdersPage(){
       <div className="max-w-[1000px] mx-auto px-4 md:px-8">
         <h1 className="font-headline-md font-bold mb-6">Đơn mua của tôi</h1>
 
-        {/* Tabs */}
         <div className="bg-surface rounded-t-2xl border border-outline-variant border-b-0 overflow-hidden shadow-sm">
           <Tabs tabs={tabs} activeTabId={activeTab} onChange={setActiveTab} fullWidth />
         </div>
 
-        {/* Orders List */}
         <div className="flex flex-col gap-4">
           {filteredOrders.length === 0 ? (
             <div className="bg-surface rounded-b-2xl border border-outline-variant p-12 text-center text-on-surface-variant shadow-sm">
@@ -56,12 +54,10 @@ export default function OrdersPage(){
             </div>
           ) : (
             filteredOrders.map((order, idx) => {
-              // Calculate total from items for display if order total_amount isn't present
               const totalAmount = order.items?.reduce((sum, item) => sum + item.total_amount, 0) || 0;
               
               return (
                 <div key={order.id} className={["bg-surface border border-outline-variant p-6 shadow-sm", idx === 0 ? "rounded-b-2xl" : "rounded-2xl"].join(" ")}>
-                  {/* Order Header */}
                   <div className="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant border-dashed">
                     <div className="flex items-center gap-3">
                       <span className="font-label-md text-on-surface flex items-center gap-1">
@@ -79,7 +75,6 @@ export default function OrdersPage(){
                     </div>
                   </div>
 
-                  {/* Order Items */}
                   <div className="flex flex-col gap-4 mb-4">
                     {order.items?.map((item) => (
                       <div key={item.id} className="flex gap-4">
@@ -99,7 +94,6 @@ export default function OrdersPage(){
                     ))}
                   </div>
 
-                  {/* Order Footer */}
                   <div className="pt-4 border-t border-outline-variant flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="font-body-sm text-on-surface-variant text-center sm:text-left w-full sm:w-auto">
                       Đặt ngày: <span className="text-on-surface">{new Date(order.created_at).toLocaleDateString('vi-VN')}</span>

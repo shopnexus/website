@@ -151,7 +151,6 @@ export default function NotificationsPage(): React.ReactElement {
   return (
     <div className="min-h-[calc(100vh-80px)] py-8 px-4 md:px-6 max-w-[1440px] mx-auto w-full animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Navigation Categories */}
         <aside className="md:col-span-4 lg:col-span-3 space-y-6">
           <div className="px-2">
             <h1 className="font-headline text-headline-sm font-extrabold text-on-surface flex items-center gap-2.5">
@@ -215,7 +214,6 @@ export default function NotificationsPage(): React.ReactElement {
           </div>
         </aside>
 
-        {/* Center Column: Notification Feed */}
         <section className="md:col-span-8 lg:col-span-9 space-y-6">
           <div className="flex justify-between items-center px-2 pb-2 border-b border-outline-variant/20">
             <span className="text-label-sm font-bold uppercase tracking-widest text-outline">
@@ -241,7 +239,6 @@ export default function NotificationsPage(): React.ReactElement {
             </div>
           ) : (
             <div className="space-y-8">
-              {/* Today Group */}
               {todayNotifications.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 px-2 text-label-xs font-bold uppercase tracking-widest text-primary">
@@ -256,7 +253,6 @@ export default function NotificationsPage(): React.ReactElement {
                 </div>
               )}
 
-              {/* Yesterday Group */}
               {yesterdayNotifications.length > 0 && (
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center gap-2 px-2 text-label-xs font-bold uppercase tracking-widest text-outline">
@@ -297,7 +293,6 @@ function NotificationCard({
         <div className="w-2.5 h-2.5 bg-primary rounded-full absolute right-5 top-5 animate-pulse" title="Chưa đọc" />
       )}
 
-      {/* Icon or Avatar */}
       <div className="shrink-0">
         {item.avatar ? (
           <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20 shadow-sm">
@@ -316,7 +311,6 @@ function NotificationCard({
         )}
       </div>
 
-      {/* Content */}
       <div className="flex-grow min-w-0 pr-6">
         <div className="flex justify-between items-start mb-1 gap-2">
           <h3 className={`font-headline text-body-md font-extrabold text-on-surface ${item.unread ? "text-primary" : ""}`}>

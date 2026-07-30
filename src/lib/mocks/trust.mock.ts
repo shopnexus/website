@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// trust.mock.ts
-// Mock data for feedback, reputation, reports, refunds, disputes.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import type {
   Feedback,
@@ -17,7 +13,6 @@ import type {
 } from '@/types/trust.type';
 import { mockAccountID, mockSellerAccountID, mockAccountSummary, mockSellerAccountSummary } from './account.mock';
 
-// ── Feedback ──────────────────────────────────────────────────────────────────
 
 export const mockFeedback: Feedback = {
   id: 'fbk_2h9qk4mfx7bd3',
@@ -74,7 +69,6 @@ export const mockOrderFeedback: OrderFeedback = {
   theirs: mockFeedbackFromSeller,
 };
 
-// ── Reputation ────────────────────────────────────────────────────────────────
 
 export const mockSellerReputation: Reputation = {
   account_id: mockSellerAccountID,
@@ -100,7 +94,6 @@ export const mockBuyerReputation: Reputation = {
   updated_at: '2025-06-20T00:00:00Z',
 };
 
-// ── Reports ───────────────────────────────────────────────────────────────────
 
 export const mockReport: Report = {
   id: 'rpt_9c4vt6bkn1pzs',
@@ -120,7 +113,6 @@ export const mockReportPage: ReportPage = {
   meta: { next_cursor: null },
 };
 
-// ── Refund ────────────────────────────────────────────────────────────────────
 
 export const mockRefund: Refund = {
   id: 'rfd_z3n8kvq1wd6pt',
@@ -142,7 +134,6 @@ export const mockRefundPage: RefundPage = {
   meta: { next_cursor: null },
 };
 
-// ── Refund Dispute ────────────────────────────────────────────────────────────
 
 export const mockRefundDispute: RefundDispute = {
   id: 'dsp_n8kvq1wd6ptz3',

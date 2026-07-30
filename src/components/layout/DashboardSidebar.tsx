@@ -17,7 +17,6 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] bg-surface-container-lowest">
-      {/* Sidebar Desktop */}
       <aside className="w-64 shrink-0 bg-surface border-r border-outline-variant hidden lg:flex flex-col">
         <div className="p-6">
           <Link href="/dashboard" className="flex items-center gap-3">
@@ -62,7 +61,6 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <main className="flex-1 min-w-0">
         {children}
       </main>
