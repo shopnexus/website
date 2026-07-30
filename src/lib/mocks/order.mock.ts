@@ -71,7 +71,7 @@ export const mockPickupContact: Contact = {
 };
 
 export const mockContactList: ContactList = {
-  items: [mockContact, mockPickupContact],
+  data: [mockContact, mockPickupContact],
 };
 
 // ── Order Address Snapshot ────────────────────────────────────────────────────
@@ -99,11 +99,11 @@ export const mockCartItem: CartItem = {
 };
 
 export const mockCartItemPage: CartItemPage = {
-  items: [
+  data: [
     mockCartItem,
     { id: 'crt_item2example01', sku_id: 'sku_variant2nd0001', quantity: 2, created_at: '2025-06-20T08:05:00Z' },
   ],
-  next_cursor: null,
+  meta: { page: 1, limit: 20, total_count: 2 },
 };
 
 // ── Draft Order ───────────────────────────────────────────────────────────────
@@ -136,8 +136,8 @@ export const mockDraftOrder: DraftOrder = {
 };
 
 export const mockDraftOrderPage: DraftOrderPage = {
-  items: [mockDraftOrder],
-  next_cursor: null,
+  data: [mockDraftOrder],
+  meta: { page: 1, limit: 20, total_count: 1 },
 };
 
 // ── Order Item ────────────────────────────────────────────────────────────────
@@ -163,8 +163,8 @@ export const mockOrderItem: OrderItem = {
 };
 
 export const mockOrderItemPage: OrderItemPage = {
-  items: [mockOrderItem],
-  next_cursor: null,
+  data: [mockOrderItem],
+  meta: { next_cursor: null },
 };
 
 // ── Order ─────────────────────────────────────────────────────────────────────
@@ -198,14 +198,14 @@ export const mockOrder: Order = {
 };
 
 export const mockOrderPage: OrderPage = {
-  items: [
+  data: [
     mockOrder,
     { ...mockOrder, id: 'ord_order2example1', state: 'completed', completed_at: '2025-06-10T10:00:00Z' },
     { ...mockOrder, id: 'ord_order3example1', state: 'cancelled', cancelled_at: '2025-06-05T08:00:00Z' },
     { ...mockOrder, id: 'ord_order4example1', state: 'open' },
     { ...mockOrder, id: 'ord_order5example1', state: 'open', created_at: '2025-06-18T14:00:00Z' },
   ],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };
 
 // ── Offer ─────────────────────────────────────────────────────────────────────
@@ -226,8 +226,8 @@ export const mockOffer: Offer = {
 };
 
 export const mockOfferPage: OfferPage = {
-  items: [mockOffer],
-  next_cursor: null,
+  data: [mockOffer],
+  meta: { next_cursor: null },
 };
 
 // ── Checkout Result ───────────────────────────────────────────────────────────

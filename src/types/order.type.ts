@@ -4,7 +4,7 @@
 // Source: openapi.yaml — components/schemas (Order*, Cart*, Draft*, Offer*, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { CurrencyCode, PaginatedPage, ResourceID } from './common.type';
+import type { CurrencyCode, CursorPage, DataList, OffsetPage, ResourceID } from './common.type';
 import type { AccountID } from './account.type';
 import type { ProductSKUID, ProductSPUID } from './catalog.type';
 
@@ -82,9 +82,7 @@ export interface Contact {
   provider_codes?: Record<string, unknown>;
 }
 
-export interface ContactList {
-  items: Contact[];
-}
+export interface ContactList extends DataList<Contact> {}
 
 export interface CreateContactRequest {
   full_name: string;
@@ -158,7 +156,8 @@ export interface CartItem {
   created_at: string;
 }
 
-export type CartItemPage = PaginatedPage<CartItem>;
+/** Offset/page-paginated. Source: openapi.yaml — CartItemPage */
+export type CartItemPage = OffsetPage<CartItem>;
 
 export interface AddCartItemRequest {
   sku_id: ProductSKUID;
@@ -201,7 +200,8 @@ export interface DraftOrder {
   cancelled_at?: string | null;
 }
 
-export type DraftOrderPage = PaginatedPage<DraftOrder>;
+/** Offset/page-paginated. Source: openapi.yaml — DraftOrderPage */
+export type DraftOrderPage = OffsetPage<DraftOrder>;
 
 export interface CreateDraftRequest {
   spu_id: ProductSPUID;
@@ -230,7 +230,8 @@ export interface OrderItem {
   cancelled_by_id?: AccountID | null;
 }
 
-export type OrderItemPage = PaginatedPage<OrderItem>;
+/** Cursor-paginated. Source: openapi.yaml — OrderItemPage */
+export type OrderItemPage = CursorPage<OrderItem>;
 
 export interface Order {
   id: OrderID;
@@ -252,7 +253,8 @@ export interface Order {
   payout_deadline_at?: string | null;
 }
 
-export type OrderPage = PaginatedPage<Order>;
+/** Cursor-paginated. Source: openapi.yaml — OrderPage */
+export type OrderPage = CursorPage<Order>;
 
 // ── Checkout ──────────────────────────────────────────────────────────────────
 
@@ -333,7 +335,8 @@ export interface Offer {
   reason?: string;
 }
 
-export type OfferPage = PaginatedPage<Offer>;
+/** Cursor-paginated. Source: openapi.yaml — OfferPage */
+export type OfferPage = CursorPage<Offer>;
 
 export interface CreateOfferRequest {
   sku_id: ProductSKUID;

@@ -9,7 +9,7 @@ export function useProductsData() {
   const [activeFilter, setActiveFilter] = useState<ProductFilter>("all");
 
   const filteredProducts = useMemo(() => {
-    let filtered = mockListingPage.items;
+    let filtered = mockListingPage.data;
 
     // Filter by search query
     if (searchQuery.trim()) {

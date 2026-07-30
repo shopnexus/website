@@ -17,7 +17,7 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
   
   // Using the new mock data
   const seller = mockPublicAccount;
-  const displayProducts = mockListingPage.items;
+  const displayProducts = mockListingPage.data;
 
   const [activeTab, setActiveTab] = useState("store");
 

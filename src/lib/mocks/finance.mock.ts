@@ -39,13 +39,13 @@ export const mockSellerWallet: Wallet = {
 };
 
 export const mockWalletList: WalletList = {
-  items: [mockWallet],
+  data: [mockWallet],
 };
 
 // ── Wallet Transactions ───────────────────────────────────────────────────────
 
 export const mockWalletTransactionPage: WalletTransactionPage = {
-  items: [
+  data: [
     {
       seq: 5,
       currency: 'VND',
@@ -84,7 +84,7 @@ export const mockWalletTransactionPage: WalletTransactionPage = {
       created_at: '2025-06-10T14:00:00Z',
     },
   ] as WalletTransaction[],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };
 
 // ── Payment Session ───────────────────────────────────────────────────────────
@@ -105,7 +105,7 @@ export const mockPaymentSession: PaymentSession = {
 };
 
 export const mockPaymentSessionPage: PaymentSessionPage = {
-  items: [
+  data: [
     mockPaymentSession,
     {
       ...mockPaymentSession,
@@ -116,7 +116,7 @@ export const mockPaymentSessionPage: PaymentSessionPage = {
       created_at: '2025-06-22T10:00:00Z',
     },
   ],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };
 
 // ── Transaction ───────────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ export const mockTransaction: Transaction = {
 };
 
 export const mockTransactionList: TransactionList = {
-  items: [mockTransaction],
+  data: [mockTransaction],
 };
 
 // ── Bank Account ──────────────────────────────────────────────────────────────
@@ -152,7 +152,7 @@ export const mockBankAccount: BankAccount = {
 };
 
 export const mockBankAccountList: BankAccountList = {
-  items: [
+  data: [
     mockBankAccount,
     {
       id: 'bnk_account2nd001',
@@ -180,7 +180,7 @@ export const mockWithdrawal: Withdrawal = {
 };
 
 export const mockWithdrawalPage: WithdrawalPage = {
-  items: [
+  data: [
     mockWithdrawal,
     {
       ...mockWithdrawal,
@@ -192,7 +192,7 @@ export const mockWithdrawalPage: WithdrawalPage = {
       resolution_note: null,
     },
   ],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };
 
 // ── Tax Info ──────────────────────────────────────────────────────────────────

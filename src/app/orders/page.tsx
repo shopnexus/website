@@ -18,12 +18,12 @@ export default function OrdersPage(){
 
   const tabs = [
     { id: "all", label: "Tất cả" },
-    { id: "open", label: "Đang xử lý", count: mockOrderPage.items.filter(o => o.state === 'open').length },
-    { id: "completed", label: "Hoàn thành", count: mockOrderPage.items.filter(o => o.state === 'completed').length },
+    { id: "open", label: "Đang xử lý", count: mockOrderPage.data.filter(o => o.state === 'open').length },
+    { id: "completed", label: "Hoàn thành", count: mockOrderPage.data.filter(o => o.state === 'completed').length },
     { id: "cancelled", label: "Đã hủy" },
   ];
 
-  const filteredOrders = activeTab === "all" ? mockOrderPage.items : mockOrderPage.items.filter((o) => o.state === activeTab);
+  const filteredOrders = activeTab === "all" ? mockOrderPage.data : mockOrderPage.data.filter((o) => o.state === activeTab);
 
   const getStatusBadge = (state: string) => {
     switch (state) {

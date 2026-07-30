@@ -52,7 +52,7 @@ function SearchPageContent(): React.ReactElement {
 
   // Filter products from mock data
   const filteredProducts = useMemo(() => {
-    let result = [...mockListingPage.items];
+    let result = [...mockListingPage.data];
 
     if (initialQuery) {
       const qLower = initialQuery.toLowerCase();
@@ -101,7 +101,7 @@ function SearchPageContent(): React.ReactElement {
 
   const handleLoadMore = (): void => {
     const batchIndex = Math.floor(extraProducts.length / 8) + 1;
-    const baseList = filteredProducts.length > 0 ? filteredProducts : mockListingPage.items.slice(0, 8);
+    const baseList = filteredProducts.length > 0 ? filteredProducts : mockListingPage.data.slice(0, 8);
     const clonedBatch = baseList.slice(0, 8).map((p, idx) => ({
       ...p,
       id: `${p.id}-clone-${batchIndex}-${idx}-${Date.now()}`,
@@ -130,7 +130,7 @@ function SearchPageContent(): React.ReactElement {
           </span>
           <span>Tất cả danh mục</span>
         </button>
-        {mockCategoryList.items.map((cat) => {
+        {mockCategoryList.data.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
@@ -266,7 +266,7 @@ function SearchPageContent(): React.ReactElement {
                 <span className="italic text-on-surface-variant">&quot;{initialQuery}&quot;</span>
               ) : (
                 <span className="italic text-on-surface-variant">
-                  &quot;{mockCategoryList.items.find(c => c.id === selectedCategory)?.name || "Tất cả"}&quot;
+                  &quot;{mockCategoryList.data.find(c => c.id === selectedCategory)?.name || "Tất cả"}&quot;
                 </span>
               )}
             </div>
@@ -294,7 +294,7 @@ function SearchPageContent(): React.ReactElement {
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selectedCategory && (
                 <Chip selected onRemove={() => setSelectedCategory("")}>
-                  {mockCategoryList.items.find(c => c.id === selectedCategory)?.name || selectedCategory}
+                  {mockCategoryList.data.find(c => c.id === selectedCategory)?.name || selectedCategory}
                 </Chip>
               )}
               {selectedSubs.map((sub) => (

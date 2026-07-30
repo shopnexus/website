@@ -12,7 +12,7 @@ const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 export default function DashboardPage(){
-  const myProducts = mockListingPage.items.slice(0, 3);
+  const myProducts = mockListingPage.data.slice(0, 3);
 
   const DASHBOARD_STATS = [
     { label: "Doanh thu", value: "12,450,000đ", change: 12.5, icon: "payments" },

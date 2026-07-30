@@ -53,8 +53,8 @@ export const mockAdminAccountModerator: AdminAccount = {
 };
 
 export const mockAdminAccountPage: AdminAccountPage = {
-  items: [mockAdminAccount, mockAdminAccountSuspended, mockAdminAccountModerator],
-  next_cursor: null,
+  data: [mockAdminAccount, mockAdminAccountSuspended, mockAdminAccountModerator],
+  meta: { page: 1, limit: 20, total_count: 3 },
 };
 
 // ── Admin Identity Document Queue ─────────────────────────────────────────────
@@ -70,7 +70,7 @@ export const mockAdminIdentityDocument: AdminIdentityDocument = {
 };
 
 export const mockIdentityDocumentPage: IdentityDocumentPage = {
-  items: [
+  data: [
     mockAdminIdentityDocument,
     {
       document: {
@@ -83,7 +83,7 @@ export const mockIdentityDocumentPage: IdentityDocumentPage = {
       account: { id: 'acc_user2example001', name: 'Trần Thị Bích', avatar: null },
     },
   ],
-  next_cursor: null,
+  meta: { page: 1, limit: 20, total_count: 2 },
 };
 
 // ── Admin Report Queue ────────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ export const mockAdminReport: AdminReport = {
 };
 
 export const mockAdminReportPage: AdminReportPage = {
-  items: [
+  data: [
     mockAdminReport,
     {
       ...mockAdminReport,
@@ -123,5 +123,5 @@ export const mockAdminReportPage: AdminReportPage = {
       },
     },
   ],
-  next_cursor: null,
+  meta: { page: 1, limit: 20, total_count: 2 },
 };

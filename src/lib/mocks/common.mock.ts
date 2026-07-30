@@ -63,5 +63,5 @@ export const mockPaymentOption: Option = {
 };
 
 export const mockOptionList: OptionList = {
-  items: [mockTransportOption, mockPaymentOption],
+  data: [mockTransportOption, mockPaymentOption],
 };

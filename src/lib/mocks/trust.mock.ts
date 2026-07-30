@@ -44,7 +44,7 @@ export const mockFeedbackFromSeller: Feedback = {
 };
 
 export const mockFeedbackPage: FeedbackPage = {
-  items: [
+  data: [
     mockFeedback,
     {
       ...mockFeedback,
@@ -65,7 +65,7 @@ export const mockFeedbackPage: FeedbackPage = {
       published_at: '2025-05-21T09:00:00Z',
     },
   ],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };
 
 export const mockOrderFeedback: OrderFeedback = {
@@ -116,8 +116,8 @@ export const mockReport: Report = {
 };
 
 export const mockReportPage: ReportPage = {
-  items: [mockReport],
-  next_cursor: null,
+  data: [mockReport],
+  meta: { next_cursor: null },
 };
 
 // ── Refund ────────────────────────────────────────────────────────────────────
@@ -138,8 +138,8 @@ export const mockRefund: Refund = {
 };
 
 export const mockRefundPage: RefundPage = {
-  items: [mockRefund],
-  next_cursor: null,
+  data: [mockRefund],
+  meta: { next_cursor: null },
 };
 
 // ── Refund Dispute ────────────────────────────────────────────────────────────
@@ -160,6 +160,6 @@ export const mockRefundDispute: RefundDispute = {
 };
 
 export const mockRefundDisputePage: RefundDisputePage = {
-  items: [mockRefundDispute],
-  next_cursor: null,
+  data: [mockRefundDispute],
+  meta: { next_cursor: null },
 };

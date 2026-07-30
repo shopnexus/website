@@ -4,7 +4,7 @@
 // Source: openapi.yaml — components/schemas (Admin*, Identity*, Takedown*, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { PaginatedPage } from './common.type';
+import type { OffsetPage, CursorPage } from './common.type';
 import type {
   AccountID,
   AccountRole,
@@ -36,7 +36,8 @@ export interface AdminAccount {
   suspension_reason?: string | null;
 }
 
-export type AdminAccountPage = PaginatedPage<AdminAccount>;
+/** Offset/page-paginated. Source: openapi.yaml — AdminAccountPage */
+export type AdminAccountPage = OffsetPage<AdminAccount>;
 
 // ── Admin Identity Document Queue ─────────────────────────────────────────────
 
@@ -46,7 +47,8 @@ export interface AdminIdentityDocument {
   account: AccountSummary;
 }
 
-export type IdentityDocumentPage = PaginatedPage<AdminIdentityDocument>;
+/** Offset/page-paginated. Source: openapi.yaml — IdentityDocumentPage */
+export type IdentityDocumentPage = OffsetPage<AdminIdentityDocument>;
 
 // ── Admin Report Queue ────────────────────────────────────────────────────────
 
@@ -61,7 +63,36 @@ export interface AdminReport {
   resolved_by?: AccountSummary | null;
 }
 
-export type AdminReportPage = PaginatedPage<AdminReport>;
+/** Offset/page-paginated. Source: openapi.yaml — AdminReportPage */
+export type AdminReportPage = OffsetPage<AdminReport>;
+
+// ── Admin Refund Dispute Queue ────────────────────────────────────────────────
+
+/**
+ * A queue row: the open dispute round plus the refund it belongs to.
+ * Source: openapi.yaml — AdminDisputeQueueEntry (used in RefundDisputePage)
+ */
+export interface AdminDisputeQueueEntry {
+  refund: import('./trust.type').Refund;
+  round: DisputeRound;
+}
+
+/** Cursor-paginated. Source: openapi.yaml — RefundDisputePage (admin view) */
+export type AdminRefundDisputePage = CursorPage<AdminDisputeQueueEntry>;
+
+// ── Dispute Round ─────────────────────────────────────────────────────────────
+
+export interface DisputeRound {
+  id: string;
+  dispute_id: import('./trust.type').RefundDisputeID;
+  reason: string;
+  attachments: string[];
+  created_at: string;
+  outcome?: import('./trust.type').DisputeOutcome | null;
+  resolution_note?: string | null;
+  resolved_at?: string | null;
+  resolved_by_id?: AccountID | null;
+}
 
 // ── Admin Mutations ───────────────────────────────────────────────────────────
 

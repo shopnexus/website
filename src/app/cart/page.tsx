@@ -13,7 +13,7 @@ const formatPrice = (price: number) =>
 
 export default function CartPage(){
   const [quantities, setQuantities] = useState<Record<string, number>>(
-    mockCartItemPage.items.reduce((acc, item) => ({ ...acc, [item.id]: item.quantity }), {})
+    mockCartItemPage.data.reduce((acc, item) => ({ ...acc, [item.id]: item.quantity }), {})
   );
 
   const handleQuantityChange = (id: string, value: number) => {
@@ -22,7 +22,7 @@ export default function CartPage(){
 
   // Mock resolve cart item to SPU/SKU details for UI rendering
   // In a real app, the API would return these details or we fetch them separately.
-  const resolvedItems = mockCartItemPage.items.map(item => {
+  const resolvedItems = mockCartItemPage.data.map(item => {
     // For mock purposes, just assume all items belong to mockListingDetail
     const spu = mockListingDetail;
     const sku = spu.skus?.find(s => s.id === item.sku_id) || spu.skus?.[0];

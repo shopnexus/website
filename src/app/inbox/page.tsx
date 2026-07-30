@@ -13,13 +13,13 @@ const formatPrice = (price: number) =>
 
 export default function InboxPage() {
   const [activeTab, setActiveTab] = useState("all");
-  const [activeConvId, setActiveConvId] = useState(mockConversationPage.items[0]?.id || "");
-  const [messages, setMessages] = useState<Message[]>(mockMessagePage.items);
+  const [activeConvId, setActiveConvId] = useState(mockConversationPage.data[0]?.id || "");
+  const [messages, setMessages] = useState<Message[]>(mockMessagePage.data);
   const [inputText, setInputText] = useState("");
   const [showChatMobile, setShowChatMobile] = useState(false);
 
   // Mock resolve
-  const activeConv = mockConversationPage.items.find((c) => c.id === activeConvId) || mockConversationPage.items[0];
+  const activeConv = mockConversationPage.data.find((c) => c.id === activeConvId) || mockConversationPage.data[0];
   const activeContact = activeConv?.counterparty;
   const activeProduct = mockListingDetail; // mocked product
 
@@ -57,7 +57,7 @@ export default function InboxPage() {
               <h1 className="text-base font-bold text-on-surface mb-3 flex items-center justify-between">
                 <span>Hộp thư</span>
                 <span className="text-[11px] font-normal text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full border border-outline-variant/30">
-                  {mockConversationPage.items.length} hội thoại
+                  {mockConversationPage.data.length} hội thoại
                 </span>
               </h1>
               <div className="relative">
@@ -98,7 +98,7 @@ export default function InboxPage() {
 
             {/* Conversation List */}
             <div className="flex-1 overflow-y-auto divide-y divide-outline-variant/10">
-              {mockConversationPage.items.map((conv) => {
+              {mockConversationPage.data.map((conv) => {
                 const isActive = activeConvId === conv.id;
                 const contact = conv.counterparty;
                 return (

@@ -51,9 +51,65 @@ export interface UploadTicket {
 
 // ── Pagination ────────────────────────────────────────────────────────────────
 
-export interface PaginatedPage<T> {
-  items: T[];
-  next_cursor?: string | null;
+/**
+ * Pagination metadata for offset/page-based pagination.
+ * Source: openapi.yaml — PageMeta
+ */
+export interface PageMeta {
+  /** 1-based page number */
+  page: number;
+  limit: number;
+  /**
+   * Total matching rows. Explicitly null (not absent) for ranked/top-K queries
+   * where the full count is not computed.
+   */
+  total_count: number | null;
+}
+
+/**
+ * Pagination metadata for cursor-based pagination.
+ * Source: openapi.yaml — CursorMeta
+ */
+export interface CursorMeta {
+  /**
+   * Pass as `cursor` to get the next page. Null on the last page.
+   * Always present so "no more pages" is a value rather than a missing key.
+   */
+  next_cursor: string | null;
+}
+
+/**
+ * A page response with cursor-based pagination.
+ * Shape: { data: T[], meta: CursorMeta }
+ * Used by: OrderPage, OrderItemPage, OfferPage, ConversationPage, MessagePage,
+ *   FeedbackPage, ReportPage, RefundPage, RefundDisputePage, NotificationPage,
+ *   ReviewPage, WalletTransactionPage, PaymentSessionPage, WithdrawalPage, etc.
+ */
+export interface CursorPage<T> {
+  data: T[];
+  meta: CursorMeta;
+}
+
+/**
+ * A page response with offset/page-number pagination.
+ * Shape: { data: T[], meta: PageMeta }
+ * Used by: CartItemPage, DraftOrderPage, AdminAccountPage, IdentityDocumentPage,
+ *   AdminReportPage, AccountSummaryPage, ListingPage, TagPage, etc.
+ */
+export interface OffsetPage<T> {
+  data: T[];
+  meta: PageMeta;
+}
+
+/**
+ * An unpaginated list response.
+ * Shape: { data: T[] }
+ * Used by: ContactList, CategoryList, BankAccountList, OptionList, DeviceList,
+ *   OAuthIdentityList, IdentityDocumentList, TransactionList, WalletList,
+ *   NotificationPreferenceList, TagList, etc.
+ */
+export interface DataList<T> {
+  data: T[];
 }
 
 // ── API Error ─────────────────────────────────────────────────────────────────
@@ -96,9 +152,7 @@ export interface Option {
   owner_id?: string | null;
 }
 
-export interface OptionList {
-  items: Option[];
-}
+export interface OptionList extends DataList<Option> {}
 
 export interface CreateOptionRequest {
   id: OptionSlug;

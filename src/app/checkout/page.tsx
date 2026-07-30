@@ -14,7 +14,7 @@ export default function CheckoutPage(){
   const router = useRouter();
   
   // Calculate totals from draft orders
-  const subtotal = mockDraftOrderPage.items.reduce((total, draft) => {
+  const subtotal = mockDraftOrderPage.data.reduce((total, draft) => {
     return total + draft.snapshot.skus.reduce((acc, sku) => acc + sku.price, 0); // Assuming 1 qty per sku for mock
   }, 0);
   
@@ -71,7 +71,7 @@ export default function CheckoutPage(){
                 Sản phẩm
               </h2>
               
-              {mockDraftOrderPage.items.map((draft, dIdx) => (
+              {mockDraftOrderPage.data.map((draft, dIdx) => (
                 <div key={draft.id} className={["p-6", dIdx > 0 ? "border-t border-outline-variant border-dashed" : ""].join(" ")}>
                   {/* Shop Info */}
                   <div className="font-label-md text-on-surface mb-4 flex items-center gap-2">

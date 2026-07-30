@@ -4,7 +4,7 @@
 // Source: openapi.yaml — components/schemas (Listing*, Sku, Category*, Tag*, Review*, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { Resource, ResourceID, CurrencyCode, PaginatedPage } from './common.type';
+import type { Resource, ResourceID, CurrencyCode, CursorPage, DataList, OffsetPage } from './common.type';
 import type { AccountID, AccountSummary } from './account.type';
 
 // ── Primitive IDs & Enums ─────────────────────────────────────────────────────
@@ -58,9 +58,8 @@ export interface Category {
   parent_id?: CategoryID | null;
 }
 
-export interface CategoryList {
-  items: Category[];
-}
+/** Unpaginated. Source: openapi.yaml — CategoryList */
+export interface CategoryList extends DataList<Category> {}
 
 export interface CreateCategoryRequest {
   name: string;
@@ -82,9 +81,11 @@ export interface Tag {
   description?: string | null;
 }
 
-export interface TagList {
-  items: Tag[];
-}
+/** Unpaginated. Source: openapi.yaml — TagList (for admin listing) */
+export interface TagList extends DataList<Tag> {}
+
+/** Offset/page-paginated. Source: openapi.yaml — TagPage */
+export type TagPage = OffsetPage<Tag>;
 
 export interface CreateTagRequest {
   slug: TagSlug;
@@ -158,7 +159,11 @@ export interface Listing {
   cover?: Resource | null;
 }
 
-export type ListingPage = PaginatedPage<Listing>;
+/**
+ * Offset/page-paginated. Source: openapi.yaml — ListingPage
+ * `meta.total_count` is null for ranked/top-K queries.
+ */
+export type ListingPage = OffsetPage<Listing>;
 
 /** Full listing returned by GET /listings/{id} */
 export interface ListingDetail {
@@ -259,7 +264,8 @@ export interface Review {
   created_at: string;
 }
 
-export type ReviewPage = PaginatedPage<Review>;
+/** Cursor-paginated. Source: openapi.yaml — ReviewPage */
+export type ReviewPage = CursorPage<Review>;
 
 export interface SubmitReviewRequest {
   order_id: string;
@@ -290,4 +296,5 @@ export interface Favorite {
   created_at: string;
 }
 
-export type FavoritePage = PaginatedPage<Favorite>;
+/** Cursor-paginated. Source: openapi.yaml — FavoritePage */
+export type FavoritePage = CursorPage<Favorite>;

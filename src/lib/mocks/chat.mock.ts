@@ -70,8 +70,8 @@ export const mockSystemMessage: Message = {
 };
 
 export const mockMessagePage: MessagePage = {
-  items: [mockTextMessage, mockSellerReplyMessage, mockImageMessage, mockSystemMessage],
-  next_cursor: null,
+  data: [mockTextMessage, mockSellerReplyMessage, mockImageMessage, mockSystemMessage],
+  meta: { next_cursor: null },
 };
 
 // ── Conversations ─────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export const mockConversation: Conversation = {
 };
 
 export const mockConversationPage: ConversationPage = {
-  items: [
+  data: [
     mockConversation,
     {
       id: 'cnv_conv2example01',
@@ -143,7 +143,7 @@ export const mockConversationPage: ConversationPage = {
       },
     },
   ],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };
 
 // ── Unread Counts ─────────────────────────────────────────────────────────────

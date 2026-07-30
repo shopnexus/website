@@ -76,14 +76,14 @@ export const mockSellerAccountSummary: AccountSummary = {
 };
 
 export const mockAccountSummaryPage: AccountSummaryPage = {
-  items: [
+  data: [
     mockAccountSummary,
     mockSellerAccountSummary,
     { id: 'acc_user2example001', name: 'Trần Thị Bích', avatar: null },
     { id: 'acc_user3example001', name: 'Lê Minh Tuấn', avatar: null },
     { id: 'acc_user4example001', name: 'Phạm Quỳnh Anh', avatar: mockAvatarResource },
   ],
-  next_cursor: 'acc_user4example001',
+  meta: { page: 1, limit: 20, total_count: 5 },
 };
 
 // ── PublicAccount (seller page) ───────────────────────────────────────────────
@@ -118,7 +118,7 @@ export const mockDevice: Device = {
 };
 
 export const mockDeviceList: DeviceList = {
-  items: [
+  data: [
     mockDevice,
     {
       id: 'dvc_mobile12345678',
@@ -144,7 +144,7 @@ export const mockIdentityDocument: IdentityDocument = {
 };
 
 export const mockIdentityDocumentList: IdentityDocumentList = {
-  items: [mockIdentityDocument],
+  data: [mockIdentityDocument],
 };
 
 // ── Notifications ─────────────────────────────────────────────────────────────
@@ -188,8 +188,8 @@ export const mockNotifications: Notification[] = [
 ];
 
 export const mockNotificationPage: NotificationPage = {
-  items: mockNotifications,
-  next_cursor: null,
+  data: mockNotifications,
+  meta: { next_cursor: null },
 };
 
 // ── Notification Preferences ──────────────────────────────────────────────────
@@ -209,5 +209,5 @@ export const mockNotificationPreferences: NotificationPreference[] = [
 ];
 
 export const mockNotificationPreferenceList: NotificationPreferenceList = {
-  items: mockNotificationPreferences,
+  data: mockNotificationPreferences,
 };

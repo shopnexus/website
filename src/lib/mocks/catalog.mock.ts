@@ -47,7 +47,7 @@ export const mockCategoryFashion: Category = {
 };
 
 export const mockCategoryList: CategoryList = {
-  items: [mockCategoryElectronics, mockCategoryPhone, mockCategoryFashion],
+  data: [mockCategoryElectronics, mockCategoryPhone, mockCategoryFashion],
 };
 
 // ── Tags ──────────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export const mockTagVintage: Tag = { slug: 'vintage', description: 'Đồ cổ �
 export const mockTagElectronics: Tag = { slug: 'electronics', description: null };
 
 export const mockTagList: TagList = {
-  items: [mockTagHandmade, mockTagVintage, mockTagElectronics],
+  data: [mockTagHandmade, mockTagVintage, mockTagElectronics],
 };
 
 // ── SKU & Stock ───────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ export const mockListingNegotiable: Listing = {
 };
 
 export const mockListingPage: ListingPage = {
-  items: [
+  data: [
     mockListing,
     mockListingNegotiable,
     { ...mockListing, id: 'spu_item3example001', slug: 'samsung-s23-128gb', name: 'Samsung Galaxy S23 128GB - Fullbox', price: 8900000 },
@@ -136,7 +136,7 @@ export const mockListingPage: ListingPage = {
     { ...mockListing, id: 'spu_item9example001', slug: 'gopro-hero11', name: 'GoPro Hero 11 Black - Fullbox', price: 7200000 },
     { ...mockListing, id: 'spu_item10example01', slug: 'xiaomi-14-pro', name: 'Xiaomi 14 Pro 256GB - Chính hãng', price: 13500000 },
   ],
-  next_cursor: 'spu_item10example01',
+  meta: { page: 1, limit: 10, total_count: null },
 };
 
 // ── Listing Detail ────────────────────────────────────────────────────────────
@@ -212,7 +212,7 @@ export const mockReview: Review = {
 };
 
 export const mockReviewPage: ReviewPage = {
-  items: [
+  data: [
     mockReview,
     {
       ...mockReview,
@@ -225,7 +225,7 @@ export const mockReviewPage: ReviewPage = {
       created_at: '2025-05-10T14:00:00Z',
     },
   ],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };
 
 // ── Favorites ─────────────────────────────────────────────────────────────────
@@ -236,10 +236,10 @@ export const mockFavorite: Favorite = {
 };
 
 export const mockFavoritePage: FavoritePage = {
-  items: [
+  data: [
     mockFavorite,
     { spu_id: 'spu_laptop2nd00001', created_at: '2025-05-28T08:00:00Z' },
     { spu_id: 'spu_item3example001', created_at: '2025-05-20T12:00:00Z' },
   ],
-  next_cursor: null,
+  meta: { next_cursor: null },
 };

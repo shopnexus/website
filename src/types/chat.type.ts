@@ -4,7 +4,7 @@
 // Source: openapi.yaml — components/schemas (Conversation*, Message*, ChatUnread*)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { Resource, PaginatedPage } from './common.type';
+import type { Resource, CursorPage } from './common.type';
 import type { AccountID, AccountSummary } from './account.type';
 
 // ── Primitive IDs & Enums ─────────────────────────────────────────────────────
@@ -42,7 +42,8 @@ export interface Message {
   deleted_at?: string | null;
 }
 
-export type MessagePage = PaginatedPage<Message>;
+/** Cursor-paginated. Source: openapi.yaml — MessagePage */
+export type MessagePage = CursorPage<Message>;
 
 // ── Conversation ──────────────────────────────────────────────────────────────
 
@@ -56,7 +57,8 @@ export interface Conversation {
   last_message?: Message | null;
 }
 
-export type ConversationPage = PaginatedPage<Conversation>;
+/** Cursor-paginated. Source: openapi.yaml — ConversationPage */
+export type ConversationPage = CursorPage<Conversation>;
 
 // ── Unread Counts ─────────────────────────────────────────────────────────────
 

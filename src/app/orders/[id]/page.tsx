@@ -10,7 +10,7 @@ const formatPrice = (price: number) =>
 export default async function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const orderId = resolvedParams.id;
-  const order = mockOrderPage.items.find(o => o.id === orderId) || mockOrderPage.items[0]; // Fallback to first order if not found
+  const order = mockOrderPage.data.find(o => o.id === orderId) || mockOrderPage.data[0]; // Fallback to first order if not found
 
   // Calculate totals
   const totalAmount = order.items?.reduce((sum, item) => sum + item.total_amount, 0) || 0;

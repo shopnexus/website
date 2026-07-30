@@ -4,7 +4,7 @@
 // Source: openapi.yaml — components/schemas (Feedback*, Reputation*, Report*, Refund*, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { PaginatedPage, ResourceID } from './common.type';
+import type { CursorPage, ResourceID } from './common.type';
 import type { AccountID, AccountSummary } from './account.type';
 import type { OrderID } from './order.type';
 import type { ProductSPUID } from './catalog.type';
@@ -64,7 +64,8 @@ export interface Feedback {
   published_at?: string | null;
 }
 
-export type FeedbackPage = PaginatedPage<Feedback>;
+/** Cursor-paginated. Source: openapi.yaml — FeedbackPage */
+export type FeedbackPage = CursorPage<Feedback>;
 
 /** Both directions on one order, as far as the caller is allowed to see */
 export interface OrderFeedback {
@@ -112,7 +113,8 @@ export interface Report {
   resolved_at?: string | null;
 }
 
-export type ReportPage = PaginatedPage<Report>;
+/** Cursor-paginated. Source: openapi.yaml — ReportPage */
+export type ReportPage = CursorPage<Report>;
 
 export interface SubmitReportRequest {
   ref_type: ReportRefType;
@@ -148,7 +150,8 @@ export interface Refund {
   dispute_id?: RefundDisputeID | null;
 }
 
-export type RefundPage = PaginatedPage<Refund>;
+/** Cursor-paginated. Source: openapi.yaml — RefundPage */
+export type RefundPage = CursorPage<Refund>;
 
 export interface CreateRefundRequest {
   reason: string;
@@ -182,7 +185,8 @@ export interface RefundDispute {
   resolved_by_id?: AccountID | null;
 }
 
-export type RefundDisputePage = PaginatedPage<RefundDispute>;
+/** Cursor-paginated. Source: openapi.yaml — RefundDisputePage */
+export type RefundDisputePage = CursorPage<RefundDispute>;
 
 export interface DisputeRulingRequest {
   outcome: DisputeOutcome;

@@ -4,7 +4,7 @@
 // Source: openapi.yaml — components/schemas (Wallet*, Bank*, Payment*, Transaction*, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { CurrencyCode, PaginatedPage } from './common.type';
+import type { CurrencyCode, CursorPage, DataList } from './common.type';
 import type { AccountID } from './account.type';
 
 // ── Primitive IDs & Enums ─────────────────────────────────────────────────────
@@ -59,9 +59,8 @@ export interface Wallet {
   created_at: string;
 }
 
-export interface WalletList {
-  items: Wallet[];
-}
+/** Unpaginated. Source: openapi.yaml — WalletList */
+export interface WalletList extends DataList<Wallet> {}
 
 export interface WalletTransaction {
   seq: number;
@@ -80,7 +79,8 @@ export interface WalletTransaction {
   ref_type?: 'order' | 'payment-session' | null;
 }
 
-export type WalletTransactionPage = PaginatedPage<WalletTransaction>;
+/** Cursor-paginated. Source: openapi.yaml — WalletTransactionPage */
+export type WalletTransactionPage = CursorPage<WalletTransaction>;
 
 export interface WalletAdjustmentRequest {
   currency: CurrencyCode;
@@ -111,7 +111,8 @@ export interface PaymentSession {
   paid_at?: string | null;
 }
 
-export type PaymentSessionPage = PaginatedPage<PaymentSession>;
+/** Cursor-paginated. Source: openapi.yaml — PaymentSessionPage */
+export type PaymentSessionPage = CursorPage<PaymentSession>;
 
 export interface StartPaymentRequest {
   payment_option: string;
@@ -143,9 +144,11 @@ export interface Transaction {
   settled_at?: string | null;
 }
 
-export interface TransactionList {
-  items: Transaction[];
-}
+/**
+ * Unpaginated — a session has as many legs as rails it was split across.
+ * Source: openapi.yaml — TransactionList
+ */
+export interface TransactionList extends DataList<Transaction> {}
 
 // ── Bank Account ──────────────────────────────────────────────────────────────
 
@@ -160,9 +163,8 @@ export interface BankAccount {
   created_at: string;
 }
 
-export interface BankAccountList {
-  items: BankAccount[];
-}
+/** Unpaginated. Source: openapi.yaml — BankAccountList */
+export interface BankAccountList extends DataList<BankAccount> {}
 
 export interface CreateBankAccountRequest {
   bank_code: string;
@@ -190,7 +192,8 @@ export interface Withdrawal {
   resolved_by_id?: AccountID | null;
 }
 
-export type WithdrawalPage = PaginatedPage<Withdrawal>;
+/** Cursor-paginated. Source: openapi.yaml — WithdrawalPage */
+export type WithdrawalPage = CursorPage<Withdrawal>;
 
 export interface CreateWithdrawalRequest {
   currency: CurrencyCode;

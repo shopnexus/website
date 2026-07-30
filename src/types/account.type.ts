@@ -4,7 +4,7 @@
 // Source: openapi.yaml — components/schemas (Account*, Me, Auth*, Profile*, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { Resource, ResourceID, PaginatedPage } from './common.type';
+import type { Resource, ResourceID, CursorPage, DataList, OffsetPage } from './common.type';
 
 // ── Primitive IDs & Enums ─────────────────────────────────────────────────────
 
@@ -63,7 +63,8 @@ export interface AccountSummary {
   avatar?: Resource | null;
 }
 
-export type AccountSummaryPage = PaginatedPage<AccountSummary>;
+/** Offset/page-paginated. Source: openapi.yaml — AccountSummaryPage */
+export type AccountSummaryPage = OffsetPage<AccountSummary>;
 
 /** The caller's own view — private to them */
 export interface Me {
@@ -186,9 +187,8 @@ export interface OAuthIdentity {
   email?: string | null;
 }
 
-export interface OAuthIdentityList {
-  items: OAuthIdentity[];
-}
+/** Unpaginated. Source: openapi.yaml — OAuthIdentityList */
+export interface OAuthIdentityList extends DataList<OAuthIdentity> {}
 
 // ── KYC / Identity Document ───────────────────────────────────────────────────
 
@@ -204,9 +204,8 @@ export interface IdentityDocument {
   verified_at?: string | null;
 }
 
-export interface IdentityDocumentList {
-  items: IdentityDocument[];
-}
+/** Unpaginated. Source: openapi.yaml — IdentityDocumentList */
+export interface IdentityDocumentList extends DataList<IdentityDocument> {}
 
 export interface IdentityVerificationTicket {
   document: IdentityDocument;
@@ -235,9 +234,8 @@ export interface Device {
   created_at: string;
 }
 
-export interface DeviceList {
-  items: Device[];
-}
+/** Unpaginated. Source: openapi.yaml — DeviceList */
+export interface DeviceList extends DataList<Device> {}
 
 export interface RegisterDeviceRequest {
   platform: DevicePlatform;
@@ -255,7 +253,8 @@ export interface Notification {
   read_at?: string | null;
 }
 
-export type NotificationPage = PaginatedPage<Notification>;
+/** Cursor-paginated. Source: openapi.yaml — NotificationPage */
+export type NotificationPage = CursorPage<Notification>;
 
 export interface NotificationPreference {
   category: NotificationCategory;
@@ -265,9 +264,8 @@ export interface NotificationPreference {
   is_default: boolean;
 }
 
-export interface NotificationPreferenceList {
-  items: NotificationPreference[];
-}
+/** Unpaginated. Source: openapi.yaml — NotificationPreferenceList */
+export interface NotificationPreferenceList extends DataList<NotificationPreference> {}
 
 export interface MarkNotificationsReadRequest {
   /** Omit to mark the whole feed read */
