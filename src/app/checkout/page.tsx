@@ -4,22 +4,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import StepIndicator from "@/components/ui/StepIndicator";
-import { CART_GROUPS, formatPrice } from "@/lib/mock-data";
+import { mockDraftOrderPage, mockContact } from "@/lib/mocks/order.mock";
+
+const formatPrice = (price: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 export default function CheckoutPage(){
   const router = useRouter();
   
-  // Calculate totals from mock data
-  const subtotal = CART_GROUPS.reduce((total, group) => {
-    return total + group.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  // Calculate totals from draft orders
+  const subtotal = mockDraftOrderPage.items.reduce((total, draft) => {
+    return total + draft.snapshot.skus.reduce((acc, sku) => acc + sku.price, 0); // Assuming 1 qty per sku for mock
   }, 0);
+  
   const shippingFee = 35000;
   const total = subtotal + shippingFee;
 
   const handlePlaceOrder = () => {
-    router.push("/order/success");
+    router.push("/orders"); // Mock redirecting to orders page on success
   };
 
   return (
@@ -53,10 +56,10 @@ export default function CheckoutPage(){
               </div>
               
               <div className="flex flex-col gap-1 text-body-md text-on-surface">
-                <div className="font-bold">Nguyễn Văn An <span className="font-normal text-on-surface-variant mx-2">|</span> 0901234567</div>
+                <div className="font-bold">{mockContact.full_name} <span className="font-normal text-on-surface-variant mx-2">|</span> {mockContact.phone}</div>
                 <div className="text-on-surface-variant">
-                  Tòa nhà The Nexus, 3A-3B Tôn Đức Thắng<br />
-                  Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh
+                  {mockContact.address_detail}, {mockContact.address}<br />
+                  {mockContact.ward_name}, {mockContact.province_name}
                 </div>
                 <div className="mt-2 text-label-sm border border-primary text-primary px-2 py-0.5 rounded w-fit">Mặc định</div>
               </div>
@@ -68,28 +71,34 @@ export default function CheckoutPage(){
                 Sản phẩm
               </h2>
               
-              {CART_GROUPS.map((group, gIdx) => (
-                <div key={gIdx} className={["p-6", gIdx > 0 ? "border-t border-outline-variant border-dashed" : ""].join(" ")}>
+              {mockDraftOrderPage.items.map((draft, dIdx) => (
+                <div key={draft.id} className={["p-6", dIdx > 0 ? "border-t border-outline-variant border-dashed" : ""].join(" ")}>
                   {/* Shop Info */}
                   <div className="font-label-md text-on-surface mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[20px]">store</span>
-                    {group.seller.name}
+                    Shop {draft.snapshot.seller_id}
                   </div>
                   
                   {/* Items */}
                   <div className="flex flex-col gap-4 mb-6">
-                    {group.items.map((item) => (
-                      <div key={item.id} className="flex gap-4">
+                    {draft.snapshot.skus.map((sku) => (
+                      <div key={sku.id} className="flex gap-4">
                         <div className="relative w-16 h-16 rounded border border-outline-variant overflow-hidden shrink-0">
-                          <Image src={item.product.images[0]} alt={item.product.title} fill className="object-cover" />
+                          {sku.attachments?.[0] ? (
+                            <Image src={`https://cdn.shopnexus.vn/mock/${sku.attachments[0]}`} alt={draft.snapshot.name} fill className="object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-surface-container flex items-center justify-center text-xs">No img</div>
+                          )}
                         </div>
                         <div className="flex-1 flex flex-col min-w-0">
-                          <span className="font-body-sm text-on-surface truncate">{item.product.title}</span>
-                          <span className="text-xs text-on-surface-variant mt-1">Loại: {item.variant}</span>
+                          <span className="font-body-sm text-on-surface truncate">{draft.snapshot.name}</span>
+                          {sku.attributes && Object.keys(sku.attributes).length > 0 && (
+                            <span className="text-xs text-on-surface-variant mt-1">Loại: {Object.values(sku.attributes).join(", ")}</span>
+                          )}
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="font-price-sm text-on-surface">{formatPrice(item.product.price)}</div>
-                          <div className="text-xs text-on-surface-variant mt-1">x{item.quantity}</div>
+                          <div className="font-price-sm text-on-surface">{formatPrice(sku.price)}</div>
+                          <div className="text-xs text-on-surface-variant mt-1">x1</div>
                         </div>
                       </div>
                     ))}
@@ -100,10 +109,10 @@ export default function CheckoutPage(){
                     <div>
                       <h4 className="font-label-md text-on-surface mb-1 text-primary">Phương thức vận chuyển</h4>
                       <div className="font-body-sm text-on-surface font-medium">Nhanh (Giao hàng dự kiến 1-2 ngày)</div>
-                      <div className="text-xs text-on-surface-variant mt-0.5">Nhận hàng vào 26 Th07 - 27 Th07</div>
+                      <div className="text-xs text-on-surface-variant mt-0.5">Nhận hàng dự kiến sớm</div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-price-sm text-on-surface font-medium">{formatPrice(20000)}</span>
+                      <span className="font-price-sm text-on-surface font-medium">{formatPrice(shippingFee)}</span>
                       <button className="text-primary text-sm hover:underline">Thay đổi</button>
                     </div>
                   </div>
@@ -135,16 +144,8 @@ export default function CheckoutPage(){
                 
                 <label className="flex items-center justify-between p-4 border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary-container/10">
                   <div className="flex items-center gap-4">
-                    <span className="material-symbols-outlined text-[32px] text-primary">credit_card</span>
-                    <span className="font-label-md text-on-surface">Thẻ Tín dụng/Ghi nợ</span>
-                  </div>
-                  <input type="radio" name="paymentMethod" className="w-5 h-5 text-primary focus:ring-primary accent-primary" />
-                </label>
-                
-                <label className="flex items-center justify-between p-4 border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary-container/10">
-                  <div className="flex items-center gap-4">
-                    <span className="material-symbols-outlined text-[32px] text-primary">account_balance</span>
-                    <span className="font-label-md text-on-surface">Chuyển khoản ngân hàng</span>
+                    <span className="material-symbols-outlined text-[32px] text-primary">qr_code_2</span>
+                    <span className="font-label-md text-on-surface">Thanh toán VNPay QR</span>
                   </div>
                   <input type="radio" name="paymentMethod" className="w-5 h-5 text-primary focus:ring-primary accent-primary" />
                 </label>
@@ -166,16 +167,12 @@ export default function CheckoutPage(){
                   <span>Phí vận chuyển</span>
                   <span className="text-on-surface">{formatPrice(shippingFee)}</span>
                 </div>
-                <div className="flex justify-between text-primary">
-                  <span>Giảm giá phí vận chuyển</span>
-                  <span>-{formatPrice(15000)}</span>
-                </div>
               </div>
               
               <div className="flex justify-between items-center mb-2">
                 <span className="font-label-md text-on-surface">Tổng thanh toán</span>
                 <span className="font-headline-md text-[22px] text-primary font-bold leading-none">
-                  {formatPrice(total - 15000)}
+                  {formatPrice(total)}
                 </span>
               </div>
               

@@ -4,14 +4,27 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { DASHBOARD_STATS, DASHBOARD_PRODUCTS } from "@/lib/mock-data";
+import { mockListingPage } from "@/lib/mocks/catalog.mock";
+import { LISTING_STATUS_VI } from "@/lib/dictionaries";
+import { mockPublicAccount } from "@/lib/mocks/account.mock";
+
+const formatPrice = (price: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 export default function DashboardPage(){
+  const myProducts = mockListingPage.items.slice(0, 3);
+
+  const DASHBOARD_STATS = [
+    { label: "Doanh thu", value: "12,450,000đ", change: 12.5, icon: "payments" },
+    { label: "Đơn hàng", value: "24", change: 8.2, icon: "shopping_bag" },
+    { label: "Lượt xem trang", value: "1,204", change: -2.4, icon: "visibility" },
+  ];
+
   return (
     <div className="p-4 md:p-8">
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="font-headline-md font-bold text-on-surface mb-2">Chào mừng trở lại, Minh!</h1>
+          <h1 className="font-headline-md font-bold text-on-surface mb-2">Chào mừng trở lại, {mockPublicAccount.name}!</h1>
           <p className="font-body-sm text-on-surface-variant">Đây là tổng quan hoạt động kinh doanh của bạn hôm nay.</p>
         </div>
       </div>
@@ -53,37 +66,40 @@ export default function DashboardPage(){
                   <tr className="bg-surface-container-low font-label-sm text-on-surface-variant border-b border-outline-variant">
                     <th className="p-4 pl-6 w-[350px]">Sản phẩm</th>
                     <th className="p-4">Trạng thái</th>
-                    <th className="p-4">Lượt xem</th>
+                    <th className="p-4">Giá</th>
                     <th className="p-4 pr-6">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant">
-                  {DASHBOARD_PRODUCTS.map((prod) => (
+                  {myProducts.map((prod) => (
                     <tr key={prod.id} className="hover:bg-surface-container-lowest transition-colors">
                       <td className="p-4 pl-6">
                         <div className="flex gap-4 items-center">
-                          <div className="w-12 h-12 rounded border border-outline-variant relative overflow-hidden shrink-0">
-                            <Image src={prod.image} alt={prod.name} fill className="object-cover" />
+                          <div className="w-12 h-12 rounded border border-outline-variant relative overflow-hidden shrink-0 bg-surface-container flex items-center justify-center text-xs">
+                            {prod.cover ? (
+                              <Image src={prod.cover.url || ''} alt={prod.name} fill className="object-cover" />
+                            ) : (
+                              "Img"
+                            )}
                           </div>
                           <div>
                             <div className="font-label-md text-on-surface mb-1 truncate max-w-[200px]">{prod.name}</div>
-                            <div className="font-price-sm text-primary">{prod.price}</div>
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
-                        <Badge variant="surface" className={prod.status === "Đang bán" ? "bg-primary/10 text-primary border border-primary/20" : ""}>
-                          {prod.status}
+                        <Badge variant="surface" className={prod.status === "active" ? "bg-primary/10 text-primary border border-primary/20" : ""}>
+                          {LISTING_STATUS_VI[prod.status] || prod.status}
                         </Badge>
                       </td>
-                      <td className="p-4 font-body-sm text-on-surface-variant">{prod.views}</td>
+                      <td className="p-4 font-body-sm text-on-surface-variant">{formatPrice(prod.price)}</td>
                       <td className="p-4 pr-6">
                         <div className="flex gap-2">
                           <button className="p-1.5 rounded bg-surface border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors" title="Chỉnh sửa">
                             <span className="material-symbols-outlined text-[18px]">edit</span>
                           </button>
                           <button className="p-1.5 rounded bg-surface border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors" title="Ẩn/Hiện">
-                            <span className="material-symbols-outlined text-[18px]">{prod.status === "Đang bán" ? "visibility_off" : "visibility"}</span>
+                            <span className="material-symbols-outlined text-[18px]">{prod.status === "active" ? "visibility_off" : "visibility"}</span>
                           </button>
                         </div>
                       </td>
@@ -132,7 +148,7 @@ export default function DashboardPage(){
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-label-md text-on-surface">Tin nhắn mới từ Khách hàng</div>
-                    <div className="font-body-sm text-on-surface-variant mt-1 line-clamp-1">&quot;Shop ơi, sản phẩm này còn size L không ạ?&quot;</div>
+                    <div className="font-body-sm text-on-surface-variant mt-1 line-clamp-1">&quot;Shop ơi, sản phẩm này còn không ạ?&quot;</div>
                   </div>
                   <span className="text-xs text-on-surface-variant">1 giờ trước</span>
                 </div>

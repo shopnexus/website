@@ -4,30 +4,43 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { CONVERSATIONS, CHAT_MESSAGES, formatPrice } from "@/lib/mock-data";
-import type { ChatMessage } from "@/types";
+import { mockConversationPage, mockMessagePage } from "@/lib/mocks/chat.mock";
+import { mockListingDetail } from "@/lib/mocks/catalog.mock";
+import type { Message } from "@/types/chat.type";
+
+const formatPrice = (price: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 export default function InboxPage() {
   const [activeTab, setActiveTab] = useState("all");
-  const [activeConvId, setActiveConvId] = useState(CONVERSATIONS[0].id);
-  const [messages, setMessages] = useState<ChatMessage[]>(CHAT_MESSAGES);
+  const [activeConvId, setActiveConvId] = useState(mockConversationPage.items[0]?.id || "");
+  const [messages, setMessages] = useState<Message[]>(mockMessagePage.items);
   const [inputText, setInputText] = useState("");
   const [showChatMobile, setShowChatMobile] = useState(false);
 
-  const activeConv = CONVERSATIONS.find((c) => c.id === activeConvId) || CONVERSATIONS[0];
+  // Mock resolve
+  const activeConv = mockConversationPage.items.find((c) => c.id === activeConvId) || mockConversationPage.items[0];
+  const activeContact = activeConv?.counterparty;
+  const activeProduct = mockListingDetail; // mocked product
 
   const handleSend = () => {
     if (!inputText.trim()) return;
-    const newMsg: ChatMessage = {
-      id: "m_" + Date.now(),
-      content: inputText.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      isSent: true,
-      isRead: false,
+    const newMsg: Message = {
+      id: "msg_" + Date.now(),
+      conversation_id: activeConvId,
+      sender_id: "usr_me",
+      type: "user",
+      body: inputText.trim(),
+      created_at: new Date().toISOString(),
+      status: 'sent',
+      attachments: [],
+      metadata: {}
     };
     setMessages((prev) => [...prev, newMsg]);
     setInputText("");
   };
+
+  const isMe = (senderId?: string | null) => senderId === "usr_me";
 
   return (
     <div className="bg-background min-h-[calc(100vh-76px)] w-full">
@@ -44,7 +57,7 @@ export default function InboxPage() {
               <h1 className="text-base font-bold text-on-surface mb-3 flex items-center justify-between">
                 <span>Hộp thư</span>
                 <span className="text-[11px] font-normal text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full border border-outline-variant/30">
-                  {CONVERSATIONS.length} hội thoại
+                  {mockConversationPage.items.length} hội thoại
                 </span>
               </h1>
               <div className="relative">
@@ -80,34 +93,14 @@ export default function InboxPage() {
                 onClick={() => setActiveTab("unread")}
               >
                 Chưa đọc
-                <span className="w-3.5 h-3.5 rounded-full bg-error text-on-error text-[9px] flex items-center justify-center font-bold">2</span>
-              </button>
-              <button
-                className={`py-2 px-2.5 text-xs font-semibold transition-colors border-b-2 whitespace-nowrap ${
-                  activeTab === "buying"
-                    ? "text-primary border-primary font-bold bg-primary-container/10 rounded-t-md"
-                    : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-low rounded-t-md"
-                }`}
-                onClick={() => setActiveTab("buying")}
-              >
-                Mua
-              </button>
-              <button
-                className={`py-2 px-2.5 text-xs font-semibold transition-colors border-b-2 whitespace-nowrap ${
-                  activeTab === "selling"
-                    ? "text-primary border-primary font-bold bg-primary-container/10 rounded-t-md"
-                    : "text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-container-low rounded-t-md"
-                }`}
-                onClick={() => setActiveTab("selling")}
-              >
-                Bán
               </button>
             </div>
 
             {/* Conversation List */}
             <div className="flex-1 overflow-y-auto divide-y divide-outline-variant/10">
-              {CONVERSATIONS.map((conv) => {
+              {mockConversationPage.items.map((conv) => {
                 const isActive = activeConvId === conv.id;
+                const contact = conv.counterparty;
                 return (
                   <div
                     key={conv.id}
@@ -122,43 +115,33 @@ export default function InboxPage() {
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full overflow-hidden relative border border-outline-variant/20">
-                        <Image
-                          src={conv.contact.avatar}
-                          alt={conv.contact.name}
-                          fill
-                          className="object-cover"
-                        />
+                      <div className="w-10 h-10 rounded-full overflow-hidden relative border border-outline-variant/20 bg-surface-container flex items-center justify-center text-on-surface-variant font-bold">
+                        {contact.avatar?.url ? (
+                          <Image src={contact.avatar.url} alt={contact.name} fill className="object-cover" />
+                        ) : (
+                          contact.name.charAt(0)
+                        )}
                       </div>
-                      {conv.contact.isOnline && (
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-surface-container-lowest rounded-full"></span>
-                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-0.5">
-                        <h3 className={`text-xs truncate ${conv.unreadCount > 0 ? "font-bold text-on-surface" : "font-medium text-on-surface"}`}>
-                          {conv.contact.name}
+                        <h3 className={`text-xs truncate ${conv.unread > 0 ? "font-bold text-on-surface" : "font-medium text-on-surface"}`}>
+                          {contact.name}
                         </h3>
-                        <span className={`text-[10px] shrink-0 font-medium ${conv.unreadCount > 0 ? "text-primary font-bold" : "text-outline"}`}>
-                          {conv.lastMessageTime}
+                        <span className={`text-[10px] shrink-0 font-medium ${conv.unread > 0 ? "text-primary font-bold" : "text-outline"}`}>
+                          {new Date(conv.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       <div className="flex justify-between items-center gap-1.5">
-                        <p className={`text-xs truncate ${conv.unreadCount > 0 ? "text-on-surface font-semibold" : "text-on-surface-variant"}`}>
-                          {conv.lastMessage}
+                        <p className={`text-xs truncate ${conv.unread > 0 ? "text-on-surface font-semibold" : "text-on-surface-variant"}`}>
+                          {conv.last_message?.body || "Hình ảnh/Tệp"}
                         </p>
-                        {conv.unreadCount > 0 && (
+                        {conv.unread > 0 && (
                           <span className="w-4 h-4 rounded-full bg-primary text-on-primary flex items-center justify-center text-[9px] font-bold shrink-0">
-                            {conv.unreadCount}
+                            {conv.unread}
                           </span>
                         )}
                       </div>
-                      {conv.product && (
-                        <div className="mt-1 flex items-center gap-1 text-[10px] text-on-surface-variant bg-surface-container-low px-1.5 py-0.5 rounded border border-outline-variant/20 truncate">
-                          <span className="material-symbols-outlined text-[12px] text-primary">shopping_bag</span>
-                          <span className="truncate">{conv.product.title}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
@@ -178,32 +161,22 @@ export default function InboxPage() {
                 >
                   <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                 </button>
-                <div className="relative w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border border-outline-variant/30 shrink-0">
-                  <Image
-                    src={activeConv.contact.avatar}
-                    alt={activeConv.contact.name}
-                    fill
-                    className="object-cover"
-                  />
+                <div className="relative w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border border-outline-variant/30 shrink-0 bg-surface-container flex items-center justify-center text-on-surface-variant font-bold">
+                  {activeContact?.avatar?.url ? (
+                    <Image src={activeContact.avatar.url} alt={activeContact.name} fill className="object-cover" />
+                  ) : (
+                    activeContact?.name.charAt(0) || "U"
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <h2 className="text-sm md:text-base font-bold text-on-surface">
-                      {activeConv.contact.name}
+                      {activeContact?.name || "Người dùng"}
                     </h2>
-                    <span className="px-1.5 py-0.5 bg-secondary-container text-on-secondary-container text-[9px] font-bold rounded-full uppercase tracking-tighter">
-                      Người mua
-                    </span>
                   </div>
                   <div className="text-[10px] text-on-surface-variant flex items-center gap-1 mt-0.5">
-                    {activeConv.contact.isOnline ? (
-                      <>
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                        <span className="text-green-600 font-medium">Đang hoạt động</span>
-                      </>
-                    ) : (
-                      "Hoạt động 2 giờ trước"
-                    )}
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                    <span className="text-green-600 font-medium">Đang hoạt động</span>
                   </div>
                 </div>
               </div>
@@ -215,9 +188,6 @@ export default function InboxPage() {
                 <button title="Gọi video" className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-1.5 hover:bg-surface-container-low rounded-full text-[20px]">
                   videocam
                 </button>
-                <button title="Thông tin" className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-1.5 hover:bg-surface-container-low rounded-full text-[20px] lg:hidden">
-                  info
-                </button>
               </div>
             </div>
 
@@ -225,42 +195,22 @@ export default function InboxPage() {
             <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[url('https://www.transparenttextures.com/patterns/tiny-grid.png')] bg-surface-container-lowest/50">
               <div className="flex justify-center">
                 <span className="px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant text-[10px] font-medium rounded-full shadow-2xs">
-                  Hôm nay, 10:30
+                  Hôm nay
                 </span>
               </div>
 
               {messages.map((msg) => {
+                const sentByMe = isMe(msg.sender_id);
                 return (
                   <div key={msg.id} className="space-y-1">
-                    {msg.isSent ? (
+                    {sentByMe ? (
                       /* Message Outgoing (User - Teal) */
                       <div className="flex flex-row-reverse gap-2.5 ml-auto max-w-[85%] md:max-w-[75%]">
                         <div className="flex flex-col items-end space-y-1.5 min-w-0">
-                          {msg.productCard && (
-                            <div className="bg-surface border border-outline-variant/40 p-2.5 rounded-xl rounded-br-sm shadow-sm flex gap-2.5 max-w-[260px] text-left">
-                              <div className="relative w-12 h-12 rounded overflow-hidden shrink-0 bg-surface-container-low">
-                                <Image
-                                  src={msg.productCard.images[0]}
-                                  alt=""
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                              <div className="flex flex-col min-w-0 flex-1 justify-center">
-                                <span className="text-xs font-semibold line-clamp-2 leading-snug text-on-surface">
-                                  {msg.productCard.title}
-                                </span>
-                                <span className="text-xs text-primary mt-0.5 font-bold">
-                                  {formatPrice(msg.productCard.price)}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-
-                          {msg.imageUrl && (
+                          {msg.attachments && msg.attachments.length > 0 && (
                             <div className="rounded-xl rounded-br-sm overflow-hidden border-2 border-primary/20 shadow-sm max-w-[220px]">
                               <Image
-                                src={msg.imageUrl}
+                                src={msg.attachments[0].url || ''}
                                 alt="Attached image"
                                 width={240}
                                 height={180}
@@ -269,62 +219,33 @@ export default function InboxPage() {
                             </div>
                           )}
 
-                          {msg.content && (
+                          {msg.body && (
                             <div className="bg-primary text-on-primary px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-br-sm text-xs md:text-sm shadow-sm leading-relaxed break-words">
-                              {msg.content}
+                              {msg.body}
                             </div>
                           )}
 
                           <span className="text-[9px] text-outline mt-0.5 block text-right flex items-center justify-end gap-1">
-                            {msg.timestamp} • {msg.isRead ? "Đã xem" : "Đã gửi"}
-                            {msg.isRead && (
-                              <span
-                                className="material-symbols-outlined text-[13px] text-primary"
-                                style={{ fontVariationSettings: "'FILL' 1" }}
-                              >
-                                done_all
-                              </span>
-                            )}
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
                     ) : (
                       /* Message Incoming (Other Person) */
                       <div className="flex gap-2.5 max-w-[85%] md:max-w-[75%]">
-                        <div className="relative w-7 h-7 rounded-full overflow-hidden self-end mb-4 shrink-0 border border-outline-variant/30">
-                          <Image
-                            src={activeConv.contact.avatar}
-                            alt=""
-                            fill
-                            className="object-cover"
-                          />
+                        <div className="relative w-7 h-7 rounded-full overflow-hidden self-end mb-4 shrink-0 border border-outline-variant/30 bg-surface-container flex items-center justify-center text-xs">
+                          {activeContact?.avatar?.url ? (
+                            <Image src={activeContact.avatar.url} alt="" fill className="object-cover" />
+                          ) : (
+                            activeContact?.name.charAt(0) || "U"
+                          )}
                         </div>
                         <div className="space-y-1.5 min-w-0 flex-1">
-                          {msg.productCard && (
-                            <div className="bg-surface border border-outline-variant/40 p-2.5 rounded-xl rounded-bl-sm shadow-sm flex gap-2.5 max-w-[260px]">
-                              <div className="relative w-12 h-12 rounded overflow-hidden shrink-0 bg-surface-container-low">
-                                <Image
-                                  src={msg.productCard.images[0]}
-                                  alt=""
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                              <div className="flex flex-col min-w-0 flex-1 justify-center">
-                                <span className="text-xs font-semibold line-clamp-2 leading-snug text-on-surface">
-                                  {msg.productCard.title}
-                                </span>
-                                <span className="text-xs text-primary mt-0.5 font-bold">
-                                  {formatPrice(msg.productCard.price)}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-
-                          {msg.imageUrl && (
+                          
+                          {msg.attachments && msg.attachments.length > 0 && (
                             <div className="rounded-xl rounded-bl-sm overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px]">
                               <Image
-                                src={msg.imageUrl}
+                                src={msg.attachments[0].url || ''}
                                 alt="Attached image"
                                 width={240}
                                 height={180}
@@ -333,14 +254,14 @@ export default function InboxPage() {
                             </div>
                           )}
 
-                          {msg.content && (
+                          {msg.body && (
                             <div className="bg-surface-container-high text-on-surface px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-bl-sm text-xs md:text-sm shadow-sm leading-relaxed break-words border border-outline-variant/20">
-                              {msg.content}
+                              {msg.body}
                             </div>
                           )}
 
                           <span className="text-[9px] text-outline mt-0.5 block pl-1">
-                            {msg.timestamp}
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
@@ -369,7 +290,7 @@ export default function InboxPage() {
                 </button>
                 <input
                   className="flex-1 border-none focus:ring-0 bg-transparent text-xs md:text-sm py-1.5 outline-none text-on-surface placeholder:text-outline"
-                  placeholder={`Viết tin nhắn cho ${activeConv.contact.name}...`}
+                  placeholder={`Viết tin nhắn cho ${activeContact?.name}...`}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => {
@@ -405,26 +326,30 @@ export default function InboxPage() {
                 Chi tiết sản phẩm
               </h3>
 
-              {activeConv.product ? (
+              {activeProduct ? (
                 <div className="rounded-xl overflow-hidden bg-surface-container-low mb-5 group cursor-pointer border border-outline-variant/20 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
-                  <div className="aspect-[4/3] overflow-hidden relative bg-surface-container">
-                    <Image
-                      src={activeConv.product.images[0]}
-                      alt={activeConv.product.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                  <div className="aspect-[4/3] overflow-hidden relative bg-surface-container flex items-center justify-center">
+                    {activeProduct.images?.[0] ? (
+                      <Image
+                        src={activeProduct.images[0].url || ''}
+                        alt={activeProduct.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      "No Img"
+                    )}
                   </div>
                   <div className="p-3">
                     <Link
-                      href={`/product/${activeConv.product.id}`}
+                      href={`/product/${activeProduct.id}`}
                       className="text-sm font-bold text-on-surface leading-tight hover:text-primary transition-colors block mb-2 line-clamp-2"
                     >
-                      {activeConv.product.title}
+                      {activeProduct.name}
                     </Link>
                     <div className="flex justify-between items-center">
                       <span className="text-primary font-bold text-base">
-                        {formatPrice(activeConv.product.price)}
+                        {formatPrice(activeProduct.skus?.[0]?.price || 0)}
                       </span>
                       <span className="text-[10px] text-on-surface-variant font-medium px-2 py-0.5 bg-surface-container-high rounded-full border border-outline-variant/20">
                         Chưa bán
@@ -445,25 +370,17 @@ export default function InboxPage() {
                     Người giao dịch
                   </h3>
                   <div className="flex items-center gap-2.5 bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/20">
-                    <div className="relative w-9 h-9 rounded-full overflow-hidden shrink-0 border border-outline-variant/30">
-                      <Image
-                        src={activeConv.contact.avatar}
-                        alt={activeConv.contact.name}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="relative w-9 h-9 rounded-full overflow-hidden shrink-0 border border-outline-variant/30 bg-surface-container flex items-center justify-center font-bold">
+                      {activeContact?.avatar?.url ? (
+                        <Image src={activeContact.avatar.url} alt={activeContact.name} fill className="object-cover" />
+                      ) : (
+                        activeContact?.name.charAt(0) || "U"
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-bold text-on-surface text-xs truncate">
-                        {activeConv.contact.name}
+                        {activeContact?.name || "Người dùng"}
                       </p>
-                      <div className="flex items-center text-amber-500 mt-0.5">
-                        <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                          star
-                        </span>
-                        <span className="text-xs font-bold ml-1 text-on-surface">4.9</span>
-                        <span className="text-outline text-[10px] ml-1">(12 đánh giá)</span>
-                      </div>
                     </div>
                   </div>
                 </div>

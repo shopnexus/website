@@ -7,22 +7,23 @@ import Button from "@/components/ui/Button";
 import Tabs from "@/components/ui/Tabs";
 import Chip from "@/components/ui/Chip";
 import ProductCard from "@/components/ui/ProductCard";
-import { SELLERS, PRODUCTS } from "@/lib/mock-data";
+import { mockPublicAccount } from "@/lib/mocks/account.mock";
+import { mockListingPage } from "@/lib/mocks/catalog.mock";
 import { use } from "react";
 
 export default function ShopProfilePage({ params }: { params: Promise<{ id: string }> }){
   const resolvedParams = use(params);
   const shopId = resolvedParams.id;
-  const seller = SELLERS.find(s => s.id === shopId) || SELLERS[0];
-  const shopProducts = PRODUCTS.filter(p => p.seller.id === seller.id);
-  // Fallback to all products if shop has none (for mock purposes)
-  const displayProducts = shopProducts.length > 0 ? shopProducts : PRODUCTS.slice(0, 8);
+  
+  // Using the new mock data
+  const seller = mockPublicAccount;
+  const displayProducts = mockListingPage.items;
 
   const [activeTab, setActiveTab] = useState("store");
 
   const tabs = [
     { id: "store", label: "Cửa hàng" },
-    { id: "reviews", label: "Đánh giá", count: seller.reviewCount },
+    { id: "reviews", label: "Đánh giá", count: 127 },
     { id: "about", label: "Giới thiệu" },
   ];
 
@@ -41,23 +42,25 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
           <aside className="w-full lg:w-80 shrink-0">
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-md text-center">
               <div className="relative w-28 h-28 mx-auto rounded-full border-4 border-surface overflow-hidden mb-4 shadow-sm -mt-16 bg-surface">
-                <Image src={seller.avatar} alt={seller.name} fill className="object-cover" />
+                {seller.avatar?.url ? (
+                  <Image src={seller.avatar.url} alt={seller.name} fill className="object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-secondary-container flex items-center justify-center text-on-surface font-bold text-2xl">
+                    {seller.name.charAt(0)}
+                  </div>
+                )}
               </div>
               
               <h1 className="font-headline-md font-bold text-on-surface flex items-center justify-center gap-1 mb-1">
                 {seller.name}
-                {seller.isVerified && (
+                {seller.identity_verified && (
                   <span className="material-symbols-outlined text-primary text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                     verified
                   </span>
                 )}
               </h1>
-              <div className="flex items-center justify-center gap-1 text-on-surface-variant font-body-sm mb-4">
-                <span className="material-symbols-outlined text-[16px]">location_on</span>
-                {seller.location}
-              </div>
               
-              <div className="flex gap-3 mb-6">
+              <div className="flex gap-3 mb-6 mt-4">
                 <Button variant="primary" fullWidth icon={<span className="material-symbols-outlined">add</span>}>
                   Theo dõi
                 </Button>
@@ -68,23 +71,14 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
 
               <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-left pt-6 border-t border-outline-variant border-dashed">
                 <div>
-                  <div className="font-label-sm text-on-surface-variant mb-1">Đánh giá</div>
-                  <div className="font-headline-sm font-bold flex items-center gap-1 text-on-surface">
-                    {seller.rating}
-                    <span className="material-symbols-outlined text-[18px] text-tertiary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  </div>
-                </div>
-                <div>
                   <div className="font-label-sm text-on-surface-variant mb-1">Người theo dõi</div>
-                  <div className="font-headline-sm font-bold text-on-surface">{seller.followerCount || "2.1k"}</div>
-                </div>
-                <div>
-                  <div className="font-label-sm text-on-surface-variant mb-1">Đã bán</div>
-                  <div className="font-headline-sm font-bold text-on-surface">{seller.soldCount}</div>
+                  <div className="font-headline-sm font-bold text-on-surface">{seller.follower_count}</div>
                 </div>
                 <div>
                   <div className="font-label-sm text-on-surface-variant mb-1">Tham gia</div>
-                  <div className="font-headline-sm font-bold text-on-surface">{seller.joinDate || "1 năm"}</div>
+                  <div className="font-headline-sm font-bold text-on-surface">
+                    {new Date(seller.created_at).toLocaleDateString("vi-VN", { month: "short", year: "numeric" })}
+                  </div>
                 </div>
               </div>
               
@@ -98,53 +92,48 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
           </aside>
 
           {/* ── Main Area ── */}
-          <main className="flex-1 min-w-0 pt-12 lg:pt-0">
+          <div className="flex-1 mt-12 lg:mt-0">
+            {/* Nav Tabs */}
             <div className="mb-6">
               <Tabs tabs={tabs} activeTabId={activeTab} onChange={setActiveTab} />
             </div>
 
+            {/* Content Based on Tab */}
             {activeTab === "store" && (
-              <>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                  <div className="flex flex-wrap gap-2">
-                    <Chip selected>Tất cả sản phẩm ({displayProducts.length})</Chip>
-                    <Chip>Điện thoại</Chip>
-                    <Chip>Phụ kiện</Chip>
-                    <Chip>Laptop</Chip>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-body-sm text-on-surface-variant">Sắp xếp:</span>
-                    <select className="bg-surface border border-outline-variant rounded-full py-1.5 pl-3 pr-8 text-body-sm text-on-surface outline-none focus:border-primary">
-                      <option>Mới nhất</option>
-                      <option>Bán chạy</option>
-                      <option>Giá tăng dần</option>
-                      <option>Giá giảm dần</option>
-                    </select>
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-headline-sm font-bold text-on-surface">Tất cả sản phẩm ({displayProducts.length})</h2>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" icon={<span className="material-symbols-outlined text-sm">filter_list</span>}>Lọc</Button>
+                    <Button variant="outline" size="sm" icon={<span className="material-symbols-outlined text-sm">sort</span>}>Mới nhất</Button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-12">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                   {displayProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
-              </>
+              </div>
             )}
 
             {activeTab === "reviews" && (
-              <div className="bg-surface rounded-2xl border border-outline-variant p-8 text-center text-on-surface-variant">
-                Chức năng Đánh giá đang được cập nhật.
+              <div className="py-12 text-center text-on-surface-variant">
+                <span className="material-symbols-outlined text-6xl text-outline mb-4">rate_review</span>
+                <p className="font-body-lg">Chưa có đánh giá nào.</p>
               </div>
             )}
-            
+
             {activeTab === "about" && (
-              <div className="bg-surface rounded-2xl border border-outline-variant p-8 text-on-surface">
-                <h3 className="font-headline-sm font-bold mb-4">Thông tin chi tiết</h3>
-                <p className="font-body-md whitespace-pre-wrap">{seller.description || "Chưa có thông tin giới thiệu chi tiết."}</p>
+              <div className="bg-surface rounded-2xl border border-outline-variant p-6 md:p-8">
+                <h2 className="font-headline-sm font-bold text-on-surface mb-4">Về {seller.name}</h2>
+                <div className="prose prose-sm text-on-surface-variant max-w-none">
+                  <p>{seller.description}</p>
+                </div>
               </div>
             )}
-          </main>
+          </div>
+
         </div>
       </div>
     </div>

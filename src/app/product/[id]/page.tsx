@@ -2,12 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import QuantitySelector from "@/components/ui/QuantitySelector";
-import { PRODUCTS, formatPrice } from "@/lib/mock-data";
+import { mockListingDetail } from "@/lib/mocks/catalog.mock";
+import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
+
+const formatPrice = (price: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const product = PRODUCTS.find((p) => p.id === resolvedParams.id) || PRODUCTS[0];
+  
+  // Using new mock data
+  const product = mockListingDetail;
   const { seller } = product;
 
   return (
@@ -17,15 +22,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <nav className="flex items-center text-sm text-on-surface-variant font-label-md">
           <Link href="/" className="hover:text-primary transition-colors">Trang chủ</Link>
           <span className="material-symbols-outlined text-[16px] mx-2">chevron_right</span>
-          <Link href={`/search?category=${product.category}`} className="hover:text-primary transition-colors">{product.category}</Link>
-          {product.subcategory && (
-            <>
-              <span className="material-symbols-outlined text-[16px] mx-2">chevron_right</span>
-              <Link href="#" className="hover:text-primary transition-colors">{product.subcategory}</Link>
-            </>
-          )}
+          <Link href={`/search?category=${product.category.id}`} className="hover:text-primary transition-colors">{product.category.name}</Link>
           <span className="material-symbols-outlined text-[16px] mx-2">chevron_right</span>
-          <span className="text-on-surface truncate">{product.title}</span>
+          <span className="text-on-surface truncate">{product.name}</span>
         </nav>
       </div>
 
@@ -34,56 +33,49 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           {/* ── Left Column: Images ── */}
           <div className="w-full lg:w-[500px] shrink-0">
             <div className="bg-surface rounded-2xl border border-outline-variant overflow-hidden mb-4 relative aspect-[4/5]">
-              <Image
-                src={product.images[0]}
-                alt={product.title}
-                fill
-                className="object-cover"
-                priority
-              />
+              {product.images?.[0] ? (
+                <Image
+                  src={product.images?.[0]?.url || ''}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <div className="w-full h-full bg-surface-container flex items-center justify-center">No Image</div>
+              )}
               {/* Product Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
-                {product.discount && (
-                  <Badge variant="error">-{product.discount}%</Badge>
-                )}
-                <Badge variant="surface">{product.condition}</Badge>
+                <Badge variant="surface">{LISTING_CONDITION_VI[product.condition] || product.condition}</Badge>
               </div>
             </div>
             
             {/* Thumbnail Gallery */}
-            <div className="flex gap-4 overflow-x-auto hide-scrollbar">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  className={["relative w-20 h-20 rounded-xl overflow-hidden border-2 shrink-0 transition-colors", idx === 0 ? "border-primary" : "border-transparent hover:border-outline-variant"].join(" ")}
-                >
-                  <Image src={img} alt="" fill className="object-cover" />
-                </button>
-              ))}
-              {product.imageCount && product.imageCount > product.images.length && (
-                <button className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-transparent bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors shrink-0">
-                  <span className="font-bold">+{product.imageCount - product.images.length}</span>
-                </button>
-              )}
-            </div>
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-4 overflow-x-auto hide-scrollbar">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    className={["relative w-20 h-20 rounded-xl overflow-hidden border-2 shrink-0 transition-colors", idx === 0 ? "border-primary" : "border-transparent hover:border-outline-variant"].join(" ")}
+                  >
+                    <Image src={img?.url || ''} alt="" fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ── Right Column: Info ── */}
           <div className="flex-1">
             <h1 className="font-headline-md font-bold text-on-surface mb-4">
-              {product.title}
+              {product.name}
             </h1>
 
             <div className="bg-surface rounded-2xl p-6 border border-outline-variant mb-6 shadow-sm">
               <div className="flex items-end gap-4 mb-2">
                 <span className="font-display-lg text-[40px] text-primary font-bold leading-none tracking-tight">
-                  {formatPrice(product.price)}
+                  {formatPrice(product.skus?.[0]?.price || 0)}
                 </span>
-                {product.originalPrice && (
-                  <span className="font-price-lg text-on-surface-variant line-through mb-1">
-                    {formatPrice(product.originalPrice)}
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-2 mt-4 text-body-sm text-on-surface-variant">
                 <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -96,25 +88,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             {/* Seller Card */}
             <div className="bg-surface rounded-2xl p-6 border border-outline-variant mb-6 flex flex-col sm:flex-row items-center gap-4 shadow-sm">
               <Link href={`/shop/${seller.id}`} className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
-                <Image src={seller.avatar} alt={seller.name} fill className="object-cover" />
+                {seller.avatar?.url ? (
+                  <Image src={seller.avatar.url} alt={seller.name} fill className="object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-secondary-container flex items-center justify-center text-xl font-bold">
+                    {seller.name.charAt(0)}
+                  </div>
+                )}
               </Link>
               <div className="flex-1 text-center sm:text-left">
                 <Link href={`/shop/${seller.id}`} className="font-headline-sm font-bold text-on-surface hover:text-primary transition-colors flex items-center justify-center sm:justify-start gap-1">
                   {seller.name}
-                  {seller.isVerified && (
-                    <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      verified
-                    </span>
-                  )}
                 </Link>
-                <div className="flex items-center justify-center sm:justify-start gap-3 mt-1 text-label-sm text-on-surface-variant">
-                  <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[16px] text-tertiary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                    {seller.rating} ({seller.reviewCount})
-                  </span>
-                  <span>•</span>
-                  <span>Đã bán: {seller.soldCount}+</span>
-                </div>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button variant="outline" icon={<span className="material-symbols-outlined">chat</span>} className="flex-1 sm:flex-none">
@@ -134,24 +119,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-body-md">
                 <div className="flex border-b border-outline-variant border-dashed pb-2">
                   <span className="text-on-surface-variant w-1/3">Tình trạng:</span>
-                  <span className="text-on-surface font-medium flex-1 text-right">{product.condition}</span>
+                  <span className="text-on-surface font-medium flex-1 text-right">{LISTING_CONDITION_VI[product.condition] || product.condition}</span>
                 </div>
-                {product.brand && (
+                {Boolean(product.specifications?.brand) && (
                   <div className="flex border-b border-outline-variant border-dashed pb-2">
-                    <span className="text-on-surface-variant w-1/3">Thương hiệu:</span>
-                    <span className="text-on-surface font-medium flex-1 text-right">{product.brand}</span>
+                    <span className="text-on-surface-variant font-label-md w-[120px]">Thương hiệu</span>
+                    <span className="text-on-surface font-medium flex-1 text-right">{String(product.specifications.brand)}</span>
                   </div>
                 )}
-                {product.warranty && (
+                {Boolean(product.specifications?.warranty_remaining) && (
                   <div className="flex border-b border-outline-variant border-dashed pb-2">
-                    <span className="text-on-surface-variant w-1/3">Bảo hành:</span>
-                    <span className="text-on-surface font-medium flex-1 text-right">{product.warranty}</span>
+                    <span className="text-on-surface-variant font-label-md w-[120px]">Bảo hành</span>
+                    <span className="text-on-surface font-medium flex-1 text-right">{String(product.specifications.warranty_remaining)}</span>
                   </div>
                 )}
-                <div className="flex border-b border-outline-variant border-dashed pb-2">
-                  <span className="text-on-surface-variant w-1/3">Khu vực:</span>
-                  <span className="text-on-surface font-medium flex-1 text-right">{product.location}</span>
-                </div>
               </div>
             </div>
 
@@ -172,7 +153,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <div className="hidden sm:flex items-center gap-4">
             <span className="font-label-md text-on-surface-variant">Tổng thanh toán:</span>
             <span className="font-display-lg text-[24px] text-primary font-bold leading-none">
-              {formatPrice(product.price)}
+              {formatPrice(product.skus?.[0]?.price || 0)}
             </span>
           </div>
           

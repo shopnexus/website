@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
 import LocationMap from "@/components/ui/LocationMap";
-import { PRODUCTS, CATEGORIES } from "@/lib/mock-data";
-import type { Product } from "@/types";
+import { mockListingPage, mockCategoryList } from "@/lib/mocks/catalog.mock";
+import type { Listing } from "@/types/catalog.type";
 
 function SearchPageContent(): React.ReactElement {
   const searchParams = useSearchParams();
@@ -21,7 +21,7 @@ function SearchPageContent(): React.ReactElement {
   const [appliedPriceFrom, setAppliedPriceFrom] = useState<string>("");
   const [appliedPriceTo, setAppliedPriceTo] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
-  const [extraProducts, setExtraProducts] = useState<Product[]>([]);
+  const [extraProducts, setExtraProducts] = useState<Listing[]>([]);
 
   const subCategories = [
     { id: "sub-1", label: "Điện thoại thông minh", count: "1,245" },
@@ -52,28 +52,25 @@ function SearchPageContent(): React.ReactElement {
 
   // Filter products from mock data
   const filteredProducts = useMemo(() => {
-    let result = [...PRODUCTS];
+    let result = [...mockListingPage.items];
 
     if (initialQuery) {
       const qLower = initialQuery.toLowerCase();
       result = result.filter(
         (p) =>
-          p.title.toLowerCase().includes(qLower) ||
-          p.description.toLowerCase().includes(qLower) ||
-          p.category.toLowerCase().includes(qLower)
+          p.name.toLowerCase().includes(qLower) ||
+          p.seller.name.toLowerCase().includes(qLower)
       );
     }
 
     if (selectedCategory) {
       result = result.filter(
-        (p) => p.category.toLowerCase() === selectedCategory.toLowerCase()
+        (p) => p.category_id === selectedCategory
       );
     }
 
-    if (verifiedOnly) {
-      result = result.filter((p) => p.seller.isVerified);
-    }
-
+    // `Listing` doesn't track seller verification directly in mock data for now, ignoring verified filter.
+    
     if (appliedPriceFrom) {
       const minPrice = Number(appliedPriceFrom);
       if (!Number.isNaN(minPrice)) {
@@ -104,7 +101,7 @@ function SearchPageContent(): React.ReactElement {
 
   const handleLoadMore = (): void => {
     const batchIndex = Math.floor(extraProducts.length / 8) + 1;
-    const baseList = filteredProducts.length > 0 ? filteredProducts : PRODUCTS.slice(0, 8);
+    const baseList = filteredProducts.length > 0 ? filteredProducts : mockListingPage.items.slice(0, 8);
     const clonedBatch = baseList.slice(0, 8).map((p, idx) => ({
       ...p,
       id: `${p.id}-clone-${batchIndex}-${idx}-${Date.now()}`,
@@ -133,13 +130,13 @@ function SearchPageContent(): React.ReactElement {
           </span>
           <span>Tất cả danh mục</span>
         </button>
-        {CATEGORIES.slice(0, 8).map((cat) => {
-          const isSelected = selectedCategory.toLowerCase() === cat.name.toLowerCase();
+        {mockCategoryList.items.map((cat) => {
+          const isSelected = selectedCategory === cat.id;
           return (
             <button
               key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(isSelected ? "" : cat.name)}
+              onClick={() => setSelectedCategory(isSelected ? "" : cat.id)}
               className={`flex items-center gap-2 shrink-0 font-bold text-label-md transition-colors pb-1 cursor-pointer ${
                 isSelected
                   ? "text-primary border-b-2 border-primary"
@@ -150,7 +147,7 @@ function SearchPageContent(): React.ReactElement {
                 className="material-symbols-outlined text-[20px]"
                 style={{ fontVariationSettings: isSelected ? "'FILL' 1" : "'FILL' 0" }}
               >
-                {cat.icon || "category"}
+                category
               </span>
               <span>{cat.name}</span>
             </button>
@@ -269,7 +266,7 @@ function SearchPageContent(): React.ReactElement {
                 <span className="italic text-on-surface-variant">&quot;{initialQuery}&quot;</span>
               ) : (
                 <span className="italic text-on-surface-variant">
-                  &quot;{selectedCategory || "Tất cả"}&quot;
+                  &quot;{mockCategoryList.items.find(c => c.id === selectedCategory)?.name || "Tất cả"}&quot;
                 </span>
               )}
             </div>
@@ -297,7 +294,7 @@ function SearchPageContent(): React.ReactElement {
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selectedCategory && (
                 <Chip selected onRemove={() => setSelectedCategory("")}>
-                  {selectedCategory}
+                  {mockCategoryList.items.find(c => c.id === selectedCategory)?.name || selectedCategory}
                 </Chip>
               )}
               {selectedSubs.map((sub) => (
