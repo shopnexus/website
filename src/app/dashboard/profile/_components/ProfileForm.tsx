@@ -55,7 +55,13 @@ export default function ProfileForm() {
       });
 
       // 2. Upload file to presigned URL
-      const uploadRes = await fetch(slot.url, {
+      // Use Next.js proxy by taking only pathname + search to bypass CORS
+      const parsedUrl = new URL(slot.url, window.location.origin);
+      const proxiedUrl = parsedUrl.pathname.startsWith('/api/v1') 
+        ? parsedUrl.pathname + parsedUrl.search 
+        : slot.url;
+
+      const uploadRes = await fetch(proxiedUrl, {
         method: "PUT",
         headers: {
           "Content-Type": file.type,

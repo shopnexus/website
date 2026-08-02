@@ -14,7 +14,8 @@ export default function UnifiedOrders() {
     activeFilter, 
     setActiveFilter, 
     stats, 
-    orders 
+    orders,
+    isLoading
   } = useOrdersFeed();
 
   const filters = [
@@ -90,7 +91,7 @@ export default function UnifiedOrders() {
           
         </div>
 
-        <OrderFeed orders={orders} role={role} />
+        <OrderFeed orders={orders} role={role} isLoading={isLoading} />
       </div>
     </main>
   );

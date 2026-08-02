@@ -1,38 +1,149 @@
 "use client";
 
+import { useEffect, useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import StepIndicator from "@/components/ui/StepIndicator";
-import { mockDraftOrderPage, mockContact } from "@/lib/mocks/order.mock";
+import { OrderService } from "@/services/order.service";
+import { ContactService, Contact } from "@/services/contact.service";
+import { toast } from "react-hot-toast";
+import QuantitySelector from "@/components/ui/QuantitySelector";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
-export default function CheckoutPage(){
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const draftId = searchParams.get("draft_id");
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   
-  const subtotal = mockDraftOrderPage.data.reduce((total, draft) => {
-    return total + draft.snapshot.skus.reduce((acc, sku) => acc + sku.price, 0); // Assuming 1 qty per sku for mock
-  }, 0);
+  const [draft, setDraft] = useState<any>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   
-  const shippingFee = 35000;
+  const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<string>("");
+  
+  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<string>("");
+  
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    if (!draftId) {
+      router.push("/");
+      return;
+    }
+
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        // Load draft and contacts concurrently
+        const [draftRes, contactsRes] = await Promise.all([
+          OrderService.getDraft(draftId),
+          ContactService.getContacts()
+        ]);
+        
+        const draftData = draftRes.data;
+        setDraft(draftData);
+        
+        if (draftData.variants && draftData.variants.length > 0) {
+          setSelectedVariantId(draftData.variants[0].id);
+        }
+
+        const contactsData = contactsRes.data || [];
+        setContacts(contactsData);
+        
+        const defaultContact = contactsData.find(c => c.is_default_delivery) || contactsData[0] || null;
+        setSelectedContact(defaultContact);
+
+      } catch (error) {
+        toast.error("Không thể tải thông tin thanh toán");
+        router.push("/");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [draftId, router]);
+
+  // Lấy phí vận chuyển khi có contact và variant
+  useEffect(() => {
+    if (!draftId || !selectedContact || !selectedVariantId) return;
+
+    const fetchShipping = async () => {
+      try {
+        const res = await OrderService.getShippingQuotes({
+          draft_id: draftId,
+          contact_id: selectedContact.id,
+          lines: [{ variant_id: selectedVariantId, quantity }]
+        });
+        setShippingOptions(res.data || []);
+        if (res.data && res.data.length > 0) {
+          setSelectedShipping(res.data[0].slug);
+        }
+      } catch (error) {
+        // Handle error quietly or show toast
+        setShippingOptions([]);
+      }
+    };
+
+    fetchShipping();
+  }, [draftId, selectedContact, selectedVariantId, quantity]);
+
+  if (isLoading) {
+    return <div className="min-h-screen py-12 flex justify-center">Đang tải thông tin...</div>;
+  }
+
+  if (!draft) return null;
+
+  const selectedVariant = draft.variants?.find((v: any) => v.id === selectedVariantId) || draft.variants?.[0];
+  const subtotal = (selectedVariant?.price || 0) * quantity;
+  
+  const shippingFee = shippingOptions.find(o => o.slug === selectedShipping)?.price || 0;
   const total = subtotal + shippingFee;
 
-  const handlePlaceOrder = () => {
-    router.push("/orders"); // Mock redirecting to orders page on success
+  const handlePlaceOrder = async () => {
+    if (!selectedContact) {
+      toast.error("Vui lòng thêm địa chỉ nhận hàng");
+      return;
+    }
+    if (!selectedShipping) {
+      toast.error("Vui lòng chọn phương thức vận chuyển");
+      return;
+    }
+
+    try {
+      setIsPlacingOrder(true);
+      const res = await OrderService.checkoutDraft(draft.id, {
+        contact_id: selectedContact.id,
+        transport_option: selectedShipping,
+        currency: draft.currency || "VND",
+        lines: [{ variant_id: selectedVariantId, quantity }],
+        note: note || undefined
+      });
+      
+      toast.success("Đặt hàng thành công!");
+      router.push("/dashboard/orders");
+      
+    } catch (error) {
+      // apiClient handles error toast
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   return (
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
       <div className="max-w-[1200px] mx-auto px-4 md:px-8">
-        
         <div className="mb-8 hidden md:block">
-           <StepIndicator 
-             steps={["Giỏ hàng", "Thanh toán", "Xác nhận"]} 
-             currentStep={1} 
-           />
+           <StepIndicator steps={["Sản phẩm", "Thanh toán", "Xác nhận"]} currentStep={1} />
         </div>
 
         <h1 className="font-headline-md font-bold mb-6">Thanh toán</h1>
@@ -48,17 +159,20 @@ export default function CheckoutPage(){
                   <span className="material-symbols-outlined text-primary">location_on</span>
                   Địa chỉ nhận hàng
                 </h2>
-                <button className="text-primary font-label-md hover:underline">Thay đổi</button>
+                <Link href="/dashboard/contacts" className="text-primary font-label-md hover:underline">Quản lý địa chỉ</Link>
               </div>
               
-              <div className="flex flex-col gap-1 text-body-md text-on-surface">
-                <div className="font-bold">{mockContact.full_name} <span className="font-normal text-on-surface-variant mx-2">|</span> {mockContact.phone}</div>
-                <div className="text-on-surface-variant">
-                  {mockContact.address_detail}, {mockContact.address}<br />
-                  {mockContact.ward_name}, {mockContact.province_name}
+              {selectedContact ? (
+                <div className="flex flex-col gap-1 text-body-md text-on-surface">
+                  <div className="font-bold">{selectedContact.full_name} <span className="font-normal text-on-surface-variant mx-2">|</span> {selectedContact.phone}</div>
+                  <div className="text-on-surface-variant">
+                    {selectedContact.address_detail ? `${selectedContact.address_detail}, ` : ""}{selectedContact.address}<br />
+                    {selectedContact.ward_name}, {selectedContact.district_name ? `${selectedContact.district_name}, ` : ""}{selectedContact.province_name}
+                  </div>
                 </div>
-                <div className="mt-2 text-label-sm border border-primary text-primary px-2 py-0.5 rounded w-fit">Mặc định</div>
-              </div>
+              ) : (
+                <div className="text-error font-medium">Chưa có địa chỉ nhận hàng. Vui lòng thêm địa chỉ!</div>
+              )}
             </section>
 
             <section className="bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-sm">
@@ -66,79 +180,74 @@ export default function CheckoutPage(){
                 Sản phẩm
               </h2>
               
-              {mockDraftOrderPage.data.map((draft, dIdx) => (
-                <div key={draft.id} className={["p-6", dIdx > 0 ? "border-t border-outline-variant border-dashed" : ""].join(" ")}>
-                  <div className="font-label-md text-on-surface mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px]">store</span>
-                    Shop {draft.snapshot.seller_id}
+              <div className="p-6">
+                <div className="font-label-md text-on-surface mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[20px]">store</span>
+                  Shop {draft.seller_id}
+                </div>
+                
+                <div className="flex gap-4 mb-6">
+                  <div className="relative w-20 h-20 rounded border border-outline-variant overflow-hidden shrink-0 bg-surface-container">
+                    {/* Draft order attachments are not standard in schema, but assuming we can show fallback */}
+                    <span className="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-on-surface-variant">image</span>
                   </div>
-                  
-                  <div className="flex flex-col gap-4 mb-6">
-                    {draft.snapshot.skus.map((sku) => (
-                      <div key={sku.id} className="flex gap-4">
-                        <div className="relative w-16 h-16 rounded border border-outline-variant overflow-hidden shrink-0">
-                          {sku.attachments?.[0] ? (
-                            <Image src={`https://cdn.shopnexus.vn/mock/${sku.attachments[0]}`} alt={draft.snapshot.name} fill className="object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-surface-container flex items-center justify-center text-xs">No img</div>
-                          )}
-                        </div>
-                        <div className="flex-1 flex flex-col min-w-0">
-                          <span className="font-body-sm text-on-surface truncate">{draft.snapshot.name}</span>
-                          {sku.attributes && Object.keys(sku.attributes).length > 0 && (
-                            <span className="text-xs text-on-surface-variant mt-1">Loại: {Object.values(sku.attributes).join(", ")}</span>
-                          )}
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="font-price-sm text-on-surface">{formatPrice(sku.price)}</div>
-                          <div className="text-xs text-on-surface-variant mt-1">x1</div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex-1 flex flex-col min-w-0">
+                    <span className="font-body-md font-medium text-on-surface line-clamp-2 mb-2">{draft.name}</span>
+                    
+                    {draft.variants && draft.variants.length > 1 && (
+                      <select 
+                        value={selectedVariantId}
+                        onChange={(e) => setSelectedVariantId(e.target.value)}
+                        className="bg-surface-container-low border border-outline rounded p-1 text-sm max-w-[200px] mb-2"
+                      >
+                        {draft.variants.map((v: any) => (
+                          <option key={v.id} value={v.id}>Loại: {v.attributes ? Object.values(v.attributes).join(", ") : v.id}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
-                  
-                  <div className="bg-surface-container-low p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                      <h4 className="font-label-md text-on-surface mb-1 text-primary">Phương thức vận chuyển</h4>
-                      <div className="font-body-sm text-on-surface font-medium">Nhanh (Giao hàng dự kiến 1-2 ngày)</div>
-                      <div className="text-xs text-on-surface-variant mt-0.5">Nhận hàng dự kiến sớm</div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-price-sm text-on-surface font-medium">{formatPrice(shippingFee)}</span>
-                      <button className="text-primary text-sm hover:underline">Thay đổi</button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 flex flex-col gap-2">
-                    <span className="text-label-md text-on-surface-variant font-medium">Lời nhắn cho người bán:</span>
-                    <textarea 
-                      placeholder="Lưu ý cho Người bán (ví dụ: giao trong giờ hành chính)..." 
-                      className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm text-on-surface outline-none transition-all duration-200 focus:bg-surface focus:border-primary focus:ring-2 focus:ring-primary/20 px-4 py-3 min-h-[80px] resize-y"
-                    />
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className="font-price-md text-primary">{formatPrice(selectedVariant?.price || 0)}</div>
+                    <QuantitySelector value={quantity} onChange={setQuantity} min={1} max={99} />
                   </div>
                 </div>
-              ))}
-            </section>
-
-            <section className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
-              <h2 className="font-headline-sm font-bold mb-6">Phương thức thanh toán</h2>
-              
-              <div className="flex flex-col gap-4">
-                <label className="flex items-center justify-between p-4 border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary-container/10">
-                  <div className="flex items-center gap-4">
-                    <span className="material-symbols-outlined text-[32px] text-primary">payments</span>
-                    <span className="font-label-md text-on-surface">Thanh toán khi nhận hàng (COD)</span>
-                  </div>
-                  <input type="radio" name="paymentMethod" className="w-5 h-5 text-primary focus:ring-primary accent-primary" defaultChecked />
-                </label>
                 
-                <label className="flex items-center justify-between p-4 border border-outline-variant rounded-xl cursor-pointer hover:bg-surface-container-low transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary-container/10">
-                  <div className="flex items-center gap-4">
-                    <span className="material-symbols-outlined text-[32px] text-primary">qr_code_2</span>
-                    <span className="font-label-md text-on-surface">Thanh toán VNPay QR</span>
-                  </div>
-                  <input type="radio" name="paymentMethod" className="w-5 h-5 text-primary focus:ring-primary accent-primary" />
-                </label>
+                <div className="bg-surface-container-low p-4 rounded-xl mb-4">
+                  <h4 className="font-label-md text-on-surface mb-2 text-primary">Phương thức vận chuyển</h4>
+                  
+                  {shippingOptions.length > 0 ? (
+                    <div className="flex flex-col gap-2">
+                      {shippingOptions.map((opt) => (
+                        <label key={opt.slug} className="flex items-center justify-between cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="radio" 
+                              name="shipping" 
+                              value={opt.slug}
+                              checked={selectedShipping === opt.slug}
+                              onChange={(e) => setSelectedShipping(e.target.value)}
+                              className="text-primary focus:ring-primary"
+                            />
+                            <span>{opt.name}</span>
+                          </div>
+                          <span className="font-medium">{formatPrice(opt.price)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-on-surface-variant italic">Đang tính phí vận chuyển... (Cần có địa chỉ nhận hàng)</div>
+                  )}
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <span className="text-label-md text-on-surface-variant font-medium">Lời nhắn cho người bán:</span>
+                  <textarea 
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Lưu ý cho Người bán (ví dụ: giao trong giờ hành chính)..." 
+                    className="w-full rounded-xl border border-outline-variant bg-surface-container-lowest text-sm text-on-surface outline-none transition-all duration-200 focus:bg-surface focus:border-primary focus:ring-2 focus:ring-primary/20 px-4 py-3 min-h-[80px] resize-y"
+                  />
+                </div>
               </div>
             </section>
           </div>
@@ -158,19 +267,21 @@ export default function CheckoutPage(){
                 </div>
               </div>
               
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-6">
                 <span className="font-label-md text-on-surface">Tổng thanh toán</span>
                 <span className="font-headline-md text-[22px] text-primary font-bold leading-none">
                   {formatPrice(total)}
                 </span>
               </div>
               
-              <div className="text-right text-xs text-on-surface-variant mb-6">
-                Đã bao gồm VAT (nếu có)
-              </div>
-              
-              <Button variant="primary" fullWidth size="lg" onClick={handlePlaceOrder}>
-                Đặt hàng
+              <Button 
+                variant="primary" 
+                fullWidth 
+                size="lg" 
+                onClick={handlePlaceOrder}
+                disabled={isPlacingOrder || !selectedContact || !selectedShipping}
+              >
+                {isPlacingOrder ? "Đang xử lý..." : "Đặt hàng"}
               </Button>
               
               <p className="text-xs text-on-surface-variant text-center mt-4 px-4 leading-relaxed">
@@ -181,5 +292,13 @@ export default function CheckoutPage(){
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen py-12 flex justify-center">Đang tải...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

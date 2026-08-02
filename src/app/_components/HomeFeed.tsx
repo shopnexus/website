@@ -1,24 +1,53 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProductCard from "@/components/ui/ProductCard";
-import { mockListingPage } from "@/lib/mocks/catalog.mock";
+import { CatalogService } from "@/services/catalog.service";
 import type { Listing } from "@/types/catalog.type";
 
 export default function HomeFeed(): React.ReactElement {
   const [activeTab, setActiveTab] = useState<"all" | "newest" | "suggested">("all");
-  const [extraProducts, setExtraProducts] = useState<Listing[]>([]);
+  const [products, setProducts] = useState<Listing[]>([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const handleLoadMore = (): void => {
-    const batchIndex = Math.floor(extraProducts.length / mockListingPage.data.length) + 1;
-    const clonedBatch = mockListingPage.data.map((p, idx) => ({
-      ...p,
-      id: `${p.id}-clone-${batchIndex}-${idx}-${Date.now()}`,
-    }));
-    setExtraProducts((prev) => [...prev, ...clonedBatch]);
+  const fetchListings = async (currentPage: number, append: boolean = false) => {
+    try {
+      const loader = append ? setIsLoadingMore : setIsLoading;
+      loader(true);
+      
+      const res = await CatalogService.searchListings({ limit: 12, page: currentPage });
+      const newProducts = res.data || [];
+      
+      if (append) {
+        setProducts((prev) => [...prev, ...newProducts]);
+      } else {
+        setProducts(newProducts);
+      }
+      
+      setHasMore(newProducts.length === 12); // Assume limit is 12
+    } catch (error) {
+      console.error("Failed to fetch listings", error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
   };
 
-  const allProducts = [...mockListingPage.data, ...extraProducts];
+  useEffect(() => {
+    // Reset and fetch when tab changes (if activeTab logic was supported by API)
+    setPage(1);
+    fetchListings(1, false);
+  }, [activeTab]);
+
+  const handleLoadMore = (): void => {
+    if (!hasMore || isLoadingMore) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchListings(nextPage, true);
+  };
 
   return (
     <section>
@@ -61,28 +90,43 @@ export default function HomeFeed(): React.ReactElement {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        {allProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {isLoading && products.length === 0 ? (
+        <div className="flex justify-center py-20 text-on-surface-variant">
+          Đang tải sản phẩm...
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          
+          {products.length === 0 && (
+            <div className="text-center py-12 text-on-surface-variant">
+              Không có sản phẩm nào.
+            </div>
+          )}
 
-      <div className="mt-12 flex justify-center">
-        <button
-          type="button"
-          onClick={handleLoadMore}
-          className="px-12 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-on-primary transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-sm" aria-hidden="true">
-            add
-          </span>
-          <span>
-            {extraProducts.length > 0
-              ? `Tải thêm sản phẩm (Đã tải thêm ${extraProducts.length})`
-              : "Tải thêm sản phẩm"}
-          </span>
-        </button>
-      </div>
+          {hasMore && products.length > 0 && (
+            <div className="mt-12 flex justify-center">
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="px-12 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-on-primary transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                  {isLoadingMore ? "sync" : "add"}
+                </span>
+                <span>
+                  {isLoadingMore ? "Đang tải..." : "Tải thêm sản phẩm"}
+                </span>
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </section>
   );
 }

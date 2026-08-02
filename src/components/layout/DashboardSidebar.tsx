@@ -12,6 +12,7 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
   const navItems = [
     { name: "Tổng quan", path: "/dashboard", icon: "dashboard" },
     { name: "Hồ sơ cá nhân", path: "/dashboard/profile", icon: "person" },
+    { name: "Sổ địa chỉ", path: "/dashboard/contacts", icon: "contacts" },
     { name: "Bảo mật", path: "/dashboard/security", icon: "shield" },
     { name: "Xác minh danh tính", path: "/dashboard/verification", icon: "verified_user" },
     { name: "Sản phẩm của tôi", path: "/dashboard/products", icon: "inventory_2" },

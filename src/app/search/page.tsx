@@ -1,16 +1,23 @@
 "use client";
 
-import React, { useState, Suspense, useMemo } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
-import { mockListingPage, mockCategoryList } from "@/lib/mocks/catalog.mock";
+import { CatalogService } from "@/services/catalog.service";
 import type { Listing } from "@/types/catalog.type";
 
 function SearchPageContent(): React.ReactElement {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const categoryParam = searchParams.get("category") || "";
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<Listing[]>([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [selectedSubs, setSelectedSubs] = useState<string[]>([]);
@@ -20,13 +27,53 @@ function SearchPageContent(): React.ReactElement {
   const [appliedPriceFrom, setAppliedPriceFrom] = useState<string>("");
   const [appliedPriceTo, setAppliedPriceTo] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
-  const [extraProducts, setExtraProducts] = useState<Listing[]>([]);
 
   const subCategories = [
     { id: "sub-1", label: "Điện thoại thông minh", count: "1,245" },
     { id: "sub-2", label: "Máy tính bảng", count: "453" },
     { id: "sub-3", label: "Phụ kiện & Linh kiện", count: "2,109" },
   ];
+
+  useEffect(() => {
+    CatalogService.getCategories().then(res => {
+      setCategories(res.data || []);
+    }).catch(console.error);
+  }, []);
+
+  const fetchListings = async (currentPage: number, append = false) => {
+    try {
+      const loader = append ? setIsLoadingMore : setIsLoading;
+      loader(true);
+
+      // Note: Backend doesn't support price sort/filter, so we only pass q and category_id
+      const res = await CatalogService.searchListings({
+        limit: 12,
+        page: currentPage,
+        q: initialQuery || undefined,
+        category_id: selectedCategory || undefined,
+      });
+
+      const newProducts = res.data || [];
+
+      if (append) {
+        setProducts((prev) => [...prev, ...newProducts]);
+      } else {
+        setProducts(newProducts);
+      }
+
+      setHasMore(newProducts.length === 12);
+    } catch (error) {
+      console.error("Failed to fetch listings", error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    setPage(1);
+    fetchListings(1, false);
+  }, [initialQuery, selectedCategory]);
 
   const toggleSub = (label: string): void => {
     setSelectedSubs((prev) =>
@@ -49,61 +96,25 @@ function SearchPageContent(): React.ReactElement {
     setAppliedPriceTo("");
   };
 
-  const filteredProducts = useMemo(() => {
-    let result = [...mockListingPage.data];
+  const handleLoadMore = (): void => {
+    if (!hasMore || isLoadingMore) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchListings(nextPage, true);
+  };
 
-    if (initialQuery) {
-      const qLower = initialQuery.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(qLower) ||
-          p.seller.name.toLowerCase().includes(qLower)
-      );
-    }
-
-    if (selectedCategory) {
-      result = result.filter(
-        (p) => p.category_id === selectedCategory
-      );
-    }
-
-    
+  // Client-side filtering for UI-only filters (price, etc) that backend doesn't support
+  const displayedProducts = products.filter(p => {
     if (appliedPriceFrom) {
       const minPrice = Number(appliedPriceFrom);
-      if (!Number.isNaN(minPrice)) {
-        result = result.filter((p) => p.price >= minPrice);
-      }
+      if (!Number.isNaN(minPrice) && ((p as any).skus?.[0]?.price || 0) < minPrice) return false;
     }
-
     if (appliedPriceTo) {
       const maxPrice = Number(appliedPriceTo);
-      if (!Number.isNaN(maxPrice) && maxPrice > 0) {
-        result = result.filter((p) => p.price <= maxPrice);
-      }
+      if (!Number.isNaN(maxPrice) && maxPrice > 0 && ((p as any).skus?.[0]?.price || 0) > maxPrice) return false;
     }
-
-    if (sortBy === "price_asc") {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "price_desc") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    return result;
-  }, [initialQuery, selectedCategory, verifiedOnly, appliedPriceFrom, appliedPriceTo, sortBy]);
-
-  const displayedProducts = useMemo(() => {
-    return [...filteredProducts, ...extraProducts];
-  }, [filteredProducts, extraProducts]);
-
-  const handleLoadMore = (): void => {
-    const batchIndex = Math.floor(extraProducts.length / 8) + 1;
-    const baseList = filteredProducts.length > 0 ? filteredProducts : mockListingPage.data.slice(0, 8);
-    const clonedBatch = baseList.slice(0, 8).map((p, idx) => ({
-      ...p,
-      id: `${p.id}-clone-${batchIndex}-${idx}-${Date.now()}`,
-    }));
-    setExtraProducts((prev) => [...prev, ...clonedBatch]);
-  };
+    return true;
+  });
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 w-full">
@@ -125,7 +136,7 @@ function SearchPageContent(): React.ReactElement {
           </span>
           <span>Tất cả danh mục</span>
         </button>
-        {mockCategoryList.data.map((cat) => {
+        {categories.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
@@ -234,13 +245,13 @@ function SearchPageContent(): React.ReactElement {
         <section className="md:col-span-9">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div className="font-headline text-headline-sm text-on-surface">
-              Tìm thấy <span className="font-bold text-primary">{filteredProducts.length}</span> kết quả
+              Tìm thấy <span className="font-bold text-primary">{products.length}</span> kết quả
               cho{" "}
               {initialQuery ? (
                 <span className="italic text-on-surface-variant">&quot;{initialQuery}&quot;</span>
               ) : (
                 <span className="italic text-on-surface-variant">
-                  &quot;{mockCategoryList.data.find(c => c.id === selectedCategory)?.name || "Tất cả"}&quot;
+                  &quot;{categories.find(c => c.id === selectedCategory)?.name || "Tất cả"}&quot;
                 </span>
               )}
             </div>
@@ -267,7 +278,7 @@ function SearchPageContent(): React.ReactElement {
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selectedCategory && (
                 <Chip selected onRemove={() => setSelectedCategory("")}>
-                  {mockCategoryList.data.find(c => c.id === selectedCategory)?.name || selectedCategory}
+                  {categories.find(c => c.id === selectedCategory)?.name || selectedCategory}
                 </Chip>
               )}
               {selectedSubs.map((sub) => (
@@ -303,7 +314,11 @@ function SearchPageContent(): React.ReactElement {
             </div>
           )}
 
-          {displayedProducts.length > 0 ? (
+          {isLoading && products.length === 0 ? (
+            <div className="flex justify-center py-20 text-on-surface-variant">
+              Đang tải dữ liệu...
+            </div>
+          ) : displayedProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {displayedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
@@ -327,20 +342,19 @@ function SearchPageContent(): React.ReactElement {
             </div>
           )}
 
-          {displayedProducts.length > 0 && (
+          {hasMore && products.length > 0 && (
             <div className="mt-12 flex justify-center">
               <button
                 type="button"
                 onClick={handleLoadMore}
-                className="px-12 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-on-primary transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md flex items-center gap-2"
+                disabled={isLoadingMore}
+                className="px-12 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-on-primary transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-sm" aria-hidden="true">
-                  add
+                  {isLoadingMore ? "sync" : "add"}
                 </span>
                 <span>
-                  {extraProducts.length > 0
-                    ? `Tải thêm sản phẩm (Đã tải thêm ${extraProducts.length})`
-                    : "Tải thêm sản phẩm"}
+                  {isLoadingMore ? "Đang tải..." : "Tải thêm sản phẩm"}
                 </span>
               </button>
             </div>

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useNavbarScroll } from "@/hooks/useNavbarScroll";
 import { useSearch } from "@/hooks/useSearch";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useCartStore } from "@/stores/use-cart-store";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 export default function Navbar(): React.ReactElement {
@@ -13,6 +14,7 @@ export default function Navbar(): React.ReactElement {
   const { isScrolledPastHero } = useNavbarScroll();
   const { query, setQuery, handleSearch } = useSearch();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const cartItemsCount = useCartStore((state) => state.resolvedItems.length + state.localItems.length);
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -110,7 +112,7 @@ export default function Navbar(): React.ReactElement {
                 <Link
                   href="/cart"
                   aria-label="shopping_bag"
-                  className={`pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 ${
+                  className={`relative pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 ${
                     pathname === "/cart"
                       ? "text-primary border-primary font-bold"
                       : "text-on-surface-variant border-transparent hover:text-primary"
@@ -122,6 +124,11 @@ export default function Navbar(): React.ReactElement {
                   >
                     shopping_bag
                   </span>
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                      {cartItemsCount}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   href="/inbox"
@@ -166,6 +173,27 @@ export default function Navbar(): React.ReactElement {
               </>
             ) : (
               <div className="flex items-center gap-2">
+                <Link
+                  href="/cart"
+                  aria-label="shopping_bag"
+                  className={`relative pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 mr-2 ${
+                    pathname === "/cart"
+                      ? "text-primary border-primary font-bold"
+                      : "text-on-surface-variant border-transparent hover:text-primary"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: pathname === "/cart" ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    shopping_bag
+                  </span>
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </Link>
                 <Link href="/login" className="font-headline font-bold text-label-md text-on-surface hover:text-primary px-4 py-2 transition-colors">
                   Đăng nhập
                 </Link>

@@ -15,6 +15,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
+      {
+        protocol: "https",
+        hostname: "shopnexus.hopto.org",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.shopnexus.vn",
+      },
     ],
   },
   async rewrites() {

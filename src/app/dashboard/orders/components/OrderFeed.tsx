@@ -4,11 +4,16 @@ import type { Order } from '@/types/order.type';
 import { RoleState } from '../hooks/useOrdersFeed';
 
 interface OrderFeedProps {
-  orders: Order[];
+  orders: any[];
   role: RoleState;
+  isLoading?: boolean;
 }
 
-export default function OrderFeed({ orders, role }: OrderFeedProps) {
+export default function OrderFeed({ orders, role, isLoading }: OrderFeedProps) {
+  if (isLoading) {
+    return <div className="text-center py-12 text-on-surface-variant font-medium">Đang tải đơn hàng...</div>;
+  }
+
   if (orders.length === 0) {
     return (
       <div className="text-center py-12 text-on-surface-variant font-medium">
@@ -24,10 +29,11 @@ export default function OrderFeed({ orders, role }: OrderFeedProps) {
     <div className="space-y-4">
       {orders.map((order) => {
         const firstItem = order.items?.[0];
-        const displayImg = 'https://picsum.photos/seed/' + order.id + '/200/200';
-        const displayName = firstItem ? 'Sản phẩm ' + firstItem.sku_id + (order.items && order.items.length > 1 ? ` và ${order.items.length - 1} sp khác` : '') : 'Đơn hàng trống';
+        // Use order item image or fallback
+        const displayImg = firstItem?.snapshot?.images?.[0]?.url || 'https://picsum.photos/seed/' + order.id + '/200/200';
+        const displayName = firstItem ? firstItem.snapshot?.name + (order.items && order.items.length > 1 ? ` và ${order.items.length - 1} sp khác` : '') : 'Đơn hàng';
         
-        const totalAmount = order.items?.reduce((s, i) => s + i.total_amount, 0) || 0;
+        const totalAmount = order.total || 0;
         
         const statusColor = 
           order.state === 'completed' ? 'bg-secondary-container text-on-secondary-container' : 
@@ -46,7 +52,7 @@ export default function OrderFeed({ orders, role }: OrderFeedProps) {
             <div className="flex-grow">
               <div className="flex items-center gap-2 mb-1">
                 <span className={`text-[10px] font-bold uppercase tracking-tighter px-2 py-0.5 rounded ${statusColor}`}>
-                  {ORDER_STATE_VI[order.state] || order.state}
+                  {ORDER_STATE_VI[order.state as keyof typeof ORDER_STATE_VI] || order.state}
                 </span>
                 <span className="text-xs text-on-surface-variant">Mã ĐH: {order.id}</span>
               </div>
@@ -54,7 +60,7 @@ export default function OrderFeed({ orders, role }: OrderFeedProps) {
               <p className="text-sm text-on-surface-variant mb-1">
                 {role === 'buying' ? 'Shop: ' : 'Người mua: '}
                 <span className="font-semibold text-primary underline decoration-primary/30">
-                  {role === 'buying' ? order.seller_id : 'Khách hàng'}
+                  {role === 'buying' ? order.seller?.name || 'Ẩn danh' : order.buyer?.name || 'Khách hàng'}
                 </span>
               </p>
             </div>

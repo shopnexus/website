@@ -2,8 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { mockListingDetail } from "@/lib/mocks/catalog.mock";
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
+import { CatalogService } from "@/services/catalog.service";
+import { notFound } from "next/navigation";
+import ProductBottomBar from "./_components/ProductBottomBar";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -11,7 +13,14 @@ const formatPrice = (price: number) =>
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   
-  const product = mockListingDetail;
+  let product: any;
+  try {
+    const res = await CatalogService.getListingDetail(resolvedParams.id);
+    product = res.data;
+  } catch (error) {
+    notFound();
+  }
+
   const { seller } = product;
 
   return (
@@ -42,13 +51,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <div className="w-full h-full bg-surface-container flex items-center justify-center">No Image</div>
               )}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
-                <Badge variant="surface">{LISTING_CONDITION_VI[product.condition] || product.condition}</Badge>
+                <Badge variant="surface">{LISTING_CONDITION_VI[product.condition as keyof typeof LISTING_CONDITION_VI] || product.condition}</Badge>
               </div>
             </div>
             
             {product.images && product.images.length > 1 && (
               <div className="flex gap-4 overflow-x-auto hide-scrollbar">
-                {product.images.map((img, idx) => (
+                {product.images.map((img: any, idx: number) => (
                   <button
                     key={idx}
                     className={["relative w-20 h-20 rounded-xl overflow-hidden border-2 shrink-0 transition-colors", idx === 0 ? "border-primary" : "border-transparent hover:border-outline-variant"].join(" ")}
@@ -111,7 +120,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-body-md">
                 <div className="flex border-b border-outline-variant border-dashed pb-2">
                   <span className="text-on-surface-variant w-1/3">Tình trạng:</span>
-                  <span className="text-on-surface font-medium flex-1 text-right">{LISTING_CONDITION_VI[product.condition] || product.condition}</span>
+                  <span className="text-on-surface font-medium flex-1 text-right">{LISTING_CONDITION_VI[product.condition as keyof typeof LISTING_CONDITION_VI] || product.condition}</span>
                 </div>
                 {Boolean(product.specifications?.brand) && (
                   <div className="flex border-b border-outline-variant border-dashed pb-2">
@@ -138,31 +147,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 p-4">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-4">
-          <div className="hidden sm:flex items-center gap-4">
-            <span className="font-label-md text-on-surface-variant">Tổng thanh toán:</span>
-            <span className="font-display-lg text-[24px] text-primary font-bold leading-none">
-              {formatPrice(product.skus?.[0]?.price || 0)}
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button variant="outline" className="px-6 py-3 shrink-0 h-12 rounded-xl text-on-surface">
-              <span className="material-symbols-outlined mr-2">favorite</span>
-              Lưu
-            </Button>
-            <Button variant="secondary" className="flex-1 sm:flex-none px-6 py-3 h-12 rounded-xl text-on-secondary-container">
-              Thêm vào giỏ
-            </Button>
-            <Link href="/checkout" className="flex-1 sm:flex-none">
-              <Button variant="primary" className="w-full px-8 py-3 h-12 rounded-xl font-bold">
-                Mua ngay
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <ProductBottomBar product={product} />
     </div>
   );
 }

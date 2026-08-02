@@ -1,7 +1,5 @@
-import { useState, useMemo } from 'react';
-import { mockOrderPage } from '@/lib/mocks/order.mock';
-import { mockAccountID } from '@/lib/mocks/account.mock';
-import type { Order } from '@/types/order.type';
+import { useState, useEffect, useMemo } from 'react';
+import { OrderService } from '@/services/order.service';
 
 export type RoleState = 'buying' | 'selling';
 
@@ -9,14 +7,26 @@ export function useOrdersFeed() {
   const [role, setRole] = useState<RoleState>('buying');
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  
+  const [rawData, setRawData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const rawData = useMemo(() => {
-    if (role === 'buying') {
-      return mockOrderPage.data.filter(o => o.seller_id !== mockAccountID);
-    } else {
-      return mockOrderPage.data.filter(o => o.seller_id === mockAccountID);
-    }
-  }, [role]);
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setIsLoading(true);
+        // Map UI filter state to API state if needed, or fetch all and filter client side
+        const res = await OrderService.getOrders(role === 'buying' ? 'buyer' : 'seller', activeFilter === 'all' ? undefined : activeFilter);
+        setRawData(res.data || []);
+      } catch (error) {
+        setRawData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchOrders();
+  }, [role, activeFilter]); // Re-fetch when role or filter changes (or can fetch all and filter in memory)
 
   const stats = useMemo(() => {
     if (role === 'buying') {
@@ -26,10 +36,7 @@ export function useOrdersFeed() {
         stat2Value: rawData.filter(o => o.state === 'completed').length,
         stat3Label: 'Tổng chi tiêu',
         stat3Value: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
-          rawData.reduce((acc, order) => {
-            const sum = order.items?.reduce((s, i) => s + i.total_amount, 0) || 0;
-            return acc + sum;
-          }, 0)
+          rawData.reduce((acc, order) => acc + (order.total || 0), 0)
         )
       };
     } else {
@@ -39,10 +46,7 @@ export function useOrdersFeed() {
         stat2Value: rawData.filter(o => o.state === 'completed').length,
         stat3Label: 'Doanh thu',
         stat3Value: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
-          rawData.reduce((acc, order) => {
-            const sum = order.items?.reduce((s, i) => s + i.total_amount, 0) || 0;
-            return acc + sum;
-          }, 0)
+          rawData.reduce((acc, order) => acc + (order.total || 0), 0)
         )
       };
     }
@@ -51,12 +55,10 @@ export function useOrdersFeed() {
   const filteredOrders = useMemo(() => {
     return rawData.filter(order => {
       const idMatch = order.id.toLowerCase().includes(search.toLowerCase());
-      const nameMatch = order.items?.some(i => i.sku_id.toLowerCase().includes(search.toLowerCase())) || false;
-      const matchesSearch = idMatch || nameMatch;
-      const matchesStatus = activeFilter === 'all' || order.state === activeFilter;
-      return matchesSearch && matchesStatus;
+      const nameMatch = order.items?.some((i: any) => i.snapshot?.name?.toLowerCase().includes(search.toLowerCase())) || false;
+      return idMatch || nameMatch;
     });
-  }, [rawData, search, activeFilter]);
+  }, [rawData, search]);
 
   const toggleRole = (newRole: RoleState) => {
     setRole(newRole);
@@ -73,5 +75,6 @@ export function useOrdersFeed() {
     setActiveFilter,
     stats,
     orders: filteredOrders,
+    isLoading
   };
 }

@@ -1,6 +1,8 @@
 import { toast } from "react-hot-toast";
+import { getErrorMessage } from "./error-mapping";
 
-const BASE_URL = "/api/v1";
+const BASE_URL = typeof window === "undefined"
+  ? process.env.NEXT_PUBLIC_API_URL : "/api/v1";
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
@@ -41,6 +43,7 @@ export async function getRefreshToken(): Promise<string | undefined> {
 interface FetchOptions extends RequestInit {
   requireAuth?: boolean;
   silent?: boolean;
+  _isRetry?: boolean;
 }
 
 export async function apiClient<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
@@ -67,10 +70,16 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
     throw new Error("Network Error");
   }
 
-  if (response.status === 401 && requireAuth) {
-    if (!isRefreshing) {
-      isRefreshing = true;
-      try {
+  // If no content, just return empty object
+  if (response.status === 204) return {} as T;
+
+  const data = await response.json().catch(() => ({}));
+
+  if (response.status === 401 && requireAuth && !options._isRetry) {
+    if (data?.error?.code === "unauthorized" || data?.error?.code === "invalid_token") {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        try {
         const refreshToken = await getRefreshToken();
         if (!refreshToken) throw new Error("No refresh token");
 
@@ -117,18 +126,15 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
     // Retry request with new token
     return apiClient<T>(endpoint, {
       ...options,
+      _isRetry: true,
       headers: {
         ...options.headers,
         Authorization: `Bearer ${token}`,
       },
     });
   }
+}
 
-  // If no content, just return empty object
-  if (response.status === 204) return {} as T;
-
-  const data = await response.json().catch(() => ({}));
-  
   if (!response.ok) {
     // 1. Server Errors (5xx)
     if (response.status >= 500) {
@@ -154,7 +160,8 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
     }
 
     // 3. Business / Auth Errors (400, 403, 404)
-    const errorMsg = data.error?.message || data.message || response.statusText || "Lỗi không xác định";
+    const backendMessage = data.error?.message || data.message || response.statusText || "Lỗi không xác định";
+    const errorMsg = getErrorMessage(data.error?.code || data.code, backendMessage);
     
     // For 404, we might want it silent depending on use-case, but let caller decide via `silent` flag.
     if (typeof window !== "undefined" && !silent) {
