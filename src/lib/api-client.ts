@@ -57,7 +57,15 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
     },
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, config);
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${endpoint}`, config);
+  } catch (error) {
+    if (typeof window !== "undefined" && !silent) {
+      toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra đường truyền mạng.");
+    }
+    throw new Error("Network Error");
+  }
 
   if (response.status === 401 && requireAuth) {
     if (!isRefreshing) {
@@ -90,6 +98,7 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
         if (typeof window !== "undefined") {
           document.cookie = `access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
           document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+          if (!silent) toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
           window.location.href = "/login";
         }
         throw error;
@@ -119,8 +128,36 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
   if (response.status === 204) return {} as T;
 
   const data = await response.json().catch(() => ({}));
+  
   if (!response.ok) {
+    // 1. Server Errors (5xx)
+    if (response.status >= 500) {
+      const errorMsg = "Hệ thống đang gặp sự cố. Vui lòng thử lại sau ít phút.";
+      if (typeof window !== "undefined" && !silent) toast.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // 2. Validation Errors (422 or array of errors)
+    const details = data.error?.details || data.details || data.errors;
+    if (Array.isArray(details) && details.length > 0) {
+      // Format as string, e.g. "Email is required\nPassword too short"
+      // Check if it's an array of strings or objects. If objects, stringify or map appropriately.
+      const errorMsg = details.map(d => typeof d === 'string' ? `• ${d}` : `• ${JSON.stringify(d)}`).join("\n");
+      if (typeof window !== "undefined" && !silent) {
+        // Multi-line toast
+        toast(errorMsg, { 
+          icon: '⚠️',
+          duration: 5000, 
+          style: { whiteSpace: 'pre-line', background: '#FEF2F2', color: '#991B1B', border: '1px solid #FCA5A5' } 
+        });
+      }
+      throw new Error(errorMsg);
+    }
+
+    // 3. Business / Auth Errors (400, 403, 404)
     const errorMsg = data.error?.message || data.message || response.statusText || "Lỗi không xác định";
+    
+    // For 404, we might want it silent depending on use-case, but let caller decide via `silent` flag.
     if (typeof window !== "undefined" && !silent) {
       toast.error(errorMsg);
     }
