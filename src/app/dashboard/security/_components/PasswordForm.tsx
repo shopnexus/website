@@ -3,43 +3,43 @@
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { AccountService } from "@/services/account.service";
+import { useChangePassword } from "@/hooks/api/useAccount";
 import { toast } from "react-hot-toast";
 
 export default function PasswordForm() {
-  const { user } = useAuthStore();
-  
+  const user = useAuthStore((s) => s.user);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const changePassword = useChangePassword();
+
+  const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Checked here rather than server-side because the confirmation field is a UI
+    // affordance: the API takes one new password and has no second one to compare.
     if (newPassword !== confirmPassword) {
-      return toast.error("Mật khẩu xác nhận không khớp.");
+      toast.error("Mật khẩu xác nhận không khớp.");
+      return;
     }
-    
     if (newPassword.length < 8) {
-      return toast.error("Mật khẩu mới phải dài ít nhất 8 ký tự.");
+      toast.error("Mật khẩu mới phải dài ít nhất 8 ký tự.");
+      return;
     }
 
-    setIsUpdatingPassword(true);
-    try {
-      await AccountService.changePassword({
-        current_password: currentPassword,
-        new_password: newPassword,
-      });
-      toast.success("Đổi mật khẩu thành công. Các phiên đăng nhập khác đã bị hủy.");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error: any) {
-      // Error handled by apiClient
-    } finally {
-      setIsUpdatingPassword(false);
-    }
+    changePassword.mutate(
+      { current_password: currentPassword, new_password: newPassword },
+      {
+        onSuccess: () => {
+          toast.success("Đổi mật khẩu thành công. Các phiên đăng nhập khác đã bị hủy.");
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        },
+      },
+    );
   };
 
   return (
@@ -89,8 +89,8 @@ export default function PasswordForm() {
           </div>
 
           <div className="pt-2">
-            <Button type="submit" disabled={isUpdatingPassword} fullWidth>
-              {isUpdatingPassword ? "Đang xử lý..." : "Cập nhật mật khẩu"}
+            <Button type="submit" disabled={changePassword.isPending} fullWidth>
+              {changePassword.isPending ? "Đang xử lý..." : "Cập nhật mật khẩu"}
             </Button>
           </div>
         </form>

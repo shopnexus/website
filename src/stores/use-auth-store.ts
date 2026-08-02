@@ -1,52 +1,82 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { AuthService } from "@/services/auth.service";
+import {
+  postLogin,
+  postLoginOauth,
+  postLogout,
+  postPasswordResetRequests,
+  postPasswordResets,
+  postRegister,
+  getMe,
+} from "@/api/generated/sdk.gen";
+import type {
+  AuthResult,
+  LoginRequest,
+  Me,
+  OAuthLoginRequest,
+  PasswordResetConfirmRequest,
+  RegisterRequest,
+} from "@/api/generated/types.gen";
+import { clearTokens, setTokens } from "@/api/tokens";
+import { getBrowserQueryClient } from "@/api/query-client";
+import { useCartStore } from "./use-cart-store";
 
-export interface Resource {
-  id: string;
-  url: string;
-}
-
-export interface Profile {
-  avatar: Resource | null;
-  country: string;
-  created_at: string;
-  date_of_birth: string | null;
-  description: string | null;
-  gender: string | null;
-}
-
-export interface User {
-  id: string;
-  email: string | null;
-  email_verified: boolean;
-  has_password: boolean;
-  identity_verified: boolean;
-  phone: string | null;
-  username: string | null;
-  role: "user" | "moderator" | "admin";
-  status: "active" | "suspended";
-  created_at: string;
-  profile: Profile;
-}
+/**
+ * Who is signed in.
+ *
+ * Kept in zustand rather than in the query cache because it is read from places that are
+ * not React — the route guards, the API layer — and because it is persisted, so the
+ * header does not flash a signed-out state on every page load. The query cache holds the
+ * authoritative copy under `getMe`; this is the one the shell renders from, and
+ * `fetchProfile` is what reconciles them.
+ */
+export type User = Me;
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (data: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (data: LoginRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   requestPasswordReset: (identifier: string) => Promise<void>;
-  confirmPasswordReset: (data: any) => Promise<void>;
+  confirmPasswordReset: (data: PasswordResetConfirmRequest) => Promise<void>;
+}
+
+/**
+ * Drop every cached query.
+ *
+ * Called on the way in and on the way out. Removing rather than invalidating is the
+ * point: an invalidated query refetches, and refetching the previous user's contacts as
+ * the new one is exactly the leak to avoid. The next mount fetches fresh.
+ */
+function resetQueryCache(): void {
+  getBrowserQueryClient()?.removeQueries();
+}
+
+/** Everything a successful sign-in has to settle, in one place for the three of them. */
+function acceptAuth(auth: AuthResult): { user: User; isAuthenticated: true; isLoading: false } {
+  setTokens(auth.access_token, auth.refresh_token, auth.expires_in);
+  resetQueryCache();
+
+  // Whatever the visitor put in their cart before signing in now belongs to the account.
+  // Deliberately not awaited: a failed merge must not fail the sign-in, and the cart page
+  // reads the server cart either way — the local lines survive for the next attempt.
+  void useCartStore
+    .getState()
+    .syncLocalCart()
+    .then(() => resetQueryCache())
+    .catch(() => {});
+
+  return { user: auth.account, isAuthenticated: true, isLoading: false };
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -55,107 +85,92 @@ export const useAuthStore = create<AuthState>()(
       login: async (credentials) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await AuthService.login(credentials);
-          const { access_token, refresh_token, expires_in, account } = res.data;
-          
-          if (typeof window !== "undefined") {
-            document.cookie = `access_token=${access_token}; path=/; max-age=${expires_in}; SameSite=Lax`;
-            document.cookie = `refresh_token=${refresh_token}; path=/; max-age=2592000; SameSite=Lax`;
-          }
-
-          set({ user: account, isAuthenticated: true, isLoading: false });
-        } catch (error: any) {
-          set({ error: error.message || "Đăng nhập thất bại", isLoading: false });
+          const { data } = await postLogin({ body: credentials, throwOnError: true });
+          set(acceptAuth(data.data));
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
           throw error;
         }
       },
 
-      register: async (data) => {
+      register: async (payload) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await AuthService.register(data);
-          const { access_token, refresh_token, expires_in, account } = res.data;
-
-          if (typeof window !== "undefined") {
-            document.cookie = `access_token=${access_token}; path=/; max-age=${expires_in}; SameSite=Lax`;
-            document.cookie = `refresh_token=${refresh_token}; path=/; max-age=2592000; SameSite=Lax`;
-          }
-
-          set({ user: account, isAuthenticated: true, isLoading: false });
-        } catch (error: any) {
-          set({ error: error.message || "Đăng ký thất bại", isLoading: false });
+          const { data } = await postRegister({
+            // The form does not ask for a locale, so default it rather than let the
+            // server guess; an explicit value the caller passes still wins.
+            body: { ...payload, locale: payload.locale || "vi-VN" },
+            throwOnError: true,
+          });
+          set(acceptAuth(data.data));
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
           throw error;
         }
       },
 
-      loginWithGoogle: async (credential: string) => {
+      loginWithGoogle: async (credential) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await AuthService.loginWithGoogle(credential);
-          const { access_token, refresh_token, expires_in, account } = res.data;
-
-          if (typeof window !== "undefined") {
-            document.cookie = `access_token=${access_token}; path=/; max-age=${expires_in}; SameSite=Lax`;
-            document.cookie = `refresh_token=${refresh_token}; path=/; max-age=2592000; SameSite=Lax`;
-          }
-
-          set({ user: account, isAuthenticated: true, isLoading: false });
-        } catch (error: any) {
-          set({ error: error.message || "Đăng nhập Google thất bại", isLoading: false });
+          const body: OAuthLoginRequest = { credential, provider: "google" };
+          const { data } = await postLoginOauth({ body, throwOnError: true });
+          set(acceptAuth(data.data));
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
           throw error;
         }
       },
 
       logout: async () => {
         try {
-          // Best effort to call logout on backend
-          await AuthService.logout().catch(() => {});
+          // Best effort: the session is over locally whether or not the server agrees,
+          // and a failed logout must not strand the user in a signed-in shell.
+          await postLogout({ throwOnError: true }).catch(() => {});
         } finally {
-          if (typeof window !== "undefined") {
-            document.cookie = `access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-            document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-          }
-          set({ user: null, isAuthenticated: false });
+          clearTokens();
+          resetQueryCache();
+          set({ user: null, isAuthenticated: false, error: null });
         }
       },
 
       fetchProfile: async () => {
         set({ isLoading: true, error: null });
         try {
-          const res = await AuthService.fetchProfile();
-          set({ user: res.data, isAuthenticated: true, isLoading: false });
-        } catch (error: any) {
-          // If we fail to fetch profile, likely token is invalid/expired and refresh failed.
+          const { data } = await getMe({ throwOnError: true });
+          set({ user: data.data, isAuthenticated: true, isLoading: false });
+        } catch {
+          // Reaching here means the token was rejected and the refresh in the API layer
+          // could not save it, so the persisted user is stale.
           set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
 
-      requestPasswordReset: async (identifier: string) => {
+      requestPasswordReset: async (identifier) => {
         set({ isLoading: true, error: null });
         try {
-          await AuthService.requestPasswordReset(identifier);
+          await postPasswordResetRequests({ body: { identifier }, throwOnError: true });
           set({ isLoading: false });
-        } catch (error: any) {
-          set({ error: error.message || "Yêu cầu khôi phục mật khẩu thất bại", isLoading: false });
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
           throw error;
         }
       },
 
-      confirmPasswordReset: async (data: any) => {
+      confirmPasswordReset: async (payload) => {
         set({ isLoading: true, error: null });
         try {
-          await AuthService.confirmPasswordReset(data);
+          await postPasswordResets({ body: payload, throwOnError: true });
           set({ isLoading: false });
-        } catch (error: any) {
-          set({ error: error.message || "Đặt lại mật khẩu thất bại", isLoading: false });
+        } catch (error) {
+          set({ error: (error as Error).message, isLoading: false });
           throw error;
         }
       },
     }),
     {
       name: "auth-storage",
-      // Only store user profile locally to avoid flashing logged-out state,
-      // tokens are safely in cookies
+      // The account only. Tokens live in cookies, where src/proxy.ts can read them on
+      // the edge; persisting them here would put a credential in localStorage for no gain.
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
     }
   )

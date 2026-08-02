@@ -1,171 +1,100 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CartService } from "@/services/cart.service";
-import { CatalogService } from "@/services/catalog.service";
+import { postCartItems } from "@/api/generated/sdk.gen";
+import type { ListingId, VariantId } from "@/api/generated/types.gen";
+
+/**
+ * The guest cart.
+ *
+ * Only the signed-out cart lives here. It has to survive a reload with no account to
+ * hang it on, so it is local state with `persist` and there is nothing to fetch or
+ * invalidate. The signed-in cart is server state and belongs to the query cache — see
+ * hooks/api/useCart.ts, which reads whichever of the two is in play and resolves both
+ * through the same shape.
+ *
+ * A line is a variant and a count. Prices and names are deliberately absent: they move,
+ * and a cart that remembers last week's price is worse than one that looks them up.
+ */
 
 export interface LocalCartItem {
-  listing_id: string;
-  variant_id: string;
-  quantity: number;
-}
-
-export interface ResolvedCartItem {
-  cartItemId: string; // "local-{variant_id}" for local, real UUID for server
-  quantity: number;
-  spu: any;
-  sku: any;
+	listing_id: ListingId;
+	variant_id: VariantId;
+	quantity: number;
 }
 
 interface CartState {
-  localItems: LocalCartItem[];
-  resolvedItems: ResolvedCartItem[];
-  isLoading: boolean;
-  
-  addToCart: (listingId: string, variantId: string, quantity: number, isAuthenticated: boolean) => Promise<void>;
-  updateQuantity: (cartItemId: string, quantity: number, isAuthenticated: boolean) => Promise<void>;
-  removeItem: (cartItemId: string, isAuthenticated: boolean) => Promise<void>;
-  
-  fetchCart: () => Promise<void>;
-  syncLocalCart: () => Promise<void>;
-  resolveLocalCart: () => Promise<void>;
+	localItems: LocalCartItem[];
+
+	addLocal: (item: LocalCartItem) => void;
+	setLocalQuantity: (variantId: VariantId, quantity: number) => void;
+	removeLocal: (variantId: VariantId) => void;
+	clearLocal: () => void;
+
+	/**
+	 * Push the guest cart to the server after a sign-in, then empty it.
+	 *
+	 * Adding the same variant twice tops the row up server-side rather than failing, so
+	 * merging into an existing account cart is safe. The caller invalidates the cart
+	 * query afterwards.
+	 */
+	syncLocalCart: () => Promise<void>;
 }
 
 export const useCartStore = create<CartState>()(
-  persist(
-    (set, get) => ({
-      localItems: [],
-      resolvedItems: [],
-      isLoading: false,
+	persist(
+		(set, get) => ({
+			localItems: [],
 
-      addToCart: async (listingId, variantId, quantity, isAuthenticated) => {
-        if (isAuthenticated) {
-          await CartService.addToCart(variantId, quantity);
-          await get().fetchCart();
-        } else {
-          const { localItems } = get();
-          const existing = localItems.find(i => i.variant_id === variantId);
-          let newLocalItems;
-          if (existing) {
-            newLocalItems = localItems.map(i => 
-              i.variant_id === variantId ? { ...i, quantity: i.quantity + quantity } : i
-            );
-          } else {
-            newLocalItems = [...localItems, { listing_id: listingId, variant_id: variantId, quantity }];
-          }
-          set({ localItems: newLocalItems });
-          await get().resolveLocalCart();
-        }
-      },
+			addLocal: ({ listing_id, variant_id, quantity }) =>
+				set(({ localItems }) => {
+					const existing = localItems.find((i) => i.variant_id === variant_id);
+					if (existing) {
+						return {
+							localItems: localItems.map((i) =>
+								i.variant_id === variant_id
+									? { ...i, quantity: i.quantity + quantity }
+									: i,
+							),
+						};
+					}
+					return { localItems: [...localItems, { listing_id, variant_id, quantity }] };
+				}),
 
-      updateQuantity: async (cartItemId, quantity, isAuthenticated) => {
-        if (isAuthenticated) {
-          await CartService.updateCartItem(cartItemId, quantity);
-          await get().fetchCart();
-        } else {
-          const variantId = cartItemId.replace("local-", "");
-          const { localItems } = get();
-          const newLocalItems = localItems.map(i => 
-            i.variant_id === variantId ? { ...i, quantity } : i
-          );
-          set({ localItems: newLocalItems });
-          await get().resolveLocalCart();
-        }
-      },
+			setLocalQuantity: (variantId, quantity) =>
+				set(({ localItems }) => ({
+					localItems:
+						quantity <= 0
+							? localItems.filter((i) => i.variant_id !== variantId)
+							: localItems.map((i) =>
+									i.variant_id === variantId ? { ...i, quantity } : i,
+								),
+				})),
 
-      removeItem: async (cartItemId, isAuthenticated) => {
-        if (isAuthenticated) {
-          await CartService.removeCartItem(cartItemId);
-          await get().fetchCart();
-        } else {
-          const variantId = cartItemId.replace("local-", "");
-          const { localItems } = get();
-          const newLocalItems = localItems.filter(i => i.variant_id !== variantId);
-          set({ localItems: newLocalItems });
-          await get().resolveLocalCart();
-        }
-      },
+			removeLocal: (variantId) =>
+				set(({ localItems }) => ({
+					localItems: localItems.filter((i) => i.variant_id !== variantId),
+				})),
 
-      fetchCart: async () => {
-        set({ isLoading: true });
-        try {
-          const res = await CartService.getCart();
-          const cartItems = res.data || [];
-          
-          if (cartItems.length === 0) {
-            set({ resolvedItems: [], isLoading: false });
-            return;
-          }
+			clearLocal: () => set({ localItems: [] }),
 
-          const listingIds = [...new Set(cartItems.map((i: any) => i.listing_id))];
-          const listingsRes = await CatalogService.searchListings({ ids: listingIds, limit: 100 });
-          const listings = listingsRes.data || [];
+			syncLocalCart: async () => {
+				const { localItems } = get();
+				if (localItems.length === 0) return;
 
-          const resolved = cartItems.map((item: any) => {
-            const spu = listings.find((l: any) => l.id === item.listing_id);
-            const sku = spu?.skus?.find((s: any) => s.id === item.variant_id) || spu?.skus?.[0];
-            return {
-              cartItemId: item.id,
-              quantity: item.quantity,
-              spu,
-              sku
-            };
-          }).filter((item: any) => item.spu); // filter out if listing was deleted
-
-          set({ resolvedItems: resolved, isLoading: false });
-        } catch (error) {
-          console.error("Failed to fetch cart", error);
-          set({ isLoading: false });
-        }
-      },
-
-      resolveLocalCart: async () => {
-        const { localItems } = get();
-        if (localItems.length === 0) {
-          set({ resolvedItems: [] });
-          return;
-        }
-
-        set({ isLoading: true });
-        try {
-          const listingIds = [...new Set(localItems.map(i => i.listing_id))];
-          const listingsRes = await CatalogService.searchListings({ ids: listingIds, limit: 100 });
-          const listings = listingsRes.data || [];
-
-          const resolved = localItems.map(item => {
-            const spu = listings.find((l: any) => l.id === item.listing_id);
-            const sku = spu?.skus?.find((s: any) => s.id === item.variant_id) || spu?.skus?.[0];
-            return {
-              cartItemId: `local-${item.variant_id}`,
-              quantity: item.quantity,
-              spu,
-              sku
-            };
-          }).filter(item => item.spu);
-
-          set({ resolvedItems: resolved, isLoading: false });
-        } catch (error) {
-          set({ isLoading: false });
-        }
-      },
-
-      syncLocalCart: async () => {
-        const { localItems } = get();
-        if (localItems.length === 0) return;
-
-        try {
-          for (const item of localItems) {
-            await CartService.addToCart(item.variant_id, item.quantity);
-          }
-          set({ localItems: [] }); // clear local after sync
-          await get().fetchCart();
-        } catch (error) {
-          console.error("Failed to sync local cart", error);
-        }
-      }
-    }),
-    {
-      name: "cart-storage",
-      partialize: (state) => ({ localItems: state.localItems }),
-    }
-  )
+				// Sequential, not parallel: each add mutates the same cart row set, and the
+				// server tops up an existing row rather than replacing it.
+				for (const item of localItems) {
+					await postCartItems({
+						body: { variant_id: item.variant_id, quantity: item.quantity },
+						throwOnError: true,
+					});
+				}
+				set({ localItems: [] });
+			},
+		}),
+		{
+			name: "cart-storage",
+			partialize: (state) => ({ localItems: state.localItems }),
+		},
+	),
 );

@@ -1,51 +1,55 @@
 "use client";
 
 import { useState } from "react";
-import Button from "@/components/ui/Button";
-import { AccountService } from "@/services/account.service";
 import { toast } from "react-hot-toast";
+import Button from "@/components/ui/Button";
+import { useToggleFollow } from "@/hooks/api/useAccount";
+import type { AccountId } from "@/api/generated/types.gen";
 
 interface FollowButtonProps {
-  accountId: string;
+  accountId: AccountId;
   initialIsFollowing?: boolean;
   className?: string;
   variant?: "primary" | "secondary" | "outline" | "ghost" | "error";
 }
 
-export default function FollowButton({ accountId, initialIsFollowing = false, className, variant = "primary" }: FollowButtonProps) {
+export default function FollowButton({
+  accountId,
+  initialIsFollowing = false,
+  className,
+  variant = "primary",
+}: FollowButtonProps) {
+  // Local, because there is no per-seller "am I following this one" read: the state
+  // arrives as a prop from whatever listed the seller, and the button owns it after the
+  // first click. A failure below puts it back.
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [isLoading, setIsLoading] = useState(false);
+  const toggleFollow = useToggleFollow();
 
-  const handleToggleFollow = async (e: React.MouseEvent) => {
+  const handleToggleFollow = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent navigating if wrapped in a link
+    e.stopPropagation(); // The card around this is often a link.
 
-    setIsLoading(true);
-    try {
-      if (isFollowing) {
-        await AccountService.unfollowSeller(accountId);
-        setIsFollowing(false);
-        toast.success("Đã bỏ theo dõi.");
-      } else {
-        await AccountService.followSeller(accountId);
-        setIsFollowing(true);
-        toast.success("Đã theo dõi gian hàng.");
-      }
-    } catch (error) {
-      // Error is handled by apiClient interceptor
-    } finally {
-      setIsLoading(false);
-    }
+    const next = !isFollowing;
+    setIsFollowing(next);
+
+    toggleFollow.mutate(
+      { accountId, following: next },
+      {
+        onSuccess: () => toast.success(next ? "Đã theo dõi gian hàng." : "Đã bỏ theo dõi."),
+        // The global handler raises the toast; this only undoes the optimistic flip.
+        onError: () => setIsFollowing(!next),
+      },
+    );
   };
 
   return (
-    <Button 
-      variant={isFollowing ? "outline" : variant} 
-      className={className} 
+    <Button
+      variant={isFollowing ? "outline" : variant}
+      className={className}
       onClick={handleToggleFollow}
-      disabled={isLoading}
+      disabled={toggleFollow.isPending}
     >
-      {isLoading ? (
+      {toggleFollow.isPending ? (
         <span className="material-symbols-outlined animate-spin mr-2 text-[18px]">progress_activity</span>
       ) : isFollowing ? (
         <span className="material-symbols-outlined mr-2 text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>

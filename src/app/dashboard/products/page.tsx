@@ -1,4 +1,3 @@
-import Button from "@/components/ui/Button";
 import ProductTable from "./_components/ProductTable";
 
 export default function MyProductsPage() {

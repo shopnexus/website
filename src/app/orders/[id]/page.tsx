@@ -1,24 +1,57 @@
 import Link from "next/link";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import Button from "@/components/ui/Button";
-import { mockOrderPage } from "@/lib/mocks/order.mock";
-import { ORDER_STATE_VI } from "@/lib/dictionaries";
+import { ORDER_STATE_VI, TRANSPORT_STATUS_VI } from "@/lib/dictionaries";
+import { getListings, getOrdersById } from "@/api/generated/sdk.gen";
+import type { Listing, ListingId, OrderId, TransportStatus } from "@/api/generated/types.gen";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
-export default async function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
-  const orderId = resolvedParams.id;
-  const order = mockOrderPage.data.find(o => o.id === orderId) || mockOrderPage.data[0]; // Fallback to first order if not found
+/**
+ * The tracker's four stops, and which transport statuses have passed each one.
+ *
+ * Driven by `order.transport.status` rather than drawn at a fixed three-quarters: a
+ * shipment that failed or was returned must not render as "almost delivered".
+ */
+const STEPS: Array<{ label: string; icon: string; reachedBy: TransportStatus[] }> = [
+  { label: "Đã đặt đơn", icon: "receipt_long", reachedBy: [] },
+  { label: "Đã lấy hàng", icon: "inventory_2", reachedBy: ["picked-up", "in-transit", "delivered"] },
+  { label: "Đang giao", icon: "local_shipping", reachedBy: ["in-transit", "delivered"] },
+  { label: "Nhận hàng", icon: "home", reachedBy: ["delivered"] },
+];
 
-  const totalAmount = order.items?.reduce((sum, item) => sum + item.total_amount, 0) || 0;
-  const shippingFee = 35000; // Mock
+export default async function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  const { data, error } = await getOrdersById({ path: { id: id as OrderId } });
+  if (error || !data) notFound();
+
+  const order = data.data;
+  const transport = order.transport;
+
+  // Order lines carry listing_id only; names and covers are resolved in one call.
+  const listingIds = [...new Set((order.items ?? []).map((item) => item.listing_id))];
+  const listingsById = new Map<ListingId, Listing>();
+  if (listingIds.length > 0) {
+    const { data: page } = await getListings({ query: { ids: listingIds, limit: 100 } });
+    for (const listing of page?.data ?? []) listingsById.set(listing.id, listing);
+  }
+
+  const shippingFee = transport?.fee ?? 0;
+  const goodsTotal = order.total;
+
+  // Step 0 is always reached — the order exists. The rest follow the shipment.
+  const reachedSteps = STEPS.map(
+    (step, idx) => idx === 0 || (transport ? step.reachedBy.includes(transport.status) : false),
+  );
+  const progress = (reachedSteps.filter(Boolean).length - 1) / (STEPS.length - 1);
 
   return (
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
       <div className="max-w-[1000px] mx-auto px-4 md:px-8">
-        
+
         <Link href="/orders" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-label-md">
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           Quay lại Đơn mua
@@ -26,42 +59,33 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 flex flex-col gap-6">
-            
+
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6 border-b border-outline-variant border-dashed pb-4">
                 <h2 className="font-headline-sm font-bold">Trạng thái đơn hàng</h2>
-                <span className="font-label-md text-primary font-bold uppercase">{ORDER_STATE_VI[order.state] || order.state}</span>
+                <span className="font-label-md text-primary font-bold uppercase">
+                  {transport ? TRANSPORT_STATUS_VI[transport.status] : ORDER_STATE_VI[order.state]}
+                </span>
               </div>
-              
+
               <div className="relative pt-2 pb-8 px-4 sm:px-12">
                 <div className="absolute top-5 left-4 sm:left-12 right-4 sm:right-12 h-1 bg-surface-container-high rounded">
-                  <div className="h-full bg-primary rounded w-3/4"></div>
+                  <div className="h-full bg-primary rounded transition-all" style={{ width: `${progress * 100}%` }}></div>
                 </div>
                 <div className="relative flex justify-between">
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center relative z-10 mb-2 border-[3px] border-surface">
-                      <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-                    </div>
-                    <span className="text-[10px] sm:text-xs font-bold text-primary text-center">Đã đặt đơn</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center relative z-10 mb-2 border-[3px] border-surface">
-                      <span className="material-symbols-outlined text-[16px]">inventory_2</span>
-                    </div>
-                    <span className="text-[10px] sm:text-xs font-bold text-primary text-center">Đã xác nhận</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center relative z-10 mb-2 border-[3px] border-surface">
-                      <span className="material-symbols-outlined text-[16px]">local_shipping</span>
-                    </div>
-                    <span className="text-[10px] sm:text-xs font-bold text-primary text-center">Đang giao</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center relative z-10 mb-2 border-[3px] border-surface">
-                      <span className="material-symbols-outlined text-[16px]">home</span>
-                    </div>
-                    <span className="text-[10px] sm:text-xs font-medium text-on-surface-variant text-center">Nhận hàng</span>
-                  </div>
+                  {STEPS.map((step, idx) => {
+                    const reached = reachedSteps[idx];
+                    return (
+                      <div key={step.label} className="flex flex-col items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center relative z-10 mb-2 border-[3px] border-surface ${reached ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface-variant"}`}>
+                          <span className="material-symbols-outlined text-[16px]">{step.icon}</span>
+                        </div>
+                        <span className={`text-[10px] sm:text-xs text-center ${reached ? "font-bold text-primary" : "font-medium text-on-surface-variant"}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -70,7 +94,7 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               <div className="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">
                 <h3 className="font-headline-sm font-bold flex items-center gap-2">
                   <span className="material-symbols-outlined">store</span>
-                  Shop {order.seller_id}
+                  {order.seller.name}
                 </h3>
                 <Button variant="outline" size="sm" icon={<span className="material-symbols-outlined">chat</span>}>
                   Liên hệ Shop
@@ -78,42 +102,55 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               </div>
 
               <div className="flex flex-col gap-4">
-                {order.items?.map((item, itemIdx) => (
-                  <div key={itemIdx} className="flex gap-4">
-                    <div className="relative w-20 h-20 rounded border border-outline-variant overflow-hidden shrink-0 bg-surface-container">
+                {order.items?.map((item) => {
+                  const listing = listingsById.get(item.listing_id);
+                  return (
+                    <div key={item.id} className="flex gap-4">
+                      <div className="relative w-20 h-20 rounded border border-outline-variant overflow-hidden shrink-0 bg-surface-container">
+                        {listing?.cover?.url && (
+                          <Image src={listing.cover.url} alt={listing.name} fill className="object-cover" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/product/${item.listing_id}`} className="font-body-md text-on-surface hover:text-primary transition-colors line-clamp-2">
+                          {listing?.name ?? "Sản phẩm"}
+                        </Link>
+                        <div className="text-body-sm text-on-surface-variant mt-1">x{item.quantity}</div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-price-md text-on-surface">{formatPrice(item.total_amount / item.quantity)}</div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <Link href={`/product/${item.sku_id}`} className="font-body-md text-on-surface hover:text-primary transition-colors line-clamp-2">
-                        Sản phẩm {item.sku_id}
-                      </Link>
-                      <div className="text-body-sm text-on-surface-variant mt-1">x{item.quantity}</div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-price-md text-on-surface">{formatPrice(item.total_amount / item.quantity)}</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
 
           <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-6">
-            
+
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <h3 className="font-headline-sm font-bold mb-4">Địa chỉ nhận hàng</h3>
               <div className="flex flex-col gap-1 text-body-sm text-on-surface mb-6">
-                <div className="font-bold mb-1">{order.address?.full_name || 'Khách hàng'}</div>
-                <div>{order.address?.phone || ''}</div>
+                <div className="font-bold mb-1">{order.address.full_name}</div>
+                <div>{order.address.phone}</div>
+                {/* The snapshot froze administrative codes, not their names — those are
+                    display values that belong to the contact, not to the shipment. */}
                 <div className="text-on-surface-variant leading-relaxed">
-                  {order.address?.address_detail}, {order.address?.address}
+                  {order.address.address_detail}
                 </div>
               </div>
 
               <h3 className="font-headline-sm font-bold mb-4">Thông tin vận chuyển</h3>
-              <div className="flex flex-col gap-1 text-body-sm text-on-surface">
-                <div>Đơn vị: <span className="font-bold">Giao Hàng Nhanh</span></div>
-                <div>Mã vận đơn: <span className="font-bold">{order.transport_id}</span></div>
-              </div>
+              {transport ? (
+                <div className="flex flex-col gap-1 text-body-sm text-on-surface">
+                  <div>Đơn vị: <span className="font-bold">{transport.option}</span></div>
+                  <div>Mã vận đơn: <span className="font-bold">{transport.id}</span></div>
+                  <div>Trạng thái: <span className="font-bold">{TRANSPORT_STATUS_VI[transport.status]}</span></div>
+                </div>
+              ) : (
+                <div className="text-body-sm text-on-surface-variant">Chưa có thông tin vận chuyển.</div>
+              )}
             </div>
 
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
@@ -121,7 +158,7 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               <div className="flex flex-col gap-3 text-body-sm text-on-surface-variant border-b border-outline-variant pb-4 mb-4">
                 <div className="flex justify-between">
                   <span>Tổng tiền hàng</span>
-                  <span className="text-on-surface">{formatPrice(totalAmount)}</span>
+                  <span className="text-on-surface">{formatPrice(goodsTotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Phí vận chuyển</span>
@@ -130,15 +167,12 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-label-md text-on-surface">Thành tiền</span>
-                <span className="font-price-lg text-primary text-xl font-bold">{formatPrice(totalAmount + shippingFee)}</span>
-              </div>
-              <div className="text-right text-xs text-on-surface-variant mt-1 mb-6">
-                Thanh toán khi nhận hàng
+                <span className="font-price-lg text-primary text-xl font-bold">{formatPrice(goodsTotal + shippingFee)}</span>
               </div>
 
-              <div className="flex flex-col gap-2 border-t border-outline-variant pt-6">
+              <div className="flex flex-col gap-2 border-t border-outline-variant pt-6 mt-6">
                 <Button variant="outline" fullWidth>Yêu cầu Hóa đơn</Button>
-                {order.state !== "completed" && (
+                {order.state === "open" && (
                   <Button variant="ghost" fullWidth className="text-error hover:text-error hover:bg-error-container/20">
                     Hủy đơn hàng
                   </Button>

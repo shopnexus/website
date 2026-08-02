@@ -2,13 +2,28 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { Listing } from "@/types/catalog.type";
-
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
+/**
+ * What a card needs, rather than a whole Listing.
+ *
+ * Structural on purpose: the generated `Listing` satisfies it, and so does anything else
+ * that can name a product and a price — a search hit, an order line joined to its
+ * listing, a fixture. Requiring the full type would make every caller carry fields the
+ * card never reads.
+ */
+export interface ProductCardItem {
+  id: string;
+  name: string;
+  price: number;
+  created_at: string;
+  cover?: { url?: string | null } | null;
+  seller?: { name: string; avatar?: { url?: string | null } | null };
+}
+
 interface ProductCardProps {
-  product: Listing;
+  product: ProductCardItem;
   className?: string;
 }
 

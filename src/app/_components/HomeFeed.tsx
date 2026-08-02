@@ -1,53 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ProductCard from "@/components/ui/ProductCard";
-import { CatalogService } from "@/services/catalog.service";
-import type { Listing } from "@/types/catalog.type";
+import { useListingsFeed } from "@/hooks/api/useCatalog";
 
 export default function HomeFeed(): React.ReactElement {
+  // Presentational only for now: the API does support sorting these three ways
+  // (`sort=newest` / `sort=recommended`), but `recommended` needs a token and this feed
+  // renders for signed-out visitors too, so wiring it is a separate change.
   const [activeTab, setActiveTab] = useState<"all" | "newest" | "suggested">("all");
-  const [products, setProducts] = useState<Listing[]>([]);
-  const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
 
-  const fetchListings = async (currentPage: number, append: boolean = false) => {
-    try {
-      const loader = append ? setIsLoadingMore : setIsLoading;
-      loader(true);
-      
-      const res = await CatalogService.searchListings({ limit: 12, page: currentPage });
-      const newProducts = res.data || [];
-      
-      if (append) {
-        setProducts((prev) => [...prev, ...newProducts]);
-      } else {
-        setProducts(newProducts);
-      }
-      
-      setHasMore(newProducts.length === 12); // Assume limit is 12
-    } catch (error) {
-      console.error("Failed to fetch listings", error);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  };
-
-  useEffect(() => {
-    // Reset and fetch when tab changes (if activeTab logic was supported by API)
-    setPage(1);
-    fetchListings(1, false);
-  }, [activeTab]);
-
-  const handleLoadMore = (): void => {
-    if (!hasMore || isLoadingMore) return;
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchListings(nextPage, true);
-  };
+  const {
+    listings: products,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useListingsFeed({ limit: 12 });
 
   return (
     <section>
@@ -108,19 +77,19 @@ export default function HomeFeed(): React.ReactElement {
             </div>
           )}
 
-          {hasMore && products.length > 0 && (
+          {hasNextPage && products.length > 0 && (
             <div className="mt-12 flex justify-center">
               <button
                 type="button"
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
                 className="px-12 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-on-primary transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-sm" aria-hidden="true">
-                  {isLoadingMore ? "sync" : "add"}
+                  {isFetchingNextPage ? "sync" : "add"}
                 </span>
                 <span>
-                  {isLoadingMore ? "Đang tải..." : "Tải thêm sản phẩm"}
+                  {isFetchingNextPage ? "Đang tải..." : "Tải thêm sản phẩm"}
                 </span>
               </button>
             </div>

@@ -1,123 +1,112 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useRef, useState } from "react";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { AccountService } from "@/services/account.service";
+import { useUpdateProfile, useUploadFile } from "@/hooks/api/useAccount";
 import { toast } from "react-hot-toast";
+import type { ProfileGender } from "@/api/generated/types.gen";
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+
+/** The select's extra option, which maps to clearing the field rather than to a value. */
+const UNSPECIFIED = "unspecified";
 
 export default function ProfileForm() {
-  const { user, fetchProfile } = useAuthStore();
-  
-  // Profile Fields
+  const user = useAuthStore((s) => s.user);
+  const fetchProfile = useAuthStore((s) => s.fetchProfile);
+
   const [name, setName] = useState(user?.username || "");
   const [description, setDescription] = useState(user?.profile?.description || "");
   const [country, setCountry] = useState(user?.profile?.country || "VN");
-  const [gender, setGender] = useState(user?.profile?.gender || "unspecified");
-  const [dob, setDob] = useState(user?.profile?.date_of_birth ? user.profile.date_of_birth.substring(0, 10) : "");
+  const [gender, setGender] = useState<ProfileGender | typeof UNSPECIFIED>(
+    (user?.profile?.gender as ProfileGender) || UNSPECIFIED,
+  );
+  const [dob, setDob] = useState(user?.profile?.date_of_birth?.substring(0, 10) ?? "");
   const [avatarPreview, setAvatarPreview] = useState(user?.profile?.avatar?.url || "");
 
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (user) {
-      setName(user.username || "");
-      setDescription(user.profile?.description || "");
-      setCountry(user.profile?.country || "VN");
-      setGender(user.profile?.gender || "unspecified");
-      setDob(user.profile?.date_of_birth ? user.profile.date_of_birth.substring(0, 10) : "");
-      setAvatarPreview(user.profile?.avatar?.url || "");
-    }
-  }, [user]);
+  const updateProfile = useUpdateProfile();
+  const uploadFile = useUploadFile();
+
+  /**
+   * Load the form when the account behind it changes.
+   *
+   * Adjusted during render rather than in an effect: an effect would paint an empty form
+   * first and fill it on a second pass. Keyed on the account id, not on the user object,
+   * so a save that refreshes the profile does not wipe whatever is in the inputs — only
+   * signing in as someone else resets them.
+   */
+  const [loadedAccountId, setLoadedAccountId] = useState(user?.id);
+  if (user && user.id !== loadedAccountId) {
+    setLoadedAccountId(user.id);
+    setName(user.username || "");
+    setDescription(user.profile.description || "");
+    setCountry(user.profile.country || "VN");
+    setGender((user.profile.gender as ProfileGender) || UNSPECIFIED);
+    setDob(user.profile.date_of_birth?.substring(0, 10) ?? "");
+    setAvatarPreview(user.profile.avatar?.url || "");
+  }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      return toast.error("Kích thước ảnh tối đa là 5MB.");
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error("Kích thước ảnh tối đa là 5MB.");
+      return;
     }
 
-    setIsUploading(true);
-    // Optimistic preview
+    const previousPreview = avatarPreview;
     const objectUrl = URL.createObjectURL(file);
     setAvatarPreview(objectUrl);
 
     try {
-      // 1. Request presigned URL
-      const { data: slot } = await AccountService.requestUpload({
-        filename: file.name,
-        mime: file.type,
-        size: file.size,
-        kind: "avatar"
-      });
-
-      // 2. Upload file to presigned URL
-      // Use Next.js proxy by taking only pathname + search to bypass CORS
-      const parsedUrl = new URL(slot.url, window.location.origin);
-      const proxiedUrl = parsedUrl.pathname.startsWith('/api/v1') 
-        ? parsedUrl.pathname + parsedUrl.search 
-        : slot.url;
-
-      const uploadRes = await fetch(proxiedUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": file.type,
-          ...(slot.headers || {})
-        },
-        body: file,
-      });
-
-      if (!uploadRes.ok) throw new Error("Upload to storage failed");
-
-      // 3. Confirm upload
-      await AccountService.confirmUpload(slot.resource_id);
-
-      // 4. Update profile with new avatar
-      await AccountService.updateProfile({
-        name: name, // required
-        country: country, // required
-        locale: "vi-VN",
-        timezone: "Asia/Ho_Chi_Minh",
-        avatar_resource_id: slot.resource_id
-      });
+      // Upload, then attach: the resource exists on its own and only becomes the avatar
+      // once the profile points at it.
+      const resource = await uploadFile.mutateAsync({ file, kind: "avatar" });
+      await updateProfile.mutateAsync({ avatar_resource_id: resource.id });
 
       toast.success("Cập nhật ảnh đại diện thành công.");
       await fetchProfile();
-    } catch (error) {
-      toast.error("Lỗi khi tải ảnh lên. Vui lòng thử lại.");
-      setAvatarPreview(user?.profile?.avatar?.url || ""); // Revert
+    } catch {
+      // The global handler raises the toast; this only puts the preview back.
+      setAvatarPreview(previousPreview);
     } finally {
-      setIsUploading(false);
+      URL.revokeObjectURL(objectUrl);
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
+  const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUpdating(true);
-    try {
-      await AccountService.updateProfile({
+
+    updateProfile.mutate(
+      {
         name,
+        country,
+        // Clearing is an explicit flag, not a null: the request type has no nullable
+        // fields, so an empty description has to say so.
         description: description || undefined,
         clear_description: !description,
-        country,
-        gender: gender === "unspecified" ? undefined : gender,
-        clear_gender: gender === "unspecified",
+        gender: gender === UNSPECIFIED ? undefined : gender,
+        clear_gender: gender === UNSPECIFIED,
         date_of_birth: dob ? new Date(dob).toISOString() : undefined,
         clear_date_of_birth: !dob,
         locale: "vi-VN",
         timezone: "Asia/Ho_Chi_Minh",
-      });
-      toast.success("Cập nhật hồ sơ thành công.");
-      await fetchProfile(); // Refresh store data
-    } catch (error: any) {
-      // Error handled by apiClient
-    } finally {
-      setIsUpdating(false);
-    }
+      },
+      {
+        onSuccess: async () => {
+          toast.success("Cập nhật hồ sơ thành công.");
+          await fetchProfile();
+        },
+      },
+    );
   };
+
+  const isUploading = uploadFile.isPending;
+  const isUpdating = updateProfile.isPending;
 
   return (
     <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
@@ -200,9 +189,9 @@ export default function ProfileForm() {
             
             <div>
               <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Giới tính</label>
-              <select 
+              <select
                 value={gender}
-                onChange={(e) => setGender(e.target.value)}
+                onChange={(e) => setGender(e.target.value as ProfileGender | typeof UNSPECIFIED)}
                 className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
               >
                 <option value="unspecified">Không chỉ định</option>

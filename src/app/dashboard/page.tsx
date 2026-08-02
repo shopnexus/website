@@ -5,24 +5,63 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { mockListingPage } from "@/lib/mocks/catalog.mock";
 import { LISTING_STATUS_VI } from "@/lib/dictionaries";
-import { mockPublicAccount } from "@/lib/mocks/account.mock";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useListingsFeed } from "@/hooks/api/useCatalog";
+import { useOrdersFeed } from "@/hooks/api/useOrders";
+import { useReputation } from "@/hooks/api/useShop";
+import { useWallets } from "@/hooks/api/useFinance";
+import { useChatUnreadCount } from "@/hooks/api/useChat";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 export default function DashboardPage(){
-  const myProducts = mockListingPage.data.slice(0, 3);
-
-  const DASHBOARD_STATS = [
-    { label: "Doanh thu", value: "12,450,000đ", change: 12.5, icon: "payments" },
-    { label: "Đơn hàng", value: "24", change: 8.2, icon: "shopping_bag" },
-    { label: "Lượt xem trang", value: "1,204", change: -2.4, icon: "visibility" },
-  ];
-  const { user, logout } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
+
+  const { listings: myProducts } = useListingsFeed({ mine: true, limit: 3 });
+  const { data: wallets } = useWallets();
+  const { data: reputation } = useReputation(user?.id, "seller");
+  const { orders: openOrders } = useOrdersFeed("seller", "open", 5);
+  const { data: chatUnread } = useChatUnreadCount();
+
+  // The seller's own currency, whichever wallet they actually hold. Available and held
+  // are shown apart because escrow is not money they can spend yet.
+  const wallet = wallets?.[0];
+
+  const stats = [
+    {
+      label: "Số dư khả dụng",
+      value: wallet ? formatPrice(wallet.available_balance) : "—",
+      hint: wallet && wallet.held_balance > 0
+        ? `${formatPrice(wallet.held_balance)} đang tạm giữ`
+        : "Chưa có giao dịch",
+      icon: "payments",
+    },
+    {
+      label: "Đơn đã hoàn thành",
+      value: reputation ? String(reputation.completed_orders) : "—",
+      hint: reputation && reputation.cancelled_orders > 0
+        ? `${reputation.cancelled_orders} đơn đã hủy`
+        : "Chưa có đơn hủy",
+      icon: "shopping_bag",
+    },
+    {
+      label: "Đánh giá người bán",
+      value:
+        reputation && reputation.rating_count > 0
+          ? reputation.rating_average.toFixed(1)
+          : "—",
+      hint: reputation
+        ? `${reputation.rating_count} lượt đánh giá`
+        : "Chưa có đánh giá",
+      icon: "star",
+    },
+  ];
+
+  const nextOrder = openOrders[0];
 
   const handleLogout = async () => {
     await logout();
@@ -43,17 +82,15 @@ export default function DashboardPage(){
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {DASHBOARD_STATS.map((stat, idx) => (
-          <div key={idx} className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm flex items-center justify-between">
+        {/* Three numbers the API can actually answer. The previous set — revenue,
+            order count and page views with week-on-week deltas — had no endpoint
+            behind any of them; there is no analytics surface in this API. */}
+        {stats.map((stat) => (
+          <div key={stat.label} className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm flex items-center justify-between">
             <div>
               <div className="font-label-sm text-on-surface-variant mb-2">{stat.label}</div>
               <div className="font-headline-md font-bold text-on-surface mb-2">{stat.value}</div>
-              <div className={["font-label-sm flex items-center gap-1", stat.change > 0 ? "text-primary" : "text-error"].join(" ")}>
-                <span className="material-symbols-outlined text-[16px]">
-                  {stat.change > 0 ? "trending_up" : "trending_down"}
-                </span>
-                {Math.abs(stat.change)}% so với tuần trước
-              </div>
+              <div className="font-label-sm text-on-surface-variant">{stat.hint}</div>
             </div>
             <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
               <span className="material-symbols-outlined text-[24px]">{stat.icon}</span>
@@ -82,6 +119,13 @@ export default function DashboardPage(){
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant">
+                  {myProducts.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-on-surface-variant font-body-sm">
+                        Bạn chưa đăng sản phẩm nào.
+                      </td>
+                    </tr>
+                  )}
                   {myProducts.map((prod) => (
                     <tr key={prod.id} className="hover:bg-surface-container-lowest transition-colors">
                       <td className="p-4 pl-6">
@@ -121,10 +165,9 @@ export default function DashboardPage(){
             </div>
             
             <div className="p-4 border-t border-outline-variant flex justify-center bg-surface-container-lowest">
-              <div className="flex gap-1">
-                <button className="w-8 h-8 rounded border border-primary bg-primary text-on-primary font-bold text-sm">1</button>
-                <button className="w-8 h-8 rounded border border-outline-variant text-on-surface hover:bg-surface-container-low text-sm">2</button>
-              </div>
+              <Link href="/dashboard/products" className="text-primary font-label-md hover:underline">
+                Quản lý toàn bộ sản phẩm
+              </Link>
             </div>
           </div>
         </div>
@@ -139,29 +182,43 @@ export default function DashboardPage(){
             </div>
             
             <div className="p-6 flex flex-col gap-6">
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-label-md text-on-surface">Đơn hàng mới #ORD-9824X</div>
-                    <div className="font-body-sm text-on-surface-variant mt-1">Chờ xác nhận & chuẩn bị hàng</div>
+              {nextOrder ? (
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <div className="font-label-md text-on-surface truncate">
+                        Đơn hàng {nextOrder.id}
+                      </div>
+                      <div className="font-body-sm text-on-surface-variant mt-1">
+                        {openOrders.length > 1
+                          ? `${openOrders.length} đơn đang chờ xử lý`
+                          : "Chờ xác nhận & chuẩn bị hàng"}
+                      </div>
+                    </div>
+                    <span className="text-xs text-on-surface-variant shrink-0">
+                      {new Date(nextOrder.created_at).toLocaleDateString("vi-VN")}
+                    </span>
                   </div>
-                  <span className="text-xs text-on-surface-variant">10 phút trước</span>
+                  <Link href={`/orders/${nextOrder.id}`}>
+                    <Button size="sm" variant="primary" fullWidth>Xem đơn hàng</Button>
+                  </Link>
                 </div>
-                <Button size="sm" variant="primary">Chuẩn bị hàng</Button>
-              </div>
-              
+              ) : (
+                <div className="font-body-sm text-on-surface-variant">
+                  Không có đơn hàng nào đang chờ xử lý.
+                </div>
+              )}
+
               <div className="w-full h-px bg-outline-variant border-dashed"></div>
-              
+
               <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-label-md text-on-surface">Tin nhắn mới từ Khách hàng</div>
-                    <div className="font-body-sm text-on-surface-variant mt-1 line-clamp-1">&quot;Shop ơi, sản phẩm này còn không ạ?&quot;</div>
-                  </div>
-                  <span className="text-xs text-on-surface-variant">1 giờ trước</span>
+                <div className="font-label-md text-on-surface">
+                  {chatUnread && chatUnread.unread > 0
+                    ? `${chatUnread.unread} tin nhắn chưa đọc`
+                    : "Không có tin nhắn mới"}
                 </div>
                 <Link href="/inbox">
-                  <Button size="sm" variant="outline" fullWidth>Trả lời tin nhắn</Button>
+                  <Button size="sm" variant="outline" fullWidth>Mở hộp thư</Button>
                 </Link>
               </div>
             </div>

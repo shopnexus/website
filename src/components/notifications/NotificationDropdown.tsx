@@ -2,56 +2,41 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { AccountService } from "@/services/account.service";
-import { toast } from "react-hot-toast";
+import { useAuthStore } from "@/stores/use-auth-store";
+import {
+  useMarkNotificationsRead,
+  useNotificationsFeed,
+  useUnreadCount,
+} from "@/hooks/api/useNotifications";
+import { notificationBody, notificationIcon } from "@/lib/notification-display";
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  const fetchBadge = async () => {
-    try {
-      const res = await AccountService.getNotificationBadge();
-      setUnreadCount(res.data?.total || 0);
-    } catch (e) {
-      // Ignored
-    }
-  };
+  // Polls once a minute while signed in, and stops entirely when signed out — the
+  // endpoint needs a token, and polling it without one was a 401 a minute.
+  const { data: unreadCount = 0 } = useUnreadCount({ enabled: isAuthenticated });
 
-  const fetchFeed = async () => {
-    setIsLoading(true);
-    try {
-      const res = await AccountService.getNotifications(undefined, 5);
-      setNotifications(res.data || []);
-      
-      // If there are unread notifications, mark them as read up to the latest one
-      if (res.data && res.data.length > 0 && unreadCount > 0) {
-        const latestTime = res.data[0].created_at;
-        await AccountService.markNotificationsRead(latestTime);
-        setUnreadCount(0); // Optimistic clear
-      }
-    } catch (e) {
-      // Ignored
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Only fetched once the dropdown is open. Five rows is all it renders.
+  const { notifications, isLoading } = useNotificationsFeed({
+    limit: 5,
+    enabled: isOpen && isAuthenticated,
+  });
 
+  const markRead = useMarkNotificationsRead();
+
+  // Opening the panel is the read receipt, marked up to the newest row shown rather
+  // than to "now", so a notification that arrives mid-render is not silently swallowed.
+  const newest = notifications[0]?.created_at;
   useEffect(() => {
-    fetchBadge();
-    // In a real app, you might set up an interval or WebSocket to update the badge
-    const interval = setInterval(fetchBadge, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchFeed();
-    }
-  }, [isOpen]);
+    if (!isOpen || !newest || unreadCount === 0 || markRead.isPending) return;
+    markRead.mutate(newest);
+    // markRead is a stable mutation object apart from its pending flag, which is
+    // guarded above; re-running on it would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, newest, unreadCount]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -101,20 +86,27 @@ export default function NotificationDropdown() {
               </div>
             ) : (
               <div className="divide-y divide-outline-variant">
-                {notifications.map((notif, idx) => (
-                  <div key={idx} className="p-4 hover:bg-surface-container-lowest transition-colors cursor-pointer flex gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[20px]">info</span>
-                    </div>
-                    <div>
-                      <div className="font-label-md font-semibold text-on-surface line-clamp-2">{notif.title || "Thông báo hệ thống"}</div>
-                      <div className="font-body-sm text-on-surface-variant line-clamp-2 mt-0.5">{notif.body}</div>
-                      <div className="text-[11px] text-on-surface-variant mt-1">
-                        {new Date(notif.created_at).toLocaleString('vi-VN')}
+                {notifications.map((notif) => {
+                  const body = notificationBody(notif);
+                  return (
+                    // created_at identifies the row together with the feed order, which
+                    // is also what the read bound is expressed against.
+                    <div key={notif.created_at} className="p-4 hover:bg-surface-container-lowest transition-colors cursor-pointer flex gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[20px]">{notificationIcon(notif.category)}</span>
+                      </div>
+                      <div>
+                        <div className="font-label-md font-semibold text-on-surface line-clamp-2">{notif.title}</div>
+                        {body && (
+                          <div className="font-body-sm text-on-surface-variant line-clamp-2 mt-0.5">{body}</div>
+                        )}
+                        <div className="text-[11px] text-on-surface-variant mt-1">
+                          {new Date(notif.created_at).toLocaleString('vi-VN')}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

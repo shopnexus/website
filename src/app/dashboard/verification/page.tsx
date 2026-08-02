@@ -1,34 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Button from "@/components/ui/Button";
-import { AccountService } from "@/services/account.service";
 import { toast } from "react-hot-toast";
+import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useIdentityDocuments } from "@/hooks/api/useAccount";
+import type { IdentityDocumentType, IdentityStatus } from "@/api/generated/types.gen";
+
+const STATUS_LABELS: Record<IdentityStatus, string> = {
+  pending: "Đang chờ duyệt",
+  verified: "Đã xác minh",
+  rejected: "Bị từ chối",
+};
+
+const STATUS_STYLES: Record<IdentityStatus, string> = {
+  pending: "bg-primary-container text-on-primary-container",
+  verified: "bg-secondary-container text-on-secondary-container",
+  rejected: "bg-error/10 text-error",
+};
+
+const DOC_TYPE_LABELS: Record<IdentityDocumentType, string> = {
+  "national-id": "CCCD / CMND",
+  passport: "Hộ chiếu",
+  "driver-license": "Giấy phép lái xe",
+};
 
 export default function VerificationPage() {
-  const { user } = useAuthStore();
-  const [history, setHistory] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const user = useAuthStore((s) => s.user);
+  const { data: history = [], isLoading } = useIdentityDocuments();
 
-  const fetchHistory = async () => {
-    try {
-      const res = await AccountService.getVerificationHistory();
-      setHistory(res.data || []);
-    } catch (error) {
-      // Ignored
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
-  const handleStartVerification = async () => {
-    // In a real flow, this would redirect to a KYC provider URL (like Stripe Identity or Onfido)
-    // Or open a modal to upload Front/Back of ID.
+  const handleStartVerification = () => {
+    // POST /identity-documents exists and useStartVerification wraps it, but submitting
+    // needs the scan uploaded and the document type chosen first — that capture flow is
+    // not built, so starting one here would post an unusable document.
     toast.success("Tính năng xác minh danh tính đang được phát triển.");
   };
 
@@ -46,15 +49,18 @@ export default function VerificationPage() {
             Trạng thái hiện tại
           </h2>
           <div className="font-body-md">
-            Bạn hiện đang ở trạng thái: <strong className="text-on-surface capitalize">{user?.identity_verified ? "Đã xác minh" : "Chưa xác minh"}</strong>
+            Bạn hiện đang ở trạng thái:{" "}
+            <strong className="text-on-surface">
+              {user?.identity_verified ? "Đã xác minh" : "Chưa xác minh"}
+            </strong>
           </div>
           {!user?.identity_verified && (
-             <p className="font-body-sm text-on-surface-variant mt-2 max-w-lg">
+            <p className="font-body-sm text-on-surface-variant mt-2 max-w-lg">
               Hoàn thành xác minh danh tính để có thể đăng bán sản phẩm và tham gia các tính năng nâng cao. Quá trình chỉ mất khoảng 3 phút.
-             </p>
+            </p>
           )}
         </div>
-        
+
         {!user?.identity_verified && (
           <Button onClick={handleStartVerification} className="shrink-0">
             Bắt đầu xác minh
@@ -78,21 +84,32 @@ export default function VerificationPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {history.map((doc, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg border border-outline-variant">
+            {history.map((doc) => (
+              <div key={doc.id} className="flex items-start justify-between gap-4 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant">
                 <div>
-                  <div className="font-label-md font-semibold text-on-surface capitalize">Trạng thái: {doc.status}</div>
-                  <div className="font-body-sm text-on-surface-variant">Ngày cập nhật: {new Date(doc.updated_at || doc.created_at).toLocaleDateString('vi-VN')}</div>
+                  <div className="font-label-md font-semibold text-on-surface">
+                    {DOC_TYPE_LABELS[doc.doc_type]}
+                  </div>
+                  <div className="font-body-sm text-on-surface-variant">
+                    {/* verified_at is the decision date; there is no updated_at. */}
+                    {doc.verified_at
+                      ? `Xác minh ngày ${new Date(doc.verified_at).toLocaleDateString("vi-VN")}`
+                      : `Gửi ngày ${new Date(doc.created_at).toLocaleDateString("vi-VN")}`}
+                  </div>
+                  {doc.status === "rejected" && doc.rejection_reason && (
+                    <div className="font-body-sm text-error mt-1">Lý do: {doc.rejection_reason}</div>
+                  )}
+                  {doc.expires_at && (
+                    <div className="font-body-sm text-on-surface-variant mt-1">
+                      Hết hạn {new Date(doc.expires_at).toLocaleDateString("vi-VN")}
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    doc.status === 'verified' ? 'bg-green-100 text-green-800' :
-                    doc.status === 'rejected' ? 'bg-error/10 text-error' :
-                    'bg-primary-container text-on-primary-container'
-                  }`}>
-                    {doc.status}
-                  </span>
-                </div>
+                <span
+                  className={`px-2 py-1 text-xs font-semibold rounded-full shrink-0 ${STATUS_STYLES[doc.status]}`}
+                >
+                  {STATUS_LABELS[doc.status]}
+                </span>
               </div>
             ))}
           </div>

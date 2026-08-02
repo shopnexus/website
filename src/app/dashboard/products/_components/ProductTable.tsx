@@ -5,11 +5,19 @@ import Image from "next/image";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import { useProductsData, ProductFilter } from "../_hooks/useProductsData";
+import { useProductsData, type ProductFilter } from "../_hooks/useProductsData";
 import { LISTING_STATUS_VI } from "@/lib/dictionaries";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+
+const PRODUCT_FILTERS: Array<{ id: ProductFilter; label: string }> = [
+  { id: "all", label: "Tất cả sản phẩm" },
+  { id: "active", label: LISTING_STATUS_VI.active },
+  { id: "pending", label: LISTING_STATUS_VI.pending },
+  { id: "draft", label: LISTING_STATUS_VI.draft },
+  { id: "hidden", label: LISTING_STATUS_VI.hidden },
+];
 
 export default function ProductTable() {
   const {
@@ -18,8 +26,12 @@ export default function ProductTable() {
     activeFilter,
     setActiveFilter,
     products,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   } = useProductsData();
-  
+
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   return (
@@ -37,17 +49,12 @@ export default function ProductTable() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full lg:flex-1">
-          {(
-            [
-              { id: "all", label: "Tất cả sản phẩm" },
-              { id: "active", label: "Đang bán" },
-              { id: "inactive", label: "Đã ẩn" },
-              { id: "out_of_stock", label: "Hết hàng" },
-            ] as const
-          ).map((filter) => (
+          {/* One tab per ListingStatus, plus "all". Each maps to a `status` the server
+              actually accepts; nothing here is filtered in memory. */}
+          {PRODUCT_FILTERS.map((filter) => (
             <button
               key={filter.id}
-              onClick={() => setActiveFilter(filter.id as ProductFilter)}
+              onClick={() => setActiveFilter(filter.id)}
               className={[
                 "px-4 py-2 rounded-full border text-label-md font-semibold transition-all",
                 activeFilter === filter.id 
@@ -77,7 +84,11 @@ export default function ProductTable() {
       </section>
 
       <section className="bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-outline-variant/20 overflow-hidden">
-        {products.length === 0 ? (
+        {isLoading ? (
+          <div className="p-12 text-center text-on-surface-variant">
+            <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
+          </div>
+        ) : products.length === 0 ? (
           <div className="p-12 text-center text-on-surface-variant">
             <span className="material-symbols-outlined text-4xl mb-4 opacity-50">inventory_2</span>
             <p className="font-body-md">Không tìm thấy sản phẩm nào phù hợp.</p>
@@ -167,6 +178,14 @@ export default function ProductTable() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {hasNextPage && (
+          <div className="p-6 flex justify-center border-t border-outline-variant/20">
+            <Button variant="outline" disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
+              {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
+            </Button>
           </div>
         )}
       </section>

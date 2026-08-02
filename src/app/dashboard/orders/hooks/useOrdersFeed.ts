@@ -1,64 +1,43 @@
-import { useState, useEffect, useMemo } from 'react';
-import { OrderService } from '@/services/order.service';
+import { useMemo, useState } from 'react';
+import { useOrderListings, useOrdersFeed as useOrdersQuery } from '@/hooks/api/useOrders';
+import type { Listing, ListingId, Order, OrderState } from '@/api/generated/types.gen';
 
 export type RoleState = 'buying' | 'selling';
 
+const currency = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
+/**
+ * The dashboard order list: role and state filtered by the API, product names resolved
+ * separately, text search applied in memory.
+ */
 export function useOrdersFeed() {
   const [role, setRole] = useState<RoleState>('buying');
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  
-  const [rawData, setRawData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | OrderState>('all');
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setIsLoading(true);
-        // Map UI filter state to API state if needed, or fetch all and filter client side
-        const res = await OrderService.getOrders(role === 'buying' ? 'buyer' : 'seller', activeFilter === 'all' ? undefined : activeFilter);
-        setRawData(res.data || []);
-      } catch (error) {
-        setRawData([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchOrders();
-  }, [role, activeFilter]); // Re-fetch when role or filter changes (or can fetch all and filter in memory)
+  const { orders, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useOrdersQuery(
+    role === 'buying' ? 'buyer' : 'seller',
+    activeFilter === 'all' ? undefined : activeFilter,
+  );
+
+  const listingsById = useOrderListings(orders);
 
   const stats = useMemo(() => {
-    if (role === 'buying') {
-      return {
-        stat1Value: rawData.filter(o => o.state === 'open').length,
-        stat2Label: 'Chờ đánh giá',
-        stat2Value: rawData.filter(o => o.state === 'completed').length,
-        stat3Label: 'Tổng chi tiêu',
-        stat3Value: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
-          rawData.reduce((acc, order) => acc + (order.total || 0), 0)
-        )
-      };
-    } else {
-      return {
-        stat1Value: rawData.filter(o => o.state === 'open').length,
-        stat2Label: 'Đang giao',
-        stat2Value: rawData.filter(o => o.state === 'completed').length,
-        stat3Label: 'Doanh thu',
-        stat3Value: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
-          rawData.reduce((acc, order) => acc + (order.total || 0), 0)
-        )
-      };
-    }
-  }, [rawData, role]);
+    const total = orders.reduce((sum, order) => sum + order.total, 0);
+    return {
+      stat1Value: orders.filter((o) => o.state === 'open').length,
+      stat2Label: role === 'buying' ? 'Chờ đánh giá' : 'Đang giao',
+      stat2Value: orders.filter((o) => o.state === 'completed').length,
+      stat3Label: role === 'buying' ? 'Tổng chi tiêu' : 'Doanh thu',
+      stat3Value: currency.format(total),
+    };
+  }, [orders, role]);
 
   const filteredOrders = useMemo(() => {
-    return rawData.filter(order => {
-      const idMatch = order.id.toLowerCase().includes(search.toLowerCase());
-      const nameMatch = order.items?.some((i: any) => i.snapshot?.name?.toLowerCase().includes(search.toLowerCase())) || false;
-      return idMatch || nameMatch;
-    });
-  }, [rawData, search]);
+    const needle = search.trim().toLowerCase();
+    if (!needle) return orders;
+    return orders.filter((order) => matchesSearch(order, needle, listingsById));
+  }, [orders, search, listingsById]);
 
   const toggleRole = (newRole: RoleState) => {
     setRole(newRole);
@@ -75,6 +54,27 @@ export function useOrdersFeed() {
     setActiveFilter,
     stats,
     orders: filteredOrders,
-    isLoading
+    /** Resolved listings, keyed by id, for rendering an order's product name and cover. */
+    listingsById,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   };
+}
+
+/**
+ * Search is client-side because `/orders` accepts no text parameter — sending one would
+ * be ignored and quietly return the unfiltered list. It therefore only sees the orders
+ * already loaded, which is the honest behaviour for a cursor-paginated stream.
+ */
+function matchesSearch(
+  order: Order,
+  needle: string,
+  listingsById: Map<ListingId, Listing>,
+): boolean {
+  if (order.id.toLowerCase().includes(needle)) return true;
+  return (order.items ?? []).some((item) =>
+    listingsById.get(item.listing_id)?.name.toLowerCase().includes(needle),
+  );
 }

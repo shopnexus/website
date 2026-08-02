@@ -1,77 +1,89 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Button from "@/components/ui/Button";
-import { AccountService } from "@/services/account.service";
+import { useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
+import Button from "@/components/ui/Button";
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from "@/hooks/api/useNotifications";
+import type {
+  NotificationCategory,
+  NotificationChannel,
+  NotificationPreference,
+} from "@/api/generated/types.gen";
+import { CATEGORY_LABELS } from "@/lib/notification-display";
+
+const CHANNEL_LABELS: Record<NotificationChannel, string> = {
+  "in-app": "Trong ứng dụng",
+  push: "Thông báo đẩy",
+  email: "Email",
+  sms: "SMS",
+};
+
+/**
+ * The grid is driven by the enums, not by whichever rows the server happened to return.
+ *
+ * A preference row only exists once it has been set explicitly — an unset combination
+ * comes back as `is_default: true` or not at all — so deriving the axes from the response
+ * would hide channels a user has never touched, which are exactly the ones they came to
+ * turn on.
+ */
+const CATEGORIES: NotificationCategory[] = ["order", "chat", "promotion", "social", "system"];
+const CHANNELS: NotificationChannel[] = ["in-app", "push", "email", "sms"];
+
+const keyOf = (category: NotificationCategory, channel: NotificationChannel) =>
+  `${category}:${channel}`;
 
 export default function NotificationSettingsPage() {
-  const [preferences, setPreferences] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const { data: preferences, isLoading } = useNotificationPreferences();
+  const savePreferences = useUpdateNotificationPreferences();
 
-  const fetchPreferences = async () => {
-    try {
-      const res = await AccountService.getNotificationPreferences();
-      // Assume res.data is an array of preferences like { category: "order", channel: "push", enabled: true }
-      setPreferences(res.data || []);
-    } catch (error) {
-      // Ignored
-    } finally {
-      setIsLoading(false);
-    }
+  /** Toggles the user has flipped but not saved, keyed by category:channel. */
+  const [pending, setPending] = useState<Record<string, boolean>>({});
+
+  const serverValues = useMemo(() => {
+    const map = new Map<string, NotificationPreference>();
+    for (const pref of preferences ?? []) map.set(keyOf(pref.category, pref.channel), pref);
+    return map;
+  }, [preferences]);
+
+  const isEnabled = (category: NotificationCategory, channel: NotificationChannel) => {
+    const key = keyOf(category, channel);
+    return pending[key] ?? serverValues.get(key)?.is_enabled ?? false;
   };
 
-  useEffect(() => {
-    fetchPreferences();
-  }, []);
+  const toggle = (category: NotificationCategory, channel: NotificationChannel) => {
+    const key = keyOf(category, channel);
+    setPending((prev) => ({ ...prev, [key]: !isEnabled(category, channel) }));
+  };
 
-  const handleToggle = (category: string, channel: string, currentValue: boolean) => {
-    const updated = preferences.map(p => 
-      (p.category === category && p.channel === channel) ? { ...p, enabled: !currentValue } : p
+  const handleSave = () => {
+    // Only what changed. The server replaces the rows it is given and leaves the rest
+    // inherited, so sending the whole grid would freeze every untouched default into an
+    // explicit choice.
+    const items = Object.entries(pending).map(([key, is_enabled]) => {
+      const [category, channel] = key.split(":") as [NotificationCategory, NotificationChannel];
+      return { category, channel, is_enabled };
+    });
+
+    if (items.length === 0) {
+      toast("Không có thay đổi nào để lưu.");
+      return;
+    }
+
+    savePreferences.mutate(
+      { items },
+      {
+        onSuccess: () => {
+          toast.success("Đã lưu cài đặt thông báo.");
+          setPending({});
+        },
+      },
     );
-    setPreferences(updated);
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // Structure based on UpdateNotificationPreferencesRequest
-      const changes = preferences.map(p => ({
-        category: p.category,
-        channel: p.channel,
-        enabled: p.enabled
-      }));
-      await AccountService.updateNotificationPreferences({ changes });
-      toast.success("Đã lưu cài đặt thông báo.");
-    } catch (error) {
-      // Error handled
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const categories = Array.from(new Set(preferences.map(p => p.category)));
-  const channels = Array.from(new Set(preferences.map(p => p.channel)));
-
-  const translateCategory = (cat: string) => {
-    switch (cat) {
-      case "order": return "Đơn hàng";
-      case "chat": return "Tin nhắn";
-      case "promotion": return "Khuyến mãi";
-      case "account": return "Tài khoản";
-      default: return cat;
-    }
-  };
-
-  const translateChannel = (chan: string) => {
-    switch (chan) {
-      case "push": return "Thông báo đẩy";
-      case "email": return "Email";
-      case "sms": return "SMS";
-      default: return chan;
-    }
-  };
+  const hasChanges = Object.keys(pending).length > 0;
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
@@ -85,29 +97,32 @@ export default function NotificationSettingsPage() {
           <div className="flex justify-center p-12">
             <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
           </div>
-        ) : preferences.length === 0 ? (
-          <div className="p-12 text-center text-on-surface-variant">
-            Không thể tải cài đặt thông báo.
-          </div>
         ) : (
           <div className="divide-y divide-outline-variant">
-            {categories.map(category => (
+            {CATEGORIES.map((category) => (
               <div key={category} className="p-6">
-                <h3 className="font-headline-sm font-bold text-on-surface mb-4 capitalize">{translateCategory(category)}</h3>
+                <h3 className="font-headline-sm font-bold text-on-surface mb-4">
+                  {CATEGORY_LABELS[category]}
+                </h3>
                 <div className="space-y-4">
-                  {channels.map(channel => {
-                    const pref = preferences.find(p => p.category === category && p.channel === channel);
-                    if (!pref) return null;
-                    
+                  {CHANNELS.map((channel) => {
+                    const pref = serverValues.get(keyOf(category, channel));
                     return (
                       <div key={channel} className="flex items-center justify-between">
-                        <div className="font-body-md text-on-surface">{translateChannel(channel)}</div>
+                        <div className="font-body-md text-on-surface flex items-center gap-2">
+                          {CHANNEL_LABELS[channel]}
+                          {pref?.is_default && (
+                            <span className="text-[11px] text-on-surface-variant border border-outline-variant rounded px-1.5 py-0.5">
+                              mặc định
+                            </span>
+                          )}
+                        </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            className="sr-only peer" 
-                            checked={!!pref.enabled}
-                            onChange={() => handleToggle(category, channel, pref.enabled)}
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={isEnabled(category, channel)}
+                            onChange={() => toggle(category, channel)}
                           />
                           <div className="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                         </label>
@@ -119,11 +134,11 @@ export default function NotificationSettingsPage() {
             ))}
           </div>
         )}
-        
-        {preferences.length > 0 && (
+
+        {!isLoading && (
           <div className="p-6 bg-surface-container-lowest border-t border-outline-variant flex justify-end">
-            <Button onClick={handleSave} disabled={isSaving || isLoading}>
-              {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+            <Button onClick={handleSave} disabled={savePreferences.isPending || !hasChanges}>
+              {savePreferences.isPending ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </div>
         )}

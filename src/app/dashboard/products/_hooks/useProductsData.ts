@@ -1,37 +1,47 @@
-import { useState, useMemo } from "react";
-import { mockListingPage } from "@/lib/mocks/catalog.mock";
-import type { Listing, ListingStatus } from "@/types/catalog.type";
+"use client";
 
-export type ProductFilter = "all" | "active" | "inactive" | "out_of_stock";
+import { useState } from "react";
+import { useListingsFeed } from "@/hooks/api/useCatalog";
+import type { ListingStatus } from "@/api/generated/types.gen";
 
+export type ProductFilter = "all" | ListingStatus;
+
+/**
+ * The seller's own listings.
+ *
+ * Everything is a server filter. `mine=true` is what makes the seller's unpublished rows
+ * visible at all, and it is also the only case in which `status` is honoured — a shopper
+ * may not ask for someone else's drafts, so the two travel together.
+ *
+ * The filter set mirrors the ListingStatus enum rather than inventing categories: the
+ * previous "Hết hàng" tab could never work, because stock lives on a variant and
+ * `GET /listings` returns listings without their variants.
+ */
 export function useProductsData() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<ProductFilter>("all");
 
-  const filteredProducts = useMemo(() => {
-    let filtered = mockListingPage.data;
+  const trimmed = searchQuery.trim();
 
-    if (searchQuery.trim()) {
-      const lowerQuery = searchQuery.toLowerCase();
-      filtered = filtered.filter((p) => p.name.toLowerCase().includes(lowerQuery));
-    }
-
-    if (activeFilter === "active") {
-      filtered = filtered.filter((p) => p.status === "active");
-    } else if (activeFilter === "inactive") {
-      filtered = filtered.filter((p) => p.status === "hidden" || p.status === "draft");
-    } else if (activeFilter === "out_of_stock") {
-      filtered = filtered.filter((p) => false); // just empty for now
-    }
-
-    return filtered;
-  }, [searchQuery, activeFilter]);
+  const { listings, totalCount, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useListingsFeed({
+      mine: true,
+      status: activeFilter === "all" ? undefined : activeFilter,
+      // A query moves the server's default sort to relevance on its own.
+      q: trimmed || undefined,
+      limit: 24,
+    });
 
   return {
     searchQuery,
     setSearchQuery,
     activeFilter,
     setActiveFilter,
-    products: filteredProducts,
+    products: listings,
+    totalCount,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   };
 }

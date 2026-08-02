@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import Image from "next/image";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import StepIndicator from "@/components/ui/StepIndicator";
-import { OrderService } from "@/services/order.service";
-import { ContactService, Contact } from "@/services/contact.service";
-import { toast } from "react-hot-toast";
 import QuantitySelector from "@/components/ui/QuantitySelector";
+import { toast } from "react-hot-toast";
+import { useContacts } from "@/hooks/api/useContacts";
+import { useCheckout, useDraft, useShippingQuotes } from "@/hooks/api/useOrders";
+import type { DraftOrderId } from "@/api/generated/types.gen";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -17,127 +17,100 @@ const formatPrice = (price: number) =>
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const draftId = searchParams.get("draft_id");
+  const draftId = searchParams.get("draft_id") as DraftOrderId | null;
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  
-  const [draft, setDraft] = useState<any>(null);
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  
-  const [quantity, setQuantity] = useState(1);
+  const [selectedContactId, setSelectedContactId] = useState<string>("");
   const [selectedVariantId, setSelectedVariantId] = useState<string>("");
-  
-  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
   const [selectedShipping, setSelectedShipping] = useState<string>("");
-  
+  const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
 
+  const { data: draft, isLoading: isLoadingDraft, isError: draftFailed } = useDraft(
+    draftId ?? undefined,
+  );
+  const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
+  const checkout = useCheckout();
+
   useEffect(() => {
-    if (!draftId) {
-      router.push("/");
-      return;
-    }
-
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        // Load draft and contacts concurrently
-        const [draftRes, contactsRes] = await Promise.all([
-          OrderService.getDraft(draftId),
-          ContactService.getContacts()
-        ]);
-        
-        const draftData = draftRes.data;
-        setDraft(draftData);
-        
-        if (draftData.variants && draftData.variants.length > 0) {
-          setSelectedVariantId(draftData.variants[0].id);
-        }
-
-        const contactsData = contactsRes.data || [];
-        setContacts(contactsData);
-        
-        const defaultContact = contactsData.find(c => c.is_default_delivery) || contactsData[0] || null;
-        setSelectedContact(defaultContact);
-
-      } catch (error) {
-        toast.error("Không thể tải thông tin thanh toán");
-        router.push("/");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
+    if (!draftId) router.push("/");
   }, [draftId, router]);
 
-  // Lấy phí vận chuyển khi có contact và variant
+  // A draft that cannot be read is a checkout that cannot proceed — expired, cancelled,
+  // or someone else's. The global toast has already said which.
   useEffect(() => {
-    if (!draftId || !selectedContact || !selectedVariantId) return;
+    if (draftFailed) router.push("/");
+  }, [draftFailed, router]);
 
-    const fetchShipping = async () => {
-      try {
-        const res = await OrderService.getShippingQuotes({
-          draft_id: draftId,
-          contact_id: selectedContact.id,
-          lines: [{ variant_id: selectedVariantId, quantity }]
-        });
-        setShippingOptions(res.data || []);
-        if (res.data && res.data.length > 0) {
-          setSelectedShipping(res.data[0].slug);
-        }
-      } catch (error) {
-        // Handle error quietly or show toast
-        setShippingOptions([]);
-      }
-    };
+  // The three selections below are derived, not synced through effects: each falls back
+  // to a default computed from data that may still be loading, and the moment the user
+  // picks something their choice wins. Writing the default into state from an effect
+  // would render once with nothing selected and again with it, for no gain.
+  const activeVariantId = selectedVariantId || draft?.variants[0]?.variant_id || "";
 
-    fetchShipping();
-  }, [draftId, selectedContact, selectedVariantId, quantity]);
+  const defaultContact = contacts.find((c) => c.is_default_delivery) ?? contacts[0];
+  const activeContactId = selectedContactId || defaultContact?.id || "";
+  const selectedContact = contacts.find((c) => c.id === activeContactId) ?? null;
 
-  if (isLoading) {
-    return <div className="min-h-screen py-12 flex justify-center">Đang tải thông tin...</div>;
-  }
+  const { data: quotes, isFetching: isQuoting } = useShippingQuotes(
+    {
+      draft_id: draftId ?? undefined,
+      contact_id: activeContactId || undefined,
+      lines: activeVariantId ? [{ variant_id: activeVariantId, quantity }] : undefined,
+    },
+    Boolean(draftId && activeContactId && activeVariantId),
+  );
 
-  if (!draft) return null;
+  const shippingOptions = useMemo(() => quotes?.options ?? [], [quotes]);
 
-  const selectedVariant = draft.variants?.find((v: any) => v.id === selectedVariantId) || draft.variants?.[0];
-  const subtotal = (selectedVariant?.price || 0) * quantity;
-  
-  const shippingFee = shippingOptions.find(o => o.slug === selectedShipping)?.price || 0;
+  // Re-quoting after an address or quantity change can retire the chosen carrier, so a
+  // selection that is no longer on offer falls back rather than lingering.
+  const activeShipping = shippingOptions.some((o) => o.option === selectedShipping)
+    ? selectedShipping
+    : (shippingOptions[0]?.option ?? "");
+
+  const selectedVariant =
+    draft?.variants.find((v) => v.variant_id === activeVariantId) ?? draft?.variants[0];
+
+  const subtotal = (selectedVariant?.price ?? 0) * quantity;
+  const shippingFee = shippingOptions.find((o) => o.option === activeShipping)?.fee ?? 0;
   const total = subtotal + shippingFee;
 
-  const handlePlaceOrder = async () => {
-    if (!selectedContact) {
+  const handlePlaceOrder = () => {
+    if (!draft || !selectedContact) {
       toast.error("Vui lòng thêm địa chỉ nhận hàng");
       return;
     }
-    if (!selectedShipping) {
+    if (!activeShipping) {
       toast.error("Vui lòng chọn phương thức vận chuyển");
       return;
     }
 
-    try {
-      setIsPlacingOrder(true);
-      const res = await OrderService.checkoutDraft(draft.id, {
-        contact_id: selectedContact.id,
-        transport_option: selectedShipping,
-        currency: draft.currency || "VND",
-        lines: [{ variant_id: selectedVariantId, quantity }],
-        note: note || undefined
-      });
-      
-      toast.success("Đặt hàng thành công!");
-      router.push("/dashboard/orders");
-      
-    } catch (error) {
-      // apiClient handles error toast
-    } finally {
-      setIsPlacingOrder(false);
-    }
+    checkout.mutate(
+      {
+        draftId: draft.id,
+        body: {
+          contact_id: selectedContact.id,
+          transport_option: activeShipping,
+          // Must match the listing's currency, which the draft froze.
+          currency: draft.currency,
+          lines: [{ variant_id: activeVariantId, quantity }],
+          note: note || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Đặt hàng thành công!");
+          router.push("/dashboard/orders");
+        },
+      },
+    );
   };
+
+  if (isLoadingDraft || isLoadingContacts) {
+    return <div className="min-h-screen py-12 flex justify-center">Đang tải thông tin...</div>;
+  }
+
+  if (!draft) return null;
 
   return (
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
@@ -163,12 +136,30 @@ function CheckoutContent() {
               </div>
               
               {selectedContact ? (
-                <div className="flex flex-col gap-1 text-body-md text-on-surface">
-                  <div className="font-bold">{selectedContact.full_name} <span className="font-normal text-on-surface-variant mx-2">|</span> {selectedContact.phone}</div>
-                  <div className="text-on-surface-variant">
-                    {selectedContact.address_detail ? `${selectedContact.address_detail}, ` : ""}{selectedContact.address}<br />
-                    {selectedContact.ward_name}, {selectedContact.district_name ? `${selectedContact.district_name}, ` : ""}{selectedContact.province_name}
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1 text-body-md text-on-surface">
+                    <div className="font-bold">{selectedContact.full_name} <span className="font-normal text-on-surface-variant mx-2">|</span> {selectedContact.phone}</div>
+                    <div className="text-on-surface-variant">
+                      {selectedContact.address_detail ? `${selectedContact.address_detail}, ` : ""}{selectedContact.address}<br />
+                      {selectedContact.ward_name}, {selectedContact.district_name ? `${selectedContact.district_name}, ` : ""}{selectedContact.province_name}
+                    </div>
                   </div>
+
+                  {/* Switching address re-quotes delivery, because the fee depends on
+                      where the parcel is going. */}
+                  {contacts.length > 1 && (
+                    <select
+                      value={activeContactId}
+                      onChange={(e) => setSelectedContactId(e.target.value)}
+                      className="self-start max-w-full bg-surface-container-low border border-outline rounded-lg px-3 py-2 text-body-sm outline-none focus:border-primary"
+                    >
+                      {contacts.map((contact) => (
+                        <option key={contact.id} value={contact.id}>
+                          {contact.full_name} — {contact.address}, {contact.province_name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               ) : (
                 <div className="text-error font-medium">Chưa có địa chỉ nhận hàng. Vui lòng thêm địa chỉ!</div>
@@ -194,14 +185,16 @@ function CheckoutContent() {
                   <div className="flex-1 flex flex-col min-w-0">
                     <span className="font-body-md font-medium text-on-surface line-clamp-2 mb-2">{draft.name}</span>
                     
-                    {draft.variants && draft.variants.length > 1 && (
-                      <select 
-                        value={selectedVariantId}
+                    {draft.variants.length > 1 && (
+                      <select
+                        value={activeVariantId}
                         onChange={(e) => setSelectedVariantId(e.target.value)}
                         className="bg-surface-container-low border border-outline rounded p-1 text-sm max-w-[200px] mb-2"
                       >
-                        {draft.variants.map((v: any) => (
-                          <option key={v.id} value={v.id}>Loại: {v.attributes ? Object.values(v.attributes).join(", ") : v.id}</option>
+                        {draft.variants.map((v) => (
+                          <option key={v.variant_id} value={v.variant_id}>
+                            Loại: {v.attributes ? Object.values(v.attributes).join(", ") : v.variant_id}
+                          </option>
                         ))}
                       </select>
                     )}
@@ -218,24 +211,30 @@ function CheckoutContent() {
                   {shippingOptions.length > 0 ? (
                     <div className="flex flex-col gap-2">
                       {shippingOptions.map((opt) => (
-                        <label key={opt.slug} className="flex items-center justify-between cursor-pointer">
+                        <label key={opt.option} className="flex items-center justify-between cursor-pointer">
                           <div className="flex items-center gap-2">
-                            <input 
-                              type="radio" 
-                              name="shipping" 
-                              value={opt.slug}
-                              checked={selectedShipping === opt.slug}
+                            <input
+                              type="radio"
+                              name="shipping"
+                              value={opt.option}
+                              checked={activeShipping === opt.option}
                               onChange={(e) => setSelectedShipping(e.target.value)}
                               className="text-primary focus:ring-primary"
                             />
                             <span>{opt.name}</span>
                           </div>
-                          <span className="font-medium">{formatPrice(opt.price)}</span>
+                          <span className="font-medium">{formatPrice(opt.fee)}</span>
                         </label>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-on-surface-variant italic">Đang tính phí vận chuyển... (Cần có địa chỉ nhận hàng)</div>
+                    <div className="text-sm text-on-surface-variant italic">
+                      {isQuoting
+                        ? "Đang tính phí vận chuyển..."
+                        : selectedContact
+                          ? "Không có đơn vị vận chuyển nào khả dụng cho địa chỉ này."
+                          : "Cần có địa chỉ nhận hàng để tính phí vận chuyển."}
+                    </div>
                   )}
                 </div>
                 
@@ -279,9 +278,9 @@ function CheckoutContent() {
                 fullWidth 
                 size="lg" 
                 onClick={handlePlaceOrder}
-                disabled={isPlacingOrder || !selectedContact || !selectedShipping}
+                disabled={checkout.isPending || !selectedContact || !activeShipping}
               >
-                {isPlacingOrder ? "Đang xử lý..." : "Đặt hàng"}
+                {checkout.isPending ? "Đang xử lý..." : "Đặt hàng"}
               </Button>
               
               <p className="text-xs text-on-surface-variant text-center mt-4 px-4 leading-relaxed">

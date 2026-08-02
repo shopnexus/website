@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
           <div className="space-y-3 mb-10">
             <h1 className="text-3xl font-headline font-extrabold tracking-tight text-on-surface">Forgot access?</h1>
             <p className="text-on-surface-variant text-body-md leading-relaxed">
-              Enter your credentials and we'll send a secure reset code to your registered device.
+              Enter your credentials and we&apos;ll send a secure reset code to your registered device.
             </p>
           </div>
           
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
               <div>
                 <h3 className="text-title-lg font-bold text-on-surface mb-2">Check your inbox</h3>
                 <p className="text-on-surface-variant text-body-md">
-                  We've sent a verification code to <strong>{identifier}</strong>. Please enter the code on the reset password page.
+                  We&apos;ve sent a verification code to <strong>{identifier}</strong>. Please enter the code on the reset password page.
                 </p>
               </div>
               <Link 

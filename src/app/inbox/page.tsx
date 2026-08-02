@@ -1,45 +1,83 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { mockConversationPage, mockMessagePage } from "@/lib/mocks/chat.mock";
-import { mockListingDetail } from "@/lib/mocks/catalog.mock";
-import type { Message } from "@/types/chat.type";
+import { useAuthStore } from "@/stores/use-auth-store";
+import {
+  useConversations,
+  useMarkConversationRead,
+  useMessages,
+  useSendMessage,
+} from "@/hooks/api/useChat";
+import { useListing } from "@/hooks/api/useCatalog";
+import type { ConversationId, ListingId } from "@/api/generated/types.gen";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 export default function InboxPage() {
-  const [activeTab, setActiveTab] = useState("all");
-  const [activeConvId, setActiveConvId] = useState(mockConversationPage.data[0]?.id || "");
-  const [messages, setMessages] = useState<Message[]>(mockMessagePage.data);
+  const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
+  const [selectedConvId, setSelectedConvId] = useState<ConversationId | "">("");
   const [inputText, setInputText] = useState("");
   const [showChatMobile, setShowChatMobile] = useState(false);
 
-  const activeConv = mockConversationPage.data.find((c) => c.id === activeConvId) || mockConversationPage.data[0];
+  const me = useAuthStore((s) => s.user);
+  const { conversations, isLoading: isLoadingConversations } = useConversations();
+
+  const visibleConversations = useMemo(
+    () => (activeTab === "unread" ? conversations.filter((c) => c.unread > 0) : conversations),
+    [conversations, activeTab],
+  );
+
+  // Derived rather than synced: the first conversation is the default until one is
+  // picked, and a picked thread that leaves the list falls back to the first again.
+  const activeConvId =
+    (selectedConvId && conversations.some((c) => c.id === selectedConvId)
+      ? selectedConvId
+      : conversations[0]?.id) ?? "";
+
+  const activeConv = conversations.find((c) => c.id === activeConvId);
   const activeContact = activeConv?.counterparty;
-  const activeProduct = mockListingDetail; // mocked product
+
+  const { messages, isLoading: isLoadingMessages } = useMessages(activeConvId || undefined);
+  const sendMessage = useSendMessage(activeConvId || undefined);
+  const markRead = useMarkConversationRead();
+
+  // Opening a thread with unread messages is the read receipt.
+  useEffect(() => {
+    if (activeConvId && activeConv && activeConv.unread > 0 && !markRead.isPending) {
+      markRead.mutate(activeConvId);
+    }
+    // markRead is stable apart from its pending flag, guarded above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeConvId, activeConv?.unread]);
+
+  /**
+   * The listing this thread is about.
+   *
+   * A conversation carries no listing of its own — it is between two accounts, and can
+   * outlive any one item. What it has is `refs` on each message, which is what the
+   * sender pointed at, so the panel shows the most recently referenced listing.
+   */
+  const referencedListingId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const ref = messages[i].refs?.listing_id;
+      if (typeof ref === "string") return ref as ListingId;
+    }
+    return undefined;
+  }, [messages]);
+
+  const { data: activeProduct } = useListing(referencedListingId);
 
   const handleSend = () => {
-    if (!inputText.trim()) return;
-    const newMsg: Message = {
-      id: "msg_" + Date.now(),
-      conversation_id: activeConvId,
-      sender_id: "usr_me",
-      type: "user",
-      body: inputText.trim(),
-      created_at: new Date().toISOString(),
-      status: 'sent',
-      attachments: [],
-      metadata: {}
-    };
-    setMessages((prev) => [...prev, newMsg]);
-    setInputText("");
+    const body = inputText.trim();
+    if (!body || !activeConvId) return;
+    sendMessage.mutate({ body }, { onSuccess: () => setInputText("") });
   };
 
-  const isMe = (senderId?: string | null) => senderId === "usr_me";
+  const isMe = (senderId?: string | null) => Boolean(senderId) && senderId === me?.id;
 
   return (
     <div className="bg-background min-h-[calc(100vh-76px)] w-full">
@@ -55,7 +93,7 @@ export default function InboxPage() {
               <h1 className="text-base font-bold text-on-surface mb-3 flex items-center justify-between">
                 <span>Hộp thư</span>
                 <span className="text-[11px] font-normal text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full border border-outline-variant/30">
-                  {mockConversationPage.data.length} hội thoại
+                  {conversations.length} hội thoại
                 </span>
               </h1>
               <div className="relative">
@@ -94,14 +132,24 @@ export default function InboxPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto divide-y divide-outline-variant/10">
-              {mockConversationPage.data.map((conv) => {
+              {isLoadingConversations && (
+                <div className="p-8 flex justify-center">
+                  <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+                </div>
+              )}
+              {!isLoadingConversations && visibleConversations.length === 0 && (
+                <div className="p-8 text-center text-xs text-on-surface-variant">
+                  {activeTab === "unread" ? "Không có tin nhắn chưa đọc." : "Chưa có cuộc trò chuyện nào."}
+                </div>
+              )}
+              {visibleConversations.map((conv) => {
                 const isActive = activeConvId === conv.id;
                 const contact = conv.counterparty;
                 return (
                   <div
                     key={conv.id}
                     onClick={() => {
-                      setActiveConvId(conv.id);
+                      setSelectedConvId(conv.id);
                       setShowChatMobile(true);
                     }}
                     className={`p-3 flex items-center gap-2.5 transition-colors cursor-pointer border-l-[3px] ${
@@ -186,11 +234,17 @@ export default function InboxPage() {
             </div>
 
             <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[url('https://www.transparenttextures.com/patterns/tiny-grid.png')] bg-surface-container-lowest/50">
-              <div className="flex justify-center">
-                <span className="px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant text-[10px] font-medium rounded-full shadow-2xs">
-                  Hôm nay
-                </span>
-              </div>
+              {isLoadingMessages && (
+                <div className="flex justify-center py-8">
+                  <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+                </div>
+              )}
+
+              {!isLoadingMessages && messages.length === 0 && (
+                <div className="flex justify-center py-8 text-xs text-on-surface-variant">
+                  {activeConvId ? "Chưa có tin nhắn nào." : "Chọn một cuộc trò chuyện để bắt đầu."}
+                </div>
+              )}
 
               {messages.map((msg) => {
                 const sentByMe = isMe(msg.sender_id);
@@ -282,11 +336,11 @@ export default function InboxPage() {
                 </button>
                 <input
                   className="flex-1 border-none focus:ring-0 bg-transparent text-xs md:text-sm py-1.5 outline-none text-on-surface placeholder:text-outline"
-                  placeholder={`Viết tin nhắn cho ${activeContact?.name}...`}
+                  placeholder={activeContact ? `Viết tin nhắn cho ${activeContact.name}...` : "Chọn một cuộc trò chuyện..."}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && inputText.trim()) {
+                    if (e.key === "Enter" && inputText.trim() && !sendMessage.isPending) {
                       handleSend();
                     }
                   }}
@@ -296,9 +350,9 @@ export default function InboxPage() {
                   onClick={handleSend}
                   type="button"
                   title="Gửi tin nhắn"
-                  disabled={!inputText.trim()}
+                  disabled={!inputText.trim() || !activeConvId || sendMessage.isPending}
                   className={`p-2 rounded-lg transition-all flex items-center justify-center shrink-0 shadow-sm ${
-                    inputText.trim()
+                    inputText.trim() && activeConvId && !sendMessage.isPending
                       ? "bg-primary text-on-primary hover:scale-105 active:scale-95 cursor-pointer"
                       : "bg-surface-container-high text-outline cursor-not-allowed opacity-60"
                   }`}
@@ -320,7 +374,7 @@ export default function InboxPage() {
               {activeProduct ? (
                 <div className="rounded-xl overflow-hidden bg-surface-container-low mb-5 group cursor-pointer border border-outline-variant/20 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
                   <div className="aspect-[4/3] overflow-hidden relative bg-surface-container flex items-center justify-center">
-                    {activeProduct.images?.[0] ? (
+                    {activeProduct.images[0] ? (
                       <Image
                         src={activeProduct.images[0].url || ''}
                         alt={activeProduct.name}
@@ -340,7 +394,11 @@ export default function InboxPage() {
                     </Link>
                     <div className="flex justify-between items-center">
                       <span className="text-primary font-bold text-base">
-                        {formatPrice(activeProduct.skus?.[0]?.price || 0)}
+                        {formatPrice(
+                          activeProduct.variants.find((v) => v.is_featured)?.price ??
+                            activeProduct.variants[0]?.price ??
+                            0,
+                        )}
                       </span>
                       <span className="text-[10px] text-on-surface-variant font-medium px-2 py-0.5 bg-surface-container-high rounded-full border border-outline-variant/20">
                         Chưa bán

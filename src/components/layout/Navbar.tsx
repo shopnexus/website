@@ -7,6 +7,8 @@ import { useNavbarScroll } from "@/hooks/useNavbarScroll";
 import { useSearch } from "@/hooks/useSearch";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCartStore } from "@/stores/use-cart-store";
+import { useCartItems } from "@/hooks/api/useCart";
+import { useIsClient } from "@/hooks/useIsClient";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 export default function Navbar(): React.ReactElement {
@@ -14,12 +16,13 @@ export default function Navbar(): React.ReactElement {
   const { isScrolledPastHero } = useNavbarScroll();
   const { query, setQuery, handleSearch } = useSearch();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const cartItemsCount = useCartStore((state) => state.resolvedItems.length + state.localItems.length);
-  const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  // The badge counts lines, so it does not need the listings resolved — useCart would
+  // pull a listing detail per cart row into every page that renders the header.
+  const localCount = useCartStore((state) => state.localItems.length);
+  const { data: serverItems } = useCartItems(isAuthenticated);
+  const cartItemsCount = isAuthenticated ? (serverItems?.length ?? 0) : localCount;
+  const mounted = useIsClient();
 
   const shouldShowSearchBar = pathname !== "/" || isScrolledPastHero;
   const isAuthPage = pathname?.startsWith("/register") || pathname?.startsWith("/forgot-password") || pathname?.startsWith("/reset-password");

@@ -4,26 +4,31 @@ import { useOrdersFeed } from '../hooks/useOrdersFeed';
 import OrderStatsCard from './OrderStats';
 import OrderFeed from './OrderFeed';
 import { ORDER_STATE_VI } from '@/lib/dictionaries';
+import type { OrderState } from '@/api/generated/types.gen';
+
+const FILTERS: Array<{ id: 'all' | OrderState; label: string }> = [
+  { id: 'all', label: 'Tất cả' },
+  { id: 'open', label: ORDER_STATE_VI['open'] },
+  { id: 'completed', label: ORDER_STATE_VI['completed'] },
+  { id: 'cancelled', label: ORDER_STATE_VI['cancelled'] },
+];
 
 export default function UnifiedOrders() {
-  const { 
-    role, 
-    toggleRole, 
-    search, 
-    setSearch, 
-    activeFilter, 
-    setActiveFilter, 
-    stats, 
+  const {
+    role,
+    toggleRole,
+    search,
+    setSearch,
+    activeFilter,
+    setActiveFilter,
+    stats,
     orders,
-    isLoading
+    listingsById,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   } = useOrdersFeed();
-
-  const filters = [
-    { id: 'all', label: 'Tất cả' },
-    { id: 'open', label: ORDER_STATE_VI['open'] },
-    { id: 'completed', label: ORDER_STATE_VI['completed'] },
-    { id: 'cancelled', label: ORDER_STATE_VI['cancelled'] }
-  ];
 
   return (
     <main className="pt-8 pb-12 px-6 max-w-[1280px] mx-auto min-h-screen">
@@ -63,7 +68,7 @@ export default function UnifiedOrders() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           
           <div className="flex gap-2 overflow-x-auto hide-scroll pb-1">
-            {filters.map(filter => (
+            {FILTERS.map(filter => (
               <button 
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
@@ -91,7 +96,25 @@ export default function UnifiedOrders() {
           
         </div>
 
-        <OrderFeed orders={orders} role={role} isLoading={isLoading} />
+        <OrderFeed
+          orders={orders}
+          listingsById={listingsById}
+          role={role}
+          isLoading={isLoading}
+        />
+
+        {hasNextPage && (
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="px-8 py-2.5 rounded-full border border-outline-variant text-on-surface-variant text-sm font-semibold hover:bg-surface-container transition-colors disabled:opacity-50"
+            >
+              {isFetchingNextPage ? 'Đang tải...' : 'Tải thêm đơn hàng'}
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );

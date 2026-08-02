@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Toaster } from "react-hot-toast";
+import QueryProvider from "@/api/QueryProvider";
 
 const manrope = Manrope({
   subsets: ["latin", "vietnamese"],
@@ -91,10 +92,12 @@ export default function RootLayout({
             },
           }}
         />
-        <Navbar />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <QueryProvider>
+          <Navbar />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   );

@@ -1,74 +1,62 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import { AccountService } from "@/services/account.service";
 import { toast } from "react-hot-toast";
+import {
+  useMarkNotificationsRead,
+  useNotificationsFeed,
+  useUnreadCount,
+} from "@/hooks/api/useNotifications";
+import type { Notification, NotificationCategory } from "@/api/generated/types.gen";
+import { notificationBody, notificationHref } from "@/lib/notification-display";
 
-type Category = "all" | "order" | "promotion" | "system" | "chat" | "social";
+type Category = "all" | NotificationCategory;
+
+const CATEGORIES: Array<{ id: Category; label: string; icon: string }> = [
+  { id: "all", label: "Tất cả", icon: "grid_view" },
+  { id: "order", label: "Đơn hàng", icon: "local_shipping" },
+  { id: "promotion", label: "Khuyến mãi", icon: "sell" },
+  { id: "chat", label: "Tin nhắn", icon: "chat" },
+  { id: "social", label: "Mạng xã hội", icon: "people" },
+  { id: "system", label: "Hệ thống", icon: "settings" },
+];
+
+const CATEGORY_STYLES: Record<NotificationCategory, { icon: string; bg: string; color: string }> = {
+  order: { icon: "package_2", bg: "bg-secondary-container", color: "text-on-secondary-container" },
+  promotion: { icon: "trending_down", bg: "bg-tertiary-container", color: "text-on-tertiary-container" },
+  chat: { icon: "chat_bubble", bg: "bg-primary-container", color: "text-on-primary-container" },
+  social: { icon: "person_add", bg: "bg-surface-container-highest", color: "text-on-surface-variant" },
+  system: { icon: "verified_user", bg: "bg-surface-container-high", color: "text-outline" },
+};
 
 export default function NotificationsPage(): React.ReactElement {
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<Category>("all");
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const categories = [
-    { id: "all" as const, label: "Tất cả", icon: "grid_view" },
-    { id: "order" as const, label: "Đơn hàng", icon: "local_shipping" },
-    { id: "promotion" as const, label: "Khuyến mãi", icon: "sell" },
-    { id: "chat" as const, label: "Tin nhắn", icon: "chat" },
-    { id: "social" as const, label: "Mạng xã hội", icon: "people" },
-    { id: "system" as const, label: "Hệ thống", icon: "settings" },
-  ];
+  const { notifications, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useNotificationsFeed({
+      // "all" is the absence of a filter, not a category the server knows.
+      category: activeCategory === "all" ? undefined : activeCategory,
+      limit: 50,
+    });
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const [notifsRes, badgeRes] = await Promise.all([
-        AccountService.getNotifications(undefined, 50, activeCategory),
-        AccountService.getNotificationBadge()
-      ]);
-      setNotifications(notifsRes.data || []);
-      setUnreadCount(badgeRes.data?.total || 0);
-    } catch (error) {
-      toast.error("Không thể tải thông báo");
-    } finally {
-      setIsLoading(false);
-    }
+  const { data: unreadCount = 0 } = useUnreadCount();
+  const markRead = useMarkNotificationsRead();
+
+  const markAllAsRead = () => {
+    // No bound: the server reads an omitted `before` as "the whole feed".
+    markRead.mutate(undefined, {
+      onSuccess: () => toast.success("Đã đánh dấu đọc tất cả"),
+    });
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [activeCategory]);
-
-  const markAllAsRead = async () => {
-    if (notifications.length === 0) return;
-    try {
-      const latestTime = notifications[0].created_at;
-      await AccountService.markNotificationsRead(latestTime);
-      setUnreadCount(0);
-      setNotifications(notifications.map(n => ({ ...n, unread: false })));
-      toast.success("Đã đánh dấu đọc tất cả");
-    } catch (error) {
-      // handled
-    }
-  };
-
-  const getIconForCategory = (category: string) => {
-    switch (category) {
-      case "order": return { icon: "package_2", bg: "bg-secondary-container", color: "text-on-secondary-container" };
-      case "promotion": return { icon: "trending_down", bg: "bg-tertiary-container", color: "text-on-tertiary-container" };
-      case "chat": return { icon: "chat_bubble", bg: "bg-primary-container", color: "text-on-primary-container" };
-      case "social": return { icon: "person_add", bg: "bg-surface-container-highest", color: "text-on-surface-variant" };
-      default: return { icon: "verified_user", bg: "bg-surface-container-high", color: "text-outline" };
-    }
-  };
-
-  // Group notifications loosely by time for UI display
-  const now = new Date();
-  const today = notifications.filter(n => new Date(n.created_at).toDateString() === now.toDateString());
-  const older = notifications.filter(n => new Date(n.created_at).toDateString() !== now.toDateString());
+  const { today, older } = useMemo(() => {
+    const todayStamp = new Date().toDateString();
+    return {
+      today: notifications.filter((n) => new Date(n.created_at).toDateString() === todayStamp),
+      older: notifications.filter((n) => new Date(n.created_at).toDateString() !== todayStamp),
+    };
+  }, [notifications]);
 
   return (
     <div className="min-h-[calc(100vh-80px)] py-8 px-4 md:px-6 max-w-[1440px] mx-auto w-full animate-fade-in">
@@ -86,7 +74,7 @@ export default function NotificationsPage(): React.ReactElement {
           </div>
 
           <nav className="space-y-1.5">
-            {categories.map((cat) => {
+            {CATEGORIES.map((cat) => {
               const isActive = activeCategory === cat.id;
               return (
                 <button
@@ -142,7 +130,8 @@ export default function NotificationsPage(): React.ReactElement {
               <button
                 type="button"
                 onClick={markAllAsRead}
-                className="text-label-sm text-primary font-bold hover:opacity-75 transition-opacity cursor-pointer flex items-center gap-1 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full"
+                disabled={markRead.isPending}
+                className="text-label-sm text-primary font-bold hover:opacity-75 transition-opacity cursor-pointer flex items-center gap-1 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[16px]">done_all</span>
                 <span>Đánh dấu đã đọc tất cả</span>
@@ -170,7 +159,7 @@ export default function NotificationsPage(): React.ReactElement {
                   </div>
                   <div className="space-y-3">
                     {today.map((item) => (
-                      <NotificationCard key={item.id} item={item} styleInfo={getIconForCategory(item.category)} />
+                      <NotificationCard key={item.created_at} item={item} />
                     ))}
                   </div>
                 </div>
@@ -183,9 +172,22 @@ export default function NotificationsPage(): React.ReactElement {
                   </div>
                   <div className="space-y-3">
                     {older.map((item) => (
-                      <NotificationCard key={item.id} item={item} styleInfo={getIconForCategory(item.category)} />
+                      <NotificationCard key={item.created_at} item={item} />
                     ))}
                   </div>
+                </div>
+              )}
+
+              {hasNextPage && (
+                <div className="flex justify-center pt-4">
+                  <button
+                    type="button"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="px-6 py-2 rounded-full border border-outline-variant text-on-surface-variant text-label-sm font-bold hover:bg-surface-container transition-colors disabled:opacity-50"
+                  >
+                    {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
+                  </button>
                 </div>
               )}
             </div>
@@ -196,18 +198,13 @@ export default function NotificationsPage(): React.ReactElement {
   );
 }
 
-function NotificationCard({
-  item,
-  styleInfo,
-}: {
-  item: any;
-  styleInfo: any;
-}): React.ReactElement {
-  // Check if unread (if item.created_at > some last_read_time in a real app, 
-  // or if API explicitly returns an unread flag. The API might not return an unread boolean per item 
-  // but let's assume item.unread exists or we just rely on it being visually simple for now).
-  // Often with "mark read up to time", everything newer than X is unread.
-  const isUnread = item.unread !== false; // Mocking true if undefined just to see styles, but ideally api tells us.
+function NotificationCard({ item }: { item: Notification }): React.ReactElement {
+  // The server states this per row: read_at is null until the feed is marked read past
+  // this notification's created_at.
+  const isUnread = !item.read_at;
+  const styleInfo = CATEGORY_STYLES[item.category];
+  const body = notificationBody(item);
+  const href = notificationHref(item);
 
   return (
     <div
@@ -236,18 +233,20 @@ function NotificationCard({
       <div className="flex-grow min-w-0 pr-6">
         <div className="flex justify-between items-start mb-1 gap-2">
           <h3 className={`font-headline text-body-md font-extrabold text-on-surface ${isUnread ? "text-primary" : ""}`}>
-            {item.title || "Thông báo"}
+            {item.title}
           </h3>
           <span className="text-label-xs text-outline font-medium shrink-0 whitespace-nowrap">
             {new Date(item.created_at).toLocaleString('vi-VN')}
           </span>
         </div>
-        <p className="text-body-sm text-on-surface-variant leading-relaxed line-clamp-3">{item.body}</p>
+        {body && (
+          <p className="text-body-sm text-on-surface-variant leading-relaxed line-clamp-3">{body}</p>
+        )}
 
-        {item.url && (
+        {href && (
           <div className="mt-3.5 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <Link
-              href={item.url}
+              href={href}
               className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-label-sm font-bold transition-all shadow-sm bg-surface-container border border-outline-variant/40 text-on-surface hover:border-primary/50`}
             >
               <span>Xem chi tiết</span>

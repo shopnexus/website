@@ -1,39 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Button from "@/components/ui/Button";
-import { AccountService } from "@/services/account.service";
 import { toast } from "react-hot-toast";
+import Button from "@/components/ui/Button";
+import { useOAuthIdentities, useUnlinkProvider } from "@/hooks/api/useAccount";
 
 export default function LinkedProviders() {
-  const [providers, setProviders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchProviders = async () => {
-    try {
-      const res = await AccountService.getOAuthIdentities();
-      // Remove mock data handling - expecting actual data array
-      setProviders(res.data || []);
-    } catch (error) {
-      // Ignored
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProviders();
-  }, []);
-
-  const handleUnlink = async (provider: string) => {
-    try {
-      await AccountService.unlinkProvider(provider);
-      toast.success(`Đã hủy liên kết với ${provider}`);
-      fetchProviders();
-    } catch (error) {
-      // Handled by interceptor
-    }
-  };
+  const { data: providers = [], isLoading } = useOAuthIdentities();
+  const unlink = useUnlinkProvider();
 
   return (
     <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
@@ -41,7 +14,7 @@ export default function LinkedProviders() {
         <span className="material-symbols-outlined">link</span>
         Tài khoản liên kết
       </h2>
-      
+
       {isLoading ? (
         <div className="flex justify-center p-4">
           <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
@@ -52,22 +25,35 @@ export default function LinkedProviders() {
         </div>
       ) : (
         <div className="space-y-4">
-          {providers.map((p, idx) => (
-            <div key={idx} className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg border border-outline-variant">
+          {providers.map((identity) => (
+            <div key={identity.provider} className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg border border-outline-variant">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                  {p.provider === "google" ? (
+                  {identity.provider === "google" ? (
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
                   ) : (
                     <span className="material-symbols-outlined text-on-surface-variant">account_circle</span>
                   )}
                 </div>
                 <div>
-                  <div className="font-label-md font-semibold text-on-surface capitalize">{p.provider}</div>
-                  <div className="font-body-sm text-on-surface-variant">{p.email || "Đã liên kết"}</div>
+                  <div className="font-label-md font-semibold text-on-surface capitalize">{identity.provider}</div>
+                  {/* The provider's email is not returned — a linked identity is only
+                      the provider and when it was linked. */}
+                  <div className="font-body-sm text-on-surface-variant">
+                    Liên kết ngày {new Date(identity.created_at).toLocaleDateString("vi-VN")}
+                  </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => handleUnlink(p.provider)}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={unlink.isPending}
+                onClick={() =>
+                  unlink.mutate(identity.provider, {
+                    onSuccess: () => toast.success(`Đã hủy liên kết với ${identity.provider}.`),
+                  })
+                }
+              >
                 Hủy liên kết
               </Button>
             </div>

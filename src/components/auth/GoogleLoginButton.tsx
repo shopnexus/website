@@ -9,30 +9,54 @@ interface GoogleLoginButtonProps {
   loadingText?: string;
 }
 
-export default function GoogleLoginButton({ 
-  text = "Continue with Google", 
-  loadingText = "Connecting..." 
+/**
+ * The slice of Google Identity Services this component uses.
+ *
+ * Declared here rather than pulled from @types/google.one-tap: it is three fields, the
+ * script is loaded at runtime by the page rather than bundled, and a local shape keeps
+ * the `any` out without adding a dependency for one call.
+ */
+interface GoogleCodeResponse {
+  code?: string;
+}
+
+interface GoogleIdentityServices {
+  accounts: {
+    oauth2: {
+      initCodeClient(config: {
+        client_id: string;
+        scope: string;
+        callback: (response: GoogleCodeResponse) => void;
+      }): { requestCode(): void };
+    };
+  };
+}
+
+export default function GoogleLoginButton({
+  text = "Continue with Google",
+  loadingText = "Connecting..."
 }: GoogleLoginButtonProps) {
   const { loginWithGoogle, isLoading } = useAuthStore();
   const router = useRouter();
 
   const handleGoogleLogin = () => {
-    const google = (window as any).google;
-    if (google) {
-      const client = google.accounts.oauth2.initCodeClient({
-        client_id: "DUMMY_GOOGLE_CLIENT_ID",
-        scope: "email profile",
-        callback: async (response: any) => {
-          if (response.code) {
-            try {
-              await loginWithGoogle(response.code);
-              router.push("/");
-            } catch (err) {}
-          }
-        },
-      });
-      client.requestCode();
-    }
+    const google = (window as unknown as { google?: GoogleIdentityServices }).google;
+    if (!google) return;
+
+    const client = google.accounts.oauth2.initCodeClient({
+      client_id: "DUMMY_GOOGLE_CLIENT_ID",
+      scope: "email profile",
+      callback: async (response) => {
+        if (!response.code) return;
+        try {
+          await loginWithGoogle(response.code);
+          router.push("/");
+        } catch {
+          // The store records the error and the global handler raises the toast.
+        }
+      },
+    });
+    client.requestCode();
   };
 
   return (

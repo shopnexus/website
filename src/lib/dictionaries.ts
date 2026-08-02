@@ -1,36 +1,35 @@
 import type {
-  ListingCondition,
-  ListingStatus,
-  PriceMode,
-  ShippingPaidBy,
-} from "@/types/catalog.type";
-
-import type {
-  OrderState,
-  OrderItemState,
-  OrderPaymentStatus,
-  OfferStatus,
-} from "@/types/order.type";
-
-import type {
   AccountRole,
   AccountStatus,
-  ProfileGender,
+  DisputeStatus,
   IdentityDocumentType,
   IdentityStatus,
-} from "@/types/account.type";
-
-import type {
-  TransactionStatus,
+  ListingCondition,
+  ListingStatus,
+  NotificationCategory,
+  NotificationChannel,
+  OfferStatus,
+  OrderState,
   PaymentSessionStatus,
-} from "@/types/finance.type";
-
-import type {
-  ReportStatus,
-  ReportReason,
+  PriceMode,
+  ProfileGender,
   RefundStatus,
-  DisputeStatus,
-} from "@/types/trust.type";
+  ReportReason,
+  ReportStatus,
+  TransactionStatus,
+  TransportStatus,
+  WithdrawalOutcome,
+} from "@/api/generated/types.gen";
+
+/**
+ * Vietnamese labels for the API's enums.
+ *
+ * Every map is typed `Record<Enum, string>`, so adding a value to an enum in the spec
+ * breaks the build here rather than rendering a raw slug like `awaiting-buyer-action` to
+ * a shopper. That is the whole point of keying on the generated union: three maps in the
+ * previous version had drifted — an offer could be `checked-out` and a refund could be
+ * `returning`, `returned` or `awaiting-buyer-action`, and none of those had a label.
+ */
 
 // ── Catalog ──────────────────────────────────────────────────────────────────
 
@@ -52,11 +51,6 @@ export const PRICE_MODE_VI: Record<PriceMode, string> = {
   negotiable: "Có thể thương lượng",
 };
 
-export const SHIPPING_PAID_BY_VI: Record<ShippingPaidBy, string> = {
-  buyer: "Người mua trả",
-  seller: "Người bán trả (Freeship)",
-};
-
 // ── Orders ───────────────────────────────────────────────────────────────────
 
 export const ORDER_STATE_VI: Record<OrderState, string> = {
@@ -65,23 +59,20 @@ export const ORDER_STATE_VI: Record<OrderState, string> = {
   cancelled: "Đã hủy",
 };
 
-export const ORDER_ITEM_STATE_VI: Record<OrderItemState, string> = {
-  pending: "Chờ xử lý",
-  confirmed: "Đã xác nhận",
+export const TRANSPORT_STATUS_VI: Record<TransportStatus, string> = {
+  pending: "Chờ lấy hàng",
+  "picked-up": "Đã lấy hàng",
+  "in-transit": "Đang vận chuyển",
+  delivered: "Đã giao",
+  returned: "Đã hoàn về",
+  failed: "Giao thất bại",
   cancelled: "Đã hủy",
-};
-
-export const ORDER_PAYMENT_STATUS_VI: Record<OrderPaymentStatus, string> = {
-  pending: "Chờ thanh toán",
-  processing: "Đang xử lý",
-  success: "Thành công",
-  cancelled: "Đã hủy",
-  failed: "Thất bại",
 };
 
 export const OFFER_STATUS_VI: Record<OfferStatus, string> = {
   active: "Đang chờ",
   accepted: "Đã chấp nhận",
+  "checked-out": "Đã thanh toán",
   cancelled: "Đã hủy",
 };
 
@@ -116,6 +107,23 @@ export const IDENTITY_STATUS_VI: Record<IdentityStatus, string> = {
   rejected: "Bị từ chối",
 };
 
+// ── Notifications ────────────────────────────────────────────────────────────
+
+export const NOTIFICATION_CATEGORY_VI: Record<NotificationCategory, string> = {
+  order: "Đơn hàng",
+  promotion: "Khuyến mãi",
+  system: "Hệ thống",
+  chat: "Tin nhắn",
+  social: "Cộng đồng",
+};
+
+export const NOTIFICATION_CHANNEL_VI: Record<NotificationChannel, string> = {
+  "in-app": "Trong ứng dụng",
+  push: "Thông báo đẩy",
+  email: "Email",
+  sms: "SMS",
+};
+
 // ── Finance ──────────────────────────────────────────────────────────────────
 
 export const TRANSACTION_STATUS_VI: Record<TransactionStatus, string> = {
@@ -130,6 +138,18 @@ export const PAYMENT_SESSION_STATUS_VI: Record<PaymentSessionStatus, string> = {
   success: "Thành công",
   cancelled: "Đã hủy",
   failed: "Thất bại",
+};
+
+/**
+ * A withdrawal carries two states: `outcome` is the moderator's decision and `status` is
+ * where the money got to on the rail. They are separate because an approved withdrawal
+ * can still fail to pay out.
+ */
+export const WITHDRAWAL_OUTCOME_VI: Record<WithdrawalOutcome, string> = {
+  "awaiting-review": "Chờ duyệt",
+  approved: "Đã duyệt",
+  rejected: "Bị từ chối",
+  cancelled: "Đã hủy",
 };
 
 // ── Trust & Safety ───────────────────────────────────────────────────────────
@@ -153,7 +173,10 @@ export const REPORT_REASON_VI: Record<ReportReason, string> = {
 
 export const REFUND_STATUS_VI: Record<RefundStatus, string> = {
   "awaiting-seller-review": "Chờ người bán xem xét",
+  "awaiting-buyer-action": "Chờ người mua phản hồi",
   disputed: "Đang tranh chấp",
+  returning: "Đang hoàn hàng",
+  returned: "Đã hoàn hàng",
   accepted: "Đã chấp nhận",
   rejected: "Từ chối",
   cancelled: "Đã hủy",
@@ -165,9 +188,12 @@ export const DISPUTE_STATUS_VI: Record<DisputeStatus, string> = {
   "buyer-wins": "Người mua thắng",
 };
 
-/** 
- * Helper function to safely fallback to a default or capitalised value
- * if the key doesn't exist in the dictionary.
+/**
+ * Read a label, falling back to a capitalised form of the key.
+ *
+ * Only for the places that hold a value the API typed as a bare string — a transport
+ * option's slug, say. A value from one of the enums above is already exhaustive and
+ * should be indexed directly, so a missing label is a compile error.
  */
 export function translateDict<T extends string>(
   dict: Record<string, string>,

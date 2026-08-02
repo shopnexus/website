@@ -1,43 +1,74 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { AccountService } from "@/services/account.service";
+import { useUpdateIdentifiers } from "@/hooks/api/useAccount";
 import { toast } from "react-hot-toast";
+import type { UpdateAccountRequest } from "@/api/generated/types.gen";
+
+/**
+ * Build the patch for one identifier.
+ *
+ * Clearing is an explicit `clear_*` flag rather than a null value — the request type has
+ * no nullable identifier fields, so sending `email: null` to erase an address is
+ * rejected as malformed. Omitting a field leaves it untouched, which is what an
+ * unchanged input should do.
+ */
+function identifierPatch<K extends "email" | "phone" | "username">(
+  key: K,
+  next: string,
+  current: string | null | undefined,
+): UpdateAccountRequest {
+  const trimmed = next.trim();
+  if (trimmed === (current ?? "")) return {};
+  if (trimmed === "") return { [`clear_${key}`]: true } as UpdateAccountRequest;
+  return { [key]: trimmed } as UpdateAccountRequest;
+}
 
 export default function IdentifiersForm() {
-  const { user, fetchProfile } = useAuthStore();
-  
+  const user = useAuthStore((s) => s.user);
+  const fetchProfile = useAuthStore((s) => s.fetchProfile);
+
   const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [username, setUsername] = useState(user?.username || "");
-  const [isUpdatingId, setIsUpdatingId] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setEmail(user.email || "");
-      setPhone(user.phone || "");
-      setUsername(user.username || "");
-    }
-  }, [user]);
+  const updateIdentifiers = useUpdateIdentifiers();
 
-  const handleUpdateIdentifiers = async (e: React.FormEvent) => {
+  // Loaded during render, keyed on the account id — see the same pattern in ProfileForm.
+  // An effect would paint the inputs empty and fill them on a second pass, and keying on
+  // the user object would clear whatever is typed every time the profile refreshes.
+  const [loadedAccountId, setLoadedAccountId] = useState(user?.id);
+  if (user && user.id !== loadedAccountId) {
+    setLoadedAccountId(user.id);
+    setEmail(user.email || "");
+    setPhone(user.phone || "");
+    setUsername(user.username || "");
+  }
+
+  const handleUpdateIdentifiers = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUpdatingId(true);
-    try {
-      await AccountService.updateIdentifiers({
-        email: email || null,
-        phone: phone || null,
-        username: username || null,
-      });
-      toast.success("Cập nhật thông tin định danh thành công.");
-      await fetchProfile(); // Refresh store data
-    } catch (error: any) {
-      // Error handled by apiClient
-    } finally {
-      setIsUpdatingId(false);
+
+    const body: UpdateAccountRequest = {
+      ...identifierPatch("username", username, user?.username),
+      ...identifierPatch("email", email, user?.email),
+      ...identifierPatch("phone", phone, user?.phone),
+    };
+
+    if (Object.keys(body).length === 0) {
+      toast("Không có thay đổi nào để lưu.");
+      return;
     }
+
+    updateIdentifiers.mutate(body, {
+      onSuccess: async () => {
+        toast.success("Cập nhật thông tin định danh thành công.");
+        // The zustand store holds its own copy of the account for the header and the
+        // route guards; the query cache alone would leave it stale.
+        await fetchProfile();
+      },
+    });
   };
 
   return (
@@ -85,8 +116,8 @@ export default function IdentifiersForm() {
         </div>
 
         <div className="pt-2">
-          <Button type="submit" disabled={isUpdatingId} fullWidth>
-            {isUpdatingId ? "Đang lưu..." : "Lưu thay đổi"}
+          <Button type="submit" disabled={updateIdentifiers.isPending} fullWidth>
+            {updateIdentifiers.isPending ? "Đang lưu..." : "Lưu thay đổi"}
           </Button>
         </div>
       </form>

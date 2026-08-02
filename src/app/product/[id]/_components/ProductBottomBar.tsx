@@ -1,46 +1,63 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { OrderService } from "@/services/order.service";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useCart } from "@/hooks/api/useCart";
+import { useCreateDraft } from "@/hooks/api/useOrders";
 import { toast } from "react-hot-toast";
+import type { ListingDetail } from "@/api/generated/types.gen";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
-export default function ProductBottomBar({ product }: { product: any }) {
+export default function ProductBottomBar({
+  product,
+  price,
+}: {
+  product: ListingDetail;
+  /** The featured variant's price, resolved by the page. */
+  price: number;
+}) {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
-  const [isBuying, setIsBuying] = useState(false);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { addItem } = useCart();
+  const createDraft = useCreateDraft();
 
-  const handleBuyNow = async () => {
-    if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để mua hàng");
-      router.push(`/login?callbackUrl=/product/${product.id}`);
-      return;
-    }
+  // What "buy" and "add to cart" act on. A listing always has at least one variant —
+  // the server refuses to publish one without a priced variant.
+  const targetVariant = product.variants.find((v) => v.is_featured) ?? product.variants[0];
 
+  const requireSignIn = (message: string): boolean => {
+    if (isAuthenticated) return false;
+    toast.error(message);
+    router.push(`/login?callbackUrl=/product/${product.id}`);
+    return true;
+  };
+
+  const handleBuyNow = () => {
+    if (requireSignIn("Vui lòng đăng nhập để mua hàng")) return;
+
+    createDraft.mutate(
+      { listing_id: product.id },
+      { onSuccess: (draft) => router.push(`/checkout?draft_id=${draft.id}`) },
+    );
+  };
+
+  const handleAddToCart = async () => {
+    if (!targetVariant) return;
     try {
-      setIsBuying(true);
-      const res = await OrderService.createDraftOrder({ listing_id: product.id });
-      router.push(`/checkout?draft_id=${res.data.id}`);
-    } catch (error) {
-      // apiClient handles toast
-    } finally {
-      setIsBuying(false);
+      // A guest's cart lives in the store and is merged server-side at sign-in, so this
+      // works signed out too.
+      await addItem(product.id, targetVariant.id, 1);
+      toast.success("Đã thêm vào giỏ hàng.");
+    } catch {
+      // The global handler raises the toast.
     }
   };
 
   const handleNegotiate = () => {
-    if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để thương lượng");
-      router.push(`/login?callbackUrl=/product/${product.id}`);
-      return;
-    }
-    // Lógica thương lượng - có thể là mở modal thương lượng
+    if (requireSignIn("Vui lòng đăng nhập để thương lượng")) return;
     toast.error("Chức năng thương lượng đang được phát triển");
   };
 
@@ -50,7 +67,7 @@ export default function ProductBottomBar({ product }: { product: any }) {
         <div className="hidden sm:flex items-center gap-4">
           <span className="font-label-md text-on-surface-variant">Tổng thanh toán:</span>
           <span className="font-display-lg text-[24px] text-primary font-bold leading-none">
-            {formatPrice(product.skus?.[0]?.price || 0)}
+            {formatPrice(price)}
           </span>
         </div>
         
@@ -59,7 +76,12 @@ export default function ProductBottomBar({ product }: { product: any }) {
             <span className="material-symbols-outlined mr-2">favorite</span>
             Lưu
           </Button>
-          <Button variant="secondary" className="flex-1 sm:flex-none px-6 py-3 h-12 rounded-xl text-on-secondary-container">
+          <Button
+            variant="secondary"
+            className="flex-1 sm:flex-none px-6 py-3 h-12 rounded-xl text-on-secondary-container"
+            onClick={handleAddToCart}
+            disabled={!targetVariant}
+          >
             Thêm vào giỏ
           </Button>
 
@@ -77,9 +99,9 @@ export default function ProductBottomBar({ product }: { product: any }) {
             variant="primary" 
             className="flex-1 sm:flex-none px-8 py-3 h-12 rounded-xl font-bold"
             onClick={handleBuyNow}
-            disabled={isBuying}
+            disabled={createDraft.isPending}
           >
-            {isBuying ? "Đang xử lý..." : "Mua ngay"}
+            {createDraft.isPending ? "Đang xử lý..." : "Mua ngay"}
           </Button>
         </div>
       </div>

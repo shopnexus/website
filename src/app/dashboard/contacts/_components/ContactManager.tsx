@@ -1,15 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ContactService, Contact, CreateContactRequest } from "@/services/contact.service";
 import Button from "@/components/ui/Button";
 import { toast } from "react-hot-toast";
+import {
+  useContacts,
+  useCreateContact,
+  useDeleteContact,
+  useUpdateContact,
+} from "@/hooks/api/useContacts";
+import type { Contact, ContactId, CreateContactRequest } from "@/api/generated/types.gen";
 
 interface Location {
   name: string;
   code: number;
 }
-interface Ward extends Location {}
+type Ward = Location;
 interface District extends Location {
   wards: Ward[];
 }
@@ -17,15 +23,28 @@ interface Province extends Location {
   districts: District[];
 }
 
+/**
+ * Normalise a Vietnamese phone number to E.164, which is what the server validates
+ * against. A leading 0 is the national trunk prefix and is replaced by the country code.
+ */
+function toE164(phone: string): string {
+  const trimmed = phone.replace(/\s+/g, "");
+  if (trimmed.startsWith("+")) return trimmed;
+  if (trimmed.startsWith("0")) return `+84${trimmed.slice(1)}`;
+  return `+${trimmed}`;
+}
+
 export default function ContactManager() {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const { data: contacts = [], isLoading } = useContacts();
+  const createContact = useCreateContact();
+  const updateContact = useUpdateContact();
+  const deleteContact = useDeleteContact();
+
   const [provinces, setProvinces] = useState<Province[]>([]);
-  
+
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  
+  const [editingId, setEditingId] = useState<ContactId | null>(null);
+
   const [formData, setFormData] = useState<CreateContactRequest>({
     full_name: "",
     phone: "",
@@ -42,21 +61,9 @@ export default function ContactManager() {
     is_default_pickup: false,
   });
 
-  const fetchContacts = async () => {
-    try {
-      setIsLoading(true);
-      const res = await ContactService.getContacts();
-      setContacts(res.data || []);
-    } catch (error) {
-      // apiClient handles error toast
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchContacts();
-    // Fetch Vietnam provinces
+    // A third-party administrative-division dataset, not our API, so it stays a plain
+    // fetch outside the query client.
     fetch("https://provinces.open-api.vn/api/?depth=3")
       .then(res => res.json())
       .then(data => setProvinces(data))
@@ -104,54 +111,47 @@ export default function ContactManager() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: ContactId) => {
     if (!confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
-    try {
-      await ContactService.deleteContact(id);
-      toast.success("Đã xóa địa chỉ.");
-      fetchContacts();
-    } catch (error) {
-      // Handled by API client
-    }
+    deleteContact.mutate(id, {
+      onSuccess: () => toast.success("Đã xóa địa chỉ."),
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const payload: CreateContactRequest = {
+      ...formData,
+      phone: toE164(formData.phone),
+    };
+
+    // A blank optional field has to be omitted, not sent empty: the server validates
+    // district_code as an administrative code and "" is not one.
+    if (!payload.district_code) {
+      delete payload.district_code;
+      delete payload.district_name;
+    }
+    if (!payload.address_detail) {
+      delete payload.address_detail;
+    }
+
     try {
-      // Clean up payload
-      let formattedPhone = formData.phone;
-      if (formattedPhone.startsWith("0")) {
-        formattedPhone = "+84" + formattedPhone.slice(1);
-      } else if (!formattedPhone.startsWith("+")) {
-        formattedPhone = "+" + formattedPhone;
-      }
-
-      const payload = {
-        ...formData,
-        phone: formattedPhone,
-      };
-
-      if (!payload.district_code) {
-        delete payload.district_code;
-        delete payload.district_name;
-      }
-      if (!payload.address_detail) {
-        delete payload.address_detail;
-      }
-
       if (editingId) {
-        await ContactService.updateContact(editingId, payload);
+        await updateContact.mutateAsync({ id: editingId, body: payload });
         toast.success("Cập nhật địa chỉ thành công.");
       } else {
-        await ContactService.createContact(payload);
+        await createContact.mutateAsync(payload);
         toast.success("Thêm địa chỉ thành công.");
       }
+      // Only closed on success, so a rejected address keeps the form and its values.
       setIsFormOpen(false);
-      fetchContacts();
-    } catch (error) {
-      // Handled by API client
+    } catch {
+      // The global handler raises the toast, including per-field validation detail.
     }
   };
+
+  const isSaving = createContact.isPending || updateContact.isPending;
 
   const selectedProvince = provinces.find(p => p.code.toString() === formData.province_code);
   const selectedDistrict = selectedProvince?.districts?.find(d => d.code.toString() === formData.district_code);
@@ -384,7 +384,9 @@ export default function ContactManager() {
 
             <div className="flex justify-end gap-3 pt-6 border-t border-outline-variant">
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Hủy</Button>
-              <Button type="submit">Lưu địa chỉ</Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? "Đang lưu..." : "Lưu địa chỉ"}
+              </Button>
             </div>
           </form>
         </div>

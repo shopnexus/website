@@ -1,85 +1,74 @@
 "use client";
 
-import React, { useState, Suspense, useEffect } from "react";
+import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
-import { CatalogService } from "@/services/catalog.service";
-import type { Listing } from "@/types/catalog.type";
+import { useCategories, useListingsFeed } from "@/hooks/api/useCatalog";
+import type { CategoryId, GetListingsData } from "@/api/generated/types.gen";
+
+type SortOption = NonNullable<NonNullable<GetListingsData["query"]>["sort"]>;
+
+const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
+  { value: "newest", label: "Mới nhất" },
+  { value: "relevance", label: "Độ liên quan" },
+  { value: "price-asc", label: "Giá: Thấp đến Cao" },
+  { value: "price-desc", label: "Giá: Cao đến Thấp" },
+  { value: "rating", label: "Đánh giá cao" },
+];
+
+/** A price input that is blank or not a number means "no bound". */
+function priceBound(raw: string): number | undefined {
+  if (!raw.trim()) return undefined;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : undefined;
+}
 
 function SearchPageContent(): React.ReactElement {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const categoryParam = searchParams.get("category") || "";
 
-  const [categories, setCategories] = useState<any[]>([]);
-  const [products, setProducts] = useState<Listing[]>([]);
-  const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
-  const [selectedSubs, setSelectedSubs] = useState<string[]>([]);
   const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
   const [priceFrom, setPriceFrom] = useState<string>("");
   const [priceTo, setPriceTo] = useState<string>("");
   const [appliedPriceFrom, setAppliedPriceFrom] = useState<string>("");
   const [appliedPriceTo, setAppliedPriceTo] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
-  const subCategories = [
-    { id: "sub-1", label: "Điện thoại thông minh", count: "1,245" },
-    { id: "sub-2", label: "Máy tính bảng", count: "453" },
-    { id: "sub-3", label: "Phụ kiện & Linh kiện", count: "2,109" },
-  ];
+  const { data: categories = [] } = useCategories();
 
-  useEffect(() => {
-    CatalogService.getCategories().then(res => {
-      setCategories(res.data || []);
-    }).catch(console.error);
-  }, []);
+  // The tree arrives flat with parent_id, so the nav shows roots and the sidebar shows
+  // the children of whatever is selected. It used to show three hardcoded phone
+  // categories with invented result counts.
+  const rootCategories = categories.filter((c) => !c.parent_id);
+  const subCategories = selectedCategory
+    ? categories.filter((c) => c.parent_id === selectedCategory)
+    : [];
 
-  const fetchListings = async (currentPage: number, append = false) => {
-    try {
-      const loader = append ? setIsLoadingMore : setIsLoading;
-      loader(true);
+  // `sort=relevance` is refused without a query — the server rejects combinations rather
+  // than resolving them by precedence — so fall back to newest when the box is empty.
+  const sort: SortOption = sortBy === "relevance" && !initialQuery ? "newest" : sortBy;
 
-      // Note: Backend doesn't support price sort/filter, so we only pass q and category_id
-      const res = await CatalogService.searchListings({
-        limit: 12,
-        page: currentPage,
-        q: initialQuery || undefined,
-        category_id: selectedCategory || undefined,
-      });
-
-      const newProducts = res.data || [];
-
-      if (append) {
-        setProducts((prev) => [...prev, ...newProducts]);
-      } else {
-        setProducts(newProducts);
-      }
-
-      setHasMore(newProducts.length === 12);
-    } catch (error) {
-      console.error("Failed to fetch listings", error);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  };
-
-  useEffect(() => {
-    setPage(1);
-    fetchListings(1, false);
-  }, [initialQuery, selectedCategory]);
-
-  const toggleSub = (label: string): void => {
-    setSelectedSubs((prev) =>
-      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
-    );
-  };
+  const {
+    listings,
+    totalCount,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useListingsFeed({
+    limit: 12,
+    q: initialQuery || undefined,
+    category_id: (selectedCategory as CategoryId) || undefined,
+    // Price is a server-side filter and sorting is a server-side order: `min_price`,
+    // `max_price` and `sort` are all parameters `/listings` accepts. Filtering the
+    // current page in memory only ever hid rows from the page that happened to load.
+    min_price: priceBound(appliedPriceFrom),
+    max_price: priceBound(appliedPriceTo),
+    sort,
+  });
 
   const applyPriceFilter = (): void => {
     setAppliedPriceFrom(priceFrom);
@@ -88,33 +77,12 @@ function SearchPageContent(): React.ReactElement {
 
   const clearAllFilters = (): void => {
     setSelectedCategory("");
-    setSelectedSubs([]);
     setVerifiedOnly(false);
     setPriceFrom("");
     setPriceTo("");
     setAppliedPriceFrom("");
     setAppliedPriceTo("");
   };
-
-  const handleLoadMore = (): void => {
-    if (!hasMore || isLoadingMore) return;
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchListings(nextPage, true);
-  };
-
-  // Client-side filtering for UI-only filters (price, etc) that backend doesn't support
-  const displayedProducts = products.filter(p => {
-    if (appliedPriceFrom) {
-      const minPrice = Number(appliedPriceFrom);
-      if (!Number.isNaN(minPrice) && ((p as any).skus?.[0]?.price || 0) < minPrice) return false;
-    }
-    if (appliedPriceTo) {
-      const maxPrice = Number(appliedPriceTo);
-      if (!Number.isNaN(maxPrice) && maxPrice > 0 && ((p as any).skus?.[0]?.price || 0) > maxPrice) return false;
-    }
-    return true;
-  });
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 w-full">
@@ -136,7 +104,7 @@ function SearchPageContent(): React.ReactElement {
           </span>
           <span>Tất cả danh mục</span>
         </button>
-        {categories.map((cat) => {
+        {rootCategories.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
             <button
@@ -166,26 +134,25 @@ function SearchPageContent(): React.ReactElement {
           <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30 space-y-6">
             <h2 className="font-headline font-bold text-headline-sm text-on-surface">Bộ lọc</h2>
 
-            <div>
-              <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
-                Danh mục phụ
-              </h3>
-              <div className="space-y-3">
-                {subCategories.map((sub) => (
-                  <label key={sub.id} className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={selectedSubs.includes(sub.label)}
-                      onChange={() => toggleSub(sub.label)}
-                      className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20 bg-surface-container-low cursor-pointer"
-                    />
-                    <span className="text-body-sm text-on-surface-variant group-hover:text-primary transition-colors">
-                      {sub.label} ({sub.count})
-                    </span>
-                  </label>
-                ))}
+            {subCategories.length > 0 && (
+              <div>
+                <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
+                  Danh mục phụ
+                </h3>
+                <div className="space-y-2">
+                  {subCategories.map((sub) => (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => setSelectedCategory(sub.id)}
+                      className="block w-full text-left text-body-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                    >
+                      {sub.name}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="pt-4 border-t border-outline-variant/10">
               <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
@@ -245,7 +212,9 @@ function SearchPageContent(): React.ReactElement {
         <section className="md:col-span-9">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div className="font-headline text-headline-sm text-on-surface">
-              Tìm thấy <span className="font-bold text-primary">{products.length}</span> kết quả
+              {/* total_count is null for a ranked query — the search never visits the
+                  rows it does not return — so fall back to what is on screen. */}
+              Tìm thấy <span className="font-bold text-primary">{totalCount ?? listings.length}</span> kết quả
               cho{" "}
               {initialQuery ? (
                 <span className="italic text-on-surface-variant">&quot;{initialQuery}&quot;</span>
@@ -263,29 +232,30 @@ function SearchPageContent(): React.ReactElement {
               <select
                 id="sort-select"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-body-sm rounded-lg py-1.5 pl-3 pr-8 focus:ring-primary focus:border-primary outline-none cursor-pointer"
               >
-                <option value="newest">Mới nhất</option>
-                <option value="relevant">Độ liên quan</option>
-                <option value="price_asc">Giá: Thấp đến Cao</option>
-                <option value="price_desc">Giá: Cao đến Thấp</option>
+                {SORT_OPTIONS.map((option) => (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                    // Relevance only has a meaning when there is a query to be relevant to.
+                    disabled={option.value === "relevance" && !initialQuery}
+                  >
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
-          {(selectedCategory || selectedSubs.length > 0 || verifiedOnly || appliedPriceFrom || appliedPriceTo) && (
+          {(selectedCategory || verifiedOnly || appliedPriceFrom || appliedPriceTo) && (
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selectedCategory && (
                 <Chip selected onRemove={() => setSelectedCategory("")}>
                   {categories.find(c => c.id === selectedCategory)?.name || selectedCategory}
                 </Chip>
               )}
-              {selectedSubs.map((sub) => (
-                <Chip key={sub} selected onRemove={() => toggleSub(sub)}>
-                  {sub}
-                </Chip>
-              ))}
               {verifiedOnly && (
                 <Chip selected onRemove={() => setVerifiedOnly(false)}>
                   Người bán xác thực
@@ -314,13 +284,13 @@ function SearchPageContent(): React.ReactElement {
             </div>
           )}
 
-          {isLoading && products.length === 0 ? (
+          {isLoading ? (
             <div className="flex justify-center py-20 text-on-surface-variant">
               Đang tải dữ liệu...
             </div>
-          ) : displayedProducts.length > 0 ? (
+          ) : listings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-              {displayedProducts.map((product) => (
+              {listings.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -342,19 +312,19 @@ function SearchPageContent(): React.ReactElement {
             </div>
           )}
 
-          {hasMore && products.length > 0 && (
+          {hasNextPage && listings.length > 0 && (
             <div className="mt-12 flex justify-center">
               <button
                 type="button"
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
                 className="px-12 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-on-primary transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-sm" aria-hidden="true">
-                  {isLoadingMore ? "sync" : "add"}
+                  {isFetchingNextPage ? "sync" : "add"}
                 </span>
                 <span>
-                  {isLoadingMore ? "Đang tải..." : "Tải thêm sản phẩm"}
+                  {isFetchingNextPage ? "Đang tải..." : "Tải thêm sản phẩm"}
                 </span>
               </button>
             </div>

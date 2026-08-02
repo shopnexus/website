@@ -1,15 +1,17 @@
 import Link from 'next/link';
 import { ORDER_STATE_VI } from '@/lib/dictionaries';
-import type { Order } from '@/types/order.type';
+import type { Listing, ListingId, Order } from '@/api/generated/types.gen';
 import { RoleState } from '../hooks/useOrdersFeed';
 
 interface OrderFeedProps {
-  orders: any[];
+  orders: Order[];
+  /** Listings behind the order lines, resolved by useOrdersFeed. */
+  listingsById: Map<ListingId, Listing>;
   role: RoleState;
   isLoading?: boolean;
 }
 
-export default function OrderFeed({ orders, role, isLoading }: OrderFeedProps) {
+export default function OrderFeed({ orders, listingsById, role, isLoading }: OrderFeedProps) {
   if (isLoading) {
     return <div className="text-center py-12 text-on-surface-variant font-medium">Đang tải đơn hàng...</div>;
   }
@@ -28,13 +30,20 @@ export default function OrderFeed({ orders, role, isLoading }: OrderFeedProps) {
   return (
     <div className="space-y-4">
       {orders.map((order) => {
+        // An order line carries only listing_id; the listing itself is resolved in bulk
+        // by the hook, and may still be loading or — for a deleted listing — absent.
         const firstItem = order.items?.[0];
-        // Use order item image or fallback
-        const displayImg = firstItem?.snapshot?.images?.[0]?.url || 'https://picsum.photos/seed/' + order.id + '/200/200';
-        const displayName = firstItem ? firstItem.snapshot?.name + (order.items && order.items.length > 1 ? ` và ${order.items.length - 1} sp khác` : '') : 'Đơn hàng';
-        
-        const totalAmount = order.total || 0;
-        
+        const firstListing = firstItem ? listingsById.get(firstItem.listing_id) : undefined;
+        const otherCount = (order.items?.length ?? 0) - 1;
+
+        const displayImg =
+          firstListing?.cover?.url ?? `https://picsum.photos/seed/${order.id}/200/200`;
+        const displayName = firstItem
+          ? (firstListing?.name ?? 'Sản phẩm') + (otherCount > 0 ? ` và ${otherCount} sp khác` : '')
+          : 'Đơn hàng';
+
+        const totalAmount = order.total;
+
         const statusColor = 
           order.state === 'completed' ? 'bg-secondary-container text-on-secondary-container' : 
           order.state === 'cancelled' ? 'bg-error-container text-on-error-container' : 

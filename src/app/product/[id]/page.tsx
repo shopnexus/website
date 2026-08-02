@@ -3,25 +3,40 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
-import { CatalogService } from "@/services/catalog.service";
+import { getListingsById } from "@/api/generated/sdk.gen";
+import type { ListingDetail, ListingId } from "@/api/generated/types.gen";
 import { notFound } from "next/navigation";
 import ProductBottomBar from "./_components/ProductBottomBar";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
-  
-  let product: any;
-  try {
-    const res = await CatalogService.getListingDetail(resolvedParams.id);
-    product = res.data;
-  } catch (error) {
-    notFound();
-  }
+/**
+ * The price on the card is the featured variant's, falling back to the cheapest — the same
+ * rule the listing feed sorts by, so a product page never contradicts the card that led
+ * to it.
+ */
+function displayPrice(product: ListingDetail): number {
+  const featured = product.variants.find((v) => v.is_featured);
+  if (featured) return featured.price;
+  return product.variants.reduce(
+    (min, v) => (min === null || v.price < min ? v.price : min),
+    null as number | null,
+  ) ?? 0;
+}
 
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  // A Server Component calling the generated SDK directly: no hook, no query client. The
+  // runtime config reads the access token from next/headers on this side, so an
+  // authenticated view (a seller's own hidden listing) still resolves.
+  const { data, error } = await getListingsById({ path: { id: id as ListingId } });
+  if (error || !data) notFound();
+
+  const product = data.data;
   const { seller } = product;
+  const price = displayPrice(product);
 
   return (
     <div className="bg-surface-container-lowest min-h-screen pb-24">
@@ -39,9 +54,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-[500px] shrink-0">
             <div className="bg-surface rounded-2xl border border-outline-variant overflow-hidden mb-4 relative aspect-[4/5]">
-              {product.images?.[0] ? (
+              {product.images[0] ? (
                 <Image
-                  src={product.images?.[0]?.url || ''}
+                  src={product.images[0].url || ''}
                   alt={product.name}
                   fill
                   className="object-cover"
@@ -55,11 +70,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             </div>
             
-            {product.images && product.images.length > 1 && (
+            {product.images.length > 1 && (
               <div className="flex gap-4 overflow-x-auto hide-scrollbar">
-                {product.images.map((img: any, idx: number) => (
+                {product.images.map((img, idx) => (
                   <button
-                    key={idx}
+                    key={img.id}
                     className={["relative w-20 h-20 rounded-xl overflow-hidden border-2 shrink-0 transition-colors", idx === 0 ? "border-primary" : "border-transparent hover:border-outline-variant"].join(" ")}
                   >
                     <Image src={img?.url || ''} alt="" fill className="object-cover" />
@@ -77,7 +92,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="bg-surface rounded-2xl p-6 border border-outline-variant mb-6 shadow-sm">
               <div className="flex items-end gap-4 mb-2">
                 <span className="font-display-lg text-[40px] text-primary font-bold leading-none tracking-tight">
-                  {formatPrice(product.skus?.[0]?.price || 0)}
+                  {formatPrice(price)}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-4 text-body-sm text-on-surface-variant">
@@ -147,7 +162,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <ProductBottomBar product={product} />
+      <ProductBottomBar product={product} price={price} />
     </div>
   );
 }
