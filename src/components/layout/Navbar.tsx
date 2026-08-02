@@ -5,13 +5,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useNavbarScroll } from "@/hooks/useNavbarScroll";
 import { useSearch } from "@/hooks/useSearch";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 export default function Navbar(): React.ReactElement {
   const pathname = usePathname();
   const { isScrolledPastHero } = useNavbarScroll();
   const { query, setQuery, handleSearch } = useSearch();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const shouldShowSearchBar = pathname !== "/" || isScrolledPastHero;
+  const isAuthPage = pathname?.startsWith("/register") || pathname?.startsWith("/forgot-password") || pathname?.startsWith("/reset-password");
+
+  if (isAuthPage) return null;
 
   return (
     <>
@@ -91,78 +101,93 @@ export default function Navbar(): React.ReactElement {
           </div>
 
           <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
-            <Link
-              href="/notifications"
-              aria-label="Thông báo"
-              className={`pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 ${
-                pathname === "/notifications"
-                  ? "text-primary border-primary font-bold"
-                  : "text-on-surface-variant border-transparent hover:text-primary"
-              }`}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontVariationSettings: pathname === "/notifications" ? "'FILL' 1" : "'FILL' 0" }}
-              >
-                notifications
-              </span>
-            </Link>
-            <Link
-              href="/cart"
-              aria-label="shopping_bag"
-              className={`pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 ${
-                pathname === "/cart"
-                  ? "text-primary border-primary font-bold"
-                  : "text-on-surface-variant border-transparent hover:text-primary"
-              }`}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontVariationSettings: pathname === "/cart" ? "'FILL' 1" : "'FILL' 0" }}
-              >
-                shopping_bag
-              </span>
-            </Link>
-            <Link
-              href="/inbox"
-              aria-label="chat_bubble"
-              className={`hidden sm:flex pb-1 px-2 transition-all cursor-pointer items-center justify-center border-b-2 duration-300 ${
-                pathname === "/inbox"
-                  ? "text-primary border-primary font-bold"
-                  : "text-on-surface-variant border-transparent hover:text-primary"
-              }`}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontVariationSettings: pathname === "/inbox" ? "'FILL' 1" : "'FILL' 0" }}
-              >
-                chat_bubble
-              </span>
-            </Link>
-            <Link
-              href="/dashboard"
-              aria-label="person"
-              className={`hidden sm:flex pb-1 px-2 transition-all cursor-pointer items-center justify-center border-b-2 duration-300 ${
-                pathname === "/dashboard"
-                  ? "text-primary border-primary font-bold"
-                  : "text-on-surface-variant border-transparent hover:text-primary"
-              }`}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontVariationSettings: pathname === "/dashboard" ? "'FILL' 1" : "'FILL' 0" }}
-              >
-                person
-              </span>
-            </Link>
-            <Link
-              href="/sell"
-              aria-label="Tạo tin đăng mới"
-              className="flex items-center gap-1 bg-primary text-on-primary px-3 py-1.5 rounded-full font-bold text-label-sm hover:opacity-90 transition-all shadow-sm shrink-0 cursor-pointer mr-0.5 md:mr-1"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              <span className="hidden sm:inline">Đăng tin</span>
-            </Link>
+            {!mounted ? (
+              <div className="w-32 h-10 bg-surface-variant/30 animate-pulse rounded-full"></div>
+            ) : isAuthenticated ? (
+              <>
+                <Link
+                  href="/notifications"
+                  aria-label="Thông báo"
+                  className={`pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 ${
+                    pathname === "/notifications"
+                      ? "text-primary border-primary font-bold"
+                      : "text-on-surface-variant border-transparent hover:text-primary"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: pathname === "/notifications" ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    notifications
+                  </span>
+                </Link>
+                <Link
+                  href="/cart"
+                  aria-label="shopping_bag"
+                  className={`pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 ${
+                    pathname === "/cart"
+                      ? "text-primary border-primary font-bold"
+                      : "text-on-surface-variant border-transparent hover:text-primary"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: pathname === "/cart" ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    shopping_bag
+                  </span>
+                </Link>
+                <Link
+                  href="/inbox"
+                  aria-label="chat_bubble"
+                  className={`hidden sm:flex pb-1 px-2 transition-all cursor-pointer items-center justify-center border-b-2 duration-300 ${
+                    pathname === "/inbox"
+                      ? "text-primary border-primary font-bold"
+                      : "text-on-surface-variant border-transparent hover:text-primary"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: pathname === "/inbox" ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    chat_bubble
+                  </span>
+                </Link>
+                <Link
+                  href="/dashboard"
+                  aria-label="person"
+                  className={`hidden sm:flex pb-1 px-2 transition-all cursor-pointer items-center justify-center border-b-2 duration-300 ${
+                    pathname === "/dashboard"
+                      ? "text-primary border-primary font-bold"
+                      : "text-on-surface-variant border-transparent hover:text-primary"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: pathname === "/dashboard" ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    person
+                  </span>
+                </Link>
+                <Link
+                  href="/sell"
+                  aria-label="Tạo tin đăng mới"
+                  className="flex items-center gap-1 bg-primary text-on-primary px-3 py-1.5 rounded-full font-bold text-label-sm hover:opacity-90 transition-all shadow-sm shrink-0 cursor-pointer mr-0.5 md:mr-1"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  <span className="hidden sm:inline">Đăng tin</span>
+                </Link>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link href="/login" className="font-headline font-bold text-label-md text-on-surface hover:text-primary px-4 py-2 transition-colors">
+                  Đăng nhập
+                </Link>
+                <Link href="/register" className="font-headline font-bold text-label-md bg-primary text-on-primary px-5 py-2 rounded-full shadow-sm hover:opacity-90 transition-all">
+                  Đăng ký
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </nav>

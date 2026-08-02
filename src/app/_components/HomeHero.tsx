@@ -20,7 +20,7 @@ export default function HomeHero(): React.ReactElement {
             Kết nối thực - Giá trị thực
           </span>
           <h1 className="font-display font-extrabold text-3xl md:text-5xl mb-4 leading-tight">
-            Cùng ShopNexus Viết Tiếp Câu Chuyện Của Những Món Đồ.
+            Cùng Viết Tiếp Câu Chuyện Của Những Món Đồ.
           </h1>
           <p className="text-body-lg text-white/90 max-w-xl mb-8">
             Nơi gặp gỡ của những tâm hồn trân trọng quá khứ và kiến tạo tương lai bền vững.

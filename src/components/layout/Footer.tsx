@@ -14,7 +14,7 @@ export default function Footer() {
     () => false
   );
 
-  if (isClient && pathname?.startsWith("/inbox")) {
+  if (isClient && (pathname?.startsWith("/inbox") || pathname?.startsWith("/register") || pathname?.startsWith("/forgot-password") || pathname?.startsWith("/reset-password"))) {
     return null;
   }
 

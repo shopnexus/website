@@ -41,17 +41,9 @@ export default function HomeSidebar(): React.ReactElement {
           <LocationMap />
         </div>
         <div className="space-y-3">
-          <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
+          <div className="flex justify-between items-center py-2">
             <span className="text-body-sm text-on-surface-variant">Sản phẩm gần đây</span>
             <span className="text-label-md font-bold text-primary">1,240+</span>
-          </div>
-          <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
-            <span className="text-body-sm text-on-surface-variant">Người bán cộng đồng</span>
-            <span className="text-label-md font-bold text-primary">85</span>
-          </div>
-          <div className="flex justify-between items-center py-2">
-            <span className="text-body-sm text-on-surface-variant">Sự kiện trao đổi</span>
-            <span className="text-label-md font-bold text-tertiary">2 diễn ra hôm nay</span>
           </div>
         </div>
       </div>
