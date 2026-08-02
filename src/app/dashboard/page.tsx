@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { mockListingPage } from "@/lib/mocks/catalog.mock";
 import { LISTING_STATUS_VI } from "@/lib/dictionaries";
 import { mockPublicAccount } from "@/lib/mocks/account.mock";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -19,14 +21,25 @@ export default function DashboardPage(){
     { label: "Đơn hàng", value: "24", change: 8.2, icon: "shopping_bag" },
     { label: "Lượt xem trang", value: "1,204", change: -2.4, icon: "visibility" },
   ];
+  const { user, logout } = useAuthStore();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   return (
     <div className="p-4 md:p-8">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-end mb-8 gap-4 flex-wrap">
         <div>
-          <h1 className="font-headline-md font-bold text-on-surface mb-2">Chào mừng trở lại, {mockPublicAccount.name}!</h1>
-          <p className="font-body-sm text-on-surface-variant">Đây là tổng quan hoạt động kinh doanh của bạn hôm nay.</p>
+          <h1 className="font-headline font-bold text-headline-md text-on-surface mb-2">Chào mừng trở lại, {user?.username || "Bạn"}!</h1>
+          <p className="text-body-md text-on-surface-variant">Đây là tổng quan hoạt động kinh doanh của bạn hôm nay.</p>
         </div>
+        <Button variant="outline" size="md" onClick={handleLogout} className="flex items-center gap-2 border-error text-error hover:bg-error/10">
+          <span className="material-symbols-outlined text-[18px]">logout</span>
+          Đăng xuất
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

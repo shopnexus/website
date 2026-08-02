@@ -4,7 +4,6 @@ import React, { useState, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
-import LocationMap from "@/components/ui/LocationMap";
 import { mockListingPage, mockCategoryList } from "@/lib/mocks/catalog.mock";
 import type { Listing } from "@/types/catalog.type";
 
@@ -153,21 +152,6 @@ function SearchPageContent(): React.ReactElement {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         <aside className="md:col-span-3 space-y-6 sticky top-24">
-          <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30">
-            <h3 className="font-headline font-bold text-headline-sm mb-4 text-on-surface">
-              Khu Vực Của Bạn
-            </h3>
-            <div className="mb-4">
-              <LocationMap />
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-outline-variant/10">
-                <span className="text-body-sm text-on-surface-variant">Sản phẩm gần đây</span>
-                <span className="text-label-md font-bold text-primary">1,240+</span>
-              </div>
-            </div>
-          </div>
-
           <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30 space-y-6">
             <h2 className="font-headline font-bold text-headline-sm text-on-surface">Bộ lọc</h2>
 

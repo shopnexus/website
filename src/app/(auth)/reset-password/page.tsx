@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,9 +21,20 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setLocalError("");
     
+    if (!token.trim()) return toast.error("Vui lòng nhập Mã xác nhận (Token).");
+    if (!password.trim()) return toast.error("Vui lòng nhập Mật khẩu mới.");
+    if (!confirmPassword.trim()) return toast.error("Vui lòng Xác nhận mật khẩu mới.");
+
     if (password !== confirmPassword) {
-      setLocalError("Mật khẩu xác nhận không khớp.");
-      return;
+      const errorMsg = "Mật khẩu xác nhận không khớp.";
+      setLocalError(errorMsg);
+      return toast.error(errorMsg);
+    }
+    
+    if (password.length < 8) {
+      const errorMsg = "Mật khẩu phải dài ít nhất 8 ký tự.";
+      setLocalError(errorMsg);
+      return toast.error(errorMsg);
     }
 
     try {
@@ -75,7 +87,7 @@ export default function ResetPasswordPage() {
         </div>
         
         {!isSuccess && (
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit} noValidate>
             {localError && (
               <div className="p-3 bg-error/10 text-error rounded-lg text-sm font-medium border border-error/20">
                 {localError}
@@ -87,9 +99,6 @@ export default function ResetPasswordPage() {
               Verification Code
             </label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
-                <span className="material-symbols-outlined text-xl">key</span>
-              </div>
               <input 
                 type="text" 
                 id="token" 
@@ -97,9 +106,8 @@ export default function ResetPasswordPage() {
                 maxLength={6}
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                placeholder="6-digit code" 
-                required 
-                className="w-full pl-12 pr-4 py-4 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none placeholder:text-outline-variant font-medium tracking-[0.5em] text-center" 
+                placeholder="Enter 6-digit code or paste token" 
+                className="w-full h-12 px-4 bg-surface rounded-lg border border-outline focus:border-2 focus:border-primary focus:ring-0 transition-all text-on-surface placeholder:text-on-surface-variant/50 outline-none font-mono" 
               />
             </div>
           </div>
@@ -110,25 +118,21 @@ export default function ResetPasswordPage() {
               New Password
             </label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
-                <span className="material-symbols-outlined text-xl">lock</span>
-              </div>
               <input 
                 type={showPassword ? "text" : "password"}
                 id="password" 
                 name="password" 
-                placeholder="••••••••••••" 
-                required 
+                placeholder="••••••••" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-12 py-4 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none placeholder:text-outline-variant" 
+                className="w-full h-12 px-4 pr-12 bg-surface rounded-lg border border-outline focus:border-2 focus:border-primary focus:ring-0 transition-all text-on-surface placeholder:text-on-surface-variant/50 outline-none" 
               />
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-outline hover:text-primary transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
               >
-                <span className="material-symbols-outlined text-xl">
+                <span className="material-symbols-outlined text-[20px]">
                   {showPassword ? "visibility_off" : "visibility"}
                 </span>
               </button>
@@ -155,26 +159,22 @@ export default function ResetPasswordPage() {
               Confirm Password
             </label>
             <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
-                <span className="material-symbols-outlined text-xl">check_circle</span>
-              </div>
               <input 
                 type="password" 
                 id="confirm_password" 
                 name="confirm_password" 
-                placeholder="••••••••••••" 
-                required 
+                placeholder="••••••••" 
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 outline-none placeholder:text-outline-variant" 
+                className="w-full h-12 px-4 pr-12 bg-surface rounded-lg border border-outline focus:border-2 focus:border-primary focus:ring-0 transition-all text-on-surface placeholder:text-on-surface-variant/50 outline-none" 
               />
             </div>
           </div>
           
           <button 
             type="submit" 
-            disabled={isLoading || password !== confirmPassword || !password || !token}
-            className="w-full py-4 px-6 bg-primary text-on-primary font-headline font-bold rounded-lg shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isLoading || !password || !confirmPassword || !token}
+            className="w-full h-14 bg-primary text-on-primary rounded-lg font-bold text-label-md active:scale-[0.98] transition-all shadow-md hover:bg-primary-container flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? "Resetting..." : "Reset Password"}
             {!isLoading && <span className="material-symbols-outlined">arrow_forward</span>}

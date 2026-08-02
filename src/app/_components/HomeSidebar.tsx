@@ -3,8 +3,6 @@
 import React from "react";
 import Link from "next/link";
 
-import LocationMap from "@/components/ui/LocationMap";
-
 const COLLECTIONS = [
   {
     title: "Hoài niệm Film",
@@ -35,19 +33,6 @@ const COLLECTIONS = [
 export default function HomeSidebar(): React.ReactElement {
   return (
     <aside className="md:col-span-4 space-y-8">
-      <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30 overflow-hidden">
-        <h3 className="font-headline font-bold text-headline-sm mb-4">Khu Vực Của Bạn</h3>
-        <div className="mb-4">
-          <LocationMap />
-        </div>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center py-2">
-            <span className="text-body-sm text-on-surface-variant">Sản phẩm gần đây</span>
-            <span className="text-label-md font-bold text-primary">1,240+</span>
-          </div>
-        </div>
-      </div>
-
       <div className="bg-surface-container-low rounded-xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-headline font-bold text-headline-sm">Góc Sưu Tầm</h3>

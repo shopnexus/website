@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { useRouter } from "next/navigation";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +18,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!identifier.trim()) {
+      return toast.error("Vui lòng nhập Email, Số điện thoại hoặc Username.");
+    }
+    if (!password.trim()) {
+      return toast.error("Vui lòng nhập mật khẩu.");
+    }
+
     try {
       await login({ identifier, password });
       router.push("/");
@@ -38,10 +47,10 @@ export default function LoginPage() {
           />
           <div className="relative z-10 p-12 text-center">
             <h1 className="text-display-lg-mobile md:text-display-lg text-on-primary mb-4 font-extrabold tracking-tight">
-              Curated by Community.
+              Cộng đồng là cốt lõi.
             </h1>
             <p className="text-body-lg text-primary-fixed max-w-md mx-auto">
-              Welcome back to ShopNexus. Securely access your personalized marketplace and continue building your human-centric commerce journey.
+              Chào mừng bạn trở lại ShopNexus. Đăng nhập an toàn để tiếp tục hành trình mua sắm của bạn.
             </p>
             <div className="mt-8 flex justify-center gap-2">
               <div className="w-2 h-2 rounded-full bg-on-primary"></div>
@@ -57,25 +66,25 @@ export default function LoginPage() {
         <div className="flex-1 p-8 md:p-16 flex flex-col justify-center">
           <div className="max-w-md mx-auto w-full">
             <header className="mb-10 text-center md:text-left">
-              <h2 className="text-headline-md font-extrabold text-on-surface mb-2">Welcome Back</h2>
-              <p className="text-on-surface-variant text-body-md">Sign in to your account to manage your ShopNexus experience.</p>
+              <h2 className="text-headline-md font-extrabold text-on-surface mb-2">Chào Mừng Trở Lại</h2>
+              <p className="text-on-surface-variant text-body-md">Đăng nhập vào tài khoản của bạn để khám phá ShopNexus.</p>
             </header>
 
             {/* Social Login Cluster */}
             <div className="mb-8">
-              <GoogleLoginButton text="Sign in with Google" loadingText="Signing in..." />
+              <GoogleLoginButton text="Đăng nhập với Google" loadingText="Đang đăng nhập..." />
             </div>
 
             <div className="relative mb-8 text-center">
               <span className="absolute inset-x-0 top-1/2 h-px bg-outline-variant -z-10"></span>
-              <span className="bg-surface-container-lowest px-4 text-label-sm text-on-surface-variant uppercase tracking-widest">or continue with email</span>
+              <span className="bg-surface-container-lowest px-4 text-label-sm text-on-surface-variant uppercase tracking-widest">hoặc đăng nhập bằng email</span>
             </div>
 
             {/* Login Form */}
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit} noValidate>
               {/* Email Field */}
               <div>
-                <label htmlFor="identifier" className="block text-label-md text-on-surface-variant mb-2">Email, Phone Number or Username</label>
+                <label htmlFor="identifier" className="block text-label-md text-on-surface-variant mb-2">Email, Số điện thoại hoặc Username</label>
                 <input 
                   type="text" 
                   id="identifier" 
@@ -84,16 +93,15 @@ export default function LoginPage() {
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="name@example.com" 
                   className="w-full h-12 px-4 bg-surface rounded-lg border border-outline focus:border-2 focus:border-primary focus:ring-0 transition-all text-on-surface placeholder:text-on-surface-variant/50 outline-none" 
-                  required
                 />
               </div>
 
               {/* Password Field */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label htmlFor="password" className="block text-label-md text-on-surface-variant">Password</label>
+                  <label htmlFor="password" className="block text-label-md text-on-surface-variant">Mật khẩu</label>
                   <Link href="/forgot-password" className="text-label-sm text-primary font-bold hover:underline">
-                    Forgot Password?
+                    Quên mật khẩu?
                   </Link>
                 </div>
                 <div className="relative">
@@ -105,7 +113,6 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••" 
                     className="w-full h-12 px-4 pr-12 bg-surface rounded-lg border border-outline focus:border-2 focus:border-primary focus:ring-0 transition-all text-on-surface placeholder:text-on-surface-variant/50 outline-none" 
-                    required
                   />
                   <button 
                     type="button"
@@ -129,7 +136,7 @@ export default function LoginPage() {
                   className="w-5 h-5 rounded border-outline text-primary focus:ring-primary-container bg-surface cursor-pointer" 
                 />
                 <label htmlFor="remember" className="ml-2 text-body-sm text-on-surface-variant select-none cursor-pointer">
-                  Remember me for 30 days
+                  Duy trì đăng nhập trong 30 ngày
                 </label>
               </div>
 
@@ -139,7 +146,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full h-14 bg-primary text-on-primary rounded-lg font-bold text-label-md active:scale-[0.98] transition-all shadow-md hover:bg-primary-container flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
                 {!isLoading && <span className="material-symbols-outlined">login</span>}
               </button>
             </form>
@@ -147,9 +154,9 @@ export default function LoginPage() {
             {/* Footer Link */}
             <footer className="mt-8 text-center">
               <p className="text-body-sm text-on-surface-variant">
-                Don't have an account? 
+                Chưa có tài khoản? 
                 <Link href="/register" className="text-primary font-bold hover:underline ml-1">
-                  Create one
+                  Đăng ký ngay
                 </Link>
               </p>
             </footer>

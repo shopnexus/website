@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useNavbarScroll } from "@/hooks/useNavbarScroll";
 import { useSearch } from "@/hooks/useSearch";
 import { useAuthStore } from "@/stores/use-auth-store";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 export default function Navbar(): React.ReactElement {
   const pathname = usePathname();
@@ -105,22 +106,7 @@ export default function Navbar(): React.ReactElement {
               <div className="w-32 h-10 bg-surface-variant/30 animate-pulse rounded-full"></div>
             ) : isAuthenticated ? (
               <>
-                <Link
-                  href="/notifications"
-                  aria-label="Thông báo"
-                  className={`pb-1 px-2 transition-all cursor-pointer flex items-center justify-center border-b-2 duration-300 ${
-                    pathname === "/notifications"
-                      ? "text-primary border-primary font-bold"
-                      : "text-on-surface-variant border-transparent hover:text-primary"
-                  }`}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontVariationSettings: pathname === "/notifications" ? "'FILL' 1" : "'FILL' 0" }}
-                  >
-                    notifications
-                  </span>
-                </Link>
+                <NotificationDropdown />
                 <Link
                   href="/cart"
                   aria-label="shopping_bag"

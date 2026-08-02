@@ -1,6 +1,6 @@
 import { toast } from "react-hot-toast";
 
-const BASE_URL = "https://shopnexus.hopto.org/api/v1";
+const BASE_URL = "/api/v1";
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
@@ -145,10 +145,9 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
       const errorMsg = details.map(d => typeof d === 'string' ? `• ${d}` : `• ${JSON.stringify(d)}`).join("\n");
       if (typeof window !== "undefined" && !silent) {
         // Multi-line toast
-        toast(errorMsg, { 
-          icon: '⚠️',
+        toast.error(errorMsg, { 
           duration: 5000, 
-          style: { whiteSpace: 'pre-line', background: '#FEF2F2', color: '#991B1B', border: '1px solid #FCA5A5' } 
+          style: { whiteSpace: 'pre-line' } 
         });
       }
       throw new Error(errorMsg);

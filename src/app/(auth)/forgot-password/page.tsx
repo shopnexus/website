@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { toast } from "react-hot-toast";
 
 export default function ForgotPasswordPage() {
   const [identifier, setIdentifier] = useState("");
@@ -11,6 +12,10 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!identifier.trim()) {
+      return toast.error("Vui lòng nhập Email hoặc Số điện thoại.");
+    }
+    
     try {
       await requestPasswordReset(identifier);
       setIsSuccess(true);
@@ -52,7 +57,7 @@ export default function ForgotPasswordPage() {
           
           {/* Form */}
           {!isSuccess ? (
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit} noValidate>
               <div className="space-y-2">
                 <label htmlFor="identifier" className="block text-label-md text-on-surface font-semibold ml-1">
                   Email or Phone Number
@@ -68,8 +73,7 @@ export default function ForgotPasswordPage() {
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     placeholder="name@example.com" 
-                    required 
-                    className="block w-full pl-12 pr-4 py-4 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline-variant text-body-md outline-none" 
+                    className="w-full h-12 px-4 bg-surface rounded-lg border border-outline focus:border-2 focus:border-primary focus:ring-0 transition-all text-on-surface placeholder:text-on-surface-variant/50 outline-none" 
                   />
                 </div>
               </div>

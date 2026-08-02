@@ -7,8 +7,6 @@ import { useSearch } from "@/hooks/useSearch";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import Select from "@/components/ui/Select";
 
-const SUGGESTIONS = ["Máy ảnh phim", "Gốm thủ công", "Vinyl xưa", "Túi Canvas"];
-
 export default function Header(): React.ReactElement | null {
   const { query, setQuery, location, setLocation, isLoading, handleSearch } = useSearch("hcm");
   const { locationOptions } = useUserLocation(location, setLocation);
@@ -18,11 +16,6 @@ export default function Header(): React.ReactElement | null {
   if (pathname !== "/") {
     return null;
   }
-
-  const handleSuggestionClick = (keyword: string): void => {
-    setQuery(keyword);
-    router.push(`/search?q=${encodeURIComponent(keyword)}`);
-  };
 
   return (
     <section className="w-full max-w-[1440px] mx-auto px-4 md:px-8 pt-6 pb-4">
@@ -74,19 +67,6 @@ export default function Header(): React.ReactElement | null {
         </button>
       </form>
 
-      <div className="flex flex-wrap gap-2 mt-4 overflow-x-auto hide-scrollbar items-center">
-        <span className="text-label-sm text-on-surface-variant self-center mr-2">Gợi ý:</span>
-        {SUGGESTIONS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => handleSuggestionClick(item)}
-            className="bg-surface-container-high px-4 py-1.5 rounded-full text-label-sm hover:bg-secondary-container hover:text-on-secondary-container transition-colors cursor-pointer"
-          >
-            {item}
-          </button>
-        ))}
-      </div>
     </section>
   );
 }

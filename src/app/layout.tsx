@@ -60,35 +60,35 @@ export default function RootLayout({
           position="top-right" 
           toastOptions={{
             duration: 4000,
+            className: "!font-body !text-[14px] !font-medium",
             style: {
-              background: '#F9FAFB', // surface
-              color: '#111827', // on-surface
+              background: '#ffffff',
+              color: '#1a1c1b',
               borderRadius: '8px',
-              border: '1px solid #E5E7EB', // outline-variant
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-            },
-            error: {
-              style: {
-                background: '#FEF2F2', // error container
-                color: '#991B1B', // on-error container
-                border: '1px solid #FCA5A5',
-              },
-              iconTheme: {
-                primary: '#DC2626', // error
-                secondary: '#FEF2F2',
-              }
+              border: '1px solid #e0e0e0',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+              padding: '12px 16px',
             },
             success: {
+              icon: (
+                <div className="w-6 h-6 rounded-full bg-[#e6f0ef] flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[16px] text-[#00685f]" style={{ fontWeight: 600 }}>check</span>
+                </div>
+              ),
               style: {
-                background: '#F0FDF4', // success container
-                color: '#166534',
-                border: '1px solid #86EFAC',
+                borderLeft: '4px solid #00685f',
               },
-              iconTheme: {
-                primary: '#16A34A',
-                secondary: '#F0FDF4',
-              }
-            }
+            },
+            error: {
+              icon: (
+                <div className="w-6 h-6 rounded-full bg-[#ffdad6] flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[16px] text-[#ba1a1a]" style={{ fontWeight: 600 }}>close</span>
+                </div>
+              ),
+              style: {
+                borderLeft: '4px solid #ba1a1a',
+              },
+            },
           }}
         />
         <Navbar />
