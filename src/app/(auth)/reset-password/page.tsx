@@ -13,7 +13,7 @@ export default function ResetPasswordPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [localError, setLocalError] = useState("");
 
-  const { confirmPasswordReset, isLoading, error } = useAuthStore();
+  const { confirmPasswordReset, isLoading } = useAuthStore();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,9 +76,9 @@ export default function ResetPasswordPage() {
         
         {!isSuccess && (
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {(error || localError) && (
+            {localError && (
               <div className="p-3 bg-error/10 text-error rounded-lg text-sm font-medium border border-error/20">
-                {localError || error}
+                {localError}
               </div>
             )}
             {/* Verification Code Field */}

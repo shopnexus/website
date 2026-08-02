@@ -16,7 +16,7 @@ export default function RegisterPage() {
   const [timezone, setTimezone] = useState("Asia/Ho_Chi_Minh");
   const [terms, setTerms] = useState(false);
 
-  const { register, isLoading, error } = useAuthStore();
+  const { register, isLoading } = useAuthStore();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,11 +97,6 @@ export default function RegisterPage() {
             </p>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {error && (
-                <div className="p-3 bg-error/10 text-error rounded-lg text-sm font-medium border border-error/20">
-                  {error}
-                </div>
-              )}
               {/* Email or Phone */}
               <div>
                 <label htmlFor="identifier" className="block font-label text-sm font-semibold text-on-surface mb-1.5">Email or Phone Number</label>

@@ -21,7 +21,7 @@ export default function Navbar(): React.ReactElement {
   const shouldShowSearchBar = pathname !== "/" || isScrolledPastHero;
   const isAuthPage = pathname?.startsWith("/register") || pathname?.startsWith("/forgot-password") || pathname?.startsWith("/reset-password");
 
-  if (isAuthPage) return null;
+  if (isAuthPage) return <></>;
 
   return (
     <>

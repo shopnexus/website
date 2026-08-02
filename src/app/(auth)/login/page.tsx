@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
-  const { login, isLoading, error } = useAuthStore();
+  const { login, isLoading } = useAuthStore();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,11 +73,6 @@ export default function LoginPage() {
 
             {/* Login Form */}
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {error && (
-                <div className="p-3 bg-error/10 text-error rounded-lg text-sm font-medium border border-error/20">
-                  {error}
-                </div>
-              )}
               {/* Email Field */}
               <div>
                 <label htmlFor="identifier" className="block text-label-md text-on-surface-variant mb-2">Email, Phone Number or Username</label>

@@ -7,7 +7,7 @@ import { useAuthStore } from "@/stores/use-auth-store";
 export default function ForgotPasswordPage() {
   const [identifier, setIdentifier] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
-  const { requestPasswordReset, isLoading, error } = useAuthStore();
+  const { requestPasswordReset, isLoading } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,11 +53,6 @@ export default function ForgotPasswordPage() {
           {/* Form */}
           {!isSuccess ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {error && (
-                <div className="p-3 bg-error/10 text-error rounded-lg text-sm font-medium border border-error/20">
-                  {error}
-                </div>
-              )}
               <div className="space-y-2">
                 <label htmlFor="identifier" className="block text-label-md text-on-surface font-semibold ml-1">
                   Email or Phone Number

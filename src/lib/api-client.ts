@@ -1,3 +1,5 @@
+import { toast } from "react-hot-toast";
+
 const BASE_URL = "https://shopnexus.hopto.org/api/v1";
 
 let isRefreshing = false;
@@ -38,10 +40,11 @@ export async function getRefreshToken(): Promise<string | undefined> {
 
 interface FetchOptions extends RequestInit {
   requireAuth?: boolean;
+  silent?: boolean;
 }
 
 export async function apiClient<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-  const { requireAuth = true, headers, ...customConfig } = options;
+  const { requireAuth = true, silent = false, headers, ...customConfig } = options;
   
   let token = requireAuth ? await getAuthToken() : undefined;
 
@@ -117,7 +120,11 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.error?.message || data.message || response.statusText || "Lỗi không xác định");
+    const errorMsg = data.error?.message || data.message || response.statusText || "Lỗi không xác định";
+    if (typeof window !== "undefined" && !silent) {
+      toast.error(errorMsg);
+    }
+    throw new Error(errorMsg);
   }
 
   return data;
