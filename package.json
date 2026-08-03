@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "gen:api": "openapi-ts"
+    "gen:api": "openapi-ts",
+    "gen:ws": "node scripts/gen-ws-events.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
@@ -29,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "yaml": "^2.9.0"
   }
 }

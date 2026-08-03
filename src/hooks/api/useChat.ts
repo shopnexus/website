@@ -52,12 +52,18 @@ export function useConversations(limit = 30) {
 	return { ...query, conversations }
 }
 
+/**
+ * The chat badge.
+ *
+ * Pushed, not polled: `chat.message_created` and `chat.conversation_read` update it, and
+ * every reconnect invalidates it, which covers the events a disconnect lost. Still
+ * `silent` — a failed background read is not worth interrupting the user over.
+ */
 export function useChatUnreadCount(enabled = true) {
 	return useQuery({
 		...getConversationsUnreadCountOptions(),
 		select: unwrapData,
 		enabled,
-		refetchInterval: 60_000,
 		meta: { silent: true },
 	})
 }

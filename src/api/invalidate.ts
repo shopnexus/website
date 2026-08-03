@@ -27,8 +27,17 @@ export const OPERATIONS = {
 	notifications: "getNotifications",
 	notificationsUnread: "getNotificationsUnreadCount",
 	notificationPreferences: "getNotificationPreferences",
+	conversations: "getConversations",
+	conversation: "getConversationsById",
+	messages: "getConversationsByIdMessages",
+	conversationsUnread: "getConversationsUnreadCount",
 	orders: "getOrders",
 	order: "getOrdersById",
+	offers: "getOffers",
+	// The single offer behind a negotiation card. This is the one the inbox actually
+	// renders (`OfferMessageCard` → `useOffer`), so a counter-offer that does not
+	// invalidate it leaves the other party looking at terms that are off the table.
+	offer: "getOffersById",
 	drafts: "getDrafts",
 	draft: "getDraftsById",
 } as const
