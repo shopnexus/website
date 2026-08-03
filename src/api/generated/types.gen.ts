@@ -342,6 +342,18 @@ export type ConversationPage = {
     meta: CursorMeta;
 };
 
+/**
+ * How far one participant has read a thread.
+ */
+export type ConversationReadMark = {
+    conversation_id: string;
+    read_at: string;
+    /**
+     * Who read it — always the other participant, never the recipient.
+     */
+    reader_id: string;
+};
+
 export type CreateBankAccountRequest = {
     account_holder: string;
     account_number: string;
@@ -477,6 +489,24 @@ export type CursorMeta = {
      *
      */
     next_cursor: string | null;
+};
+
+/**
+ * Enough to find and drop a message from a rendered thread. Not the whole
+ * Message: a deleted row's body is gone, and sending an emptied entity would
+ * read as an edit.
+ *
+ */
+export type DeletedMessageRef = {
+    conversation_id: string;
+    /**
+     * The message's own instant — the hypertable needs it to locate the row.
+     */
+    created_at: string;
+    /**
+     * Opaque message id.
+     */
+    id: string;
 };
 
 export type Device = {
@@ -1200,6 +1230,14 @@ export type OrderPage = {
 };
 
 /**
+ * An order's id alone, as carried by a realtime event: the two sides of a sale see different projections of an order, so pushing the entity would mean choosing whose view to send — each client re-reads its own over REST.
+ *
+ */
+export type OrderRef = {
+    id: OrderId;
+};
+
+/**
  * Derived from the two outcome timestamps: `open` means neither is set, which is also the predicate of the partial indexes behind this filter.
  *
  */
@@ -1663,16 +1701,25 @@ export type ShippingQuote = {
 };
 
 export type ShippingQuotes = {
+    /**
+     * The address these fees are for, echoed because the request may not have named one — a fee with no address beside it is not one a client can render or offer to change.
+     *
+     */
+    contact_id: ContactId;
     currency: CurrencyCode;
     options: Array<ShippingQuote>;
 };
 
 /**
- * Exactly one of `draft_id` or `offer_id` — they are the two things that freeze a price, and the parcel is whichever of them is about to be checked out.
+ * Exactly one of `variant_id`, `draft_id` or `offer_id`. A variant is an estimate for a listing page, before anything is frozen; a draft and an accepted offer are the two things that freeze a price, and the parcel is whichever of them is about to be checked out.
  *
  */
 export type ShippingQuotesRequest = {
-    contact_id: ContactId;
+    /**
+     * Where the parcel goes. Omit it and the caller's default delivery address is used, which is what lets a listing page quote with no form; 422 when they have none on file.
+     *
+     */
+    contact_id?: ContactId;
     draft_id?: DraftOrderId;
     /**
      * The draft's variants and quantities, as a checkout would send them. Ignored for an offer, whose quantity was negotiated.
@@ -1680,6 +1727,16 @@ export type ShippingQuotesRequest = {
      */
     lines?: Array<CheckoutLine>;
     offer_id?: OfferId;
+    /**
+     * How many of `variant_id`. Omitted means one, since a listing page quotes the single unit in front of the buyer. Ignored by the other two sources, which carry their own.
+     *
+     */
+    quantity?: number;
+    /**
+     * The variant being looked at. Delivery is priced from the *variant's* package details, not the listing's: one listing can hold an 80 g charger and a 2 kg one.
+     *
+     */
+    variant_id?: VariantId;
 };
 
 /**
@@ -1698,7 +1755,7 @@ export type StartConversationRequest = {
  */
 export type StartIdentityVerificationRequest = {
     /**
-     * The reverse, for a document that has one. Omit for a passport.?
+     * The reverse, for a document that has one. Omit for a passport.
      */
     back_resource_id?: ResourceId;
     doc_type: IdentityDocumentType;
@@ -2234,6 +2291,17 @@ export type WalletTransactionKind = 'topup' | 'escrow-hold' | 'escrow-release' |
 export type WalletTransactionPage = {
     data: Array<WalletTransaction>;
     meta: PageMeta;
+};
+
+export type WebSocketTicket = {
+    /**
+     * Seconds until the ticket expires.
+     */
+    expires_in: number;
+    /**
+     * Pass as the `ticket` query parameter when opening the socket.
+     */
+    ticket: string;
 };
 
 /**
@@ -8090,7 +8158,7 @@ export type PostShippingQuotesErrors = {
      */
     409: Error;
     /**
-     * A variant that is not on this purchase
+     * A variant that is not on this purchase, or a caller with no default delivery address
      */
     422: Error;
 };
@@ -8588,3 +8656,30 @@ export type GetWithdrawalsByIdResponses = {
 };
 
 export type GetWithdrawalsByIdResponse = GetWithdrawalsByIdResponses[keyof GetWithdrawalsByIdResponses];
+
+export type CreateWebSocketTicketData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/ws/tickets';
+};
+
+export type CreateWebSocketTicketErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+};
+
+export type CreateWebSocketTicketError = CreateWebSocketTicketErrors[keyof CreateWebSocketTicketErrors];
+
+export type CreateWebSocketTicketResponses = {
+    /**
+     * Ticket issued
+     */
+    201: {
+        data: WebSocketTicket;
+    };
+};
+
+export type CreateWebSocketTicketResponse = CreateWebSocketTicketResponses[keyof CreateWebSocketTicketResponses];

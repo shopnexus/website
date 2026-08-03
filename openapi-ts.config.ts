@@ -2,12 +2,14 @@ import { defineConfig } from "@hey-api/openapi-ts"
 
 // The spec is generated on the server side by `go generate ./...` (cmd/specgen) from the
 // per-module fragments. Reading it straight from the sibling checkout rather than from a
-// copy is deliberate: the copy that used to live at website/openapi.yaml had drifted 18
-// paths behind, which is how the frontend ended up calling two routes that do not exist.
+// copy is deliberate: the copy that used to live at website/openapi.yaml drifted twice — 18
+// paths behind the first time, which is how the frontend ended up calling two routes that do
+// not exist. A path here cannot drift, because there is only one file.
 export default defineConfig({
-	input: "./openapi.yaml",
-	// Not linted or formatted on the way out: it is generated, it is gitignored, and
-	// running the project's ESLint over it only produces failures nobody can fix.
+	input: "../server/api/openapi.gen.yaml",
+	// Not linted or formatted on the way out: it is generated, and running the project's
+	// ESLint over it only produces failures nobody can fix. It IS tracked in git, unlike
+	// most generated output — see .gitignore, which has no `generated` entry.
 	output: "src/api/generated",
 	plugins: [
 		{
