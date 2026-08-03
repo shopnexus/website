@@ -19,12 +19,15 @@ import type { Message, MessagePage } from "@/api/generated/types.gen"
  */
 export const REALTIME_FED_OPERATIONS: readonly Operation[] = [
 	OPERATIONS.conversations,
+	OPERATIONS.conversation,
 	OPERATIONS.messages,
 	OPERATIONS.conversationsUnread,
 	OPERATIONS.notifications,
 	OPERATIONS.notificationsUnread,
 	OPERATIONS.orders,
+	OPERATIONS.order,
 	OPERATIONS.offers,
+	OPERATIONS.offer,
 ] as const
 
 /** Apply one pushed event to the query cache — invalidate, or for chat, a surgical write. */
@@ -48,7 +51,9 @@ export function applyRealtimeEvent(client: QueryClient, event: RealtimeEvent): v
 			return
 
 		case "order.offer_updated":
-			void invalidate(client, OPERATIONS.offers, OPERATIONS.conversations)
+			// `offer` as well as `offers`: the card inside the open thread reads the single
+			// offer, and that is the thing whose price must not go stale.
+			void invalidate(client, OPERATIONS.offer, OPERATIONS.offers, OPERATIONS.conversations)
 			return
 
 		case "order.placed":
@@ -62,6 +67,13 @@ export function applyRealtimeEvent(client: QueryClient, event: RealtimeEvent): v
 	}
 }
 
+/** The path shape hey-api puts in a `getConversationsByIdMessages` query key. */
+interface MessagesQueryKey {
+	_id?: string
+	_infinite?: boolean
+	path?: { id?: string }
+}
+
 /**
  * Insert a new message into an open thread without refetching.
  *
@@ -69,29 +81,38 @@ export function applyRealtimeEvent(client: QueryClient, event: RealtimeEvent): v
  * `useMessages` reverses the flattened result for rendering. Appending would put the new
  * message at the top of the screen.
  *
- * Only touches threads already in the cache. A message for a conversation the user has
- * not opened needs no cache entry — the invalidation of the conversation list is what
- * surfaces it.
+ * The thread is identified by the **query key**, never by what happens to be in the cached
+ * page. Inferring it from the page's contents looks equivalent and is not: an empty page 0
+ * is a real state (a thread created but not yet written to), and `[].some(...)` is `false`,
+ * so a contents-based guard passes for *every* empty thread and cheerfully files another
+ * conversation's message into it.
+ *
+ * Only threads already in the cache are touched. A message for a conversation the user has
+ * not opened needs no entry — invalidating the conversation list is what surfaces it.
  *
  * The cached page is `MessagePage` itself (`{ data: Message[], meta }`), not a second
- * `{ data: ... }` wrapper around it — confirmed from `GetConversationsByIdMessagesResponses`
+ * `{ data: ... }` wrapper — confirmed from `GetConversationsByIdMessagesResponses`
  * (`200: MessagePage`) and mirrored by `flattenPages`, which reads `page.data` directly.
  */
 function prependMessage(client: QueryClient, message: Message): void {
-	client.setQueriesData<InfiniteData<MessagePage>>(
-		{ queryKey: [{ _id: OPERATIONS.messages }] },
-		(existing) => {
+	const matches = client.getQueryCache().findAll({
+		// `_infinite` narrows this to the infinite variant, whose data really is
+		// InfiniteData<MessagePage>; the plain variant caches a bare MessagePage and would
+		// throw on `existing.pages`.
+		queryKey: [{ _id: OPERATIONS.messages, _infinite: true }],
+	})
+
+	for (const query of matches) {
+		const key = query.queryKey[0] as MessagesQueryKey | undefined
+		if (key?.path?.id !== message.conversation_id) continue
+
+		client.setQueryData<InfiniteData<MessagePage>>(query.queryKey, (existing) => {
 			if (!existing || existing.pages.length === 0) return existing
 
 			const [first, ...rest] = existing.pages
 			if (first.data.some((m) => m.id === message.id)) {
-				// Already here: the sender's own optimistic insert, or a duplicate delivery.
-				// The bus is at-least-once, so this is a case that happens.
-				return existing
-			}
-			if (first.data.some((m) => m.conversation_id !== message.conversation_id)) {
-				// A different thread's cache entry. setQueriesData matches every cached
-				// messages query, so the payload has to be checked against each one.
+				// Already here: a duplicate delivery, or the refetch that `useSendMessage`'s
+				// onSuccess triggered landed first. The bus is at-least-once.
 				return existing
 			}
 
@@ -99,6 +120,6 @@ function prependMessage(client: QueryClient, message: Message): void {
 				...existing,
 				pages: [{ ...first, data: [message, ...first.data] }, ...rest],
 			}
-		},
-	)
+		})
+	}
 }

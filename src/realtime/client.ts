@@ -36,10 +36,27 @@ export interface RealtimeClient {
 /** Backoff schedule in ms, capped — a flapping server must not be hammered. */
 const BACKOFF_MS = [500, 1_000, 2_000, 5_000, 10_000, 30_000] as const
 
-/** Full jitter: without it every tab in every browser retries in lockstep. */
+/**
+ * How long a connection must last before its backoff resets. Longer than the longest
+ * backoff step, so a server that drops sockets immediately cannot be retried in a hot loop.
+ */
+const STABLE_AFTER_MS = 60_000
+
+/**
+ * How long without a message before an `OPEN` socket is treated as possibly dead on the
+ * next revive. Twice the server's 30s ping interval, so a healthy but quiet socket is not
+ * torn down on a tab switch.
+ */
+const stallAfterMs = 60_000
+
+/**
+ * Jittered backoff with a floor. Full jitter alone can draw a near-zero delay several
+ * times in a row; the floor bounds the worst case while still breaking up lockstep retries
+ * across tabs.
+ */
 function delayFor(attempt: number): number {
 	const base = BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)]
-	return Math.random() * base
+	return base / 4 + Math.random() * base * 0.75
 }
 
 function isRealtimeEvent(value: unknown): value is RealtimeEvent {
@@ -55,17 +72,42 @@ function isRealtimeEvent(value: unknown): value is RealtimeEvent {
  * Builds the realtime client. Framework-agnostic — no React, no cache wiring — so the
  * provider that wraps it (and decides what a reconnect invalidates) can live elsewhere.
  */
+/**
+ * Where the socket lives.
+ *
+ * `NEXT_PUBLIC_WS_URL` wins when set, because a real deployment often serves the socket
+ * from a different host than the page. When it is absent we derive it from the current
+ * origin rather than throwing: `NEXT_PUBLIC_*` is inlined at build time, so a missing
+ * value is a build-configuration mistake that would otherwise surface as a blank page for
+ * every signed-in user. Losing realtime has to degrade to polling-free staleness, never to
+ * taking down the app shell.
+ */
+function resolveURL(): string | undefined {
+	const configured = process.env.NEXT_PUBLIC_WS_URL
+	if (configured) return configured
+	if (typeof window === "undefined") return undefined
+	const scheme = window.location.protocol === "https:" ? "wss:" : "ws:"
+	return `${scheme}//${window.location.host}/api/v1/ws`
+}
+
 export function createRealtimeClient(options: RealtimeClientOptions): RealtimeClient {
-	const url = process.env.NEXT_PUBLIC_WS_URL
-	if (!url) {
-		throw new Error("NEXT_PUBLIC_WS_URL is not set")
-	}
+	const url = resolveURL()
 
 	let socket: WebSocket | null = null
 	let status: RealtimeStatus = "idle"
 	let attempt = 0
 	let retryTimer: ReturnType<typeof setTimeout> | undefined
+	let stableTimer: ReturnType<typeof setTimeout> | undefined
 	let stopped = false
+	/**
+	 * When we last had proof the socket was alive.
+	 *
+	 * Only opens and messages count: the browser answers the server's pings itself and
+	 * exposes no event for them, so JS cannot observe a pong. A quiet account therefore
+	 * looks stale after a while, and `revive` reconnecting it is the right outcome anyway —
+	 * that is exactly when a fresh invalidate is wanted.
+	 */
+	let lastSeen = 0
 	// Guards against two connect() calls racing a ticket request. A ticket is
 	// single-use, so a duplicate connect would burn one and open a second socket.
 	let connecting = false
@@ -86,6 +128,12 @@ export function createRealtimeClient(options: RealtimeClientOptions): RealtimeCl
 
 	async function open(): Promise<void> {
 		if (stopped || connecting || socket) return
+		if (!url) {
+			// No origin to derive from and nothing configured: on the server there is no
+			// socket to open, and retrying would spin. Report it and stay idle.
+			setStatus("closed")
+			return
+		}
 		connecting = true
 		setStatus(status === "idle" ? "connecting" : status)
 
@@ -114,12 +162,22 @@ export function createRealtimeClient(options: RealtimeClientOptions): RealtimeCl
 		connecting = false
 
 		ws.onopen = () => {
-			attempt = 0
+			lastSeen = Date.now()
 			setStatus("open")
+			// Backoff is reset only once the connection has *lasted*, not the instant it
+			// opens. A server that closes just after the upgrade — a bad deploy, a short
+			// ingress idle timeout, a suspended account — would otherwise reconnect at
+			// index 0 for ever: a ticket mint, an upgrade and a full invalidate of every
+			// fed query several times a second, from every open tab.
+			clearTimeout(stableTimer)
+			stableTimer = setTimeout(() => {
+				attempt = 0
+			}, STABLE_AFTER_MS)
 			options.onOpen?.()
 		}
 
 		ws.onmessage = (message) => {
+			lastSeen = Date.now()
 			if (typeof message.data !== "string") return
 			let parsed: unknown
 			try {
@@ -136,6 +194,7 @@ export function createRealtimeClient(options: RealtimeClientOptions): RealtimeCl
 
 		ws.onclose = () => {
 			socket = null
+			clearTimeout(stableTimer)
 			if (stopped) {
 				setStatus("closed")
 				return
@@ -148,25 +207,56 @@ export function createRealtimeClient(options: RealtimeClientOptions): RealtimeCl
 		ws.onerror = () => {}
 	}
 
-	function onOnline(): void {
-		// Reconnect immediately rather than waiting out a backoff that may have minutes
-		// left on it — coming back online is exactly the moment to retry.
-		if (stopped || socket) return
+	/**
+	 * Force a reconnect after the network or the tab came back.
+	 *
+	 * The hard case is a socket that is still `OPEN` but dead: a slept laptop or a tunnel
+	 * black-holes TCP with no FIN, so the browser reports `OPEN` until the OS gives up —
+	 * minutes. `onclose` therefore never fires, so `onOpen` never fires, so nothing
+	 * re-invalidates. With the polls gone that leaves every badge frozen with no error
+	 * shown, which is worse than the churn of an occasional redundant reconnect.
+	 *
+	 * So: bail only when a socket is provably alive. Anything else gets torn down, and
+	 * `onclose` drives the reconnect.
+	 */
+	function revive(): void {
+		if (stopped) return
+
+		if (socket) {
+			if (socket.readyState === WebSocket.OPEN && Date.now() - lastSeen < stallAfterMs) {
+				return // heard from it recently enough to trust it
+			}
+			// CONNECTING with no handshake timeout, or OPEN but silent past the server's
+			// ping interval. Close it and let onclose reconnect.
+			attempt = 0
+			socket.close()
+			return
+		}
+
 		attempt = 0
 		clearTimeout(retryTimer)
 		void open()
 	}
 
+	// Tab visibility as well as `online`: a slept laptop often reports no network
+	// transition at all, so returning to the tab is the other moment worth re-checking.
+	function onVisible(): void {
+		if (document.visibilityState === "visible") revive()
+	}
+
 	return {
 		connect: () => {
 			if (stopped) return
-			window.addEventListener("online", onOnline)
+			window.addEventListener("online", revive)
+			document.addEventListener("visibilitychange", onVisible)
 			void open()
 		},
 		close: () => {
 			stopped = true
 			clearTimeout(retryTimer)
-			window.removeEventListener("online", onOnline)
+			clearTimeout(stableTimer)
+			window.removeEventListener("online", revive)
+			document.removeEventListener("visibilitychange", onVisible)
 			socket?.close()
 			socket = null
 			setStatus("closed")
