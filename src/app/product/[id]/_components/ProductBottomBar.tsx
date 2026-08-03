@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCart } from "@/hooks/api/useCart";
 import { useCreateDraft } from "@/hooks/api/useOrders";
+import { useStartConversation } from "@/hooks/api/useChat";
 import { toast } from "react-hot-toast";
 import type { ListingDetail } from "@/api/generated/types.gen";
 
@@ -23,6 +24,7 @@ export default function ProductBottomBar({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { addItem } = useCart();
   const createDraft = useCreateDraft();
+  const startConversation = useStartConversation();
 
   // What "buy" and "add to cart" act on. A listing always has at least one variant —
   // the server refuses to publish one without a priced variant.
@@ -58,7 +60,18 @@ export default function ProductBottomBar({
 
   const handleNegotiate = () => {
     if (requireSignIn("Vui lòng đăng nhập để thương lượng")) return;
-    toast.error("Chức năng thương lượng đang được phát triển");
+    
+    startConversation.mutate(
+      { account_id: product.seller.id },
+      {
+        onSuccess: (conversation) => {
+          router.push(`/inbox?c=${conversation.id}&listing_id=${product.id}&action=offer`);
+        },
+        onError: () => {
+          toast.error("Không thể mở cuộc trò chuyện");
+        }
+      }
+    );
   };
 
   return (

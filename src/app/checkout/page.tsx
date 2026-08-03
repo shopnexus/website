@@ -54,7 +54,7 @@ function CheckoutContent() {
   const { data: quotes, isFetching: isQuoting } = useShippingQuotes(
     {
       draft_id: draftId ?? undefined,
-      contact_id: activeContactId || undefined,
+      contact_id: activeContactId,
       lines: activeVariantId ? [{ variant_id: activeVariantId, quantity }] : undefined,
     },
     Boolean(draftId && activeContactId && activeVariantId),

@@ -2033,11 +2033,11 @@ export const postReviewsUploadsByIdConfirmation = <ThrowOnError extends boolean 
 /**
  * What delivery would cost, per carrier
  *
- * One entry per enabled carrier that could price the parcel, so the buyer sees delivery before they pay for it. A carrier that declined is simply absent.
+ * One entry per enabled carrier that could price the parcel, so the buyer chooses delivery with the fee in front of them. A carrier that declined is simply absent.
  *
- * Name exactly one source. `variant_id` is the listing page's question — what would this cost to send — answered before any draft exists, with `quantity` defaulting to one and the caller's default address used when `contact_id` is omitted. `draft_id` and `offer_id` are the two things that freeze a price, and the parcel is whichever of them is about to be checked out. The same list serves all three, because the buyer pays carriage on a fixed-price sale and a negotiated one alike.
+ * Name exactly one of `draft_id` or `offer_id`: they are the two things that freeze a price, and the parcel is whichever of them is about to be checked out. The same list serves both, because the buyer pays carriage on a fixed-price sale and a negotiated one alike.
  *
- * An estimate a client renders, not a price it can hold: the fee is quoted again at checkout, so a quote kept past the point it was true does not become the charge. Show it as its own line beside the price rather than folded into it — the total a buyer is charged is the checkout's, itemised.
+ * An estimate a client renders, not a price it can hold: the fee is quoted again at checkout, so a quote kept past the point it was true does not become the charge.
  *
  */
 export const postShippingQuotes = <ThrowOnError extends boolean = false>(options: Options<PostShippingQuotesData, ThrowOnError>): RequestResult<PostShippingQuotesResponses, PostShippingQuotesErrors, ThrowOnError> => (options.client ?? client).post<PostShippingQuotesResponses, PostShippingQuotesErrors, ThrowOnError>({

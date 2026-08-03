@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
@@ -10,18 +11,33 @@ import {
   useMarkConversationRead,
   useMessages,
   useSendMessage,
+  useRequestChatUpload,
+  useConfirmChatUpload,
+  useEditMessage,
+  useDeleteMessage,
 } from "@/hooks/api/useChat";
+import { useCreateOffer } from "@/hooks/api/useOffers";
 import { useListing } from "@/hooks/api/useCatalog";
+import { sameOriginUploadUrl } from "@/api/upload";
 import type { ConversationId, ListingId } from "@/api/generated/types.gen";
+import OfferModal from "./_components/OfferModal";
+import OfferMessageCard from "./_components/OfferMessageCard";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
-export default function InboxPage() {
+function InboxContent() {
+  const searchParams = useSearchParams();
+  const queryC = searchParams.get("c");
+  const queryListingId = searchParams.get("listing_id");
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const [selectedConvId, setSelectedConvId] = useState<ConversationId | "">("");
   const [inputText, setInputText] = useState("");
   const [showChatMobile, setShowChatMobile] = useState(false);
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const me = useAuthStore((s) => s.user);
   const { conversations, isLoading: isLoadingConversations } = useConversations();
@@ -36,6 +52,8 @@ export default function InboxPage() {
   const activeConvId =
     (selectedConvId && conversations.some((c) => c.id === selectedConvId)
       ? selectedConvId
+      : queryC && conversations.some((c) => c.id === queryC)
+      ? (queryC as ConversationId)
       : conversations[0]?.id) ?? "";
 
   const activeConv = conversations.find((c) => c.id === activeConvId);
@@ -44,6 +62,41 @@ export default function InboxPage() {
   const { messages, isLoading: isLoadingMessages } = useMessages(activeConvId || undefined);
   const sendMessage = useSendMessage(activeConvId || undefined);
   const markRead = useMarkConversationRead();
+  
+  const requestUpload = useRequestChatUpload();
+  const confirmUpload = useConfirmChatUpload();
+  const createOffer = useCreateOffer();
+  const editMessage = useEditMessage(activeConvId || "");
+  const deleteMessage = useDeleteMessage(activeConvId || "");
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeConvId) return;
+
+    try {
+      const slot = await requestUpload.mutateAsync({
+        filename: file.name,
+        mime: file.type,
+        size: file.size,
+      });
+
+      const uploadUrl = sameOriginUploadUrl(slot.url);
+
+      const res = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!res.ok) throw new Error("File upload failed");
+
+      const uploadInfo = await confirmUpload.mutateAsync(slot.resource_id);
+      await sendMessage.mutateAsync({ attachments: [uploadInfo.id] });
+    } catch (error) {
+      console.error("Upload failed", error);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   // Opening a thread with unread messages is the read receipt.
   useEffect(() => {
@@ -69,12 +122,17 @@ export default function InboxPage() {
     return undefined;
   }, [messages]);
 
-  const { data: activeProduct } = useListing(referencedListingId);
+  const activeListingId = (queryListingId || referencedListingId) as ListingId | undefined;
+  const { data: activeProduct } = useListing(activeListingId);
 
   const handleSend = () => {
     const body = inputText.trim();
     if (!body || !activeConvId) return;
-    sendMessage.mutate({ body }, { onSuccess: () => setInputText("") });
+    
+    // Attach the current product context if one exists
+    const refs = activeProduct ? { listing_id: activeProduct.id } : undefined;
+    
+    sendMessage.mutate({ body, refs }, { onSuccess: () => setInputText("") });
   };
 
   const isMe = (senderId?: string | null) => Boolean(senderId) && senderId === me?.id;
@@ -216,22 +274,47 @@ export default function InboxPage() {
                       {activeContact?.name || "Người dùng"}
                     </h2>
                   </div>
-                  <div className="text-[10px] text-on-surface-variant flex items-center gap-1 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                    <span className="text-green-600 font-medium">Đang hoạt động</span>
-                  </div>
                 </div>
               </div>
-
-              <div className="flex items-center gap-1 md:gap-1.5">
-                <button title="Gọi điện" className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-1.5 hover:bg-surface-container-low rounded-full text-[20px]">
-                  phone
-                </button>
-                <button title="Gọi video" className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-1.5 hover:bg-surface-container-low rounded-full text-[20px]">
-                  videocam
-                </button>
-              </div>
             </div>
+
+            {/* Negotiating Product Banner */}
+            {activeProduct && (
+              <div className="bg-surface border-b border-outline-variant/30 p-2 md:p-3 flex items-center justify-between shrink-0 shadow-sm z-10 relative">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  {activeProduct.images?.[0]?.url ? (
+                    <Image 
+                      src={activeProduct.images[0].url} 
+                      alt="" 
+                      width={48} 
+                      height={48} 
+                      className="rounded object-cover shrink-0 w-10 h-10 md:w-12 md:h-12 border border-outline-variant/50" 
+                    />
+                  ) : (
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-surface-container rounded shrink-0"></div>
+                  )}
+                  <div className="min-w-0 flex flex-col">
+                    <span className="text-xs md:text-sm text-on-surface font-medium truncate leading-tight">{activeProduct.name}</span>
+                    <span className="text-sm font-bold text-primary">
+                      {formatPrice(
+                        activeProduct.variants.find((v) => v.is_featured)?.price ??
+                          activeProduct.variants[0]?.price ??
+                          0,
+                      )}
+                    </span>
+                  </div>
+                </div>
+                {activeProduct.price_mode === "negotiable" && (
+                  <Button
+                    variant="outline"
+                    className="shrink-0 h-8 md:h-9 px-3 md:px-4 text-[10px] md:text-xs font-bold rounded-lg border-primary text-primary ml-2"
+                    onClick={() => setIsOfferModalOpen(true)}
+                  >
+                    Thương lượng
+                  </Button>
+                )}
+              </div>
+            )}
 
             <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[url('https://www.transparenttextures.com/patterns/tiny-grid.png')] bg-surface-container-lowest/50">
               {isLoadingMessages && (
@@ -247,15 +330,14 @@ export default function InboxPage() {
               )}
 
               {messages.map((msg) => {
-                const sentByMe = isMe(msg.sender_id);
                 return (
                   <div key={msg.id} className="space-y-1">
-                    {sentByMe ? (
-                      /* Message Outgoing (User - Teal) */
-                      <div className="flex flex-row-reverse gap-2.5 ml-auto max-w-[85%] md:max-w-[75%]">
-                        <div className="flex flex-col items-end space-y-1.5 min-w-0">
+                    {isMe(msg.sender_id) ? (
+                      /* Message Outgoing (Me) */
+                      <div className="flex gap-2.5 max-w-[85%] md:max-w-[75%] ml-auto justify-end">
+                        <div className="flex flex-col items-end space-y-1.5 min-w-0 flex-1">
                           {msg.attachments && msg.attachments.length > 0 && (
-                            <div className="rounded-xl rounded-br-sm overflow-hidden border-2 border-primary/20 shadow-sm max-w-[220px]">
+                            <div className="rounded-xl rounded-br-sm overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px]">
                               <Image
                                 src={msg.attachments[0].url || ''}
                                 alt="Attached image"
@@ -266,13 +348,31 @@ export default function InboxPage() {
                             </div>
                           )}
 
-                          {msg.body && (
-                            <div className="bg-primary text-on-primary px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-br-sm text-xs md:text-sm shadow-sm leading-relaxed break-words">
+                          {msg.card?.offer_id ? (
+                            <OfferMessageCard offerId={msg.card.offer_id as string} />
+                          ) : msg.body ? (
+                            <div className="bg-primary text-on-primary px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-br-sm text-xs md:text-sm shadow-sm leading-relaxed break-words max-w-full">
                               {msg.body}
                             </div>
-                          )}
+                          ) : null}
 
                           <span className="text-[9px] text-outline mt-0.5 block text-right flex items-center justify-end gap-1">
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    ) : msg.sender_id === null ? (
+                      /* System Message */
+                      <div className="flex w-full justify-center my-4">
+                        <div className="flex flex-col items-center">
+                          {msg.card?.offer_id ? (
+                            <OfferMessageCard offerId={msg.card.offer_id as string} />
+                          ) : msg.body ? (
+                            <span className="bg-surface-container-high px-3 py-1 rounded-full text-[10px] md:text-xs text-on-surface-variant max-w-[80%] text-center">
+                              {msg.body}
+                            </span>
+                          ) : null}
+                          <span className="text-[9px] text-outline mt-1 block">
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
@@ -287,7 +387,7 @@ export default function InboxPage() {
                             activeContact?.name.charAt(0) || "U"
                           )}
                         </div>
-                        <div className="space-y-1.5 min-w-0 flex-1">
+                        <div className="flex flex-col items-start space-y-1.5 min-w-0 flex-1">
                           
                           {msg.attachments && msg.attachments.length > 0 && (
                             <div className="rounded-xl rounded-bl-sm overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px]">
@@ -302,7 +402,7 @@ export default function InboxPage() {
                           )}
 
                           {msg.body && (
-                            <div className="bg-surface-container-high text-on-surface px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-bl-sm text-xs md:text-sm shadow-sm leading-relaxed break-words border border-outline-variant/20">
+                            <div className="bg-surface-container-high text-on-surface px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-bl-sm text-xs md:text-sm shadow-sm leading-relaxed break-words border border-outline-variant/20 max-w-full">
                               {msg.body}
                             </div>
                           )}
@@ -323,10 +423,22 @@ export default function InboxPage() {
                 <button
                   type="button"
                   title="Đính kèm file"
+                  onClick={() => fileInputRef.current?.click()}
                   className="material-symbols-outlined text-outline hover:text-primary p-1.5 transition-colors rounded-full hover:bg-surface-container-low shrink-0 text-[20px]"
                 >
                   add_circle
                 </button>
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleUpload}
+                />
+                <OfferModal
+                  isOpen={isOfferModalOpen}
+                  onClose={() => setIsOfferModalOpen(false)}
+                  product={activeProduct || null}
+                />
                 <button
                   type="button"
                   title="Gửi hình ảnh"
@@ -439,6 +551,11 @@ export default function InboxPage() {
                     fullWidth
                     size="sm"
                     className="rounded-lg shadow-sm font-bold py-2 text-xs"
+                    onClick={() => {
+                      if (activeProduct && activeConv) {
+                        setIsOfferModalOpen(true);
+                      }
+                    }}
                   >
                     Đề nghị giá
                   </Button>
@@ -473,5 +590,13 @@ export default function InboxPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function InboxPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span></div>}>
+      <InboxContent />
+    </Suspense>
   );
 }

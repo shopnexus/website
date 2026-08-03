@@ -5,7 +5,7 @@ import { defineConfig } from "@hey-api/openapi-ts"
 // copy is deliberate: the copy that used to live at website/openapi.yaml had drifted 18
 // paths behind, which is how the frontend ended up calling two routes that do not exist.
 export default defineConfig({
-	input: "../server/api/openapi.gen.yaml",
+	input: "./openapi.yaml",
 	// Not linted or formatted on the way out: it is generated, it is gitignored, and
 	// running the project's ESLint over it only produces failures nobody can fix.
 	output: "src/api/generated",

@@ -7,6 +7,7 @@ import { getListingsById } from "@/api/generated/sdk.gen";
 import type { ListingDetail, ListingId } from "@/api/generated/types.gen";
 import { notFound } from "next/navigation";
 import ProductBottomBar from "./_components/ProductBottomBar";
+import StartChatButton from "./_components/StartChatButton";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -119,9 +120,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </Link>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button variant="outline" icon={<span className="material-symbols-outlined">chat</span>} className="flex-1 sm:flex-none">
-                  Chat
-                </Button>
+                <StartChatButton sellerId={seller.id} currentPath={`/product/${product.id}`} />
                 <Link href={`/shop/${seller.id}`} className="flex-1 sm:flex-none">
                   <Button variant="secondary" className="w-full">
                     Xem Shop

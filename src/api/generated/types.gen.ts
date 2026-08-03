@@ -1663,25 +1663,16 @@ export type ShippingQuote = {
 };
 
 export type ShippingQuotes = {
-    /**
-     * The address these fees are for, echoed because the request may not have named one — a fee with no address beside it is not one a client can render or offer to change.
-     *
-     */
-    contact_id: ContactId;
     currency: CurrencyCode;
     options: Array<ShippingQuote>;
 };
 
 /**
- * Exactly one of `variant_id`, `draft_id` or `offer_id`. A variant is an estimate for a listing page, before anything is frozen; a draft and an accepted offer are the two things that freeze a price, and the parcel is whichever of them is about to be checked out.
+ * Exactly one of `draft_id` or `offer_id` — they are the two things that freeze a price, and the parcel is whichever of them is about to be checked out.
  *
  */
 export type ShippingQuotesRequest = {
-    /**
-     * Where the parcel goes. Omit it and the caller's default delivery address is used, which is what lets a listing page quote with no form; 422 when they have none on file.
-     *
-     */
-    contact_id?: ContactId;
+    contact_id: ContactId;
     draft_id?: DraftOrderId;
     /**
      * The draft's variants and quantities, as a checkout would send them. Ignored for an offer, whose quantity was negotiated.
@@ -1689,16 +1680,6 @@ export type ShippingQuotesRequest = {
      */
     lines?: Array<CheckoutLine>;
     offer_id?: OfferId;
-    /**
-     * How many of `variant_id`. Omitted means one, since a listing page quotes the single unit in front of the buyer. Ignored by the other two sources, which carry their own.
-     *
-     */
-    quantity?: number;
-    /**
-     * The variant being looked at. Delivery is priced from the *variant's* package details, not the listing's: one listing can hold an 80 g charger and a 2 kg one.
-     *
-     */
-    variant_id?: VariantId;
 };
 
 /**
@@ -1717,7 +1698,7 @@ export type StartConversationRequest = {
  */
 export type StartIdentityVerificationRequest = {
     /**
-     * The reverse, for a document that has one. Omit for a passport.
+     * The reverse, for a document that has one. Omit for a passport.?
      */
     back_resource_id?: ResourceId;
     doc_type: IdentityDocumentType;
@@ -8109,7 +8090,7 @@ export type PostShippingQuotesErrors = {
      */
     409: Error;
     /**
-     * A variant that is not on this purchase, or a caller with no default delivery address
+     * A variant that is not on this purchase
      */
     422: Error;
 };
