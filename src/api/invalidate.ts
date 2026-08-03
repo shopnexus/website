@@ -27,8 +27,13 @@ export const OPERATIONS = {
 	notifications: "getNotifications",
 	notificationsUnread: "getNotificationsUnreadCount",
 	notificationPreferences: "getNotificationPreferences",
+	conversations: "getConversations",
+	conversation: "getConversationsById",
+	messages: "getConversationsByIdMessages",
+	conversationsUnread: "getConversationsUnreadCount",
 	orders: "getOrders",
 	order: "getOrdersById",
+	offers: "getOffers",
 	drafts: "getDrafts",
 	draft: "getDraftsById",
 } as const

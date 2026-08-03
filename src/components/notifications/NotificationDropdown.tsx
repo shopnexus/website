@@ -15,8 +15,8 @@ export default function NotificationDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  // Polls once a minute while signed in, and stops entirely when signed out — the
-  // endpoint needs a token, and polling it without one was a 401 a minute.
+  // Pushed over the socket while signed in; disabled entirely when signed out — the
+  // endpoint needs a token, and fetching it without one was a 401.
   const { data: unreadCount = 0 } = useUnreadCount({ enabled: isAuthenticated });
 
   // Only fetched once the dropdown is open. Five rows is all it renders.

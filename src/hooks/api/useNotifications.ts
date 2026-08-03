@@ -46,18 +46,17 @@ export function useNotificationsFeed(
 /**
  * The unread badge.
  *
- * Polled rather than pushed, so it is `silent`: a dropped poll is not something to
- * interrupt the user about, and at one request a minute a visible failure would be a
- * toast a minute on a flaky connection.
+ * Pushed, not polled: `account.notification_created` updates it, and every reconnect
+ * invalidates it, which covers the events a disconnect lost. Still `silent` — a failed
+ * background read is not worth interrupting the user over.
  */
-export function useUnreadCount(options: { enabled?: boolean; pollMs?: number } = {}) {
-	const { enabled = true, pollMs = 60_000 } = options
+export function useUnreadCount(options: { enabled?: boolean } = {}) {
+	const { enabled = true } = options
 
 	return useQuery({
 		...getNotificationsUnreadCountOptions(),
 		select: (envelope) => unwrapData(envelope).unread,
 		enabled,
-		refetchInterval: pollMs,
 		meta: { silent: true },
 	})
 }
