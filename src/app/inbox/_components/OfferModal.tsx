@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useCreateOffer } from "@/hooks/api/useOffers";
+import { ApiError } from "@/api/api-error";
 import type { ListingDetail } from "@/api/generated/types.gen";
 import { toast } from "react-hot-toast";
 
@@ -50,13 +51,15 @@ export default function OfferModal({
           setQuantity(1);
           setReason("");
         },
-        onError: (err: any) => {
-          const code = err?.error?.code || err?.response?.data?.error?.code;
-          if (code === "offer_already_open") {
-            toast.error("Bạn đã có một đề nghị giá đang chờ xử lý cho sản phẩm này.");
-          } else {
-            toast.error("Không thể gửi đề nghị giá");
-          }
+        onError: (err) => {
+          // The interceptor normalises every failure into an ApiError, so the code is a
+          // field rather than something to dig out of a response body.
+          const code = err instanceof ApiError ? err.code : undefined;
+          toast.error(
+            code === "offer_already_open"
+              ? "Bạn đã có một đề nghị giá đang chờ xử lý cho sản phẩm này."
+              : "Không thể gửi đề nghị giá",
+          );
         },
       }
     );

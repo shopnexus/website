@@ -6,8 +6,6 @@ import {
 	postConversationsByIdMessages,
 	postConversationsByIdRead,
 	postConversations,
-	patchMessagesById,
-	deleteMessagesById,
 	postConversationsUploads,
 	postConversationsUploadsByIdConfirmation,
 } from "@/api/generated/sdk.gen"
@@ -21,8 +19,6 @@ import type {
 	ConversationId,
 	SendMessageRequest,
 	StartConversationRequest,
-	UpdateMessageRequest,
-	MessageId,
 	CreateUploadRequest,
 	ResourceId,
 } from "@/api/generated/types.gen"
@@ -143,31 +139,6 @@ export function useConversation(conversationId: ConversationId | undefined) {
 		...getConversationsByIdOptions({ path: { id: conversationId! } }),
 		select: unwrapData,
 		enabled: Boolean(conversationId),
-	})
-}
-
-export function useEditMessage(conversationId: ConversationId) {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async ({ id, created_at, body }: { id: MessageId; created_at: string; body: UpdateMessageRequest }) => {
-			const { data } = await patchMessagesById({ path: { id }, query: { created_at }, body, throwOnError: true })
-			return data.data
-		},
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: [{ _id: MESSAGES }, { _id: CONVERSATIONS }] }),
-	})
-}
-
-export function useDeleteMessage(conversationId: ConversationId) {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async ({ id, created_at }: { id: MessageId; created_at: string }) => {
-			await deleteMessagesById({ path: { id }, query: { created_at }, throwOnError: true })
-		},
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: [{ _id: MESSAGES }, { _id: CONVERSATIONS }] }),
 	})
 }
 

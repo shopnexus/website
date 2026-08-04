@@ -1,27 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useMemo, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { useAuthStore } from "@/stores/use-auth-store";
-import {
-  useConversations,
-  useMarkConversationRead,
-  useMessages,
-  useSendMessage,
-  useRequestChatUpload,
-  useConfirmChatUpload,
-  useEditMessage,
-  useDeleteMessage,
-} from "@/hooks/api/useChat";
-import { useCreateOffer } from "@/hooks/api/useOffers";
+import ChatThread from "@/components/chat/ChatThread";
+import { useConversations, useMessages } from "@/hooks/api/useChat";
 import { useListing } from "@/hooks/api/useCatalog";
-import { sameOriginUploadUrl } from "@/api/upload";
 import type { ConversationId, ListingId } from "@/api/generated/types.gen";
 import OfferModal from "./_components/OfferModal";
-import OfferMessageCard from "./_components/OfferMessageCard";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -30,16 +18,12 @@ function InboxContent() {
   const searchParams = useSearchParams();
   const queryC = searchParams.get("c");
   const queryListingId = searchParams.get("listing_id");
-  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const [selectedConvId, setSelectedConvId] = useState<ConversationId | "">("");
-  const [inputText, setInputText] = useState("");
   const [showChatMobile, setShowChatMobile] = useState(false);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const me = useAuthStore((s) => s.user);
   const { conversations, isLoading: isLoadingConversations } = useConversations();
 
   const visibleConversations = useMemo(
@@ -59,53 +43,8 @@ function InboxContent() {
   const activeConv = conversations.find((c) => c.id === activeConvId);
   const activeContact = activeConv?.counterparty;
 
-  const { messages, isLoading: isLoadingMessages } = useMessages(activeConvId || undefined);
-  const sendMessage = useSendMessage(activeConvId || undefined);
-  const markRead = useMarkConversationRead();
-  
-  const requestUpload = useRequestChatUpload();
-  const confirmUpload = useConfirmChatUpload();
-  const createOffer = useCreateOffer();
-  const editMessage = useEditMessage(activeConvId || "");
-  const deleteMessage = useDeleteMessage(activeConvId || "");
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !activeConvId) return;
-
-    try {
-      const slot = await requestUpload.mutateAsync({
-        filename: file.name,
-        mime: file.type,
-        size: file.size,
-      });
-
-      const uploadUrl = sameOriginUploadUrl(slot.url);
-
-      const res = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
-      if (!res.ok) throw new Error("File upload failed");
-
-      const uploadInfo = await confirmUpload.mutateAsync(slot.resource_id);
-      await sendMessage.mutateAsync({ attachments: [uploadInfo.id] });
-    } catch (error) {
-      console.error("Upload failed", error);
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  // Opening a thread with unread messages is the read receipt.
-  useEffect(() => {
-    if (activeConvId && activeConv && activeConv.unread > 0 && !markRead.isPending) {
-      markRead.mutate(activeConvId);
-    }
-    // markRead is stable apart from its pending flag, guarded above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeConvId, activeConv?.unread]);
+  // The same query ChatThread reads, so this shares its cache rather than fetching again.
+  const { messages } = useMessages(activeConvId || undefined);
 
   /**
    * The listing this thread is about.
@@ -124,18 +63,6 @@ function InboxContent() {
 
   const activeListingId = (queryListingId || referencedListingId) as ListingId | undefined;
   const { data: activeProduct } = useListing(activeListingId);
-
-  const handleSend = () => {
-    const body = inputText.trim();
-    if (!body || !activeConvId) return;
-    
-    // Attach the current product context if one exists
-    const refs = activeProduct ? { listing_id: activeProduct.id } : undefined;
-    
-    sendMessage.mutate({ body, refs }, { onSuccess: () => setInputText("") });
-  };
-
-  const isMe = (senderId?: string | null) => Boolean(senderId) && senderId === me?.id;
 
   return (
     <div className="bg-background min-h-[calc(100vh-76px)] w-full">
@@ -316,165 +243,20 @@ function InboxContent() {
               </div>
             )}
 
-            <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[url('https://www.transparenttextures.com/patterns/tiny-grid.png')] bg-surface-container-lowest/50">
-              {isLoadingMessages && (
-                <div className="flex justify-center py-8">
-                  <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
-                </div>
-              )}
+            <ChatThread
+              conversationId={activeConvId || undefined}
+              counterparty={
+                activeContact ? { name: activeContact.name, avatarUrl: activeContact.avatar?.url } : undefined
+              }
+              unread={activeConv?.unread ?? 0}
+              refs={activeProduct ? { listing_id: activeProduct.id } : undefined}
+            />
 
-              {!isLoadingMessages && messages.length === 0 && (
-                <div className="flex justify-center py-8 text-xs text-on-surface-variant">
-                  {activeConvId ? "Chưa có tin nhắn nào." : "Chọn một cuộc trò chuyện để bắt đầu."}
-                </div>
-              )}
-
-              {messages.map((msg) => {
-                return (
-                  <div key={msg.id} className="space-y-1">
-                    {isMe(msg.sender_id) ? (
-                      /* Message Outgoing (Me) */
-                      <div className="flex gap-2.5 max-w-[85%] md:max-w-[75%] ml-auto justify-end">
-                        <div className="flex flex-col items-end space-y-1.5 min-w-0 flex-1">
-                          {msg.attachments && msg.attachments.length > 0 && (
-                            <div className="rounded-xl rounded-br-sm overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px]">
-                              <Image
-                                src={msg.attachments[0].url || ''}
-                                alt="Attached image"
-                                width={240}
-                                height={180}
-                                className="w-full aspect-[4/3] object-cover"
-                              />
-                            </div>
-                          )}
-
-                          {msg.card?.offer_id ? (
-                            <OfferMessageCard offerId={msg.card.offer_id as string} />
-                          ) : msg.body ? (
-                            <div className="bg-primary text-on-primary px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-br-sm text-xs md:text-sm shadow-sm leading-relaxed break-words max-w-full">
-                              {msg.body}
-                            </div>
-                          ) : null}
-
-                          <span className="text-[9px] text-outline mt-0.5 block text-right flex items-center justify-end gap-1">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </div>
-                    ) : msg.sender_id === null ? (
-                      /* System Message */
-                      <div className="flex w-full justify-center my-4">
-                        <div className="flex flex-col items-center">
-                          {msg.card?.offer_id ? (
-                            <OfferMessageCard offerId={msg.card.offer_id as string} />
-                          ) : msg.body ? (
-                            <span className="bg-surface-container-high px-3 py-1 rounded-full text-[10px] md:text-xs text-on-surface-variant max-w-[80%] text-center">
-                              {msg.body}
-                            </span>
-                          ) : null}
-                          <span className="text-[9px] text-outline mt-1 block">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Message Incoming (Other Person) */
-                      <div className="flex gap-2.5 max-w-[85%] md:max-w-[75%]">
-                        <div className="relative w-7 h-7 rounded-full overflow-hidden self-end mb-4 shrink-0 border border-outline-variant/30 bg-surface-container flex items-center justify-center text-xs">
-                          {activeContact?.avatar?.url ? (
-                            <Image src={activeContact.avatar.url} alt="" fill className="object-cover" />
-                          ) : (
-                            activeContact?.name.charAt(0) || "U"
-                          )}
-                        </div>
-                        <div className="flex flex-col items-start space-y-1.5 min-w-0 flex-1">
-                          
-                          {msg.attachments && msg.attachments.length > 0 && (
-                            <div className="rounded-xl rounded-bl-sm overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px]">
-                              <Image
-                                src={msg.attachments[0].url || ''}
-                                alt="Attached image"
-                                width={240}
-                                height={180}
-                                className="w-full aspect-[4/3] object-cover"
-                              />
-                            </div>
-                          )}
-
-                          {msg.body && (
-                            <div className="bg-surface-container-high text-on-surface px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-bl-sm text-xs md:text-sm shadow-sm leading-relaxed break-words border border-outline-variant/20 max-w-full">
-                              {msg.body}
-                            </div>
-                          )}
-
-                          <span className="text-[9px] text-outline mt-0.5 block pl-1">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="p-3 md:p-4 bg-surface border-t border-outline-variant/30 shrink-0">
-              <div className="flex items-center gap-1.5 md:gap-2 bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-1.5 md:p-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
-                <button
-                  type="button"
-                  title="Đính kèm file"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="material-symbols-outlined text-outline hover:text-primary p-1.5 transition-colors rounded-full hover:bg-surface-container-low shrink-0 text-[20px]"
-                >
-                  add_circle
-                </button>
-                <input
-                  type="file"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleUpload}
-                />
-                <OfferModal
-                  isOpen={isOfferModalOpen}
-                  onClose={() => setIsOfferModalOpen(false)}
-                  product={activeProduct || null}
-                />
-                <button
-                  type="button"
-                  title="Gửi hình ảnh"
-                  className="material-symbols-outlined text-outline hover:text-primary p-1.5 transition-colors rounded-full hover:bg-surface-container-low shrink-0 text-[20px]"
-                >
-                  image
-                </button>
-                <input
-                  className="flex-1 border-none focus:ring-0 bg-transparent text-xs md:text-sm py-1.5 outline-none text-on-surface placeholder:text-outline"
-                  placeholder={activeContact ? `Viết tin nhắn cho ${activeContact.name}...` : "Chọn một cuộc trò chuyện..."}
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && inputText.trim() && !sendMessage.isPending) {
-                      handleSend();
-                    }
-                  }}
-                  type="text"
-                />
-                <button
-                  onClick={handleSend}
-                  type="button"
-                  title="Gửi tin nhắn"
-                  disabled={!inputText.trim() || !activeConvId || sendMessage.isPending}
-                  className={`p-2 rounded-lg transition-all flex items-center justify-center shrink-0 shadow-sm ${
-                    inputText.trim() && activeConvId && !sendMessage.isPending
-                      ? "bg-primary text-on-primary hover:scale-105 active:scale-95 cursor-pointer"
-                      : "bg-surface-container-high text-outline cursor-not-allowed opacity-60"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    send
-                  </span>
-                </button>
-              </div>
-            </div>
+            <OfferModal
+              isOpen={isOfferModalOpen}
+              onClose={() => setIsOfferModalOpen(false)}
+              product={activeProduct || null}
+            />
           </section>
 
           <aside className="hidden lg:flex w-[280px] xl:w-[300px] 2xl:w-[320px] flex-col bg-surface-container-lowest border-l border-outline-variant/30 overflow-y-auto no-scrollbar shrink-0">
