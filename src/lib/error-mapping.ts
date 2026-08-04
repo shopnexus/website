@@ -90,8 +90,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	currency_mismatch: "Đơn vị tiền tệ không khớp với sản phẩm.",
 	variant_not_in_draft: "Phiên bản này không nằm trong phiên mua hàng.",
 	fixed_price_listing: "Sản phẩm này không hỗ trợ thương lượng giá.",
-	negotiable_needs_offer: "Sản phẩm này cần thương lượng giá trước khi mua.",
 	carrier_unknown: "Đơn vị vận chuyển không khả dụng.",
+	quote_source_invalid: "Không xác định được đơn cần tính phí vận chuyển.",
 	carrier_down: "Đơn vị vận chuyển không phản hồi. Vui lòng thử lại.",
 	shipping_quote_invalid: "Không tính được phí vận chuyển cho địa chỉ này.",
 	payment_option_unknown: "Phương thức thanh toán không khả dụng.",
@@ -117,6 +117,26 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	review_forbidden: "Bạn không có quyền sửa đánh giá này.",
 	feedback_exists: "Bạn đã đánh giá phía bên kia cho đơn hàng này.",
 	self_feedback: "Không thể tự đánh giá chính mình.",
+
+	// ── Yêu cầu hỗ trợ (ticket) ────────────────────────────────────────────────
+	ticket_not_found: "Không tìm thấy yêu cầu hỗ trợ này.",
+	ticket_target_not_found: "Nội dung bạn muốn báo cáo không còn tồn tại.",
+	ticket_exists: "Bạn đã có một yêu cầu đang mở về nội dung này.",
+	ticket_resolved: "Yêu cầu này đã được xử lý xong.",
+	ticket_ref_required: "Loại yêu cầu này cần chỉ rõ nội dung liên quan.",
+	ticket_ref_unexpected: "Loại yêu cầu này không gắn với nội dung nào cụ thể.",
+	ticket_reason_mismatch: "Lý do chỉ dùng cho các yêu cầu báo cáo.",
+	ticket_decided_elsewhere: "Yêu cầu này được xử lý khi bộ phận hỗ trợ quyết định việc hoàn tiền.",
+
+	// ── Hoàn tiền ──────────────────────────────────────────────────────────────
+	refund_not_found: "Không tìm thấy yêu cầu hoàn tiền.",
+	refund_settled: "Yêu cầu hoàn tiền này đã kết thúc.",
+	refund_already_open: "Đơn hàng này đã có một yêu cầu hoàn tiền đang mở.",
+	refund_not_escalatable: "Yêu cầu hoàn tiền này chưa thể chuyển cho bộ phận hỗ trợ.",
+	refund_not_due: "Chưa đến lúc thực hiện bước này của yêu cầu hoàn tiền.",
+	not_awaiting_seller: "Yêu cầu hoàn tiền không còn chờ người bán phản hồi.",
+	not_awaiting_buyer: "Yêu cầu hoàn tiền không còn chờ người mua phản hồi.",
+	rejection_needs_reason: "Cần nêu lý do khi từ chối.",
 
 	// ── Theo dõi và nhắn tin ───────────────────────────────────────────────────
 	self_follow: "Không thể tự theo dõi chính mình.",

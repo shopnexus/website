@@ -1,7 +1,6 @@
 import type {
   AccountRole,
   AccountStatus,
-  DisputeStatus,
   IdentityDocumentType,
   IdentityStatus,
   ListingCondition,
@@ -14,8 +13,10 @@ import type {
   PriceMode,
   ProfileGender,
   RefundStatus,
-  ReportReason,
-  ReportStatus,
+  TicketAction,
+  TicketKind,
+  TicketReason,
+  TicketStatus,
   TransactionStatus,
   TransportStatus,
   WithdrawalOutcome,
@@ -154,14 +155,43 @@ export const WITHDRAWAL_OUTCOME_VI: Record<WithdrawalOutcome, string> = {
 
 // ── Trust & Safety ───────────────────────────────────────────────────────────
 
-export const REPORT_STATUS_VI: Record<ReportStatus, string> = {
-  open: "Mở",
-  reviewing: "Đang xem xét",
-  actioned: "Đã xử lý",
-  dismissed: "Bỏ qua",
+export const TICKET_STATUS_VI: Record<TicketStatus, string> = {
+  open: "Chờ tiếp nhận",
+  reviewing: "Đang xử lý",
+  resolved: "Đã xử lý",
 };
 
-export const REPORT_REASON_VI: Record<ReportReason, string> = {
+/**
+ * What the requester raised. One surface covers abuse reports, refund disputes, order and
+ * payment problems and plain support requests, so the kind is the only thing that differs
+ * between them — including whether the form asks for a reason and for a `ref_id`.
+ */
+export const TICKET_KIND_VI: Record<TicketKind, string> = {
+  "report-listing": "Báo cáo tin đăng",
+  "report-account": "Báo cáo người dùng",
+  "report-message": "Báo cáo tin nhắn",
+  "report-review": "Báo cáo đánh giá",
+  "report-review-reply": "Báo cáo phản hồi đánh giá",
+  "refund-dispute": "Khiếu nại hoàn tiền",
+  "order-issue": "Sự cố đơn hàng",
+  payment: "Vấn đề thanh toán",
+  account: "Vấn đề tài khoản",
+  "feature-request": "Góp ý tính năng",
+  other: "Vấn đề khác",
+};
+
+/** What staff did about it. `none` is a ticket answered with nothing done, not a status. */
+export const TICKET_ACTION_VI: Record<TicketAction, string> = {
+  none: "Không có hành động",
+  "listing-removed": "Đã gỡ tin đăng",
+  "message-removed": "Đã gỡ tin nhắn",
+  "account-suspended": "Đã khoá tài khoản",
+  warning: "Đã cảnh báo",
+  "refund-granted": "Đã chấp nhận hoàn tiền",
+  "refund-refused": "Đã từ chối hoàn tiền",
+};
+
+export const TICKET_REASON_VI: Record<TicketReason, string> = {
   scam: "Lừa đảo",
   counterfeit: "Hàng giả/Nhái",
   prohibited: "Hàng cấm",
@@ -180,12 +210,6 @@ export const REFUND_STATUS_VI: Record<RefundStatus, string> = {
   accepted: "Đã chấp nhận",
   rejected: "Từ chối",
   cancelled: "Đã hủy",
-};
-
-export const DISPUTE_STATUS_VI: Record<DisputeStatus, string> = {
-  open: "Đang mở",
-  "seller-wins": "Người bán thắng",
-  "buyer-wins": "Người mua thắng",
 };
 
 /**
