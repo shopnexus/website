@@ -88,28 +88,32 @@ export type AdminIdentityDocument = {
 };
 
 /**
- * A queue entry. A moderator needs the reporter and the target beside the report itself.
+ * A queue entry. A moderator needs the requester and the target beside the ticket itself.
  */
-export type AdminReport = {
+export type AdminTicket = {
     /**
-     * How many other unresolved reports name the same target. A pattern is what a decision rests on rather than a single complaint.
+     * The moderator working it. Staff-only, and null until it is claimed.
+     */
+    assignee?: AccountSummary | null;
+    /**
+     * How many other unresolved tickets name the same target. A pattern is what a decision rests on rather than a single complaint.
      *
      */
-    open_reports_against_target: number;
-    report: Report;
-    reporter: AccountSummary;
+    open_tickets_against_target: number;
+    requester: AccountSummary;
     resolved_by?: AccountSummary | null;
     /**
-     * The reported content, shaped by `ref_type`. Fetched from the module that owns it.
+     * What the ticket is about, shaped by `ref_type`. Fetched from the module that owns it, and absent once that module no longer has it — a listing already taken down.
      *
      */
     target?: {
         [key: string]: unknown;
     };
+    ticket: Ticket;
 };
 
-export type AdminReportPage = {
-    data: Array<AdminReport>;
+export type AdminTicketPage = {
+    data: Array<AdminTicket>;
     meta: CursorMeta;
 };
 
@@ -253,7 +257,7 @@ export type CheckoutResult = {
 
 export type ConfirmReceiptRequest = {
     /**
-     * Unboxing photos or video. At least one is mandatory — a later refund or dispute is judged on this evidence.
+     * Unboxing photos or video. At least one is mandatory — a later refund is judged on this evidence.
      *
      */
     attachments: Array<ResourceId>;
@@ -530,26 +534,6 @@ export type DeviceList = {
 export type DevicePlatform = 'ios' | 'android' | 'web';
 
 /**
- * A ruling, so there is no "still open" choice — which is why the verdict is a boolean rather than the status enum.
- */
-export type DisputeRulingRequest = {
-    /**
-     * What that does depends on the round; see the endpoint.
-     */
-    buyer_wins: boolean;
-    /**
-     * Recorded with the verdict; the ruling is final
-     */
-    note?: string;
-};
-
-/**
- * The winner of one round, or `open` while it is still with a moderator. What winning does depends on the round — see the ruling endpoint.
- *
- */
-export type DisputeStatus = 'open' | 'seller-wins' | 'buyer-wins';
-
-/**
  * The frozen terms, flat rather than nested under a `snapshot`: what a buyer needs is the price they were shown, and the listing's own read answers everything else.
  *
  */
@@ -747,6 +731,11 @@ export type Listing = {
      */
     favorited: boolean;
     id: ListingId;
+    /**
+     * Where the goods are. Null on a listing that was never published — the address is taken when the seller publishes, because that is when it becomes something a buyer can find.
+     *
+     */
+    location?: ListingLocation | null;
     name: string;
     /**
      * The featured variant's price, or the cheapest one when a price sort is in force. Not stored on the listing.
@@ -808,6 +797,11 @@ export type ListingDetail = {
      * Ordered. The first is the cover.
      */
     images: Array<Resource>;
+    /**
+     * Where the goods are. Null on a listing that was never published — the address is taken when the seller publishes, because that is when it becomes something a buyer can find.
+     *
+     */
+    location?: ListingLocation | null;
     name: string;
     /**
      * An edit waiting on moderation, null when there is none. Visible to the owner and to staff only; buyers see the published version until it is approved.
@@ -840,6 +834,27 @@ export type ListingDetail = {
 export type ListingId = string;
 
 /**
+ * Where a listing's goods are: the seller's pickup address as the listing snapshotted it when it was published. A snapshot rather than a reference to the address — the address belongs to another module and a seller who moves does not move the listings they already sold.
+ *
+ */
+export type ListingLocation = {
+    /**
+     * How far the goods are from where the buyer said they are. Absent unless the browse sent a position, and absent for an address that was never geocoded.
+     *
+     */
+    distance_km?: number;
+    /**
+     * Null where the country has no district tier. Code and name travel together.
+     */
+    district_code: string | null;
+    district_name: string | null;
+    province_code: string;
+    province_name: string;
+    ward_code: string;
+    ward_name: string;
+};
+
+/**
  * One page shape for every listing query, ranked or not. Page-paginated, because a catalog is browsed with a pager and a relevance order has no stored column to seek into; `total` is null for a ranked query, where the top-K is all the search ever visited.
  *
  */
@@ -853,6 +868,48 @@ export type ListingPage = {
  *
  */
 export type ListingStatus = 'draft' | 'pending' | 'active' | 'hidden';
+
+/**
+ * A filled-in form. Every field is the model's proposal and the seller is expected to correct it; the optional ones are absent where it had nothing it could stand behind.
+ *
+ */
+export type ListingSuggestion = {
+    /**
+     * Resolved against this marketplace's own tree, so it is always a category that exists. Null when nothing in the tree fits what it saw.
+     *
+     */
+    category_id: CategoryId | null;
+    /**
+     * Empty when it could not tell.
+     */
+    condition: 'new' | 'used' | 'damaged' | '';
+    description: string;
+    name: string;
+    /**
+     * Only what the seller said out loud, in the smallest currency unit. Null when they did not say — this never estimates a price.
+     *
+     */
+    price: number | null;
+    /**
+     * Attributes it could read off the photos, as plain strings.
+     */
+    specifications?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Already slugified, at most four. Empty rather than guessed.
+     */
+    tags: Array<TagSlug>;
+    /**
+     * What the voice note was heard as, echoed so the seller can see why a field is wrong rather than guess. Absent when they sent no recording.
+     *
+     */
+    transcript?: string;
+    /**
+     * Estimated parcel weight, which is what a shipping quote needs.
+     */
+    weight_g: number | null;
+};
 
 export type LoginRequest = {
     /**
@@ -1064,12 +1121,25 @@ export type OfferPage = {
  */
 export type OfferStatus = 'active' | 'accepted' | 'checked-out' | 'cancelled';
 
-/**
- * The grounds for the round being opened — the buyer's objection to a refusal, or the seller's account of what actually arrived. Supporting files go on the case through `POST /refunds/{id}/attachments`, which is where all of a party's evidence lives.
- *
- */
-export type OpenDisputeRequest = {
-    reason: string;
+export type OpenTicketRequest = {
+    /**
+     * Confirmed uploads, posted as the opening message's images.
+     */
+    attachments?: Array<ResourceId>;
+    /**
+     * The first message of the thread, not a column on the ticket.
+     */
+    body?: string;
+    kind: TicketKind;
+    /**
+     * Report kinds only.
+     */
+    reason?: TicketReason;
+    /**
+     * Required for the kinds that are about something, refused for the others.
+     */
+    ref_id?: string;
+    subject: string;
 };
 
 export type Order = {
@@ -1341,7 +1411,7 @@ export type PendingEdit = {
  *
  * `fixed` is bought straight from the listing page: the buyer checks out, pays the item plus the shipping quote, and the order and its shipment exist as soon as the money lands. The seller confirms nothing.
  *
- * `negotiable` cannot be checked out. The buyer opens a negotiation, which is a thread in chat where either side revises the terms, and accepting them is what starts the same checkout. Either way the seller never approves an order — the only thing they can refuse is a price.
+ * `negotiable` adds a second way to buy without removing the first: the asking price is still a price a buyer can take outright, and the listing page asks which they want. If they haggle, the negotiation is a thread in chat where either side revises the terms, and agreeing freezes them for the same checkout. Either way the seller never approves an order — the only thing they can refuse is a price.
  *
  */
 export type PriceMode = 'fixed' | 'negotiable';
@@ -1381,6 +1451,14 @@ export type PublicAccount = {
 };
 
 /**
+ * Optional. Names the address a carrier collects this listing's goods from — one of the seller's own — which is also the location buyers filter and measure by. Omitted means their default pickup address.
+ *
+ */
+export type PublishListingRequest = {
+    pickup_contact_id?: ContactId;
+};
+
+/**
  * The slug is in the path, so this carries only what can change.
  */
 export type PutTagRequest = {
@@ -1397,13 +1475,13 @@ export type RefreshRequest = {
  */
 export type Refund = {
     /**
-     * The buyer's evidence. Each dispute round holds its opener's.
+     * The buyer's evidence, topped up until the case closes.
      */
     attachments: Array<Resource>;
     buyer_id: AccountId;
     created_at: string;
     /**
-     * When the party named by `status` runs out of time, and missing it is itself a move. Null while the case waits on a moderator or a carrier, and in the terminal states.
+     * When the party named by `status` runs out of time, and missing it is itself a move. Null while the case waits on staff or a carrier, and in the terminal states.
      *
      */
     deadline_at?: string | null;
@@ -1423,38 +1501,6 @@ export type Refund = {
     status: RefundStatus;
 };
 
-/**
- * One round of moderation on one refund. A second round rather than a second verdict on the first, so ruling for the buyer and then for the seller stays legible as two decisions instead of one that changed its mind.
- *
- */
-export type RefundDispute = {
-    created_at: string;
-    id: RefundDisputeId;
-    /**
-     * The moderator's, recorded with the verdict
-     */
-    note?: string;
-    opened_by: AccountId;
-    /**
-     * The grounds of whoever opened this round.
-     */
-    reason: string;
-    refund_id: RefundId;
-    /**
-     * 1 = the buyer escalating, 2 = the seller appealing the return.
-     */
-    round: 1 | 2;
-    ruled_at?: string | null;
-    status: DisputeStatus;
-};
-
-export type RefundDisputeId = string;
-
-export type RefundDisputePage = {
-    data: Array<RefundDispute>;
-    meta: CursorMeta;
-};
-
 export type RefundId = string;
 
 export type RefundPage = {
@@ -1465,12 +1511,26 @@ export type RefundPage = {
 /**
  * Every live value names the party whose move the refund is waiting on, and each of those carries a `deadline_at` that the party can miss:
  *
- * `awaiting-seller-review` — the seller accepts or rejects. Missing it hands the case to the buyer. `awaiting-buyer-action` — the buyer escalates to a moderator or lets the refund lapse; `rejection_reason` says whether the seller refused or just went quiet. `disputed` — a moderator has an open round. `returning` — the goods are on their way back; only a granted refund ever reaches here. `returned` — the seller inspects and may appeal until the window closes.
+ * `awaiting-seller-review` — the seller accepts or rejects. Missing it hands the case to the buyer. `awaiting-buyer-action` — the buyer escalates to staff or lets the refund lapse; `rejection_reason` says whether the seller refused or just went quiet. `disputed` — staff are looking at it. `returning` — the goods are on their way back; only a granted refund ever reaches here. `returned` — the seller inspects and may escalate until the window closes.
  *
  * Then three terminals: `accepted` is money back to the buyer and the order closed with it, `rejected` is no refund and the payout stands, `cancelled` is the buyer withdrawing before the seller decided. Only the last two give the escrow up — `accepted` keeps its claim, because that money has already gone to the buyer.
  *
  */
 export type RefundStatus = 'awaiting-seller-review' | 'awaiting-buyer-action' | 'disputed' | 'returning' | 'returned' | 'accepted' | 'rejected' | 'cancelled';
+
+/**
+ * A decision, so there is no "still deciding" choice — which is why the verdict is a boolean rather than a status enum.
+ */
+export type RefundVerdictRequest = {
+    /**
+     * What it does to the money depends on whether the goods have come back; see the endpoint.
+     */
+    buyer_wins: boolean;
+    /**
+     * The reasoning, carried to the ticket this closes
+     */
+    note?: string;
+};
 
 export type RegisterDeviceRequest = {
     platform: DevicePlatform;
@@ -1506,44 +1566,6 @@ export type RejectRefundRequest = {
     reason: string;
 };
 
-export type Report = {
-    /**
-     * Null until the report is resolved.
-     */
-    action_taken?: ReportAction | null;
-    created_at: string;
-    detail: string;
-    id: ReportId;
-    reason: ReportReason;
-    /**
-     * Opaque id of the reported thing. Which prefix is valid follows from `ref_type`, which is why the two are validated together.
-     *
-     */
-    ref_id: string;
-    ref_type: ReportRefType;
-    resolution_note?: string | null;
-    resolved_at?: string | null;
-    status: ReportStatus;
-};
-
-/**
- * What a moderator did about an upheld report. `none` goes with a dismissal.
- */
-export type ReportAction = 'none' | 'listing-removed' | 'message-removed' | 'account-suspended' | 'warning';
-
-export type ReportId = string;
-
-export type ReportPage = {
-    data: Array<Report>;
-    meta: CursorMeta;
-};
-
-export type ReportReason = 'scam' | 'counterfeit' | 'prohibited' | 'harassment' | 'spam' | 'inappropriate' | 'other';
-
-export type ReportRefType = 'listing' | 'account' | 'message' | 'review' | 'review-reply';
-
-export type ReportStatus = 'open' | 'reviewing' | 'actioned' | 'dismissed';
-
 /**
  * Recomputed, never written directly. Transaction ratings and product-review ratings stay apart: one order can produce both and summing them would count it twice.
  *
@@ -1571,17 +1593,13 @@ export type Reputation = {
 
 export type ReputationRole = 'seller' | 'buyer';
 
-export type ResolveReportRequest = {
+export type ResolveTicketRequest = {
     /**
-     * Required. `none` goes with a dismissal; upholding the report names what was done.
+     * Required. `none` is the turn-down; anything else names what was done. The two `refund-*` values are what order's verdict records on the ticket it closes.
      *
      */
-    action_taken: ReportAction;
+    action_taken: TicketAction;
     note?: string;
-    /**
-     * A verdict so open and reviewing are not choices.
-     */
-    status: 'actioned' | 'dismissed';
 };
 
 export type Resource = {
@@ -1820,13 +1838,6 @@ export type SubmitFeedbackRequest = {
     rating: number;
 };
 
-export type SubmitReportRequest = {
-    detail?: string;
-    reason: ReportReason;
-    ref_id: string;
-    ref_type: ReportRefType;
-};
-
 export type SubmitReviewReplyRequest = {
     body: string;
 };
@@ -1836,6 +1847,30 @@ export type SubmitReviewRequest = {
     body?: string;
     order_id: OrderId;
     rating: number;
+};
+
+/**
+ * At least one of `attachments`, `note` or `voice_note`.
+ */
+export type SuggestListingRequest = {
+    /**
+     * Confirmed uploads. The first three are what the model reads.
+     */
+    attachments?: Array<ResourceId>;
+    /**
+     * ISO-639-1 hint for the transcription. Omit to let the model detect.
+     */
+    language?: string;
+    /**
+     * What the seller typed. A phone's own dictation key fills this in just as well.
+     */
+    note?: string;
+    /**
+     * The recording, base64. Inline rather than an upload because it is input and not content: nothing keeps it, so nothing has to reap it. Around a megabyte at most — a seller describes an item in a sentence or two.
+     *
+     */
+    voice_note?: string;
+    voice_note_mime?: string;
 };
 
 export type SuspendAccountRequest = {
@@ -1895,6 +1930,67 @@ export type TaxVerificationRequest = {
 };
 
 export type TaxVerificationStatus = 'pending' | 'verified' | 'rejected';
+
+export type Ticket = {
+    /**
+     * Null until the ticket is resolved.
+     */
+    action_taken?: TicketAction | null;
+    /**
+     * The thread this ticket is discussed in — where the requester's own words went and where support answers. Null only between the row being written and the thread being opened; reading the ticket repairs it.
+     *
+     */
+    conversation_id?: ConversationId | null;
+    created_at: string;
+    id: TicketId;
+    kind: TicketKind;
+    reason?: TicketReason | null;
+    /**
+     * Opaque id of what the ticket is about, kinded by `ref_type`. Null on a ticket about nothing in particular.
+     *
+     */
+    ref_id?: string | null;
+    ref_type?: TicketRefType | null;
+    resolution_note?: string | null;
+    resolved_at?: string | null;
+    status: TicketStatus;
+    subject: string;
+};
+
+/**
+ * What was done about it. `none` is a ticket read and answered with nothing done — the turn-down, which is why it is a value here and not a second status. The two `refund-*` ones are written by order's verdict route, never by hand.
+ *
+ */
+export type TicketAction = 'none' | 'listing-removed' | 'message-removed' | 'account-suspended' | 'warning' | 'refund-granted' | 'refund-refused';
+
+export type TicketId = string;
+
+/**
+ * What was raised. The five `report-*` kinds and `refund-dispute`/`order-issue` are about something and carry a `ref_id`; the rest are about nothing in particular.
+ *
+ */
+export type TicketKind = 'report-listing' | 'report-account' | 'report-message' | 'report-review' | 'report-review-reply' | 'refund-dispute' | 'order-issue' | 'payment' | 'account' | 'feature-request' | 'other';
+
+export type TicketPage = {
+    data: Array<Ticket>;
+    meta: CursorMeta;
+};
+
+/**
+ * A report's grounds. Null on every other kind.
+ */
+export type TicketReason = 'scam' | 'counterfeit' | 'prohibited' | 'harassment' | 'spam' | 'inappropriate' | 'other';
+
+/**
+ * What kind of thing `ref_id` names. Follows from `kind`, never sent by a client.
+ */
+export type TicketRefType = 'listing' | 'account' | 'message' | 'review' | 'review-reply' | 'order' | 'refund';
+
+/**
+ * `reviewing` is claimed by a moderator; `resolved` carries `action_taken`, which is where a turn-down lives as the value `none`.
+ *
+ */
+export type TicketStatus = 'open' | 'reviewing' | 'resolved';
 
 /**
  * One movement on an external rail. Append-only.
@@ -2756,86 +2852,6 @@ export type PatchAdminCategoriesByIdResponses = {
 
 export type PatchAdminCategoriesByIdResponse = PatchAdminCategoriesByIdResponses[keyof PatchAdminCategoriesByIdResponses];
 
-export type GetAdminDisputesData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
-         */
-        cursor?: string;
-        limit?: number;
-    };
-    url: '/admin/disputes';
-};
-
-export type GetAdminDisputesErrors = {
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * Moderator role required
-     */
-    403: Error;
-};
-
-export type GetAdminDisputesError = GetAdminDisputesErrors[keyof GetAdminDisputesErrors];
-
-export type GetAdminDisputesResponses = {
-    /**
-     * OK
-     */
-    200: RefundDisputePage;
-};
-
-export type GetAdminDisputesResponse = GetAdminDisputesResponses[keyof GetAdminDisputesResponses];
-
-export type PostAdminDisputesByIdRulingData = {
-    body: DisputeRulingRequest;
-    path: {
-        id: RefundDisputeId;
-    };
-    query?: never;
-    url: '/admin/disputes/{id}/ruling';
-};
-
-export type PostAdminDisputesByIdRulingErrors = {
-    /**
-     * Validation or malformed request
-     */
-    400: Error;
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * Moderator role required
-     */
-    403: Error;
-    /**
-     * Resource not found
-     */
-    404: Error;
-    /**
-     * Dispute is already resolved
-     */
-    409: Error;
-};
-
-export type PostAdminDisputesByIdRulingError = PostAdminDisputesByIdRulingErrors[keyof PostAdminDisputesByIdRulingErrors];
-
-export type PostAdminDisputesByIdRulingResponses = {
-    /**
-     * Ruled
-     */
-    200: {
-        data: RefundDispute;
-    };
-};
-
-export type PostAdminDisputesByIdRulingResponse = PostAdminDisputesByIdRulingResponses[keyof PostAdminDisputesByIdRulingResponses];
-
 export type GetAdminIdentityDocumentsData = {
     body?: never;
     path?: never;
@@ -3178,139 +3194,16 @@ export type GetAdminPaymentSessionsResponses = {
 
 export type GetAdminPaymentSessionsResponse = GetAdminPaymentSessionsResponses[keyof GetAdminPaymentSessionsResponses];
 
-export type GetAdminReportsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Defaults to open and reviewing.
-         */
-        status?: ReportStatus;
-        ref_type?: ReportRefType;
-        reason?: ReportReason;
-        /**
-         * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
-         */
-        cursor?: string;
-        limit?: number;
-    };
-    url: '/admin/reports';
-};
-
-export type GetAdminReportsErrors = {
-    /**
-     * Validation or malformed request
-     */
-    400: Error;
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * Moderator role required
-     */
-    403: Error;
-};
-
-export type GetAdminReportsError = GetAdminReportsErrors[keyof GetAdminReportsErrors];
-
-export type GetAdminReportsResponses = {
-    /**
-     * OK
-     */
-    200: AdminReportPage;
-};
-
-export type GetAdminReportsResponse = GetAdminReportsResponses[keyof GetAdminReportsResponses];
-
-export type GetAdminReportsByIdData = {
-    body?: never;
+export type PostAdminRefundsByIdVerdictData = {
+    body: RefundVerdictRequest;
     path: {
-        id: ReportId;
+        id: RefundId;
     };
     query?: never;
-    url: '/admin/reports/{id}';
+    url: '/admin/refunds/{id}/verdict';
 };
 
-export type GetAdminReportsByIdErrors = {
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * Moderator role required
-     */
-    403: Error;
-    /**
-     * Resource not found
-     */
-    404: Error;
-};
-
-export type GetAdminReportsByIdError = GetAdminReportsByIdErrors[keyof GetAdminReportsByIdErrors];
-
-export type GetAdminReportsByIdResponses = {
-    /**
-     * OK
-     */
-    200: {
-        data: AdminReport;
-    };
-};
-
-export type GetAdminReportsByIdResponse = GetAdminReportsByIdResponses[keyof GetAdminReportsByIdResponses];
-
-export type PostAdminReportsByIdClaimData = {
-    body?: never;
-    path: {
-        id: ReportId;
-    };
-    query?: never;
-    url: '/admin/reports/{id}/claim';
-};
-
-export type PostAdminReportsByIdClaimErrors = {
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * Moderator role required
-     */
-    403: Error;
-    /**
-     * Resource not found
-     */
-    404: Error;
-    /**
-     * Already claimed or resolved
-     */
-    409: Error;
-};
-
-export type PostAdminReportsByIdClaimError = PostAdminReportsByIdClaimErrors[keyof PostAdminReportsByIdClaimErrors];
-
-export type PostAdminReportsByIdClaimResponses = {
-    /**
-     * Claimed
-     */
-    200: {
-        data: Report;
-    };
-};
-
-export type PostAdminReportsByIdClaimResponse = PostAdminReportsByIdClaimResponses[keyof PostAdminReportsByIdClaimResponses];
-
-export type PostAdminReportsByIdResolutionData = {
-    body: ResolveReportRequest;
-    path: {
-        id: ReportId;
-    };
-    query?: never;
-    url: '/admin/reports/{id}/resolution';
-};
-
-export type PostAdminReportsByIdResolutionErrors = {
+export type PostAdminRefundsByIdVerdictErrors = {
     /**
      * Validation or malformed request
      */
@@ -3328,23 +3221,23 @@ export type PostAdminReportsByIdResolutionErrors = {
      */
     404: Error;
     /**
-     * Already resolved
+     * This refund is not with staff for a decision, or its order has already settled
      */
     409: Error;
 };
 
-export type PostAdminReportsByIdResolutionError = PostAdminReportsByIdResolutionErrors[keyof PostAdminReportsByIdResolutionErrors];
+export type PostAdminRefundsByIdVerdictError = PostAdminRefundsByIdVerdictErrors[keyof PostAdminRefundsByIdVerdictErrors];
 
-export type PostAdminReportsByIdResolutionResponses = {
+export type PostAdminRefundsByIdVerdictResponses = {
     /**
-     * Resolved
+     * Decided
      */
     200: {
-        data: Report;
+        data: Refund;
     };
 };
 
-export type PostAdminReportsByIdResolutionResponse = PostAdminReportsByIdResolutionResponses[keyof PostAdminReportsByIdResolutionResponses];
+export type PostAdminRefundsByIdVerdictResponse = PostAdminRefundsByIdVerdictResponses[keyof PostAdminRefundsByIdVerdictResponses];
 
 export type DeleteAdminTagsBySlugData = {
     body?: never;
@@ -3462,6 +3355,173 @@ export type PostAdminTaxInfoByAccountIdVerificationResponses = {
 };
 
 export type PostAdminTaxInfoByAccountIdVerificationResponse = PostAdminTaxInfoByAccountIdVerificationResponses[keyof PostAdminTaxInfoByAccountIdVerificationResponses];
+
+export type GetAdminTicketsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Defaults to open and reviewing.
+         */
+        status?: TicketStatus;
+        kind?: TicketKind;
+        /**
+         * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
+         */
+        cursor?: string;
+        limit?: number;
+    };
+    url: '/admin/tickets';
+};
+
+export type GetAdminTicketsErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Moderator role required
+     */
+    403: Error;
+};
+
+export type GetAdminTicketsError = GetAdminTicketsErrors[keyof GetAdminTicketsErrors];
+
+export type GetAdminTicketsResponses = {
+    /**
+     * OK
+     */
+    200: AdminTicketPage;
+};
+
+export type GetAdminTicketsResponse = GetAdminTicketsResponses[keyof GetAdminTicketsResponses];
+
+export type GetAdminTicketsByIdData = {
+    body?: never;
+    path: {
+        id: TicketId;
+    };
+    query?: never;
+    url: '/admin/tickets/{id}';
+};
+
+export type GetAdminTicketsByIdErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Moderator role required
+     */
+    403: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+};
+
+export type GetAdminTicketsByIdError = GetAdminTicketsByIdErrors[keyof GetAdminTicketsByIdErrors];
+
+export type GetAdminTicketsByIdResponses = {
+    /**
+     * OK
+     */
+    200: {
+        data: AdminTicket;
+    };
+};
+
+export type GetAdminTicketsByIdResponse = GetAdminTicketsByIdResponses[keyof GetAdminTicketsByIdResponses];
+
+export type PostAdminTicketsByIdClaimData = {
+    body?: never;
+    path: {
+        id: TicketId;
+    };
+    query?: never;
+    url: '/admin/tickets/{id}/claim';
+};
+
+export type PostAdminTicketsByIdClaimErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Moderator role required
+     */
+    403: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+    /**
+     * Already claimed or resolved
+     */
+    409: Error;
+};
+
+export type PostAdminTicketsByIdClaimError = PostAdminTicketsByIdClaimErrors[keyof PostAdminTicketsByIdClaimErrors];
+
+export type PostAdminTicketsByIdClaimResponses = {
+    /**
+     * Claimed
+     */
+    200: {
+        data: Ticket;
+    };
+};
+
+export type PostAdminTicketsByIdClaimResponse = PostAdminTicketsByIdClaimResponses[keyof PostAdminTicketsByIdClaimResponses];
+
+export type PostAdminTicketsByIdResolutionData = {
+    body: ResolveTicketRequest;
+    path: {
+        id: TicketId;
+    };
+    query?: never;
+    url: '/admin/tickets/{id}/resolution';
+};
+
+export type PostAdminTicketsByIdResolutionErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Moderator role required
+     */
+    403: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+    /**
+     * Already resolved, or a refund dispute whose verdict belongs to the order module
+     */
+    409: Error;
+};
+
+export type PostAdminTicketsByIdResolutionError = PostAdminTicketsByIdResolutionErrors[keyof PostAdminTicketsByIdResolutionErrors];
+
+export type PostAdminTicketsByIdResolutionResponses = {
+    /**
+     * Resolved
+     */
+    200: {
+        data: Ticket;
+    };
+};
+
+export type PostAdminTicketsByIdResolutionResponse = PostAdminTicketsByIdResolutionResponses[keyof PostAdminTicketsByIdResolutionResponses];
 
 export type GetAdminWalletsByAccountIdData = {
     body?: never;
@@ -4664,10 +4724,6 @@ export type PostDraftsErrors = {
      * Listing not found, deleted, or not active
      */
     404: Error;
-    /**
-     * The listing is priced negotiable; open an offer instead
-     */
-    422: Error;
 };
 
 export type PostDraftsError = PostDraftsErrors[keyof PostDraftsErrors];
@@ -5139,9 +5195,33 @@ export type GetListingsData = {
         min_price?: number;
         max_price?: number;
         /**
-         * Defaults to `relevance` when a query is given and `newest` otherwise.
+         * Where to look, matched against the listing's own snapshot of the seller's pickup address. Send the narrowest level you mean — a ward is already inside its province.
+         *
          */
-        sort?: 'newest' | 'rating' | 'price-asc' | 'price-desc' | 'best-selling' | 'relevance' | 'recommended';
+        province_code?: string;
+        district_code?: string;
+        ward_code?: string;
+        /**
+         * Where the buyer is, for a "near me" browse — from the device, and always together with `lon`. With a position every card carries `location.distance_km`.
+         *
+         */
+        lat?: number;
+        lon?: number;
+        /**
+         * One of the caller's own saved addresses, as an alternative to `lat`/`lon` — the usual case, since a buyer's address is already on file. 422 if it was never geocoded.
+         *
+         */
+        near_contact_id?: ContactId;
+        /**
+         * Bound the result to a circle around that position. Without it a position still ranks and reports distance, it just does not exclude anything.
+         *
+         */
+        radius_km?: number;
+        /**
+         * Defaults to `relevance` when a query is given and `newest` otherwise. `distance` needs a position, like `radius_km` does.
+         *
+         */
+        sort?: 'newest' | 'rating' | 'price-asc' | 'price-desc' | 'best-selling' | 'relevance' | 'recommended' | 'distance';
         /**
          * 1-based page number.
          */
@@ -5392,7 +5472,7 @@ export type DeleteListingsByIdPublicationResponses = {
 export type DeleteListingsByIdPublicationResponse = DeleteListingsByIdPublicationResponses[keyof DeleteListingsByIdPublicationResponses];
 
 export type PostListingsByIdPublicationData = {
-    body?: never;
+    body?: PublishListingRequest;
     path: {
         id: ListingId;
     };
@@ -5570,6 +5650,49 @@ export type PostListingsByListingIdReviewsResponses = {
 };
 
 export type PostListingsByListingIdReviewsResponse = PostListingsByListingIdReviewsResponses[keyof PostListingsByListingIdReviewsResponses];
+
+export type PostListingsSuggestionsData = {
+    body: SuggestListingRequest;
+    path?: never;
+    query?: never;
+    url: '/listings/suggestions';
+};
+
+export type PostListingsSuggestionsErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * That voice note is longer than this route accepts
+     */
+    413: Error;
+    /**
+     * Nothing to look at, or the seller has no verified identity
+     */
+    422: Error;
+    /**
+     * The model did not return a usable suggestion
+     */
+    502: Error;
+};
+
+export type PostListingsSuggestionsError = PostListingsSuggestionsErrors[keyof PostListingsSuggestionsErrors];
+
+export type PostListingsSuggestionsResponses = {
+    /**
+     * A form to review, not a listing
+     */
+    200: {
+        data: ListingSuggestion;
+    };
+};
+
+export type PostListingsSuggestionsResponse = PostListingsSuggestionsResponses[keyof PostListingsSuggestionsResponses];
 
 export type PostListingsUploadsData = {
     body: CreateUploadRequest;
@@ -7535,7 +7658,7 @@ export type PostRefundsByIdAttachmentsErrors = {
      */
     404: Error;
     /**
-     * The case is closed, or the caller has no open round to attach to
+     * The case is closed
      */
     409: Error;
 };
@@ -7552,51 +7675,6 @@ export type PostRefundsByIdAttachmentsResponses = {
 };
 
 export type PostRefundsByIdAttachmentsResponse = PostRefundsByIdAttachmentsResponses[keyof PostRefundsByIdAttachmentsResponses];
-
-export type PostRefundsByIdDisputeData = {
-    body: OpenDisputeRequest;
-    path: {
-        id: RefundId;
-    };
-    query?: never;
-    url: '/refunds/{id}/dispute';
-};
-
-export type PostRefundsByIdDisputeErrors = {
-    /**
-     * Validation or malformed request
-     */
-    400: Error;
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * Caller is not a party to this order, or not the party whose move it is
-     */
-    403: Error;
-    /**
-     * Resource not found
-     */
-    404: Error;
-    /**
-     * Not escalatable from this state, a round is already open, or the window has closed
-     */
-    409: Error;
-};
-
-export type PostRefundsByIdDisputeError = PostRefundsByIdDisputeErrors[keyof PostRefundsByIdDisputeErrors];
-
-export type PostRefundsByIdDisputeResponses = {
-    /**
-     * A round was opened
-     */
-    201: {
-        data: RefundDispute;
-    };
-};
-
-export type PostRefundsByIdDisputeResponse = PostRefundsByIdDisputeResponses[keyof PostRefundsByIdDisputeResponses];
 
 export type PostRefundsByIdRejectionData = {
     body: RejectRefundRequest;
@@ -7726,81 +7804,6 @@ export type PostRegisterResponses = {
 };
 
 export type PostRegisterResponse = PostRegisterResponses[keyof PostRegisterResponses];
-
-export type GetReportsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        status?: ReportStatus;
-        /**
-         * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
-         */
-        cursor?: string;
-        limit?: number;
-    };
-    url: '/reports';
-};
-
-export type GetReportsErrors = {
-    /**
-     * Validation or malformed request
-     */
-    400: Error;
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-};
-
-export type GetReportsError = GetReportsErrors[keyof GetReportsErrors];
-
-export type GetReportsResponses = {
-    /**
-     * OK
-     */
-    200: ReportPage;
-};
-
-export type GetReportsResponse = GetReportsResponses[keyof GetReportsResponses];
-
-export type PostReportsData = {
-    body: SubmitReportRequest;
-    path?: never;
-    query?: never;
-    url: '/reports';
-};
-
-export type PostReportsErrors = {
-    /**
-     * The body is invalid, or `ref_id` does not decode as the declared `ref_type`
-     */
-    400: Error;
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * The reported thing does not exist
-     */
-    404: Error;
-    /**
-     * You already have an open report against this target
-     */
-    409: Error;
-};
-
-export type PostReportsError = PostReportsErrors[keyof PostReportsErrors];
-
-export type PostReportsResponses = {
-    /**
-     * Filed
-     */
-    201: {
-        data: Report;
-    };
-};
-
-export type PostReportsResponse = PostReportsResponses[keyof PostReportsResponses];
 
 export type DeleteReviewRepliesByIdData = {
     body?: never;
@@ -8284,6 +8287,122 @@ export type PutTaxInfoResponses = {
 };
 
 export type PutTaxInfoResponse = PutTaxInfoResponses[keyof PutTaxInfoResponses];
+
+export type GetTicketsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        status?: TicketStatus;
+        /**
+         * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
+         */
+        cursor?: string;
+        limit?: number;
+    };
+    url: '/tickets';
+};
+
+export type GetTicketsErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+};
+
+export type GetTicketsError = GetTicketsErrors[keyof GetTicketsErrors];
+
+export type GetTicketsResponses = {
+    /**
+     * OK
+     */
+    200: TicketPage;
+};
+
+export type GetTicketsResponse = GetTicketsResponses[keyof GetTicketsResponses];
+
+export type PostTicketsData = {
+    body: OpenTicketRequest;
+    path?: never;
+    query?: never;
+    url: '/tickets';
+};
+
+export type PostTicketsErrors = {
+    /**
+     * The body is invalid, or `ref_id` does not decode as the kind requires
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * The refund being disputed is not the caller's
+     */
+    403: Error;
+    /**
+     * What the ticket is about does not exist
+     */
+    404: Error;
+    /**
+     * You already have an open ticket about this, or the refund cannot be escalated now
+     */
+    409: Error;
+    /**
+     * Well-formed but rejected by a business rule
+     */
+    422: Error;
+};
+
+export type PostTicketsError = PostTicketsErrors[keyof PostTicketsErrors];
+
+export type PostTicketsResponses = {
+    /**
+     * Raised
+     */
+    201: {
+        data: Ticket;
+    };
+};
+
+export type PostTicketsResponse = PostTicketsResponses[keyof PostTicketsResponses];
+
+export type GetTicketsByIdData = {
+    body?: never;
+    path: {
+        id: TicketId;
+    };
+    query?: never;
+    url: '/tickets/{id}';
+};
+
+export type GetTicketsByIdErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+};
+
+export type GetTicketsByIdError = GetTicketsByIdErrors[keyof GetTicketsByIdErrors];
+
+export type GetTicketsByIdResponses = {
+    /**
+     * OK
+     */
+    200: {
+        data: Ticket;
+    };
+};
+
+export type GetTicketsByIdResponse = GetTicketsByIdResponses[keyof GetTicketsByIdResponses];
 
 export type PostTokenRefreshData = {
     body: RefreshRequest;

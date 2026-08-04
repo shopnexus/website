@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateWebSocketTicketData, CreateWebSocketTicketErrors, CreateWebSocketTicketResponses, DeleteAdminAccountsByIdSuspensionData, DeleteAdminAccountsByIdSuspensionErrors, DeleteAdminAccountsByIdSuspensionResponses, DeleteAdminCategoriesByIdData, DeleteAdminCategoriesByIdErrors, DeleteAdminCategoriesByIdResponses, DeleteAdminModeratorsByIdData, DeleteAdminModeratorsByIdErrors, DeleteAdminModeratorsByIdResponses, DeleteAdminTagsBySlugData, DeleteAdminTagsBySlugErrors, DeleteAdminTagsBySlugResponses, DeleteBankAccountsByIdData, DeleteBankAccountsByIdErrors, DeleteBankAccountsByIdResponses, DeleteCartItemsByIdData, DeleteCartItemsByIdErrors, DeleteCartItemsByIdResponses, DeleteContactsByIdData, DeleteContactsByIdErrors, DeleteContactsByIdResponses, DeleteDevicesByIdData, DeleteDevicesByIdErrors, DeleteDevicesByIdResponses, DeleteDraftsByIdData, DeleteDraftsByIdErrors, DeleteDraftsByIdResponses, DeleteFavoritesByListingIdData, DeleteFavoritesByListingIdErrors, DeleteFavoritesByListingIdResponses, DeleteFollowsByAccountIdData, DeleteFollowsByAccountIdErrors, DeleteFollowsByAccountIdResponses, DeleteListingsByIdData, DeleteListingsByIdErrors, DeleteListingsByIdPublicationData, DeleteListingsByIdPublicationErrors, DeleteListingsByIdPublicationResponses, DeleteListingsByIdResponses, DeleteMeOauthIdentitiesByProviderData, DeleteMeOauthIdentitiesByProviderErrors, DeleteMeOauthIdentitiesByProviderResponses, DeleteMessagesByIdData, DeleteMessagesByIdErrors, DeleteMessagesByIdResponses, DeleteOffersByIdData, DeleteOffersByIdErrors, DeleteOffersByIdResponses, DeleteRefundsByIdData, DeleteRefundsByIdErrors, DeleteRefundsByIdResponses, DeleteReviewRepliesByIdData, DeleteReviewRepliesByIdErrors, DeleteReviewRepliesByIdResponses, DeleteReviewsByIdData, DeleteReviewsByIdErrors, DeleteReviewsByIdResponses, DeleteReviewsByIdVoteData, DeleteReviewsByIdVoteErrors, DeleteReviewsByIdVoteResponses, DeleteVariantsByIdData, DeleteVariantsByIdErrors, DeleteVariantsByIdResponses, DeleteWithdrawalsByIdData, DeleteWithdrawalsByIdErrors, DeleteWithdrawalsByIdResponses, GetAccountsByAccountIdFeedbackData, GetAccountsByAccountIdFeedbackErrors, GetAccountsByAccountIdFeedbackResponses, GetAccountsByAccountIdReputationData, GetAccountsByAccountIdReputationErrors, GetAccountsByAccountIdReputationResponses, GetAccountsByIdData, GetAccountsByIdErrors, GetAccountsByIdFollowersData, GetAccountsByIdFollowersErrors, GetAccountsByIdFollowersResponses, GetAccountsByIdResponses, GetAdminAccountsData, GetAdminAccountsErrors, GetAdminAccountsResponses, GetAdminDisputesData, GetAdminDisputesErrors, GetAdminDisputesResponses, GetAdminIdentityDocumentsData, GetAdminIdentityDocumentsErrors, GetAdminIdentityDocumentsResponses, GetAdminListingsData, GetAdminListingsErrors, GetAdminListingsResponses, GetAdminPaymentSessionsData, GetAdminPaymentSessionsErrors, GetAdminPaymentSessionsResponses, GetAdminReportsByIdData, GetAdminReportsByIdErrors, GetAdminReportsByIdResponses, GetAdminReportsData, GetAdminReportsErrors, GetAdminReportsResponses, GetAdminWalletsByAccountIdData, GetAdminWalletsByAccountIdErrors, GetAdminWalletsByAccountIdResponses, GetAdminWithdrawalsData, GetAdminWithdrawalsErrors, GetAdminWithdrawalsResponses, GetBankAccountsData, GetBankAccountsErrors, GetBankAccountsResponses, GetCartItemsData, GetCartItemsErrors, GetCartItemsResponses, GetCategoriesData, GetCategoriesErrors, GetCategoriesResponses, GetContactsData, GetContactsErrors, GetContactsResponses, GetConversationsByIdData, GetConversationsByIdErrors, GetConversationsByIdMessagesData, GetConversationsByIdMessagesErrors, GetConversationsByIdMessagesResponses, GetConversationsByIdResponses, GetConversationsData, GetConversationsErrors, GetConversationsResponses, GetConversationsUnreadCountData, GetConversationsUnreadCountErrors, GetConversationsUnreadCountResponses, GetDraftsByIdData, GetDraftsByIdErrors, GetDraftsByIdResponses, GetDraftsData, GetDraftsErrors, GetDraftsResponses, GetItemsData, GetItemsErrors, GetItemsResponses, GetListingsByIdData, GetListingsByIdErrors, GetListingsByIdResponses, GetListingsByListingIdReviewsData, GetListingsByListingIdReviewsErrors, GetListingsByListingIdReviewsResponses, GetListingsData, GetListingsErrors, GetListingsResponses, GetMeData, GetMeDevicesData, GetMeDevicesErrors, GetMeDevicesResponses, GetMeErrors, GetMeFollowingData, GetMeFollowingErrors, GetMeFollowingResponses, GetMeIdentityDocumentsData, GetMeIdentityDocumentsErrors, GetMeIdentityDocumentsResponses, GetMeOauthIdentitiesData, GetMeOauthIdentitiesErrors, GetMeOauthIdentitiesResponses, GetMeResponses, GetNotificationPreferencesData, GetNotificationPreferencesErrors, GetNotificationPreferencesResponses, GetNotificationsData, GetNotificationsErrors, GetNotificationsResponses, GetNotificationsUnreadCountData, GetNotificationsUnreadCountErrors, GetNotificationsUnreadCountResponses, GetOffersByIdData, GetOffersByIdErrors, GetOffersByIdResponses, GetOffersData, GetOffersErrors, GetOffersResponses, GetOrdersByIdData, GetOrdersByIdErrors, GetOrdersByIdResponses, GetOrdersByIdTransportData, GetOrdersByIdTransportErrors, GetOrdersByIdTransportResponses, GetOrdersByOrderIdFeedbackData, GetOrdersByOrderIdFeedbackErrors, GetOrdersByOrderIdFeedbackResponses, GetOrdersData, GetOrdersErrors, GetOrdersResponses, GetPaymentSessionsByIdData, GetPaymentSessionsByIdErrors, GetPaymentSessionsByIdResponses, GetPaymentSessionsByIdTransactionsData, GetPaymentSessionsByIdTransactionsErrors, GetPaymentSessionsByIdTransactionsResponses, GetPaymentSessionsData, GetPaymentSessionsErrors, GetPaymentSessionsResponses, GetRefundsByIdData, GetRefundsByIdErrors, GetRefundsByIdResponses, GetRefundsData, GetRefundsErrors, GetRefundsResponses, GetReportsData, GetReportsErrors, GetReportsResponses, GetReviewsByIdData, GetReviewsByIdErrors, GetReviewsByIdResponses, GetTagsData, GetTagsErrors, GetTagsResponses, GetTaxInfoData, GetTaxInfoErrors, GetTaxInfoResponses, GetWalletsByCurrencyData, GetWalletsByCurrencyErrors, GetWalletsByCurrencyResponses, GetWalletsByCurrencyTransactionsData, GetWalletsByCurrencyTransactionsErrors, GetWalletsByCurrencyTransactionsResponses, GetWalletsData, GetWalletsErrors, GetWalletsResponses, GetWithdrawalsByIdData, GetWithdrawalsByIdErrors, GetWithdrawalsByIdResponses, GetWithdrawalsData, GetWithdrawalsErrors, GetWithdrawalsResponses, PatchAdminCategoriesByIdData, PatchAdminCategoriesByIdErrors, PatchAdminCategoriesByIdResponses, PatchBankAccountsByIdData, PatchBankAccountsByIdErrors, PatchBankAccountsByIdResponses, PatchCartItemsByIdData, PatchCartItemsByIdErrors, PatchCartItemsByIdResponses, PatchContactsByIdData, PatchContactsByIdErrors, PatchContactsByIdResponses, PatchListingsByIdData, PatchListingsByIdErrors, PatchListingsByIdResponses, PatchMeData, PatchMeErrors, PatchMeProfileData, PatchMeProfileErrors, PatchMeProfileResponses, PatchMeResponses, PatchMessagesByIdData, PatchMessagesByIdErrors, PatchMessagesByIdResponses, PatchOffersByIdData, PatchOffersByIdErrors, PatchOffersByIdResponses, PatchReviewsByIdData, PatchReviewsByIdErrors, PatchReviewsByIdResponses, PatchVariantsByIdData, PatchVariantsByIdErrors, PatchVariantsByIdResponses, PostAdminAccountsByIdSuspensionData, PostAdminAccountsByIdSuspensionErrors, PostAdminAccountsByIdSuspensionResponses, PostAdminCategoriesData, PostAdminCategoriesErrors, PostAdminCategoriesResponses, PostAdminDisputesByIdRulingData, PostAdminDisputesByIdRulingErrors, PostAdminDisputesByIdRulingResponses, PostAdminIdentityDocumentsByIdVerdictData, PostAdminIdentityDocumentsByIdVerdictErrors, PostAdminIdentityDocumentsByIdVerdictResponses, PostAdminListingsByIdApprovalData, PostAdminListingsByIdApprovalErrors, PostAdminListingsByIdApprovalResponses, PostAdminListingsByIdTakedownData, PostAdminListingsByIdTakedownErrors, PostAdminListingsByIdTakedownResponses, PostAdminModeratorsData, PostAdminModeratorsErrors, PostAdminModeratorsResponses, PostAdminReportsByIdClaimData, PostAdminReportsByIdClaimErrors, PostAdminReportsByIdClaimResponses, PostAdminReportsByIdResolutionData, PostAdminReportsByIdResolutionErrors, PostAdminReportsByIdResolutionResponses, PostAdminTaxInfoByAccountIdVerificationData, PostAdminTaxInfoByAccountIdVerificationErrors, PostAdminTaxInfoByAccountIdVerificationResponses, PostAdminWalletsByAccountIdAdjustmentsData, PostAdminWalletsByAccountIdAdjustmentsErrors, PostAdminWalletsByAccountIdAdjustmentsResponses, PostAdminWithdrawalsByIdApprovalData, PostAdminWithdrawalsByIdApprovalErrors, PostAdminWithdrawalsByIdApprovalResponses, PostAdminWithdrawalsByIdRejectionData, PostAdminWithdrawalsByIdRejectionErrors, PostAdminWithdrawalsByIdRejectionResponses, PostBankAccountsData, PostBankAccountsErrors, PostBankAccountsResponses, PostCartItemsData, PostCartItemsErrors, PostCartItemsResponses, PostContactsByIdPhoneVerificationRequestsData, PostContactsByIdPhoneVerificationRequestsErrors, PostContactsByIdPhoneVerificationRequestsResponses, PostContactsByIdPhoneVerificationsData, PostContactsByIdPhoneVerificationsErrors, PostContactsByIdPhoneVerificationsResponses, PostContactsData, PostContactsErrors, PostContactsResponses, PostConversationsByIdMessagesData, PostConversationsByIdMessagesErrors, PostConversationsByIdMessagesResponses, PostConversationsByIdReadData, PostConversationsByIdReadErrors, PostConversationsByIdReadResponses, PostConversationsData, PostConversationsErrors, PostConversationsResponses, PostConversationsUploadsByIdConfirmationData, PostConversationsUploadsByIdConfirmationErrors, PostConversationsUploadsByIdConfirmationResponses, PostConversationsUploadsData, PostConversationsUploadsErrors, PostConversationsUploadsResponses, PostDraftsByIdCheckoutData, PostDraftsByIdCheckoutErrors, PostDraftsByIdCheckoutResponses, PostDraftsData, PostDraftsErrors, PostDraftsResponses, PostEmailVerificationRequestsData, PostEmailVerificationRequestsErrors, PostEmailVerificationRequestsResponses, PostEmailVerificationsData, PostEmailVerificationsErrors, PostEmailVerificationsResponses, PostIdentityDocumentsData, PostIdentityDocumentsErrors, PostIdentityDocumentsResponses, PostItemsByIdCancellationData, PostItemsByIdCancellationErrors, PostItemsByIdCancellationResponses, PostListingsByIdPublicationData, PostListingsByIdPublicationErrors, PostListingsByIdPublicationResponses, PostListingsByIdVariantsData, PostListingsByIdVariantsErrors, PostListingsByIdVariantsResponses, PostListingsByListingIdReviewsData, PostListingsByListingIdReviewsErrors, PostListingsByListingIdReviewsResponses, PostListingsData, PostListingsErrors, PostListingsResponses, PostListingsUploadsByIdConfirmationData, PostListingsUploadsByIdConfirmationErrors, PostListingsUploadsByIdConfirmationResponses, PostListingsUploadsData, PostListingsUploadsErrors, PostListingsUploadsResponses, PostLoginData, PostLoginErrors, PostLoginOauthData, PostLoginOauthErrors, PostLoginOauthResponses, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostMeUploadsByIdConfirmationData, PostMeUploadsByIdConfirmationErrors, PostMeUploadsByIdConfirmationResponses, PostMeUploadsData, PostMeUploadsErrors, PostMeUploadsResponses, PostNotificationsReadData, PostNotificationsReadErrors, PostNotificationsReadResponses, PostOffersByIdAcceptanceData, PostOffersByIdAcceptanceErrors, PostOffersByIdAcceptanceResponses, PostOffersByIdCheckoutData, PostOffersByIdCheckoutErrors, PostOffersByIdCheckoutResponses, PostOffersData, PostOffersErrors, PostOffersResponses, PostOrdersByIdCancellationData, PostOrdersByIdCancellationErrors, PostOrdersByIdCancellationResponses, PostOrdersByIdReceiptData, PostOrdersByIdReceiptErrors, PostOrdersByIdReceiptResponses, PostOrdersByIdRefundsData, PostOrdersByIdRefundsErrors, PostOrdersByIdRefundsResponses, PostOrdersByIdTransportCheckpointsData, PostOrdersByIdTransportCheckpointsErrors, PostOrdersByIdTransportCheckpointsResponses, PostOrdersByOrderIdFeedbackData, PostOrdersByOrderIdFeedbackErrors, PostOrdersByOrderIdFeedbackResponses, PostOrdersUploadsByIdConfirmationData, PostOrdersUploadsByIdConfirmationErrors, PostOrdersUploadsByIdConfirmationResponses, PostOrdersUploadsData, PostOrdersUploadsErrors, PostOrdersUploadsResponses, PostPasswordResetRequestsData, PostPasswordResetRequestsErrors, PostPasswordResetRequestsResponses, PostPasswordResetsData, PostPasswordResetsErrors, PostPasswordResetsResponses, PostPaymentSessionsByIdCancellationData, PostPaymentSessionsByIdCancellationErrors, PostPaymentSessionsByIdCancellationResponses, PostPaymentSessionsByIdPaymentsData, PostPaymentSessionsByIdPaymentsErrors, PostPaymentSessionsByIdPaymentsResponses, PostRefundsByIdAcceptanceData, PostRefundsByIdAcceptanceErrors, PostRefundsByIdAcceptanceResponses, PostRefundsByIdAttachmentsData, PostRefundsByIdAttachmentsErrors, PostRefundsByIdAttachmentsResponses, PostRefundsByIdDisputeData, PostRefundsByIdDisputeErrors, PostRefundsByIdDisputeResponses, PostRefundsByIdRejectionData, PostRefundsByIdRejectionErrors, PostRefundsByIdRejectionResponses, PostRefundsByIdReturnTransportCheckpointsData, PostRefundsByIdReturnTransportCheckpointsErrors, PostRefundsByIdReturnTransportCheckpointsResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses, PostReportsData, PostReportsErrors, PostReportsResponses, PostReviewsByIdRepliesData, PostReviewsByIdRepliesErrors, PostReviewsByIdRepliesResponses, PostReviewsUploadsByIdConfirmationData, PostReviewsUploadsByIdConfirmationErrors, PostReviewsUploadsByIdConfirmationResponses, PostReviewsUploadsData, PostReviewsUploadsErrors, PostReviewsUploadsResponses, PostShippingQuotesData, PostShippingQuotesErrors, PostShippingQuotesResponses, PostTokenRefreshData, PostTokenRefreshErrors, PostTokenRefreshResponses, PostWithdrawalsData, PostWithdrawalsErrors, PostWithdrawalsResponses, PutAdminTagsBySlugData, PutAdminTagsBySlugErrors, PutAdminTagsBySlugResponses, PutDevicesData, PutDevicesErrors, PutDevicesResponses, PutFavoritesByListingIdData, PutFavoritesByListingIdErrors, PutFavoritesByListingIdResponses, PutFollowsByAccountIdData, PutFollowsByAccountIdErrors, PutFollowsByAccountIdResponses, PutNotificationPreferencesData, PutNotificationPreferencesErrors, PutNotificationPreferencesResponses, PutPasswordData, PutPasswordErrors, PutPasswordResponses, PutReviewsByIdVoteData, PutReviewsByIdVoteErrors, PutReviewsByIdVoteResponses, PutTaxInfoData, PutTaxInfoErrors, PutTaxInfoResponses } from './types.gen';
+import type { CreateWebSocketTicketData, CreateWebSocketTicketErrors, CreateWebSocketTicketResponses, DeleteAdminAccountsByIdSuspensionData, DeleteAdminAccountsByIdSuspensionErrors, DeleteAdminAccountsByIdSuspensionResponses, DeleteAdminCategoriesByIdData, DeleteAdminCategoriesByIdErrors, DeleteAdminCategoriesByIdResponses, DeleteAdminModeratorsByIdData, DeleteAdminModeratorsByIdErrors, DeleteAdminModeratorsByIdResponses, DeleteAdminTagsBySlugData, DeleteAdminTagsBySlugErrors, DeleteAdminTagsBySlugResponses, DeleteBankAccountsByIdData, DeleteBankAccountsByIdErrors, DeleteBankAccountsByIdResponses, DeleteCartItemsByIdData, DeleteCartItemsByIdErrors, DeleteCartItemsByIdResponses, DeleteContactsByIdData, DeleteContactsByIdErrors, DeleteContactsByIdResponses, DeleteDevicesByIdData, DeleteDevicesByIdErrors, DeleteDevicesByIdResponses, DeleteDraftsByIdData, DeleteDraftsByIdErrors, DeleteDraftsByIdResponses, DeleteFavoritesByListingIdData, DeleteFavoritesByListingIdErrors, DeleteFavoritesByListingIdResponses, DeleteFollowsByAccountIdData, DeleteFollowsByAccountIdErrors, DeleteFollowsByAccountIdResponses, DeleteListingsByIdData, DeleteListingsByIdErrors, DeleteListingsByIdPublicationData, DeleteListingsByIdPublicationErrors, DeleteListingsByIdPublicationResponses, DeleteListingsByIdResponses, DeleteMeOauthIdentitiesByProviderData, DeleteMeOauthIdentitiesByProviderErrors, DeleteMeOauthIdentitiesByProviderResponses, DeleteMessagesByIdData, DeleteMessagesByIdErrors, DeleteMessagesByIdResponses, DeleteOffersByIdData, DeleteOffersByIdErrors, DeleteOffersByIdResponses, DeleteRefundsByIdData, DeleteRefundsByIdErrors, DeleteRefundsByIdResponses, DeleteReviewRepliesByIdData, DeleteReviewRepliesByIdErrors, DeleteReviewRepliesByIdResponses, DeleteReviewsByIdData, DeleteReviewsByIdErrors, DeleteReviewsByIdResponses, DeleteReviewsByIdVoteData, DeleteReviewsByIdVoteErrors, DeleteReviewsByIdVoteResponses, DeleteVariantsByIdData, DeleteVariantsByIdErrors, DeleteVariantsByIdResponses, DeleteWithdrawalsByIdData, DeleteWithdrawalsByIdErrors, DeleteWithdrawalsByIdResponses, GetAccountsByAccountIdFeedbackData, GetAccountsByAccountIdFeedbackErrors, GetAccountsByAccountIdFeedbackResponses, GetAccountsByAccountIdReputationData, GetAccountsByAccountIdReputationErrors, GetAccountsByAccountIdReputationResponses, GetAccountsByIdData, GetAccountsByIdErrors, GetAccountsByIdFollowersData, GetAccountsByIdFollowersErrors, GetAccountsByIdFollowersResponses, GetAccountsByIdResponses, GetAdminAccountsData, GetAdminAccountsErrors, GetAdminAccountsResponses, GetAdminIdentityDocumentsData, GetAdminIdentityDocumentsErrors, GetAdminIdentityDocumentsResponses, GetAdminListingsData, GetAdminListingsErrors, GetAdminListingsResponses, GetAdminPaymentSessionsData, GetAdminPaymentSessionsErrors, GetAdminPaymentSessionsResponses, GetAdminTicketsByIdData, GetAdminTicketsByIdErrors, GetAdminTicketsByIdResponses, GetAdminTicketsData, GetAdminTicketsErrors, GetAdminTicketsResponses, GetAdminWalletsByAccountIdData, GetAdminWalletsByAccountIdErrors, GetAdminWalletsByAccountIdResponses, GetAdminWithdrawalsData, GetAdminWithdrawalsErrors, GetAdminWithdrawalsResponses, GetBankAccountsData, GetBankAccountsErrors, GetBankAccountsResponses, GetCartItemsData, GetCartItemsErrors, GetCartItemsResponses, GetCategoriesData, GetCategoriesErrors, GetCategoriesResponses, GetContactsData, GetContactsErrors, GetContactsResponses, GetConversationsByIdData, GetConversationsByIdErrors, GetConversationsByIdMessagesData, GetConversationsByIdMessagesErrors, GetConversationsByIdMessagesResponses, GetConversationsByIdResponses, GetConversationsData, GetConversationsErrors, GetConversationsResponses, GetConversationsUnreadCountData, GetConversationsUnreadCountErrors, GetConversationsUnreadCountResponses, GetDraftsByIdData, GetDraftsByIdErrors, GetDraftsByIdResponses, GetDraftsData, GetDraftsErrors, GetDraftsResponses, GetItemsData, GetItemsErrors, GetItemsResponses, GetListingsByIdData, GetListingsByIdErrors, GetListingsByIdResponses, GetListingsByListingIdReviewsData, GetListingsByListingIdReviewsErrors, GetListingsByListingIdReviewsResponses, GetListingsData, GetListingsErrors, GetListingsResponses, GetMeData, GetMeDevicesData, GetMeDevicesErrors, GetMeDevicesResponses, GetMeErrors, GetMeFollowingData, GetMeFollowingErrors, GetMeFollowingResponses, GetMeIdentityDocumentsData, GetMeIdentityDocumentsErrors, GetMeIdentityDocumentsResponses, GetMeOauthIdentitiesData, GetMeOauthIdentitiesErrors, GetMeOauthIdentitiesResponses, GetMeResponses, GetNotificationPreferencesData, GetNotificationPreferencesErrors, GetNotificationPreferencesResponses, GetNotificationsData, GetNotificationsErrors, GetNotificationsResponses, GetNotificationsUnreadCountData, GetNotificationsUnreadCountErrors, GetNotificationsUnreadCountResponses, GetOffersByIdData, GetOffersByIdErrors, GetOffersByIdResponses, GetOffersData, GetOffersErrors, GetOffersResponses, GetOrdersByIdData, GetOrdersByIdErrors, GetOrdersByIdResponses, GetOrdersByIdTransportData, GetOrdersByIdTransportErrors, GetOrdersByIdTransportResponses, GetOrdersByOrderIdFeedbackData, GetOrdersByOrderIdFeedbackErrors, GetOrdersByOrderIdFeedbackResponses, GetOrdersData, GetOrdersErrors, GetOrdersResponses, GetPaymentSessionsByIdData, GetPaymentSessionsByIdErrors, GetPaymentSessionsByIdResponses, GetPaymentSessionsByIdTransactionsData, GetPaymentSessionsByIdTransactionsErrors, GetPaymentSessionsByIdTransactionsResponses, GetPaymentSessionsData, GetPaymentSessionsErrors, GetPaymentSessionsResponses, GetRefundsByIdData, GetRefundsByIdErrors, GetRefundsByIdResponses, GetRefundsData, GetRefundsErrors, GetRefundsResponses, GetReviewsByIdData, GetReviewsByIdErrors, GetReviewsByIdResponses, GetTagsData, GetTagsErrors, GetTagsResponses, GetTaxInfoData, GetTaxInfoErrors, GetTaxInfoResponses, GetTicketsByIdData, GetTicketsByIdErrors, GetTicketsByIdResponses, GetTicketsData, GetTicketsErrors, GetTicketsResponses, GetWalletsByCurrencyData, GetWalletsByCurrencyErrors, GetWalletsByCurrencyResponses, GetWalletsByCurrencyTransactionsData, GetWalletsByCurrencyTransactionsErrors, GetWalletsByCurrencyTransactionsResponses, GetWalletsData, GetWalletsErrors, GetWalletsResponses, GetWithdrawalsByIdData, GetWithdrawalsByIdErrors, GetWithdrawalsByIdResponses, GetWithdrawalsData, GetWithdrawalsErrors, GetWithdrawalsResponses, PatchAdminCategoriesByIdData, PatchAdminCategoriesByIdErrors, PatchAdminCategoriesByIdResponses, PatchBankAccountsByIdData, PatchBankAccountsByIdErrors, PatchBankAccountsByIdResponses, PatchCartItemsByIdData, PatchCartItemsByIdErrors, PatchCartItemsByIdResponses, PatchContactsByIdData, PatchContactsByIdErrors, PatchContactsByIdResponses, PatchListingsByIdData, PatchListingsByIdErrors, PatchListingsByIdResponses, PatchMeData, PatchMeErrors, PatchMeProfileData, PatchMeProfileErrors, PatchMeProfileResponses, PatchMeResponses, PatchMessagesByIdData, PatchMessagesByIdErrors, PatchMessagesByIdResponses, PatchOffersByIdData, PatchOffersByIdErrors, PatchOffersByIdResponses, PatchReviewsByIdData, PatchReviewsByIdErrors, PatchReviewsByIdResponses, PatchVariantsByIdData, PatchVariantsByIdErrors, PatchVariantsByIdResponses, PostAdminAccountsByIdSuspensionData, PostAdminAccountsByIdSuspensionErrors, PostAdminAccountsByIdSuspensionResponses, PostAdminCategoriesData, PostAdminCategoriesErrors, PostAdminCategoriesResponses, PostAdminIdentityDocumentsByIdVerdictData, PostAdminIdentityDocumentsByIdVerdictErrors, PostAdminIdentityDocumentsByIdVerdictResponses, PostAdminListingsByIdApprovalData, PostAdminListingsByIdApprovalErrors, PostAdminListingsByIdApprovalResponses, PostAdminListingsByIdTakedownData, PostAdminListingsByIdTakedownErrors, PostAdminListingsByIdTakedownResponses, PostAdminModeratorsData, PostAdminModeratorsErrors, PostAdminModeratorsResponses, PostAdminRefundsByIdVerdictData, PostAdminRefundsByIdVerdictErrors, PostAdminRefundsByIdVerdictResponses, PostAdminTaxInfoByAccountIdVerificationData, PostAdminTaxInfoByAccountIdVerificationErrors, PostAdminTaxInfoByAccountIdVerificationResponses, PostAdminTicketsByIdClaimData, PostAdminTicketsByIdClaimErrors, PostAdminTicketsByIdClaimResponses, PostAdminTicketsByIdResolutionData, PostAdminTicketsByIdResolutionErrors, PostAdminTicketsByIdResolutionResponses, PostAdminWalletsByAccountIdAdjustmentsData, PostAdminWalletsByAccountIdAdjustmentsErrors, PostAdminWalletsByAccountIdAdjustmentsResponses, PostAdminWithdrawalsByIdApprovalData, PostAdminWithdrawalsByIdApprovalErrors, PostAdminWithdrawalsByIdApprovalResponses, PostAdminWithdrawalsByIdRejectionData, PostAdminWithdrawalsByIdRejectionErrors, PostAdminWithdrawalsByIdRejectionResponses, PostBankAccountsData, PostBankAccountsErrors, PostBankAccountsResponses, PostCartItemsData, PostCartItemsErrors, PostCartItemsResponses, PostContactsByIdPhoneVerificationRequestsData, PostContactsByIdPhoneVerificationRequestsErrors, PostContactsByIdPhoneVerificationRequestsResponses, PostContactsByIdPhoneVerificationsData, PostContactsByIdPhoneVerificationsErrors, PostContactsByIdPhoneVerificationsResponses, PostContactsData, PostContactsErrors, PostContactsResponses, PostConversationsByIdMessagesData, PostConversationsByIdMessagesErrors, PostConversationsByIdMessagesResponses, PostConversationsByIdReadData, PostConversationsByIdReadErrors, PostConversationsByIdReadResponses, PostConversationsData, PostConversationsErrors, PostConversationsResponses, PostConversationsUploadsByIdConfirmationData, PostConversationsUploadsByIdConfirmationErrors, PostConversationsUploadsByIdConfirmationResponses, PostConversationsUploadsData, PostConversationsUploadsErrors, PostConversationsUploadsResponses, PostDraftsByIdCheckoutData, PostDraftsByIdCheckoutErrors, PostDraftsByIdCheckoutResponses, PostDraftsData, PostDraftsErrors, PostDraftsResponses, PostEmailVerificationRequestsData, PostEmailVerificationRequestsErrors, PostEmailVerificationRequestsResponses, PostEmailVerificationsData, PostEmailVerificationsErrors, PostEmailVerificationsResponses, PostIdentityDocumentsData, PostIdentityDocumentsErrors, PostIdentityDocumentsResponses, PostItemsByIdCancellationData, PostItemsByIdCancellationErrors, PostItemsByIdCancellationResponses, PostListingsByIdPublicationData, PostListingsByIdPublicationErrors, PostListingsByIdPublicationResponses, PostListingsByIdVariantsData, PostListingsByIdVariantsErrors, PostListingsByIdVariantsResponses, PostListingsByListingIdReviewsData, PostListingsByListingIdReviewsErrors, PostListingsByListingIdReviewsResponses, PostListingsData, PostListingsErrors, PostListingsResponses, PostListingsSuggestionsData, PostListingsSuggestionsErrors, PostListingsSuggestionsResponses, PostListingsUploadsByIdConfirmationData, PostListingsUploadsByIdConfirmationErrors, PostListingsUploadsByIdConfirmationResponses, PostListingsUploadsData, PostListingsUploadsErrors, PostListingsUploadsResponses, PostLoginData, PostLoginErrors, PostLoginOauthData, PostLoginOauthErrors, PostLoginOauthResponses, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostMeUploadsByIdConfirmationData, PostMeUploadsByIdConfirmationErrors, PostMeUploadsByIdConfirmationResponses, PostMeUploadsData, PostMeUploadsErrors, PostMeUploadsResponses, PostNotificationsReadData, PostNotificationsReadErrors, PostNotificationsReadResponses, PostOffersByIdAcceptanceData, PostOffersByIdAcceptanceErrors, PostOffersByIdAcceptanceResponses, PostOffersByIdCheckoutData, PostOffersByIdCheckoutErrors, PostOffersByIdCheckoutResponses, PostOffersData, PostOffersErrors, PostOffersResponses, PostOrdersByIdCancellationData, PostOrdersByIdCancellationErrors, PostOrdersByIdCancellationResponses, PostOrdersByIdReceiptData, PostOrdersByIdReceiptErrors, PostOrdersByIdReceiptResponses, PostOrdersByIdRefundsData, PostOrdersByIdRefundsErrors, PostOrdersByIdRefundsResponses, PostOrdersByIdTransportCheckpointsData, PostOrdersByIdTransportCheckpointsErrors, PostOrdersByIdTransportCheckpointsResponses, PostOrdersByOrderIdFeedbackData, PostOrdersByOrderIdFeedbackErrors, PostOrdersByOrderIdFeedbackResponses, PostOrdersUploadsByIdConfirmationData, PostOrdersUploadsByIdConfirmationErrors, PostOrdersUploadsByIdConfirmationResponses, PostOrdersUploadsData, PostOrdersUploadsErrors, PostOrdersUploadsResponses, PostPasswordResetRequestsData, PostPasswordResetRequestsErrors, PostPasswordResetRequestsResponses, PostPasswordResetsData, PostPasswordResetsErrors, PostPasswordResetsResponses, PostPaymentSessionsByIdCancellationData, PostPaymentSessionsByIdCancellationErrors, PostPaymentSessionsByIdCancellationResponses, PostPaymentSessionsByIdPaymentsData, PostPaymentSessionsByIdPaymentsErrors, PostPaymentSessionsByIdPaymentsResponses, PostRefundsByIdAcceptanceData, PostRefundsByIdAcceptanceErrors, PostRefundsByIdAcceptanceResponses, PostRefundsByIdAttachmentsData, PostRefundsByIdAttachmentsErrors, PostRefundsByIdAttachmentsResponses, PostRefundsByIdRejectionData, PostRefundsByIdRejectionErrors, PostRefundsByIdRejectionResponses, PostRefundsByIdReturnTransportCheckpointsData, PostRefundsByIdReturnTransportCheckpointsErrors, PostRefundsByIdReturnTransportCheckpointsResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses, PostReviewsByIdRepliesData, PostReviewsByIdRepliesErrors, PostReviewsByIdRepliesResponses, PostReviewsUploadsByIdConfirmationData, PostReviewsUploadsByIdConfirmationErrors, PostReviewsUploadsByIdConfirmationResponses, PostReviewsUploadsData, PostReviewsUploadsErrors, PostReviewsUploadsResponses, PostShippingQuotesData, PostShippingQuotesErrors, PostShippingQuotesResponses, PostTicketsData, PostTicketsErrors, PostTicketsResponses, PostTokenRefreshData, PostTokenRefreshErrors, PostTokenRefreshResponses, PostWithdrawalsData, PostWithdrawalsErrors, PostWithdrawalsResponses, PutAdminTagsBySlugData, PutAdminTagsBySlugErrors, PutAdminTagsBySlugResponses, PutDevicesData, PutDevicesErrors, PutDevicesResponses, PutFavoritesByListingIdData, PutFavoritesByListingIdErrors, PutFavoritesByListingIdResponses, PutFollowsByAccountIdData, PutFollowsByAccountIdErrors, PutFollowsByAccountIdResponses, PutNotificationPreferencesData, PutNotificationPreferencesErrors, PutNotificationPreferencesResponses, PutPasswordData, PutPasswordErrors, PutPasswordResponses, PutReviewsByIdVoteData, PutReviewsByIdVoteErrors, PutReviewsByIdVoteResponses, PutTaxInfoData, PutTaxInfoErrors, PutTaxInfoResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -126,42 +126,6 @@ export const patchAdminCategoriesById = <ThrowOnError extends boolean = false>(o
 });
 
 /**
- * The moderator's dispute queue
- *
- * Open rounds, oldest first, which is the order they should be worked. A round names the refund it is about; the case itself is read through `GET /refunds/{id}`.
- *
- */
-export const getAdminDisputes = <ThrowOnError extends boolean = false>(options?: Options<GetAdminDisputesData, ThrowOnError>): RequestResult<GetAdminDisputesResponses, GetAdminDisputesErrors, ThrowOnError> => (options?.client ?? client).get<GetAdminDisputesResponses, GetAdminDisputesErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/disputes',
-    ...options
-});
-
-/**
- * Rule on the open round of a dispute (moderator)
- *
- * Decided on whose evidence is more convincing. What a verdict does depends on the round, and the round is a property of the case rather than something the moderator picks:
- *
- * Round 1 — `buyer_wins: true` grants the refund and books the return shipment, so the money is not released yet; `false` ends the refund and lets the payout stand.
- *
- * Round 2, the seller's appeal on what arrived — `buyer_wins: false` upholds it, ends the refund and lets the payout stand; `true` denies it, so the escrow goes back to the buyer and the order closes with it.
- *
- * The money moves before either row is written, and the verdict and the refund it moved are written together: a ruled round over a case still `disputed` is a state nothing can get out of, and a settled refund over an order the payout can still see is money paid twice.
- *
- * There is no third round. Round 2 is where an appeal already lives, so a ruling on it is final.
- *
- */
-export const postAdminDisputesByIdRuling = <ThrowOnError extends boolean = false>(options: Options<PostAdminDisputesByIdRulingData, ThrowOnError>): RequestResult<PostAdminDisputesByIdRulingResponses, PostAdminDisputesByIdRulingErrors, ThrowOnError> => (options.client ?? client).post<PostAdminDisputesByIdRulingResponses, PostAdminDisputesByIdRulingErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/disputes/{id}/ruling',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * The identity review queue
  */
 export const getAdminIdentityDocuments = <ThrowOnError extends boolean = false>(options?: Options<GetAdminIdentityDocumentsData, ThrowOnError>): RequestResult<GetAdminIdentityDocumentsResponses, GetAdminIdentityDocumentsErrors, ThrowOnError> => (options?.client ?? client).get<GetAdminIdentityDocumentsResponses, GetAdminIdentityDocumentsErrors, ThrowOnError>({
@@ -268,51 +232,18 @@ export const getAdminPaymentSessions = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * The report queue
+ * Decide a refund staff were asked about (moderator)
  *
- * Defaults to the open and under-review ones, oldest first — that is the small hot slice the queue is worked from, and the index behind it covers exactly that predicate.
+ * The refund has to be `disputed`, which is what a party escalating through trust set it to. There are no rounds: whether the goods have already come back is what a verdict reads to know which of the two situations it is in.
  *
- */
-export const getAdminReports = <ThrowOnError extends boolean = false>(options?: Options<GetAdminReportsData, ThrowOnError>): RequestResult<GetAdminReportsResponses, GetAdminReportsErrors, ThrowOnError> => (options?.client ?? client).get<GetAdminReportsResponses, GetAdminReportsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/reports',
-    ...options
-});
-
-/**
- * Read a report with its target
+ * `buyer_wins: true` with the goods still at the buyer's grants the refund and books the return shipment, so the money is not released yet. `buyer_wins: true` once the return has been delivered sends the escrow back to the buyer and closes the order with it. `buyer_wins: false` ends the refund either way, and the payout to the seller stands.
  *
- * Includes the reported content itself and how many other open reports name the same target, since a moderator decides on the pattern and not one complaint.
+ * The money moves before the refund goes terminal, and the refund and the order it closes are written together: a settled refund over an order the payout can still see is money paid twice.
  *
  */
-export const getAdminReportsById = <ThrowOnError extends boolean = false>(options: Options<GetAdminReportsByIdData, ThrowOnError>): RequestResult<GetAdminReportsByIdResponses, GetAdminReportsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetAdminReportsByIdResponses, GetAdminReportsByIdErrors, ThrowOnError>({
+export const postAdminRefundsByIdVerdict = <ThrowOnError extends boolean = false>(options: Options<PostAdminRefundsByIdVerdictData, ThrowOnError>): RequestResult<PostAdminRefundsByIdVerdictResponses, PostAdminRefundsByIdVerdictErrors, ThrowOnError> => (options.client ?? client).post<PostAdminRefundsByIdVerdictResponses, PostAdminRefundsByIdVerdictErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/reports/{id}',
-    ...options
-});
-
-/**
- * Take a report for review
- *
- * Moves it out of the open queue so two moderators do not work the same case.
- */
-export const postAdminReportsByIdClaim = <ThrowOnError extends boolean = false>(options: Options<PostAdminReportsByIdClaimData, ThrowOnError>): RequestResult<PostAdminReportsByIdClaimResponses, PostAdminReportsByIdClaimErrors, ThrowOnError> => (options.client ?? client).post<PostAdminReportsByIdClaimResponses, PostAdminReportsByIdClaimErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/reports/{id}/claim',
-    ...options
-});
-
-/**
- * Resolve a report
- *
- * Records the verdict and what was done about it. `dismissed` takes the action `none`; upholding it names the action instead — the listing was removed, the message was removed, the account was suspended, a warning was issued.
- *
- * Recording the action here does not carry it out. Taking a listing down and suspending a seller are separate calls to the modules that own them, so the decision and its effects each stay where they can be audited.
- *
- */
-export const postAdminReportsByIdResolution = <ThrowOnError extends boolean = false>(options: Options<PostAdminReportsByIdResolutionData, ThrowOnError>): RequestResult<PostAdminReportsByIdResolutionResponses, PostAdminReportsByIdResolutionErrors, ThrowOnError> => (options.client ?? client).post<PostAdminReportsByIdResolutionResponses, PostAdminReportsByIdResolutionErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/reports/{id}/resolution',
+    url: '/admin/refunds/{id}/verdict',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -353,6 +284,62 @@ export const putAdminTagsBySlug = <ThrowOnError extends boolean = false>(options
 export const postAdminTaxInfoByAccountIdVerification = <ThrowOnError extends boolean = false>(options: Options<PostAdminTaxInfoByAccountIdVerificationData, ThrowOnError>): RequestResult<PostAdminTaxInfoByAccountIdVerificationResponses, PostAdminTaxInfoByAccountIdVerificationErrors, ThrowOnError> => (options.client ?? client).post<PostAdminTaxInfoByAccountIdVerificationResponses, PostAdminTaxInfoByAccountIdVerificationErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/admin/tax-info/{accountID}/verification',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * The ticket queue
+ *
+ * Defaults to the open and under-review ones, oldest first — that is the small hot slice the queue is worked from, and the index behind it covers exactly that predicate.
+ *
+ */
+export const getAdminTickets = <ThrowOnError extends boolean = false>(options?: Options<GetAdminTicketsData, ThrowOnError>): RequestResult<GetAdminTicketsResponses, GetAdminTicketsErrors, ThrowOnError> => (options?.client ?? client).get<GetAdminTicketsResponses, GetAdminTicketsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/tickets',
+    ...options
+});
+
+/**
+ * Read a ticket with what it is about
+ *
+ * Includes the thing itself and how many other open tickets name the same target, since a moderator decides on the pattern and not one complaint.
+ *
+ */
+export const getAdminTicketsById = <ThrowOnError extends boolean = false>(options: Options<GetAdminTicketsByIdData, ThrowOnError>): RequestResult<GetAdminTicketsByIdResponses, GetAdminTicketsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetAdminTicketsByIdResponses, GetAdminTicketsByIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/tickets/{id}',
+    ...options
+});
+
+/**
+ * Take a ticket for review
+ *
+ * Moves it out of the open queue so two moderators do not work the same case. The requester is never told who claimed it: support answers as the desk, so a decision is the platform's and not a named person's to be argued with afterwards.
+ *
+ */
+export const postAdminTicketsByIdClaim = <ThrowOnError extends boolean = false>(options: Options<PostAdminTicketsByIdClaimData, ThrowOnError>): RequestResult<PostAdminTicketsByIdClaimResponses, PostAdminTicketsByIdClaimErrors, ThrowOnError> => (options.client ?? client).post<PostAdminTicketsByIdClaimResponses, PostAdminTicketsByIdClaimErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/tickets/{id}/claim',
+    ...options
+});
+
+/**
+ * Resolve a ticket
+ *
+ * Records the verdict and what was done about it. `none` is the turn-down — read, answered, nothing done — which is why it is an action rather than a second status.
+ *
+ * Recording the action here does not carry it out. Taking a listing down and suspending a seller are separate calls to the modules that own them, so the decision and its effects each stay where they can be audited. A `refund-dispute` is the case where that separation is absolute: its verdict moves money, so it is made by `POST /admin/refunds/{id}/verdict` and this route answers 409 for one — closing it by hand would mark a case settled with the escrow untouched.
+ *
+ * Whatever staff want the requester to read goes in the ticket's thread as an ordinary message. `note` is the record kept beside the verdict.
+ *
+ */
+export const postAdminTicketsByIdResolution = <ThrowOnError extends boolean = false>(options: Options<PostAdminTicketsByIdResolutionData, ThrowOnError>): RequestResult<PostAdminTicketsByIdResolutionResponses, PostAdminTicketsByIdResolutionErrors, ThrowOnError> => (options.client ?? client).post<PostAdminTicketsByIdResolutionResponses, PostAdminTicketsByIdResolutionErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/tickets/{id}/resolution',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -786,7 +773,7 @@ export const getDrafts = <ThrowOnError extends boolean = false>(options?: Option
  *
  * Freezes the listing terms so a price the seller edits afterwards cannot be charged. The server snapshots the listing together with every variant — price and package details live on the variant, and those are exactly what must not move under the buyer — and sets `valid_until`.
  *
- * Only a `fixed` listing has one: a `negotiable` price is agreed in an offer, and the accepted offer is what freezes its terms instead. Asking for one is 422.
+ * Every listing has one, whichever way it is priced. A `negotiable` listing carries the seller's asking price like any other, and a buyer who does not want to haggle takes it: the listing page offers both, and this is the "buy now" half. Negotiating instead freezes the agreed terms in the offer, and `POST /offers/{id}/checkout` is the same checkout from there.
  *
  */
 export const postDrafts = <ThrowOnError extends boolean = false>(options: Options<PostDraftsData, ThrowOnError>): RequestResult<PostDraftsResponses, PostDraftsErrors, ThrowOnError> => (options.client ?? client).post<PostDraftsResponses, PostDraftsErrors, ThrowOnError>({
@@ -826,7 +813,7 @@ export const getDraftsById = <ThrowOnError extends boolean = false>(options: Opt
  *
  * The session is spent before the money is asked for: the claim is what makes two concurrent checkouts of one draft impossible, and the loser is answered 409 rather than handed a second payment session for the same frozen price.
  *
- * A `negotiable` listing has no draft at all, so there is nothing to check out here — its terms are frozen by the offer both sides agreed on, and `POST /offers/{id}/checkout` is the same checkout from there. The buyer pays delivery either way.
+ * This is the checkout for terms a draft froze — the seller's own price, whether the listing is `fixed` or `negotiable`. Terms that were *negotiated* are checked out at `POST /offers/{id}/checkout` instead, which is the same flow against the agreed price. The buyer pays delivery either way.
  *
  */
 export const postDraftsByIdCheckout = <ThrowOnError extends boolean = false>(options: Options<PostDraftsByIdCheckoutData, ThrowOnError>): RequestResult<PostDraftsByIdCheckoutResponses, PostDraftsByIdCheckoutErrors, ThrowOnError> => (options.client ?? client).post<PostDraftsByIdCheckoutResponses, PostDraftsByIdCheckoutErrors, ThrowOnError>({
@@ -965,6 +952,8 @@ export const postItemsByIdCancellation = <ThrowOnError extends boolean = false>(
  *
  * `ids` resolves a known set, which is how a cart or an order list renders the listings behind its rows. It ignores every other filter and answers for hidden and soft-deleted listings too, because an order that references one still has to display it; `deleted_at` says which. Listings that were never public (`draft`, `pending`) stay out unless they are the caller's own.
  *
+ * Location is a C2C buyer's first filter — collecting in person, or just trusting a seller two districts away over one across the country. It is the seller's pickup address as the listing snapshotted it when they published, so it is the same address a carrier collects from, and it never moves under a listing that has already sold. `province_code`/`district_code`/ `ward_code` filter on it; `lat`+`lon` or `near_contact_id` measure from where the buyer is, `radius_km` bounds the result and `sort=distance` orders by it.
+ *
  * `price-asc` and `price-desc` are answered through the SKU price index rather than a value cached on the listing, so `price` is the cheapest matching variant's. `best-selling` is the one that cannot work that way — it orders by a sum over the variants, and a sum has no per-SKU index to scan in order — so it reads `cached_sold` on the listing, maintained with the sales it counts.
  *
  */
@@ -1056,11 +1045,17 @@ export const deleteListingsByIdPublication = <ThrowOnError extends boolean = fal
  *
  * An automatic prohibited-goods scan still runs — it orders the queue and flags what to look at first, it does not clear anything.
  *
+ * This is also where the listing gets its location: `pickup_contact_id` names which of the seller's own saved addresses a carrier collects from, and omitting it means their default pickup address. A seller with neither is refused with 422 rather than left with a live listing every checkout fails on — the address is both where a carrier goes and how buyers find the listing, so it is taken now and frozen onto the row.
+ *
  */
 export const postListingsByIdPublication = <ThrowOnError extends boolean = false>(options: Options<PostListingsByIdPublicationData, ThrowOnError>): RequestResult<PostListingsByIdPublicationResponses, PostListingsByIdPublicationErrors, ThrowOnError> => (options.client ?? client).post<PostListingsByIdPublicationResponses, PostListingsByIdPublicationErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/listings/{id}/publication',
-    ...options
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**
@@ -1100,6 +1095,26 @@ export const getListingsByListingIdReviews = <ThrowOnError extends boolean = fal
 export const postListingsByListingIdReviews = <ThrowOnError extends boolean = false>(options: Options<PostListingsByListingIdReviewsData, ThrowOnError>): RequestResult<PostListingsByListingIdReviewsResponses, PostListingsByListingIdReviewsErrors, ThrowOnError> => (options.client ?? client).post<PostListingsByListingIdReviewsResponses, PostListingsByListingIdReviewsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/listings/{listingID}/reviews',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Fill in a listing from photos and what the seller said
+ *
+ * "Photo in, listing out": the seller snaps the item, says a sentence about it, and gets a filled-in form back. One synchronous call — the client shows the form as a skeleton and fills it from the answer.
+ *
+ * Nothing is stored. This route writes no listing and no draft: the answer is a *suggestion*, the seller corrects what they disagree with, and `POST /listings` is still how a listing comes into existence. That is deliberate — a route that posted for them would make a model the author of claims about somebody else's goods, its condition and its price, and there is no version of that a marketplace can stand behind. An abandoned attempt leaves nothing behind either.
+ *
+ * Send at least one of `attachments`, `note` or `voice_note`. Photos are ordinary confirmed uploads (`POST /listings/uploads`), so the client can be uploading them while the seller is still talking; the first three are what the model reads. The voice note travels inline rather than as an upload because it is input and not content — nothing keeps it. Every field of the answer is optional except `name`: one the model could not stand behind comes back empty, and a blank box the seller fills beats a wrong value they have to notice. `price` is only ever a number the seller said out loud, never an estimate.
+ *
+ */
+export const postListingsSuggestions = <ThrowOnError extends boolean = false>(options: Options<PostListingsSuggestionsData, ThrowOnError>): RequestResult<PostListingsSuggestionsResponses, PostListingsSuggestionsErrors, ThrowOnError> => (options.client ?? client).post<PostListingsSuggestionsResponses, PostListingsSuggestionsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/listings/suggestions',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -1525,7 +1540,7 @@ export const postOrdersByIdCancellation = <ThrowOnError extends boolean = false>
 /**
  * Confirm receipt of the goods (buyer)
  *
- * The buyer confirms delivery and attaches unboxing evidence — at least one photo or video is mandatory, because this evidence is what a later refund or dispute is judged on. Sets `received_at` and starts the 72-hour payout countdown in `payout_deadline_at`.
+ * The buyer confirms delivery and attaches unboxing evidence — at least one photo or video is mandatory, because this evidence is what a later refund is judged on. Sets `received_at` and starts the 72-hour payout countdown in `payout_deadline_at`.
  *
  * Confirming twice is a conflict rather than a no-op: a retried upload must not be able to restart the clock and move the payout date.
  *
@@ -1764,7 +1779,7 @@ export const getRefunds = <ThrowOnError extends boolean = false>(options: Option
 /**
  * Withdraw a refund request (buyer)
  *
- * Only while the seller has not decided. Once anything has moved — a decision, a moderator, a parcel — the case is closed by ruling, not by walking away from it.
+ * Only while the seller has not decided. Once anything has moved — a decision, an escalation, a parcel — the case is closed by a verdict, not by walking away from it.
  *
  * The case ends as `cancelled`, which gives the escrow back up: the payout becomes the seller's again.
  *
@@ -1778,7 +1793,7 @@ export const deleteRefundsById = <ThrowOnError extends boolean = false>(options:
 /**
  * Read a refund and its case
  *
- * The case: `deadline_at` for whoever is on the clock, and the facts each stage recorded. The rounds a moderator has seen are the queue's to list — a party sees the verdict in the status the case ended up in.
+ * The case: `deadline_at` for whoever is on the clock, and the facts each stage recorded. A party sees a staff verdict in the status the case ended up in.
  *
  */
 export const getRefundsById = <ThrowOnError extends boolean = false>(options: Options<GetRefundsByIdData, ThrowOnError>): RequestResult<GetRefundsByIdResponses, GetRefundsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetRefundsByIdResponses, GetRefundsByIdErrors, ThrowOnError>({
@@ -1790,7 +1805,7 @@ export const getRefundsById = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Accept a refund (seller)
  *
- * Grants it without a moderator. The goods have to come back first, so this books the return shipment on the same carrier as the outbound leg and moves the refund to `returning`; the money goes back once that leg is delivered and the seller has not appealed it. No body — there is nothing left to choose.
+ * Grants it without staff. The goods have to come back first, so this books the return shipment on the same carrier as the outbound leg and moves the refund to `returning`; the money goes back once that leg is delivered and the seller has not escalated it. No body — there is nothing left to choose.
  *
  */
 export const postRefundsByIdAcceptance = <ThrowOnError extends boolean = false>(options: Options<PostRefundsByIdAcceptanceData, ThrowOnError>): RequestResult<PostRefundsByIdAcceptanceResponses, PostRefundsByIdAcceptanceErrors, ThrowOnError> => (options.client ?? client).post<PostRefundsByIdAcceptanceResponses, PostRefundsByIdAcceptanceErrors, ThrowOnError>({
@@ -1815,29 +1830,9 @@ export const postRefundsByIdAttachments = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Escalate the case to a moderator
- *
- * Both escalations are this one call, because both are the same act — asking a moderator to decide — and which round it opens follows from who the caller is and where the refund stands.
- *
- * The **buyer** may escalate once the seller has rejected the request or has let the review window pass. That is round 1: ruling for the buyer grants the refund and books the return, ruling for the seller ends it.
- *
- * The **seller** may escalate what came back, while the refund is `returned` and the inspection window is open — a counterfeit, the wrong item, an empty box. That is round 2 on the same case: upholding the appeal ends the refund and pays the seller out, denying it releases the money to the buyer.
- *
- */
-export const postRefundsByIdDispute = <ThrowOnError extends boolean = false>(options: Options<PostRefundsByIdDisputeData, ThrowOnError>): RequestResult<PostRefundsByIdDisputeResponses, PostRefundsByIdDisputeErrors, ThrowOnError> => (options.client ?? client).post<PostRefundsByIdDisputeResponses, PostRefundsByIdDisputeErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/refunds/{id}/dispute',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
  * Reject a refund (seller)
  *
- * Refusing costs a reason, and it does not close the case: the next move is the buyer's, who may escalate to a moderator until the refund lapses. A seller who simply lets the review window pass ends up in the same place without one.
+ * Refusing costs a reason, and it does not close the case: the next move is the buyer's, who may escalate to staff until the refund lapses. A seller who simply lets the review window pass ends up in the same place without one.
  *
  */
 export const postRefundsByIdRejection = <ThrowOnError extends boolean = false>(options: Options<PostRefundsByIdRejectionData, ThrowOnError>): RequestResult<PostRefundsByIdRejectionResponses, PostRefundsByIdRejectionErrors, ThrowOnError> => (options.client ?? client).post<PostRefundsByIdRejectionResponses, PostRefundsByIdRejectionErrors, ThrowOnError>({
@@ -1855,7 +1850,7 @@ export const postRefundsByIdRejection = <ThrowOnError extends boolean = false>(o
  *
  * The return leg exists only from the moment a refund is granted, and `delivered` is what moves the case to `returned` and opens the seller's appeal window. It is the only exit from `returning`.
  *
- * Either party to the order may report it. The buyer posted the parcel and the seller received it, and requiring the seller alone would let one who simply never confirms strand the escrow with nobody on a clock — which is what having no writer at all did. A buyer who claims a delivery that did not happen is answered by round two of the dispute, which is exactly what that window is for.
+ * Either party to the order may report it. The buyer posted the parcel and the seller received it, and requiring the seller alone would let one who simply never confirms strand the escrow with nobody on a clock — which is what having no writer at all did. A buyer who claims a delivery that did not happen is answered by the seller escalating, which is exactly what that window is for.
  *
  */
 export const postRefundsByIdReturnTransportCheckpoints = <ThrowOnError extends boolean = false>(options: Options<PostRefundsByIdReturnTransportCheckpointsData, ThrowOnError>): RequestResult<PostRefundsByIdReturnTransportCheckpointsResponses, PostRefundsByIdReturnTransportCheckpointsErrors, ThrowOnError> => (options.client ?? client).post<PostRefundsByIdReturnTransportCheckpointsResponses, PostRefundsByIdReturnTransportCheckpointsErrors, ThrowOnError>({
@@ -1878,35 +1873,6 @@ export const postRefundsByIdReturnTransportCheckpoints = <ThrowOnError extends b
  */
 export const postRegister = <ThrowOnError extends boolean = false>(options: Options<PostRegisterData, ThrowOnError>): RequestResult<PostRegisterResponses, PostRegisterErrors, ThrowOnError> => (options.client ?? client).post<PostRegisterResponses, PostRegisterErrors, ThrowOnError>({
     url: '/register',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Reports the caller filed
- *
- * A reporter sees the status of their own reports but not who else reported the same target.
- */
-export const getReports = <ThrowOnError extends boolean = false>(options?: Options<GetReportsData, ThrowOnError>): RequestResult<GetReportsResponses, GetReportsErrors, ThrowOnError> => (options?.client ?? client).get<GetReportsResponses, GetReportsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/reports',
-    ...options
-});
-
-/**
- * Report something
- *
- * A listing, an account, a message, a review or a reply. `ref_id` is the opaque id of that thing and its prefix has to agree with `ref_type`.
- *
- * One open report per target per reporter, so re-reporting while the first is still being looked at is a conflict rather than a second row. Enough distinct reports against one listing move it into the moderation queue on their own.
- *
- */
-export const postReports = <ThrowOnError extends boolean = false>(options: Options<PostReportsData, ThrowOnError>): RequestResult<PostReportsResponses, PostReportsErrors, ThrowOnError> => (options.client ?? client).post<PostReportsResponses, PostReportsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/reports',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -2091,6 +2057,51 @@ export const putTaxInfo = <ThrowOnError extends boolean = false>(options: Option
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Tickets the caller raised
+ *
+ * Their own, newest first. A requester never sees who else reported the same target, nor which moderator is working theirs.
+ */
+export const getTickets = <ThrowOnError extends boolean = false>(options?: Options<GetTicketsData, ThrowOnError>): RequestResult<GetTicketsResponses, GetTicketsErrors, ThrowOnError> => (options?.client ?? client).get<GetTicketsResponses, GetTicketsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/tickets',
+    ...options
+});
+
+/**
+ * Raise a ticket
+ *
+ * `ref_id` is required exactly for the kinds that are about something — the report kinds, `refund-dispute`, `order-issue` — and its prefix has to agree with the kind. `reason` belongs to the report kinds and to no other.
+ *
+ * `body` and `attachments` open the thread: they are posted as the first message, and everything said afterwards is ordinary chat.
+ *
+ * One open ticket per target per requester, so raising the same complaint twice while the first is still open is a conflict rather than a second row. A `refund-dispute` also moves the refund into staff's hands first, so order's own guards — the right party, the right moment — are what answer 403 and 409 here.
+ *
+ */
+export const postTickets = <ThrowOnError extends boolean = false>(options: Options<PostTicketsData, ThrowOnError>): RequestResult<PostTicketsResponses, PostTicketsErrors, ThrowOnError> => (options.client ?? client).post<PostTicketsResponses, PostTicketsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/tickets',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Read a ticket the caller raised
+ *
+ * Somebody else's is 404 rather than 403: a ticket id is guessable, and confirming one exists already says something.
+ *
+ * This also repairs a missing `conversation_id`. The row and the thread live in different schemas, so one lands first — a ticket whose thread was never written is answerable on the next read rather than mute.
+ *
+ */
+export const getTicketsById = <ThrowOnError extends boolean = false>(options: Options<GetTicketsByIdData, ThrowOnError>): RequestResult<GetTicketsByIdResponses, GetTicketsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetTicketsByIdResponses, GetTicketsByIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/tickets/{id}',
+    ...options
 });
 
 /**
