@@ -1,17 +1,25 @@
 "use client";
 
-import React from "react";
-import { useRouter, usePathname } from "next/navigation";
+import React, { useMemo } from "react";
+import { usePathname } from "next/navigation";
 
 import { useSearch } from "@/hooks/useSearch";
-import { useUserLocation } from "@/hooks/useUserLocation";
+import { useAdminAreas } from "@/hooks/useAdminAreas";
 import Select from "@/components/ui/Select";
 
 export default function Header(): React.ReactElement | null {
-  const { query, setQuery, location, setLocation, isLoading, handleSearch } = useSearch("hcm");
-  const { locationOptions } = useUserLocation(location, setLocation);
-  const router = useRouter();
+  const { query, setQuery, province, setProvince, handleSearch } = useSearch();
+  const { data: provinces = [] } = useAdminAreas(1);
   const pathname = usePathname();
+
+  // "Toàn quốc" is the empty code, which is how the results page reads "no filter".
+  const provinceOptions = useMemo(
+    () => [
+      { value: "", label: "Toàn quốc" },
+      ...provinces.map((p) => ({ value: p.code.toString(), label: p.name })),
+    ],
+    [provinces],
+  );
 
   if (pathname !== "/") {
     return null;
@@ -44,10 +52,10 @@ export default function Header(): React.ReactElement | null {
           </span>
           <div className="flex-1">
             <Select
-              options={locationOptions}
-              value={location}
-              onChange={setLocation}
-              placeholder="Chọn khu vực"
+              options={provinceOptions}
+              value={province}
+              onChange={setProvince}
+              placeholder="Toàn quốc"
               className="w-full"
             />
           </div>
@@ -55,15 +63,10 @@ export default function Header(): React.ReactElement | null {
 
         <button
           type="submit"
-          disabled={isLoading}
           aria-label="Thực hiện tìm kiếm"
-          className="bg-primary text-on-primary px-8 py-2.5 rounded-full font-bold hover:opacity-90 transition-opacity cursor-pointer disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
+          className="bg-primary text-on-primary px-8 py-2.5 rounded-full font-bold hover:opacity-90 transition-opacity cursor-pointer flex items-center justify-center min-w-[120px]"
         >
-          {isLoading ? (
-            <span className="w-5 h-5 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></span>
-          ) : (
-            "Tìm Kiếm"
-          )}
+          Tìm Kiếm
         </button>
       </form>
 

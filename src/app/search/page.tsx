@@ -40,6 +40,8 @@ function SearchPageContent(): React.ReactElement {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const categoryParam = searchParams.get("category") || "";
+  // An administrative code, from the search box on the home page.
+  const provinceParam = searchParams.get("province") || "";
 
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
@@ -48,7 +50,7 @@ function SearchPageContent(): React.ReactElement {
   const [appliedPriceFrom, setAppliedPriceFrom] = useState<string>("");
   const [appliedPriceTo, setAppliedPriceTo] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [provinceCode, setProvinceCode] = useState<string>("");
+  const [provinceCode, setProvinceCode] = useState<string>(provinceParam);
   const [districtCode, setDistrictCode] = useState<string>("");
   const [position, setPosition] = useState<Position | null>(null);
   const [radiusKm, setRadiusKm] = useState<number>(25);
