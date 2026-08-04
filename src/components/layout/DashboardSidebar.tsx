@@ -20,6 +20,7 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
     { name: "Thống kê", path: "/dashboard/analytics", icon: "bar_chart" },
     { name: "Cài đặt Shop", path: "/dashboard/settings", icon: "settings" },
     { name: "Cài đặt thông báo", path: "/dashboard/notifications", icon: "notifications" },
+    { name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" },
   ];
 
   return (

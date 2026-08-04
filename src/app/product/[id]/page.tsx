@@ -157,6 +157,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 {product.description}
               </div>
             </div>
+
+            {/* One surface for every complaint: the ticket carries the kind and the id of
+                what it is about, so there is nothing here but a link that fills them in. */}
+            <Link
+              href={`/support?kind=report-listing&ref_id=${product.id}`}
+              className="inline-flex items-center gap-1.5 mt-4 text-body-sm text-on-surface-variant hover:text-error transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">flag</span>
+              Báo cáo tin đăng này
+            </Link>
           </div>
         </div>
       </div>

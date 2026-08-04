@@ -40,6 +40,8 @@ export const OPERATIONS = {
 	offer: "getOffersById",
 	drafts: "getDrafts",
 	draft: "getDraftsById",
+	tickets: "getTickets",
+	ticket: "getTicketsById",
 } as const
 
 export type Operation = (typeof OPERATIONS)[keyof typeof OPERATIONS]

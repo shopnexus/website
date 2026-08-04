@@ -170,13 +170,15 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
                 <span className="font-price-lg text-primary text-xl font-bold">{formatPrice(goodsTotal + shippingFee)}</span>
               </div>
 
+              {/* Every problem with an order — a parcel that never came, an item that is
+                  not what was described, a payment that went wrong — is a ticket of the
+                  matching kind, carrying this order's id. */}
               <div className="flex flex-col gap-2 border-t border-outline-variant pt-6 mt-6">
-                <Button variant="outline" fullWidth>Yêu cầu Hóa đơn</Button>
-                {order.state === "open" && (
-                  <Button variant="ghost" fullWidth className="text-error hover:text-error hover:bg-error-container/20">
-                    Hủy đơn hàng
+                <Link href={`/support?kind=order-issue&ref_id=${order.id}`} className="block">
+                  <Button variant="outline" fullWidth>
+                    Báo cáo sự cố đơn hàng
                   </Button>
-                )}
+                </Link>
               </div>
             </div>
 

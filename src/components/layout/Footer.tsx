@@ -35,7 +35,7 @@ export default function Footer() {
             <Link href="#" className="hover:text-primary transition-colors">
               Về chúng tôi
             </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="/support" className="hover:text-primary transition-colors">
               Trung tâm hỗ trợ
             </Link>
             <Link href="#" className="hover:text-primary transition-colors">
