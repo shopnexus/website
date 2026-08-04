@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { toast } from "react-hot-toast";
 import {
@@ -9,19 +9,8 @@ import {
   useDeleteContact,
   useUpdateContact,
 } from "@/hooks/api/useContacts";
+import { useAdminAreas } from "@/hooks/useAdminAreas";
 import type { Contact, ContactId, CreateContactRequest } from "@/api/generated/types.gen";
-
-interface Location {
-  name: string;
-  code: number;
-}
-type Ward = Location;
-interface District extends Location {
-  wards: Ward[];
-}
-interface Province extends Location {
-  districts: District[];
-}
 
 /**
  * Normalise a Vietnamese phone number to E.164, which is what the server validates
@@ -40,7 +29,8 @@ export default function ContactManager() {
   const updateContact = useUpdateContact();
   const deleteContact = useDeleteContact();
 
-  const [provinces, setProvinces] = useState<Province[]>([]);
+  // Wards as well as districts: a saved address names all three levels.
+  const { data: provinces = [] } = useAdminAreas(3);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<ContactId | null>(null);
@@ -60,15 +50,6 @@ export default function ContactManager() {
     is_default_delivery: false,
     is_default_pickup: false,
   });
-
-  useEffect(() => {
-    // A third-party administrative-division dataset, not our API, so it stays a plain
-    // fetch outside the query client.
-    fetch("https://provinces.open-api.vn/api/?depth=3")
-      .then(res => res.json())
-      .then(data => setProvinces(data))
-      .catch(() => toast.error("Không thể tải dữ liệu tỉnh thành."));
-  }, []);
 
   const handleOpenForm = (contact?: Contact) => {
     if (contact) {

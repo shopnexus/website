@@ -2,9 +2,11 @@
 
 import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
 import { useCategories, useListingsFeed } from "@/hooks/api/useCatalog";
+import { useAdminAreas } from "@/hooks/useAdminAreas";
 import type { CategoryId, GetListingsData } from "@/api/generated/types.gen";
 
 type SortOption = NonNullable<NonNullable<GetListingsData["query"]>["sort"]>;
@@ -15,7 +17,17 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: "price-asc", label: "Giá: Thấp đến Cao" },
   { value: "price-desc", label: "Giá: Cao đến Thấp" },
   { value: "rating", label: "Đánh giá cao" },
+  { value: "distance", label: "Gần tôi nhất" },
 ];
+
+/** What the radius selector offers. Any value here needs a position to mean anything. */
+const RADIUS_OPTIONS = [5, 10, 25, 50, 100] as const;
+
+/** Where the buyer is, as `/listings` wants it. */
+interface Position {
+  lat: number;
+  lon: number;
+}
 
 /** A price input that is blank or not a number means "no bound". */
 function priceBound(raw: string): number | undefined {
@@ -36,8 +48,33 @@ function SearchPageContent(): React.ReactElement {
   const [appliedPriceFrom, setAppliedPriceFrom] = useState<string>("");
   const [appliedPriceTo, setAppliedPriceTo] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [provinceCode, setProvinceCode] = useState<string>("");
+  const [districtCode, setDistrictCode] = useState<string>("");
+  const [position, setPosition] = useState<Position | null>(null);
+  const [radiusKm, setRadiusKm] = useState<number>(25);
 
   const { data: categories = [] } = useCategories();
+  // Districts, not wards: a filter this coarse is what a browse needs, and the deep
+  // document is several times the size.
+  const { data: provinces = [] } = useAdminAreas(2);
+
+  const selectedProvince = provinces.find((p) => p.code.toString() === provinceCode);
+
+  /**
+   * A "near me" browse. The device's position is the only one this page can offer — the
+   * alternative the API takes, `near_contact_id`, is one of the caller's saved addresses,
+   * and picking one belongs to checkout rather than to a public search.
+   */
+  const locateMe = (): void => {
+    if (!navigator.geolocation) {
+      toast.error("Thiết bị không hỗ trợ định vị.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => setPosition({ lat: coords.latitude, lon: coords.longitude }),
+      () => toast.error("Không lấy được vị trí. Vui lòng cho phép truy cập định vị."),
+    );
+  };
 
   // The tree arrives flat with parent_id, so the nav shows roots and the sidebar shows
   // the children of whatever is selected. It used to show three hardcoded phone
@@ -47,9 +84,13 @@ function SearchPageContent(): React.ReactElement {
     ? categories.filter((c) => c.parent_id === selectedCategory)
     : [];
 
-  // `sort=relevance` is refused without a query — the server rejects combinations rather
-  // than resolving them by precedence — so fall back to newest when the box is empty.
-  const sort: SortOption = sortBy === "relevance" && !initialQuery ? "newest" : sortBy;
+  // The server refuses combinations rather than resolving them by precedence, so the two
+  // sorts that need something fall back when they do not have it: `relevance` needs a
+  // query, `distance` needs a position.
+  const sort: SortOption =
+    (sortBy === "relevance" && !initialQuery) || (sortBy === "distance" && !position)
+      ? "newest"
+      : sortBy;
 
   const {
     listings,
@@ -67,6 +108,14 @@ function SearchPageContent(): React.ReactElement {
     // current page in memory only ever hid rows from the page that happened to load.
     min_price: priceBound(appliedPriceFrom),
     max_price: priceBound(appliedPriceTo),
+    // Matched against the listing's own snapshot of the seller's pickup address. Only the
+    // narrowest level is sent — a district is already inside its province.
+    province_code: districtCode ? undefined : provinceCode || undefined,
+    district_code: districtCode || undefined,
+    // A position ranks and reports distance on its own; the radius is what excludes.
+    lat: position?.lat,
+    lon: position?.lon,
+    radius_km: position ? radiusKm : undefined,
     sort,
   });
 
@@ -82,6 +131,10 @@ function SearchPageContent(): React.ReactElement {
     setPriceTo("");
     setAppliedPriceFrom("");
     setAppliedPriceTo("");
+    setProvinceCode("");
+    setDistrictCode("");
+    setPosition(null);
+    if (sortBy === "distance") setSortBy("newest");
   };
 
   return (
@@ -153,6 +206,83 @@ function SearchPageContent(): React.ReactElement {
                 </div>
               </div>
             )}
+
+            <div className="pt-4 border-t border-outline-variant/10">
+              <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
+                Khu vực
+              </h3>
+              <div className="flex flex-col gap-2">
+                <select
+                  aria-label="Tỉnh / Thành phố"
+                  value={provinceCode}
+                  onChange={(e) => {
+                    setProvinceCode(e.target.value);
+                    setDistrictCode("");
+                  }}
+                  className="w-full bg-surface-container rounded-lg px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary border-none text-on-surface cursor-pointer"
+                >
+                  <option value="">Toàn quốc</option>
+                  {provinces.map((p) => (
+                    <option key={p.code} value={p.code.toString()}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                {selectedProvince?.districts && selectedProvince.districts.length > 0 && (
+                  <select
+                    aria-label="Quận / Huyện"
+                    value={districtCode}
+                    onChange={(e) => setDistrictCode(e.target.value)}
+                    className="w-full bg-surface-container rounded-lg px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary border-none text-on-surface cursor-pointer"
+                  >
+                    <option value="">Tất cả quận / huyện</option>
+                    {selectedProvince.districts.map((d) => (
+                      <option key={d.code} value={d.code.toString()}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-2">
+                {position ? (
+                  <>
+                    <select
+                      aria-label="Bán kính tìm kiếm"
+                      value={radiusKm}
+                      onChange={(e) => setRadiusKm(Number(e.target.value))}
+                      className="w-full bg-surface-container rounded-lg px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary border-none text-on-surface cursor-pointer"
+                    >
+                      {RADIUS_OPTIONS.map((km) => (
+                        <option key={km} value={km}>
+                          Trong vòng {km} km
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPosition(null);
+                        if (sortBy === "distance") setSortBy("newest");
+                      }}
+                      className="text-primary font-label-sm hover:underline cursor-pointer font-bold text-left"
+                    >
+                      Bỏ tìm quanh tôi
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={locateMe}
+                    className="w-full flex items-center justify-center gap-1.5 bg-surface-container text-on-surface py-2 rounded-lg text-label-md font-bold hover:bg-surface-container-high transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">my_location</span>
+                    Tìm quanh tôi
+                  </button>
+                )}
+              </div>
+            </div>
 
             <div className="pt-4 border-t border-outline-variant/10">
               <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
@@ -239,8 +369,12 @@ function SearchPageContent(): React.ReactElement {
                   <option
                     key={option.value}
                     value={option.value}
-                    // Relevance only has a meaning when there is a query to be relevant to.
-                    disabled={option.value === "relevance" && !initialQuery}
+                    // Relevance only has a meaning when there is a query to be relevant
+                    // to, and distance only when the browse knows where the buyer is.
+                    disabled={
+                      (option.value === "relevance" && !initialQuery) ||
+                      (option.value === "distance" && !position)
+                    }
                   >
                     {option.label}
                   </option>
@@ -249,8 +383,37 @@ function SearchPageContent(): React.ReactElement {
             </div>
           </div>
 
-          {(selectedCategory || verifiedOnly || appliedPriceFrom || appliedPriceTo) && (
+          {(selectedCategory ||
+            verifiedOnly ||
+            appliedPriceFrom ||
+            appliedPriceTo ||
+            provinceCode ||
+            position) && (
             <div className="flex flex-wrap items-center gap-2 mb-6">
+              {provinceCode && (
+                <Chip
+                  selected
+                  onRemove={() => {
+                    setProvinceCode("");
+                    setDistrictCode("");
+                  }}
+                >
+                  {districtCode
+                    ? selectedProvince?.districts?.find((d) => d.code.toString() === districtCode)?.name
+                    : selectedProvince?.name}
+                </Chip>
+              )}
+              {position && (
+                <Chip
+                  selected
+                  onRemove={() => {
+                    setPosition(null);
+                    if (sortBy === "distance") setSortBy("newest");
+                  }}
+                >
+                  Trong vòng {radiusKm} km
+                </Chip>
+              )}
               {selectedCategory && (
                 <Chip selected onRemove={() => setSelectedCategory("")}>
                   {categories.find(c => c.id === selectedCategory)?.name || selectedCategory}

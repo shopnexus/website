@@ -20,6 +20,11 @@ export interface ProductCardItem {
   created_at: string;
   cover?: { url?: string | null } | null;
   seller?: { name: string; avatar?: { url?: string | null } | null };
+  /**
+   * Where the goods are. Null on a listing that was never published, and `distance_km` is
+   * only filled in when the browse sent a position.
+   */
+  location?: { province_name: string; distance_km?: number } | null;
 }
 
 interface ProductCardProps {
@@ -74,8 +79,18 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
             <span className="font-bold text-[1.25rem] text-primary">{formatPrice(product.price)}</span>
           </div>
 
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant/30 text-[11px] text-on-surface-variant font-medium">
+          <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-outline-variant/30 text-[11px] text-on-surface-variant font-medium">
             <span className="shrink-0">{new Date(product.created_at).toLocaleDateString("vi-VN")}</span>
+            {product.location && (
+              <span className="flex items-center gap-0.5 min-w-0">
+                <span className="material-symbols-outlined text-[13px] shrink-0">location_on</span>
+                <span className="truncate">
+                  {product.location.distance_km !== undefined
+                    ? `${product.location.distance_km.toFixed(1)} km`
+                    : product.location.province_name}
+                </span>
+              </span>
+            )}
           </div>
         </div>
       </div>
