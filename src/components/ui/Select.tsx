@@ -14,7 +14,6 @@ interface SelectProps {
   value?: string;
   onChange?: (value: string) => void;
   placeholder?: string;
-  icon?: string;
   className?: string;
 }
 
@@ -23,7 +22,6 @@ export default function Select({
   value,
   onChange,
   placeholder = "Select an option",
-  icon,
   className = "",
 }: SelectProps) {
   const { isOpen, toggleOpen, close, handleSelect } = useSelect(value, onChange);
