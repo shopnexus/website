@@ -17,11 +17,24 @@ import type {
 	CreateOfferRequest,
 	CheckoutOfferRequest,
 } from "@/api/generated/types.gen"
+import { OPERATIONS, invalidate } from "@/api/invalidate"
 import { cursorPagination, flattenPages } from "@/api/pagination"
 import { unwrapData } from "@/api/unwrap"
 
-const OFFERS = "getOffers"
-const OFFER = "getOffersById"
+/**
+ * Price negotiations.
+ *
+ * Every write here also lands a system message in the thread the pair already share — the
+ * offer card the inbox renders — so the conversation list and its messages are invalidated
+ * alongside the offer itself. `offer` as well as `offers`: the card reads the single offer,
+ * and that is the thing whose price must not go stale.
+ */
+const FED = [
+	OPERATIONS.offers,
+	OPERATIONS.offer,
+	OPERATIONS.conversations,
+	OPERATIONS.messages,
+] as const
 
 export function useOffers(role: "seller" | "buyer", limit = 30) {
 	const query = useInfiniteQuery({
@@ -50,9 +63,7 @@ export function useCreateOffer() {
 			const { data } = await postOffers({ body, throwOnError: true })
 			return data.data
 		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: [{ _id: OFFERS }] })
-		},
+		onSuccess: () => invalidate(queryClient, ...FED),
 	})
 }
 
@@ -64,10 +75,7 @@ export function useAcceptOffer() {
 			const { data } = await postOffersByIdAcceptance({ path: { id }, throwOnError: true })
 			return data.data
 		},
-		onSuccess: (_, id) => {
-			queryClient.invalidateQueries({ queryKey: [{ _id: OFFERS }] })
-			queryClient.invalidateQueries({ queryKey: [{ _id: OFFER }, { path: { id } }] })
-		},
+		onSuccess: () => invalidate(queryClient, ...FED),
 	})
 }
 
@@ -79,10 +87,9 @@ export function useCheckoutOffer() {
 			const { data } = await postOffersByIdCheckout({ path: { id }, body, throwOnError: true })
 			return data.data
 		},
-		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: [{ _id: OFFERS }] })
-			queryClient.invalidateQueries({ queryKey: [{ _id: OFFER }, { path: { id } }] })
-		},
+		// A checked-out offer opens a payment session, and the order appears when that
+		// completes, so the order list is what the buyer is sent to look at.
+		onSuccess: () => invalidate(queryClient, ...FED, OPERATIONS.orders),
 	})
 }
 
@@ -94,9 +101,6 @@ export function useCancelOffer() {
 			const { data } = await deleteOffersById({ path: { id }, throwOnError: true })
 			return data
 		},
-		onSuccess: (_, { id }) => {
-			queryClient.invalidateQueries({ queryKey: [{ _id: OFFERS }] })
-			queryClient.invalidateQueries({ queryKey: [{ _id: OFFER }, { path: { id } }] })
-		},
+		onSuccess: () => invalidate(queryClient, ...FED),
 	})
 }

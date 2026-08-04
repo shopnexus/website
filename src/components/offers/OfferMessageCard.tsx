@@ -1,9 +1,11 @@
 "use client";
 
-import { useOffer, useAcceptOffer, useCheckoutOffer, useCancelOffer } from "@/hooks/api/useOffers";
+import Link from "next/link";
+import { useOffer, useAcceptOffer, useCancelOffer } from "@/hooks/api/useOffers";
 import { useListing } from "@/hooks/api/useCatalog";
 import { useAuthStore } from "@/stores/use-auth-store";
 import Button from "@/components/ui/Button";
+import { OFFER_STATUS_VI } from "@/lib/dictionaries";
 import { toast } from "react-hot-toast";
 
 export default function OfferMessageCard({ offerId }: { offerId: string }) {
@@ -12,7 +14,6 @@ export default function OfferMessageCard({ offerId }: { offerId: string }) {
   const user = useAuthStore((s) => s.user);
 
   const acceptOffer = useAcceptOffer();
-  const checkoutOffer = useCheckoutOffer();
   const cancelOffer = useCancelOffer();
 
   if (isLoadingOffer) {
@@ -40,27 +41,6 @@ export default function OfferMessageCard({ offerId }: { offerId: string }) {
     });
   };
 
-  const handleCheckout = () => {
-    // For now, since checkout needs contact and shipping, we could just alert
-    // or we could redirect to a specialized checkout route if it existed.
-    // In a real app, we'd open a modal here to select address and shipping.
-    toast.error("Vui lòng thanh toán từ giỏ hàng hoặc trang thanh toán (chưa hoàn thiện UI)");
-    
-    /* 
-    checkoutOffer.mutate({
-      id: offer.id,
-      body: { contact_id: "...", transport_option: "..." }
-    })
-    */
-  };
-
-  const statusLabels: Record<string, string> = {
-    "active": "Đang chờ phản hồi",
-    "accepted": "Đã chấp nhận",
-    "checked-out": "Đã thanh toán",
-    "cancelled": "Đã hủy",
-  };
-
   const statusColors: Record<string, string> = {
     "active": "text-secondary font-bold",
     "accepted": "text-primary font-bold",
@@ -77,7 +57,7 @@ export default function OfferMessageCard({ offerId }: { offerId: string }) {
           Đề nghị giá
         </span>
         <span className={`text-[11px] uppercase tracking-wider ${statusColors[offer.status]}`}>
-          {statusLabels[offer.status]}
+          {OFFER_STATUS_VI[offer.status]}
         </span>
       </div>
 
@@ -152,16 +132,14 @@ export default function OfferMessageCard({ offerId }: { offerId: string }) {
           </Button>
         )}
 
+        {/* Agreeing froze the price for a short window; the buyer's checkout is the sale,
+            and it is the same page a fixed-price purchase goes through. */}
         {isBuyer && offer.status === "accepted" && (
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={handleCheckout}
-            disabled={checkoutOffer.isPending}
-            className="rounded-xl py-2"
-          >
-            Tiến hành thanh toán
-          </Button>
+          <Link href={`/checkout?offer_id=${offer.id}`} className="block">
+            <Button variant="primary" fullWidth className="rounded-xl py-2">
+              Tiến hành thanh toán
+            </Button>
+          </Link>
         )}
       </div>
     </div>

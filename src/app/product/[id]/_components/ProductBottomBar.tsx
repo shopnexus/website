@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import OfferModal from "@/components/offers/OfferModal";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCart } from "@/hooks/api/useCart";
 import { useCreateDraft } from "@/hooks/api/useOrders";
-import { useStartConversation } from "@/hooks/api/useChat";
 import { toast } from "react-hot-toast";
 import type { ListingDetail } from "@/api/generated/types.gen";
+import NegotiableChoiceModal from "./NegotiableChoiceModal";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -24,7 +26,9 @@ export default function ProductBottomBar({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { addItem } = useCart();
   const createDraft = useCreateDraft();
-  const startConversation = useStartConversation();
+
+  const [isChoiceOpen, setIsChoiceOpen] = useState(false);
+  const [isOfferOpen, setIsOfferOpen] = useState(false);
 
   // What "buy" and "add to cart" act on. A listing always has at least one variant —
   // the server refuses to publish one without a priced variant.
@@ -37,13 +41,24 @@ export default function ProductBottomBar({
     return true;
   };
 
-  const handleBuyNow = () => {
-    if (requireSignIn("Vui lòng đăng nhập để mua hàng")) return;
-
+  const buyAtAskingPrice = () => {
     createDraft.mutate(
       { listing_id: product.id },
       { onSuccess: (draft) => router.push(`/checkout?draft_id=${draft.id}`) },
     );
+  };
+
+  /**
+   * A negotiable listing is buyable at the asking price like any other, so pressing "buy"
+   * asks which of the two the buyer meant rather than routing them into a negotiation.
+   */
+  const handleBuyNow = () => {
+    if (requireSignIn("Vui lòng đăng nhập để mua hàng")) return;
+    if (product.price_mode === "negotiable") {
+      setIsChoiceOpen(true);
+      return;
+    }
+    buyAtAskingPrice();
   };
 
   const handleAddToCart = async () => {
@@ -60,18 +75,8 @@ export default function ProductBottomBar({
 
   const handleNegotiate = () => {
     if (requireSignIn("Vui lòng đăng nhập để thương lượng")) return;
-    
-    startConversation.mutate(
-      { account_id: product.seller.id },
-      {
-        onSuccess: (conversation) => {
-          router.push(`/inbox?c=${conversation.id}&listing_id=${product.id}&action=offer`);
-        },
-        onError: () => {
-          toast.error("Không thể mở cuộc trò chuyện");
-        }
-      }
-    );
+    setIsChoiceOpen(false);
+    setIsOfferOpen(true);
   };
 
   return (
@@ -118,6 +123,17 @@ export default function ProductBottomBar({
           </Button>
         </div>
       </div>
+
+      <NegotiableChoiceModal
+        isOpen={isChoiceOpen}
+        onClose={() => setIsChoiceOpen(false)}
+        price={price}
+        onBuyNow={buyAtAskingPrice}
+        onNegotiate={handleNegotiate}
+        isBuying={createDraft.isPending}
+      />
+
+      <OfferModal isOpen={isOfferOpen} onClose={() => setIsOfferOpen(false)} product={product} />
     </div>
   );
 }

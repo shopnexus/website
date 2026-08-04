@@ -9,55 +9,79 @@ import QuantitySelector from "@/components/ui/QuantitySelector";
 import { toast } from "react-hot-toast";
 import { useContacts } from "@/hooks/api/useContacts";
 import { useCheckout, useDraft, useShippingQuotes } from "@/hooks/api/useOrders";
-import type { DraftOrderId } from "@/api/generated/types.gen";
+import { useCheckoutOffer, useOffer } from "@/hooks/api/useOffers";
+import { useListing } from "@/hooks/api/useCatalog";
+import type { DraftOrderId, OfferId } from "@/api/generated/types.gen";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
+/**
+ * One checkout for both ways a sale is made.
+ *
+ * A fixed-price purchase arrives with `draft_id` and a negotiated one with `offer_id` —
+ * the two things that can freeze a price — and from there the page is identical: the buyer
+ * pays delivery on both paths, so both quote every enabled carrier through
+ * `POST /shipping-quotes` and neither gets to name a fee. What differs is only which
+ * route turns the terms into a payment session, and how much of the form is still open: an
+ * accepted offer already froze the variant, the quantity and the total.
+ */
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftId = searchParams.get("draft_id") as DraftOrderId | null;
+  const offerId = searchParams.get("offer_id") as OfferId | null;
 
   const [selectedContactId, setSelectedContactId] = useState<string>("");
   const [selectedVariantId, setSelectedVariantId] = useState<string>("");
   const [selectedShipping, setSelectedShipping] = useState<string>("");
-  const [quantity, setQuantity] = useState(1);
+  const [draftQuantity, setDraftQuantity] = useState(1);
   const [note, setNote] = useState("");
 
   const { data: draft, isLoading: isLoadingDraft, isError: draftFailed } = useDraft(
     draftId ?? undefined,
   );
+  const { data: offer, isLoading: isLoadingOffer, isError: offerFailed } = useOffer(
+    offerId ?? undefined,
+  );
+  // A negotiated sale carries no name of its own: the offer names a listing and a variant.
+  const { data: offerListing } = useListing(offer?.listing_id);
   const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const checkout = useCheckout();
+  const checkoutOffer = useCheckoutOffer();
 
   useEffect(() => {
-    if (!draftId) router.push("/");
-  }, [draftId, router]);
+    if (!draftId && !offerId) router.push("/");
+  }, [draftId, offerId, router]);
 
-  // A draft that cannot be read is a checkout that cannot proceed — expired, cancelled,
-  // or someone else's. The global toast has already said which.
+  // Terms that cannot be read are a checkout that cannot proceed — expired, cancelled, or
+  // someone else's. The global toast has already said which.
   useEffect(() => {
-    if (draftFailed) router.push("/");
-  }, [draftFailed, router]);
+    if (draftFailed || offerFailed) router.push("/");
+  }, [draftFailed, offerFailed, router]);
 
-  // The three selections below are derived, not synced through effects: each falls back
-  // to a default computed from data that may still be loading, and the moment the user
-  // picks something their choice wins. Writing the default into state from an effect
-  // would render once with nothing selected and again with it, for no gain.
-  const activeVariantId = selectedVariantId || draft?.variants[0]?.variant_id || "";
+  // The selections below are derived, not synced through effects: each falls back to a
+  // default computed from data that may still be loading, and the moment the user picks
+  // something their choice wins. Writing the default into state from an effect would
+  // render once with nothing selected and again with it, for no gain.
+  const activeVariantId =
+    offer?.variant_id ?? (selectedVariantId || draft?.variants[0]?.variant_id || "");
+  const quantity = offer?.quantity ?? draftQuantity;
 
   const defaultContact = contacts.find((c) => c.is_default_delivery) ?? contacts[0];
   const activeContactId = selectedContactId || defaultContact?.id || "";
   const selectedContact = contacts.find((c) => c.id === activeContactId) ?? null;
 
   const { data: quotes, isFetching: isQuoting } = useShippingQuotes(
-    {
-      draft_id: draftId ?? undefined,
-      contact_id: activeContactId,
-      lines: activeVariantId ? [{ variant_id: activeVariantId, quantity }] : undefined,
-    },
-    Boolean(draftId && activeContactId && activeVariantId),
+    offerId
+      ? // An offer carries its own variant and quantity, so lines are ignored for it.
+        { offer_id: offerId, contact_id: activeContactId }
+      : {
+          draft_id: draftId ?? undefined,
+          contact_id: activeContactId,
+          lines: activeVariantId ? [{ variant_id: activeVariantId, quantity }] : undefined,
+        },
+    Boolean(activeContactId && (offerId || (draftId && activeVariantId))),
   );
 
   const shippingOptions = useMemo(() => quotes?.options ?? [], [quotes]);
@@ -71,12 +95,21 @@ function CheckoutContent() {
   const selectedVariant =
     draft?.variants.find((v) => v.variant_id === activeVariantId) ?? draft?.variants[0];
 
-  const subtotal = (selectedVariant?.price ?? 0) * quantity;
+  // An accepted offer's total is the whole agreed price, not a unit price.
+  const subtotal = offer ? offer.total : (selectedVariant?.price ?? 0) * quantity;
   const shippingFee = shippingOptions.find((o) => o.option === activeShipping)?.fee ?? 0;
   const total = subtotal + shippingFee;
 
+  const itemName = offer ? (offerListing?.name ?? "Sản phẩm đã thương lượng") : (draft?.name ?? "");
+  const isPlacing = checkout.isPending || checkoutOffer.isPending;
+
+  const onPlaced = () => {
+    toast.success("Đặt hàng thành công!");
+    router.push("/dashboard/orders");
+  };
+
   const handlePlaceOrder = () => {
-    if (!draft || !selectedContact) {
+    if (!selectedContact) {
       toast.error("Vui lòng thêm địa chỉ nhận hàng");
       return;
     }
@@ -85,6 +118,22 @@ function CheckoutContent() {
       return;
     }
 
+    if (offer) {
+      checkoutOffer.mutate(
+        {
+          id: offer.id,
+          body: {
+            contact_id: selectedContact.id,
+            transport_option: activeShipping,
+            note: note || undefined,
+          },
+        },
+        { onSuccess: onPlaced },
+      );
+      return;
+    }
+
+    if (!draft) return;
     checkout.mutate(
       {
         draftId: draft.id,
@@ -97,20 +146,15 @@ function CheckoutContent() {
           note: note || undefined,
         },
       },
-      {
-        onSuccess: () => {
-          toast.success("Đặt hàng thành công!");
-          router.push("/dashboard/orders");
-        },
-      },
+      { onSuccess: onPlaced },
     );
   };
 
-  if (isLoadingDraft || isLoadingContacts) {
+  if (isLoadingDraft || isLoadingOffer || isLoadingContacts) {
     return <div className="min-h-screen py-12 flex justify-center">Đang tải thông tin...</div>;
   }
 
-  if (!draft) return null;
+  if (!draft && !offer) return null;
 
   return (
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
@@ -172,20 +216,22 @@ function CheckoutContent() {
               </h2>
               
               <div className="p-6">
-                <div className="font-label-md text-on-surface mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[20px]">store</span>
-                  Shop {draft.seller_id}
-                </div>
-                
+                {offer && (
+                  <div className="mb-4 flex items-center gap-2 bg-secondary-container/40 text-on-secondary-container rounded-xl px-4 py-2 text-body-sm">
+                    <span className="material-symbols-outlined text-[18px]">handshake</span>
+                    Giá đã thương lượng và được chấp nhận. Bạn chỉ cần chọn địa chỉ và đơn vị vận chuyển.
+                  </div>
+                )}
+
                 <div className="flex gap-4 mb-6">
                   <div className="relative w-20 h-20 rounded border border-outline-variant overflow-hidden shrink-0 bg-surface-container">
-                    {/* Draft order attachments are not standard in schema, but assuming we can show fallback */}
                     <span className="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-on-surface-variant">image</span>
                   </div>
                   <div className="flex-1 flex flex-col min-w-0">
-                    <span className="font-body-md font-medium text-on-surface line-clamp-2 mb-2">{draft.name}</span>
-                    
-                    {draft.variants.length > 1 && (
+                    <span className="font-body-md font-medium text-on-surface line-clamp-2 mb-2">{itemName}</span>
+
+                    {/* An accepted offer froze the variant, so there is nothing to pick. */}
+                    {!offer && draft && draft.variants.length > 1 && (
                       <select
                         value={activeVariantId}
                         onChange={(e) => setSelectedVariantId(e.target.value)}
@@ -200,11 +246,17 @@ function CheckoutContent() {
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="font-price-md text-primary">{formatPrice(selectedVariant?.price || 0)}</div>
-                    <QuantitySelector value={quantity} onChange={setQuantity} min={1} max={99} />
+                    <div className="font-price-md text-primary">
+                      {formatPrice(offer ? offer.total : (selectedVariant?.price ?? 0))}
+                    </div>
+                    {offer ? (
+                      <span className="text-body-sm text-on-surface-variant">x{offer.quantity}</span>
+                    ) : (
+                      <QuantitySelector value={quantity} onChange={setDraftQuantity} min={1} max={99} />
+                    )}
                   </div>
                 </div>
-                
+
                 <div className="bg-surface-container-low p-4 rounded-xl mb-4">
                   <h4 className="font-label-md text-on-surface mb-2 text-primary">Phương thức vận chuyển</h4>
                   
@@ -278,9 +330,9 @@ function CheckoutContent() {
                 fullWidth 
                 size="lg" 
                 onClick={handlePlaceOrder}
-                disabled={checkout.isPending || !selectedContact || !activeShipping}
+                disabled={isPlacing || !selectedContact || !activeShipping}
               >
-                {checkout.isPending ? "Đang xử lý..." : "Đặt hàng"}
+                {isPlacing ? "Đang xử lý..." : "Đặt hàng"}
               </Button>
               
               <p className="text-xs text-on-surface-variant text-center mt-4 px-4 leading-relaxed">

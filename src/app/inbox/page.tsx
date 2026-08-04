@@ -9,7 +9,7 @@ import ChatThread from "@/components/chat/ChatThread";
 import { useConversations, useMessages } from "@/hooks/api/useChat";
 import { useListing } from "@/hooks/api/useCatalog";
 import type { ConversationId, ListingId } from "@/api/generated/types.gen";
-import OfferModal from "./_components/OfferModal";
+import OfferModal from "@/components/offers/OfferModal";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);

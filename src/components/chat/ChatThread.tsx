@@ -12,7 +12,7 @@ import {
 import { useAuthStore } from "@/stores/use-auth-store";
 import { sameOriginUploadUrl } from "@/api/upload";
 import type { ConversationId } from "@/api/generated/types.gen";
-import OfferMessageCard from "@/app/inbox/_components/OfferMessageCard";
+import OfferMessageCard from "@/components/offers/OfferMessageCard";
 
 /**
  * One chat thread: its messages and the box you write in.
