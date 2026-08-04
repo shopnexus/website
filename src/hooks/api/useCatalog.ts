@@ -1,14 +1,30 @@
 "use client"
 
 import { useMemo } from "react"
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
 	getCategoriesOptions,
 	getListingsByIdOptions,
 	getListingsInfiniteOptions,
 	getListingsOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
-import type { GetListingsData } from "@/api/generated/types.gen"
+import {
+	postListings,
+	postListingsByIdPublication,
+	postListingsSuggestions,
+	postListingsUploads,
+	postListingsUploadsByIdConfirmation,
+} from "@/api/generated/sdk.gen"
+import type {
+	CreateListingRequest,
+	CreateUploadRequest,
+	GetListingsData,
+	ListingId,
+	PublishListingRequest,
+	ResourceId,
+	SuggestListingRequest,
+} from "@/api/generated/types.gen"
+import { OPERATIONS, invalidate } from "@/api/invalidate"
 import { flattenPages, pagePagination, totalCountOf } from "@/api/pagination"
 import { unwrapData } from "@/api/unwrap"
 
@@ -71,4 +87,72 @@ export function useListingsFeed(filters: ListingFilters = {}) {
 		listings,
 		totalCount: totalCountOf(query.data),
 	}
+}
+
+// ── Posting a listing ────────────────────────────────────────────────────────
+
+export function useRequestListingUpload() {
+	return useMutation({
+		mutationFn: async (body: CreateUploadRequest) => {
+			const { data } = await postListingsUploads({ body, throwOnError: true })
+			return data.data
+		},
+	})
+}
+
+export function useConfirmListingUpload() {
+	return useMutation({
+		mutationFn: async (id: ResourceId) => {
+			const { data } = await postListingsUploadsByIdConfirmation({
+				path: { id },
+				throwOnError: true,
+			})
+			return data.data
+		},
+	})
+}
+
+/**
+ * "Photo in, form out."
+ *
+ * Writes nothing — no listing, no draft, no row for an attempt that was abandoned. What
+ * comes back is a *suggestion* the seller corrects, and `POST /listings` is still the only
+ * way a listing comes into existence. So this is a mutation for the request it makes, not
+ * for anything it changes, and there is nothing to invalidate.
+ */
+export function useSuggestListing() {
+	return useMutation({
+		mutationFn: async (body: SuggestListingRequest) => {
+			const { data } = await postListingsSuggestions({ body, throwOnError: true })
+			return data.data
+		},
+	})
+}
+
+export function useCreateListing() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async (body: CreateListingRequest) => {
+			const { data } = await postListings({ body, throwOnError: true })
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings),
+	})
+}
+
+/**
+ * Submit for moderation. This is also where the listing gets its location: `pickup_contact_id`
+ * names which of the seller's saved addresses a carrier collects from, and omitting it means
+ * their default pickup address. It is frozen onto the row here, because it is both where a
+ * carrier goes and how buyers find the listing.
+ */
+export function usePublishListing() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async ({ id, body }: { id: ListingId; body?: PublishListingRequest }) => {
+			const { data } = await postListingsByIdPublication({ path: { id }, body, throwOnError: true })
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+	})
 }
