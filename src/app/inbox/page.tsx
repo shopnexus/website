@@ -38,6 +38,7 @@ function InboxContent() {
   const [showChatMobile, setShowChatMobile] = useState(false);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const me = useAuthStore((s) => s.user);
   const { conversations, isLoading: isLoadingConversations } = useConversations();
@@ -106,6 +107,16 @@ function InboxContent() {
     // markRead is stable apart from its pending flag, guarded above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConvId, activeConv?.unread]);
+
+  // Auto-scroll to absolute bottom when messages change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [messages]);
 
   /**
    * The listing this thread is about.
@@ -316,7 +327,7 @@ function InboxContent() {
               </div>
             )}
 
-            <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[url('https://www.transparenttextures.com/patterns/tiny-grid.png')] bg-surface-container-lowest/50">
+            <div ref={chatContainerRef} className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[url('https://www.transparenttextures.com/patterns/tiny-grid.png')] bg-surface-container-lowest/50">
               {isLoadingMessages && (
                 <div className="flex justify-center py-8">
                   <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
@@ -439,13 +450,6 @@ function InboxContent() {
                   onClose={() => setIsOfferModalOpen(false)}
                   product={activeProduct || null}
                 />
-                <button
-                  type="button"
-                  title="Gửi hình ảnh"
-                  className="material-symbols-outlined text-outline hover:text-primary p-1.5 transition-colors rounded-full hover:bg-surface-container-low shrink-0 text-[20px]"
-                >
-                  image
-                </button>
                 <input
                   className="flex-1 border-none focus:ring-0 bg-transparent text-xs md:text-sm py-1.5 outline-none text-on-surface placeholder:text-outline"
                   placeholder={activeContact ? `Viết tin nhắn cho ${activeContact.name}...` : "Chọn một cuộc trò chuyện..."}

@@ -747,6 +747,11 @@ export type Listing = {
      */
     favorited: boolean;
     id: ListingId;
+    /**
+     * Where the goods are. Null on a listing that was never published — the address is taken when the seller publishes, because that is when it becomes something a buyer can find.
+     *
+     */
+    location?: ListingLocation | null;
     name: string;
     /**
      * The featured variant's price, or the cheapest one when a price sort is in force. Not stored on the listing.
@@ -808,6 +813,11 @@ export type ListingDetail = {
      * Ordered. The first is the cover.
      */
     images: Array<Resource>;
+    /**
+     * Where the goods are. Null on a listing that was never published — the address is taken when the seller publishes, because that is when it becomes something a buyer can find.
+     *
+     */
+    location?: ListingLocation | null;
     name: string;
     /**
      * An edit waiting on moderation, null when there is none. Visible to the owner and to staff only; buyers see the published version until it is approved.
@@ -840,6 +850,27 @@ export type ListingDetail = {
 export type ListingId = string;
 
 /**
+ * Where a listing's goods are: the seller's pickup address as the listing snapshotted it when it was published. A snapshot rather than a reference to the address — the address belongs to another module and a seller who moves does not move the listings they already sold.
+ *
+ */
+export type ListingLocation = {
+    /**
+     * How far the goods are from where the buyer said they are. Absent unless the browse sent a position, and absent for an address that was never geocoded.
+     *
+     */
+    distance_km?: number;
+    /**
+     * Null where the country has no district tier. Code and name travel together.
+     */
+    district_code: string | null;
+    district_name: string | null;
+    province_code: string;
+    province_name: string;
+    ward_code: string;
+    ward_name: string;
+};
+
+/**
  * One page shape for every listing query, ranked or not. Page-paginated, because a catalog is browsed with a pager and a relevance order has no stored column to seek into; `total` is null for a ranked query, where the top-K is all the search ever visited.
  *
  */
@@ -853,6 +884,48 @@ export type ListingPage = {
  *
  */
 export type ListingStatus = 'draft' | 'pending' | 'active' | 'hidden';
+
+/**
+ * A filled-in form. Every field is the model's proposal and the seller is expected to correct it; the optional ones are absent where it had nothing it could stand behind.
+ *
+ */
+export type ListingSuggestion = {
+    /**
+     * Resolved against this marketplace's own tree, so it is always a category that exists. Null when nothing in the tree fits what it saw.
+     *
+     */
+    category_id: CategoryId | null;
+    /**
+     * Empty when it could not tell.
+     */
+    condition: 'new' | 'used' | 'damaged' | '';
+    description: string;
+    name: string;
+    /**
+     * Only what the seller said out loud, in the smallest currency unit. Null when they did not say — this never estimates a price.
+     *
+     */
+    price: number | null;
+    /**
+     * Attributes it could read off the photos, as plain strings.
+     */
+    specifications?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Already slugified, at most four. Empty rather than guessed.
+     */
+    tags: Array<TagSlug>;
+    /**
+     * What the voice note was heard as, echoed so the seller can see why a field is wrong rather than guess. Absent when they sent no recording.
+     *
+     */
+    transcript?: string;
+    /**
+     * Estimated parcel weight, which is what a shipping quote needs.
+     */
+    weight_g: number | null;
+};
 
 export type LoginRequest = {
     /**
@@ -1341,7 +1414,7 @@ export type PendingEdit = {
  *
  * `fixed` is bought straight from the listing page: the buyer checks out, pays the item plus the shipping quote, and the order and its shipment exist as soon as the money lands. The seller confirms nothing.
  *
- * `negotiable` cannot be checked out. The buyer opens a negotiation, which is a thread in chat where either side revises the terms, and accepting them is what starts the same checkout. Either way the seller never approves an order — the only thing they can refuse is a price.
+ * `negotiable` adds a second way to buy without removing the first: the asking price is still a price a buyer can take outright, and the listing page asks which they want. If they haggle, the negotiation is a thread in chat where either side revises the terms, and agreeing freezes them for the same checkout. Either way the seller never approves an order — the only thing they can refuse is a price.
  *
  */
 export type PriceMode = 'fixed' | 'negotiable';
@@ -1378,6 +1451,14 @@ export type PublicAccount = {
      */
     identity_verified: boolean;
     name: string;
+};
+
+/**
+ * Optional. Names the address a carrier collects this listing's goods from — one of the seller's own — which is also the location buyers filter and measure by. Omitted means their default pickup address.
+ *
+ */
+export type PublishListingRequest = {
+    pickup_contact_id?: ContactId;
 };
 
 /**
@@ -1836,6 +1917,30 @@ export type SubmitReviewRequest = {
     body?: string;
     order_id: OrderId;
     rating: number;
+};
+
+/**
+ * At least one of `attachments`, `note` or `voice_note`.
+ */
+export type SuggestListingRequest = {
+    /**
+     * Confirmed uploads. The first three are what the model reads.
+     */
+    attachments?: Array<ResourceId>;
+    /**
+     * ISO-639-1 hint for the transcription. Omit to let the model detect.
+     */
+    language?: string;
+    /**
+     * What the seller typed. A phone's own dictation key fills this in just as well.
+     */
+    note?: string;
+    /**
+     * The recording, base64. Inline rather than an upload because it is input and not content: nothing keeps it, so nothing has to reap it. Around a megabyte at most — a seller describes an item in a sentence or two.
+     *
+     */
+    voice_note?: string;
+    voice_note_mime?: string;
 };
 
 export type SuspendAccountRequest = {
@@ -4664,10 +4769,6 @@ export type PostDraftsErrors = {
      * Listing not found, deleted, or not active
      */
     404: Error;
-    /**
-     * The listing is priced negotiable; open an offer instead
-     */
-    422: Error;
 };
 
 export type PostDraftsError = PostDraftsErrors[keyof PostDraftsErrors];
@@ -5139,9 +5240,33 @@ export type GetListingsData = {
         min_price?: number;
         max_price?: number;
         /**
-         * Defaults to `relevance` when a query is given and `newest` otherwise.
+         * Where to look, matched against the listing's own snapshot of the seller's pickup address. Send the narrowest level you mean — a ward is already inside its province.
+         *
          */
-        sort?: 'newest' | 'rating' | 'price-asc' | 'price-desc' | 'best-selling' | 'relevance' | 'recommended';
+        province_code?: string;
+        district_code?: string;
+        ward_code?: string;
+        /**
+         * Where the buyer is, for a "near me" browse — from the device, and always together with `lon`. With a position every card carries `location.distance_km`.
+         *
+         */
+        lat?: number;
+        lon?: number;
+        /**
+         * One of the caller's own saved addresses, as an alternative to `lat`/`lon` — the usual case, since a buyer's address is already on file. 422 if it was never geocoded.
+         *
+         */
+        near_contact_id?: ContactId;
+        /**
+         * Bound the result to a circle around that position. Without it a position still ranks and reports distance, it just does not exclude anything.
+         *
+         */
+        radius_km?: number;
+        /**
+         * Defaults to `relevance` when a query is given and `newest` otherwise. `distance` needs a position, like `radius_km` does.
+         *
+         */
+        sort?: 'newest' | 'rating' | 'price-asc' | 'price-desc' | 'best-selling' | 'relevance' | 'recommended' | 'distance';
         /**
          * 1-based page number.
          */
@@ -5392,7 +5517,7 @@ export type DeleteListingsByIdPublicationResponses = {
 export type DeleteListingsByIdPublicationResponse = DeleteListingsByIdPublicationResponses[keyof DeleteListingsByIdPublicationResponses];
 
 export type PostListingsByIdPublicationData = {
-    body?: never;
+    body?: PublishListingRequest;
     path: {
         id: ListingId;
     };
@@ -5570,6 +5695,49 @@ export type PostListingsByListingIdReviewsResponses = {
 };
 
 export type PostListingsByListingIdReviewsResponse = PostListingsByListingIdReviewsResponses[keyof PostListingsByListingIdReviewsResponses];
+
+export type PostListingsSuggestionsData = {
+    body: SuggestListingRequest;
+    path?: never;
+    query?: never;
+    url: '/listings/suggestions';
+};
+
+export type PostListingsSuggestionsErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * That voice note is longer than this route accepts
+     */
+    413: Error;
+    /**
+     * Nothing to look at, or the seller has no verified identity
+     */
+    422: Error;
+    /**
+     * The model did not return a usable suggestion
+     */
+    502: Error;
+};
+
+export type PostListingsSuggestionsError = PostListingsSuggestionsErrors[keyof PostListingsSuggestionsErrors];
+
+export type PostListingsSuggestionsResponses = {
+    /**
+     * A form to review, not a listing
+     */
+    200: {
+        data: ListingSuggestion;
+    };
+};
+
+export type PostListingsSuggestionsResponse = PostListingsSuggestionsResponses[keyof PostListingsSuggestionsResponses];
 
 export type PostListingsUploadsData = {
     body: CreateUploadRequest;

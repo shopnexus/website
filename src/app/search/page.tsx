@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
 import { useCategories, useListingsFeed } from "@/hooks/api/useCatalog";
-import type { CategoryId, GetListingsData } from "@/api/generated/types.gen";
+import type { CategoryId, GetListingsData, ListingCondition } from "@/api/generated/types.gen";
+import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
 
 type SortOption = NonNullable<NonNullable<GetListingsData["query"]>["sort"]>;
 
@@ -30,12 +31,21 @@ function SearchPageContent(): React.ReactElement {
   const categoryParam = searchParams.get("category") || "";
 
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
-  const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
+  const [condition, setCondition] = useState<ListingCondition | "">("");
+  const [provinceCode, setProvinceCode] = useState<string>("");
+  const [provinces, setProvinces] = useState<Array<{ code: number; name: string }>>([]);
   const [priceFrom, setPriceFrom] = useState<string>("");
   const [priceTo, setPriceTo] = useState<string>("");
   const [appliedPriceFrom, setAppliedPriceFrom] = useState<string>("");
   const [appliedPriceTo, setAppliedPriceTo] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+
+  useEffect(() => {
+    fetch("https://provinces.open-api.vn/api/p/")
+      .then((res) => res.json())
+      .then((data) => setProvinces(data))
+      .catch((err) => console.error("Failed to fetch provinces", err));
+  }, []);
 
   const { data: categories = [] } = useCategories();
 
@@ -62,6 +72,8 @@ function SearchPageContent(): React.ReactElement {
     limit: 12,
     q: initialQuery || undefined,
     category_id: (selectedCategory as CategoryId) || undefined,
+    condition: (condition as ListingCondition) || undefined,
+    province_code: provinceCode || undefined,
     // Price is a server-side filter and sorting is a server-side order: `min_price`,
     // `max_price` and `sort` are all parameters `/listings` accepts. Filtering the
     // current page in memory only ever hid rows from the page that happened to load.
@@ -77,7 +89,8 @@ function SearchPageContent(): React.ReactElement {
 
   const clearAllFilters = (): void => {
     setSelectedCategory("");
-    setVerifiedOnly(false);
+    setCondition("");
+    setProvinceCode("");
     setPriceFrom("");
     setPriceTo("");
     setAppliedPriceFrom("");
@@ -185,26 +198,67 @@ function SearchPageContent(): React.ReactElement {
             </div>
 
             <div className="pt-4 border-t border-outline-variant/10">
-              <label className="flex items-center justify-between cursor-pointer group">
-                <span className="text-body-sm font-semibold flex items-center gap-2 text-on-surface">
-                  <span
-                    className="material-symbols-outlined text-primary text-[18px]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    verified
+              <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
+                Tình trạng
+              </h3>
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="radio"
+                      name="condition"
+                      checked={condition === ""}
+                      onChange={() => setCondition("")}
+                      className="peer sr-only"
+                    />
+                    <div className="w-5 h-5 rounded-full border-2 border-outline-variant peer-checked:border-primary transition-colors flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                    </div>
+                  </div>
+                  <span className="text-body-sm text-on-surface group-hover:text-primary transition-colors">
+                    Tất cả
                   </span>
-                  Người bán xác thực
-                </span>
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={verifiedOnly}
-                    onChange={(e) => setVerifiedOnly(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                </div>
-              </label>
+                </label>
+                {(Object.entries(LISTING_CONDITION_VI) as [ListingCondition, string][]).map(
+                  ([key, label]) => (
+                    <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative flex items-center justify-center">
+                        <input
+                          type="radio"
+                          name="condition"
+                          checked={condition === key}
+                          onChange={() => setCondition(key)}
+                          className="peer sr-only"
+                        />
+                        <div className="w-5 h-5 rounded-full border-2 border-outline-variant peer-checked:border-primary transition-colors flex items-center justify-center">
+                          <div className="w-2.5 h-2.5 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                        </div>
+                      </div>
+                      <span className="text-body-sm text-on-surface group-hover:text-primary transition-colors">
+                        {label}
+                      </span>
+                    </label>
+                  )
+                )}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-outline-variant/10">
+              <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
+                Khu vực
+              </h3>
+              <select
+                value={provinceCode}
+                onChange={(e) => setProvinceCode(e.target.value)}
+                className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-body-sm rounded-lg py-2 pl-3 pr-8 focus:ring-1 focus:ring-primary focus:border-primary outline-none cursor-pointer"
+              >
+                <option value="">Tất cả khu vực</option>
+                {provinces.map((p) => (
+                  <option key={p.code} value={p.code.toString()}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </aside>
@@ -249,16 +303,21 @@ function SearchPageContent(): React.ReactElement {
             </div>
           </div>
 
-          {(selectedCategory || verifiedOnly || appliedPriceFrom || appliedPriceTo) && (
+          {(selectedCategory || condition || provinceCode || appliedPriceFrom || appliedPriceTo) && (
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selectedCategory && (
                 <Chip selected onRemove={() => setSelectedCategory("")}>
-                  {categories.find(c => c.id === selectedCategory)?.name || selectedCategory}
+                  {categories.find((c) => c.id === selectedCategory)?.name || selectedCategory}
                 </Chip>
               )}
-              {verifiedOnly && (
-                <Chip selected onRemove={() => setVerifiedOnly(false)}>
-                  Người bán xác thực
+              {condition && (
+                <Chip selected onRemove={() => setCondition("")}>
+                  Tình trạng: {LISTING_CONDITION_VI[condition as ListingCondition]}
+                </Chip>
+              )}
+              {provinceCode && (
+                <Chip selected onRemove={() => setProvinceCode("")}>
+                  Khu vực: {provinces.find((p) => p.code.toString() === provinceCode)?.name || provinceCode}
                 </Chip>
               )}
               {(appliedPriceFrom || appliedPriceTo) && (

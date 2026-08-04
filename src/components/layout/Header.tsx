@@ -8,7 +8,7 @@ import { useUserLocation } from "@/hooks/useUserLocation";
 import Select from "@/components/ui/Select";
 
 export default function Header(): React.ReactElement | null {
-  const { query, setQuery, location, setLocation, isLoading, handleSearch } = useSearch("hcm");
+  const { query, setQuery, location, setLocation, isLoading, handleSearch } = useSearch("79");
   const { locationOptions } = useUserLocation(location, setLocation);
   const router = useRouter();
   const pathname = usePathname();
