@@ -7,6 +7,7 @@ import OfferModal from "@/components/offers/OfferModal";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCart } from "@/hooks/api/useCart";
 import { useCreateDraft } from "@/hooks/api/useOrders";
+import { useStartConversation } from "@/hooks/api/useChat";
 import { toast } from "react-hot-toast";
 import type { ListingDetail, Variant } from "@/api/generated/types.gen";
 import NegotiableChoiceModal from "./NegotiableChoiceModal";
@@ -26,6 +27,18 @@ export default function ProductBottomBar({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { addItem } = useCart();
   const createDraft = useCreateDraft();
+  const startConversation = useStartConversation();
+
+  const handleOfferSuccess = () => {
+    startConversation.mutate(
+      { account_id: product.seller.id },
+      {
+        onSuccess: (conversation) => {
+          router.push(`/inbox?c=${conversation.id}&listing_id=${product.id}`);
+        }
+      }
+    );
+  };
 
   const [isChoiceOpen, setIsChoiceOpen] = useState(false);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
@@ -103,16 +116,6 @@ export default function ProductBottomBar({
             Thêm vào giỏ
           </Button>
 
-          {isNegotiable && (
-            <Button
-              variant="outline"
-              className="flex-1 sm:flex-none px-8 py-3 h-12 rounded-xl font-bold border-primary text-primary"
-              onClick={handleNegotiate}
-            >
-              Thương lượng
-            </Button>
-          )}
-
           <Button
             variant="primary"
             className="flex-1 sm:flex-none px-8 py-3 h-12 rounded-xl font-bold"
@@ -138,6 +141,7 @@ export default function ProductBottomBar({
         onClose={() => setIsOfferOpen(false)}
         product={product}
         variant={selectedVariant}
+        onSuccessCallback={handleOfferSuccess}
       />
     </div>
   );

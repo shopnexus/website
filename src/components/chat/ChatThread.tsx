@@ -13,6 +13,8 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { sameOriginUploadUrl } from "@/api/upload";
 import type { ConversationId } from "@/api/generated/types.gen";
 import OfferMessageCard from "@/components/offers/OfferMessageCard";
+import ImageViewerModal from "@/components/ui/ImageViewerModal";
+import { toast } from "react-hot-toast";
 
 /**
  * One chat thread: its messages and the box you write in.
@@ -41,6 +43,60 @@ interface ChatThreadProps {
 
 const SUPPORT_NAME = "ShopNexus Hỗ trợ";
 
+function AttachmentPreview({
+  attachment,
+  isMine,
+  onImageClick,
+  onDownload,
+}: {
+  attachment: any;
+  isMine: boolean;
+  onImageClick: (url: string) => void;
+  onDownload: (e: React.MouseEvent, url: string) => void;
+}) {
+  const url = attachment.url || "";
+  const isVideo = attachment.mime?.startsWith("video/");
+
+  if (!url) return null;
+
+  return (
+    <div
+      className={`group relative rounded-xl overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px] ${
+        isMine ? "rounded-br-sm" : "rounded-bl-sm"
+      } ${!isVideo ? "cursor-pointer" : ""}`}
+      onClick={() => {
+        if (!isVideo) onImageClick(url);
+      }}
+    >
+      {isVideo ? (
+        <video
+          src={url}
+          controls
+          className="w-full aspect-[4/3] object-cover bg-black"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <Image
+          src={url}
+          alt="Tệp đính kèm"
+          width={240}
+          height={180}
+          className="w-full aspect-[4/3] object-cover"
+        />
+      )}
+      {!isVideo && (
+        <button
+          onClick={(e) => onDownload(e, url)}
+          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60 backdrop-blur-sm"
+          title="Tải xuống"
+        >
+          <span className="material-symbols-outlined text-[18px]">download</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function ChatThread({
   conversationId,
   counterparty,
@@ -49,6 +105,7 @@ export default function ChatThread({
   placeholder,
 }: ChatThreadProps) {
   const [inputText, setInputText] = useState("");
+  const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -58,6 +115,17 @@ export default function ChatThread({
   const markRead = useMarkConversationRead();
   const requestUpload = useRequestChatUpload();
   const confirmUpload = useConfirmChatUpload();
+
+  const handleDownloadImage = (e: React.MouseEvent, url: string) => {
+    e.stopPropagation();
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.download = url.split("/").pop()?.split("?")[0] || "image.jpg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Opening a thread with unread messages is the read receipt.
   useEffect(() => {
@@ -144,15 +212,12 @@ export default function ChatThread({
               <div key={msg.id} className="flex gap-2.5 max-w-[85%] md:max-w-[75%] ml-auto justify-end">
                 <div className="flex flex-col items-end space-y-1.5 min-w-0 flex-1">
                   {msg.attachments.length > 0 && (
-                    <div className="rounded-xl rounded-br-sm overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px]">
-                      <Image
-                        src={msg.attachments[0].url || ""}
-                        alt="Ảnh đính kèm"
-                        width={240}
-                        height={180}
-                        className="w-full aspect-[4/3] object-cover"
-                      />
-                    </div>
+                    <AttachmentPreview
+                      attachment={msg.attachments[0]}
+                      isMine={true}
+                      onImageClick={setViewerImageUrl}
+                      onDownload={handleDownloadImage}
+                    />
                   )}
 
                   {card ??
@@ -209,15 +274,12 @@ export default function ChatThread({
                 )}
 
                 {msg.attachments.length > 0 && (
-                  <div className="rounded-xl rounded-bl-sm overflow-hidden border border-outline-variant/40 shadow-sm max-w-[220px]">
-                    <Image
-                      src={msg.attachments[0].url || ""}
-                      alt="Ảnh đính kèm"
-                      width={240}
-                      height={180}
-                      className="w-full aspect-[4/3] object-cover"
-                    />
-                  </div>
+                  <AttachmentPreview
+                    attachment={msg.attachments[0]}
+                    isMine={false}
+                    onImageClick={setViewerImageUrl}
+                    onDownload={handleDownloadImage}
+                  />
                 )}
 
                 {msg.body && (
@@ -244,7 +306,7 @@ export default function ChatThread({
           >
             add_circle
           </button>
-          <input type="file" className="hidden" ref={fileInputRef} onChange={handleUpload} />
+          <input type="file" accept="image/*,video/*" className="hidden" ref={fileInputRef} onChange={handleUpload} />
           <input
             className="flex-1 border-none focus:ring-0 bg-transparent text-xs md:text-sm py-1.5 outline-none text-on-surface placeholder:text-outline"
             placeholder={placeholder ?? (counterparty ? `Viết tin nhắn cho ${incomingName}...` : "Chọn một cuộc trò chuyện...")}
@@ -272,6 +334,12 @@ export default function ChatThread({
           </button>
         </div>
       </div>
+
+      <ImageViewerModal
+        isOpen={!!viewerImageUrl}
+        onClose={() => setViewerImageUrl(null)}
+        imageUrl={viewerImageUrl || ""}
+      />
     </>
   );
 }

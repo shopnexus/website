@@ -68,7 +68,11 @@ function InboxContent() {
     return undefined;
   }, [messages]);
 
-  const activeListingId = (queryListingId || referencedListingId) as ListingId | undefined;
+  // Only use the URL's listing_id if we're still viewing the conversation from the URL.
+  // Otherwise, if the user switches chats, we only want the listing referenced in that specific chat.
+  const activeListingId = (
+    activeConvId === queryC ? (queryListingId || referencedListingId) : referencedListingId
+  ) as ListingId | undefined;
   const { data: activeProduct } = useListing(activeListingId);
 
   return (

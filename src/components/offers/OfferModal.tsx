@@ -12,12 +12,14 @@ export default function OfferModal({
   onClose,
   product,
   variant,
+  onSuccessCallback,
 }: {
   isOpen: boolean;
   onClose: () => void;
   product: ListingDetail | null;
   /** The variant being negotiated over. The featured one when the caller has no selection. */
   variant?: Variant;
+  onSuccessCallback?: () => void;
 }) {
   const [total, setTotal] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
@@ -54,6 +56,9 @@ export default function OfferModal({
           setTotal("");
           setQuantity(1);
           setReason("");
+          if (onSuccessCallback) {
+            onSuccessCallback();
+          }
         },
         onError: (err) => {
           // The interceptor normalises every failure into an ApiError, so the code is a

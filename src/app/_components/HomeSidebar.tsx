@@ -2,35 +2,18 @@
 
 import React from "react";
 import Link from "next/link";
+import { useCategories } from "@/hooks/api/useCatalog";
+import { CATEGORY_IMAGES } from "@/constants/categoryImages";
 
-const COLLECTIONS = [
-  {
-    title: "Hoài niệm Film",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCExxnL4KhiKKXZRr0Kkg2zSlN-qgY66E0Kjydii6qeMOBPwIAjSPkDh9AFmpeI2LXJwpUtSXclqIXrDhnPakePGQEo5PQwSjiLAsBtMJYQFThILC2EaIgN62RyjeP7yHMZKDpSbL2io-6hpizpkM_qFNg50A2eszNY_1g2LVRjNOHSgX227yl89kTFVpalcTsPfi5BjQH8rio7QyB4nDkGn8Z_YsyrBmm2LRWA22Wh6DYOKgUa2RQ8ICIWFVejFAj9NCuvLThannE",
-    slug: "film",
-  },
-  {
-    title: "Gốm Nghệ Thuật",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuA-lQkO8_Wiu-jF-Lqw5WrdnX9UbhkDNhd2SB5avDy92FcRleuXjJ--_sbjmPpAIwBRjC9H9vAhROCRGKDy6MdPdCNsm-gtPx81jKpKT1ovNiS4Cf_kJ8iF7RNMlp977m03h-UhM6KKNkf_Q7JHzSWkJPQzmsjIeYlZtARlewuPo9oyA9T1CT_OjlOIGucqkW1Pj6d2keHH3fWvhRZs7SJDrzmoewaTbjN10WXJZzNxsPlKayVIYjhqHu3IiTkD5H195LZDfgFTbQs",
-    slug: "decor",
-  },
-  {
-    title: "Âm Nhạc Cũ",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuABLt2dHr0sK6GSY9jJMFQPG0KptMWULKZppajQDB7SAZd7LIIYIwX1AjqSwol5kWw-MhMQFZ9TagiT1OWE-5zmKKTiAO431CEjb8PqE7zI0nib0LzzsnLVFl2hGnXHJqtSvIjt8JHvRNXVMsZjzzDxnuyQ3aAW1vud5J3c-g5UiUiJMSHaMoOGR3m4U-FU43Qbzf4da9Rd1WHQgD_Tuhebj1lGt5Cbi-PO1HQF7bJyQbLu5Kgbjgjc7PphA24SsZ44GmeniLW3XjU",
-    slug: "audio",
-  },
-  {
-    title: "Văn Phòng Phẩm",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBRN3LAogMSeKk2Ga5FBSqnQEkShxYaMzedXDC2YuGTKwjdV0Ci_O54V9xJ1_OkNw6Jv5X27G-8rhX0gfDf9zbYyBuUJHta4SCz_Nk1VcJQhBjNq_v8sRJSfVQ5Hzc174sgBLCjSU51KnAxFQRIg37SYFHNQP0RQgAfkxxxM54NBM4_MWaN5X8yDfXutQxYT-1qjKRARSj8kvcWIHIwI8a3tdO-o9mtxAlB_JKPYUcdhwkkSt9di1dMAGGp1ARJMCZJD3-7qQm0rD8",
-    slug: "books",
-  },
-];
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=300&auto=format&fit=crop";
 
 export default function HomeSidebar(): React.ReactElement {
+  const { data: categories = [], isLoading } = useCategories();
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  
+  // Show 4 initially, or all if expanded
+  const displayCategories = isExpanded ? categories : categories.slice(0, 4);
+
   return (
     <aside className="md:col-span-4 space-y-8">
       <div className="bg-surface-container-low rounded-xl p-6">
@@ -43,20 +26,44 @@ export default function HomeSidebar(): React.ReactElement {
             Xem tất cả
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {COLLECTIONS.map((col) => (
-            <Link key={col.title} href={`/search?category=${col.slug}`} className="group cursor-pointer block">
-              <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-white p-1">
-                <img
-                  className="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-500"
-                  src={col.image}
-                  alt={col.title}
-                />
-              </div>
-              <p className="text-label-sm font-bold truncate text-on-surface">{col.title}</p>
-            </Link>
-          ))}
-        </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <span className="material-symbols-outlined animate-spin text-primary text-2xl">progress_activity</span>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3">
+              {displayCategories.map((cat) => {
+                const image = CATEGORY_IMAGES[cat.id] || DEFAULT_IMAGE;
+                return (
+                  <Link key={cat.id} href={`/search?category=${cat.id}`} className="group cursor-pointer block">
+                    <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-white p-1">
+                      <img
+                        className="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-500"
+                        src={image}
+                        alt={cat.name}
+                      />
+                    </div>
+                    <p className="text-label-sm font-bold truncate text-on-surface">{cat.name}</p>
+                  </Link>
+                );
+              })}
+            </div>
+            
+            {categories.length > 4 && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full py-2 flex items-center justify-center gap-1 text-label-sm font-bold text-primary hover:bg-primary/10 rounded-full transition-colors border border-primary/20"
+              >
+                <span>{isExpanded ? "Thu gọn" : "Xem thêm"}</span>
+                <span className="material-symbols-outlined text-[18px]">
+                  {isExpanded ? "keyboard_arrow_up" : "keyboard_arrow_down"}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </aside>
   );

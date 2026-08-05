@@ -222,6 +222,11 @@ export default function ProductInteractiveViewer({ product }: { product: Listing
                 <span className="font-display-lg text-[32px] text-primary font-bold leading-none tracking-tight">
                   {formatPrice(selectedVariant.price)}
                 </span>
+                {product.price_mode === "negotiable" && (
+                  <Badge variant="surface" className="text-primary border-primary shrink-0 self-center">
+                    Có thể thương lượng
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-2 mt-4 text-body-sm text-on-surface-variant">
                 <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>

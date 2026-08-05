@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 /**
  * The search box, wherever it appears.
@@ -10,19 +10,27 @@ import { useRouter } from "next/navigation";
  * had ever heard of, and the results page ignored it.
  */
 export function useSearch(initialProvince = "") {
-  const [query, setQuery] = useState("");
-  const [province, setProvince] = useState(initialProvince);
+  const searchParams = useSearchParams();
   const router = useRouter();
+
+  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [province, setProvince] = useState(searchParams.get("province") || initialProvince);
+
+  // Sync local state when the URL changes (e.g., user submits search from another bar or navigates back)
+  useEffect(() => {
+    setQuery(searchParams.get("q") || "");
+    setProvince(searchParams.get("province") || initialProvince);
+  }, [searchParams, initialProvince]);
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!query.trim() && !province) return;
-
+    // Allow empty search to reset/clear filters, or you can prevent it.
+    // Usually, submitting empty should just go to /search without params.
     const params = new URLSearchParams();
     if (query.trim()) params.append("q", query.trim());
     if (province) params.append("province", province);
 
-    router.push(`/search?${params.toString()}`);
+    router.push(`/search${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   return { query, setQuery, province, setProvince, handleSearch };
