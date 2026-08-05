@@ -14,6 +14,8 @@ import {
 	postListingsSuggestions,
 	postListingsUploads,
 	postListingsUploadsByIdConfirmation,
+	putFavoritesByListingId,
+	deleteFavoritesByListingId,
 } from "@/api/generated/sdk.gen"
 import type {
 	CreateListingRequest,
@@ -152,6 +154,28 @@ export function usePublishListing() {
 		mutationFn: async ({ id, body }: { id: ListingId; body?: PublishListingRequest }) => {
 			const { data } = await postListingsByIdPublication({ path: { id }, body, throwOnError: true })
 			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+	})
+}
+
+// ── Favorites ────────────────────────────────────────────────────────────────
+
+export function useAddFavorite() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async (id: string) => {
+			await putFavoritesByListingId({ path: { listingID: id }, throwOnError: true })
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+	})
+}
+
+export function useRemoveFavorite() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async (id: string) => {
+			await deleteFavoritesByListingId({ path: { listingID: id }, throwOnError: true })
 		},
 		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
 	})

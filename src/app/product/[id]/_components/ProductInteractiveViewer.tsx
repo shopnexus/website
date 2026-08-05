@@ -3,6 +3,9 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { useAddFavorite, useRemoveFavorite } from "@/hooks/api/useCatalog";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
@@ -21,9 +24,31 @@ function attributesOf(variant: Variant): Record<string, string> {
 }
 
 export default function ProductInteractiveViewer({ product }: { product: ListingDetail }) {
-  // A listing always has at least one variant — the server refuses to publish one without
   // a priced variant — and the featured one is what the card that led here showed.
   const defaultVariant = product.variants.find((v) => v.is_featured) ?? product.variants[0];
+
+  const { user } = useAuthStore();
+  const { mutate: addFavorite, isPending: isAdding } = useAddFavorite();
+  const { mutate: removeFavorite, isPending: isRemoving } = useRemoveFavorite();
+  const isPending = isAdding || isRemoving;
+
+  const handleFavoriteClick = () => {
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để lưu sản phẩm");
+      return;
+    }
+    if (isPending) return;
+
+    if (product.favorited) {
+      removeFavorite(product.id, {
+        onError: () => toast.error("Có lỗi xảy ra khi bỏ lưu sản phẩm"),
+      });
+    } else {
+      addFavorite(product.id, {
+        onError: () => toast.error("Có lỗi xảy ra khi lưu sản phẩm"),
+      });
+    }
+  };
 
   const [selectedVariant, setSelectedVariant] = useState<Variant>(defaultVariant);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>(() =>
@@ -134,9 +159,26 @@ export default function ProductInteractiveViewer({ product }: { product: Listing
           </div>
 
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-on-surface mb-4">
-              {product.name}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="text-2xl font-bold text-on-surface">
+                {product.name}
+              </h1>
+              <button
+                onClick={handleFavoriteClick}
+                disabled={isPending}
+                className="p-2 rounded-full hover:bg-surface-container-high transition-colors disabled:opacity-50 flex items-center justify-center border border-outline-variant/30 shadow-sm"
+                aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
+              >
+                <span
+                  className={`material-symbols-outlined text-[24px] transition-colors ${
+                    product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                  style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  favorite
+                </span>
+              </button>
+            </div>
 
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 mb-6 shadow-sm">
               <h3 className="font-headline-sm font-bold mb-4">Mô tả</h3>

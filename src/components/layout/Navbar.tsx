@@ -234,12 +234,12 @@ export default function Navbar(): React.ReactElement {
           <span className="font-label text-label-sm">Tìm kiếm</span>
         </Link>
         <Link
-          href="/dashboard"
+          href="/dashboard/favorites"
           className={`flex flex-col items-center justify-center px-4 py-1 active:scale-95 duration-150 border-b-2 transition-all ${
-            pathname === "/dashboard" ? "text-primary border-primary font-bold" : "text-on-surface-variant border-transparent"
+            pathname === "/dashboard/favorites" ? "text-primary border-primary font-bold" : "text-on-surface-variant border-transparent"
           }`}
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === "/dashboard" ? "'FILL' 1" : "'FILL' 0" }}>
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === "/dashboard/favorites" ? "'FILL' 1" : "'FILL' 0" }}>
             favorite
           </span>
           <span className="font-label text-label-sm">Đã lưu</span>

@@ -15,7 +15,15 @@ export type AccountCreateUploadRequest = {
      */
     filename: string;
     kind: 'avatar' | 'identity';
+    /**
+     * One of the types this platform stores: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, `video/mp4`, `video/quicktime` (an iPhone's `.mov`), `video/webm`. Anything else is 422 whatever its size. The allowlist is the store's, so every upload route accepts the same set — which of them a client offers is its own choice.
+     *
+     */
     mime: string;
+    /**
+     * Declared up front and refused before a byte moves. The bound here is the video one: a `video*` upload may reach 100 MB, everything else is held to 10 MB, and a limit that depends on the type cannot be written as one number. The confirmed row records the size the *store* measured, not this.
+     *
+     */
     size: number;
 };
 
@@ -475,7 +483,15 @@ export type CreateUploadRequest = {
      *
      */
     filename: string;
+    /**
+     * One of the types this platform stores: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, `video/mp4`, `video/quicktime` (an iPhone's `.mov`), `video/webm`. Anything else is 422 whatever its size. The allowlist is the store's, so every upload route accepts the same set — which of them a client offers is its own choice.
+     *
+     */
     mime: string;
+    /**
+     * Declared up front and refused before a byte moves. The bound here is the video one: a `video*` upload may reach 100 MB, everything else is held to 10 MB, and a limit that depends on the type cannot be written as one number. The confirmed row records the size the *store* measured, not this.
+     *
+     */
     size: number;
 };
 
@@ -787,6 +803,16 @@ export type Listing = {
      */
     sold: number;
     status: ListingStatus;
+    /**
+     * The listing's own tags, on the card so chips render without a request per row. Empty when it has none.
+     *
+     */
+    tags?: Array<TagSlug>;
+    /**
+     * When staff removed this listing — which is the only thing that tells a takedown apart from the seller hiding their own, since both read `hidden`. Null otherwise. The reason is on the detail read, because it is a sentence rather than a badge.
+     *
+     */
+    taken_down_at?: string | null;
 };
 
 /**
@@ -850,6 +876,16 @@ export type ListingDetail = {
     };
     status: ListingStatus;
     tags: Array<TagSlug>;
+    /**
+     * What the moderator chose to tell the seller, and null when they chose not to (`notify_seller: false` on the takedown). The full reason is in the audit trail either way. Publishing again clears both fields, so they always describe why the listing is down *now* rather than why it once was.
+     *
+     */
+    takedown_reason?: string | null;
+    /**
+     * When staff removed the listing. Null when it is live, and null when the seller hid it themselves — the two used to be indistinguishable, which left a seller unable to tell that their listing had been removed at all.
+     *
+     */
+    taken_down_at?: string | null;
     variants: Array<Variant>;
 };
 
@@ -1043,6 +1079,14 @@ export type MessageType = 'user' | 'system';
 
 export type ModerationNoteRequest = {
     note?: string;
+};
+
+/**
+ * One currency's worth of a total. Minor units, like every amount in this API.
+ */
+export type MoneyByCurrency = {
+    amount: number;
+    currency: CurrencyCode;
 };
 
 export type Notification = {
@@ -1341,6 +1385,38 @@ export type OrderRef = {
  *
  */
 export type OrderState = 'open' | 'completed' | 'cancelled';
+
+export type OrderSummary = {
+    cancelled: number;
+    completed: number;
+    /**
+     * Only the days that had an order; a client fills the gaps it wants to draw.
+     */
+    daily: Array<OrderSummaryDay>;
+    from: string;
+    open: number;
+    /**
+     * Exclusive.
+     */
+    to: string;
+    /**
+     * Empty for a window with no completed order. One entry per currency sold in.
+     */
+    totals: Array<MoneyByCurrency>;
+};
+
+/**
+ * One day's bucket of the series behind a chart.
+ */
+export type OrderSummaryDay = {
+    completed: number;
+    /**
+     * A local date in the requested zone, not a timestamp — a bucket is a day, and a midnight instant would invite a reader to convert it into a different one.
+     *
+     */
+    date: string;
+    placed: number;
+};
 
 /**
  * Where this page sits in the collection, for a page-paginated read.
@@ -4616,11 +4692,11 @@ export type PostConversationsUploadsErrors = {
      */
     401: Error;
     /**
-     * Larger than this platform accepts
+     * Larger than the limit for that type — 100 MB for video, 10 MB otherwise
      */
     413: Error;
     /**
-     * That file type is not accepted
+     * That file type is not one the platform stores
      */
     422: Error;
 };
@@ -5779,11 +5855,11 @@ export type PostListingsUploadsErrors = {
      */
     401: Error;
     /**
-     * Larger than this platform accepts
+     * Larger than the limit for that type — 100 MB for video, 10 MB otherwise
      */
     413: Error;
     /**
-     * That file type is not accepted
+     * That file type is not one the platform stores
      */
     422: Error;
 };
@@ -6194,11 +6270,11 @@ export type PostMeUploadsErrors = {
      */
     401: Error;
     /**
-     * Larger than this platform accepts
+     * Larger than the limit for that type — 100 MB for video, 10 MB otherwise
      */
     413: Error;
     /**
-     * That file type is not accepted
+     * That file type is not one the platform stores
      */
     422: Error;
 };
@@ -7173,6 +7249,53 @@ export type PostOrdersByOrderIdFeedbackResponses = {
 
 export type PostOrdersByOrderIdFeedbackResponse = PostOrdersByOrderIdFeedbackResponses[keyof PostOrdersByOrderIdFeedbackResponses];
 
+export type GetOrdersSummaryData = {
+    body?: never;
+    path?: never;
+    query: {
+        role: 'buyer' | 'seller';
+        from?: string;
+        /**
+         * Exclusive.
+         */
+        to?: string;
+        /**
+         * IANA zone the daily buckets are cut on. Defaults to UTC, which makes a Vietnamese seller's evening sales land on the next day.
+         *
+         */
+        tz?: string;
+    };
+    url: '/orders/summary';
+};
+
+export type GetOrdersSummaryErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * The window ends before it starts, spans more than a year, or names an unknown time zone
+     */
+    422: Error;
+};
+
+export type GetOrdersSummaryError = GetOrdersSummaryErrors[keyof GetOrdersSummaryErrors];
+
+export type GetOrdersSummaryResponses = {
+    /**
+     * OK
+     */
+    200: {
+        data: OrderSummary;
+    };
+};
+
+export type GetOrdersSummaryResponse = GetOrdersSummaryResponses[keyof GetOrdersSummaryResponses];
+
 export type PostOrdersUploadsData = {
     body: CreateUploadRequest;
     path?: never;
@@ -7190,11 +7313,11 @@ export type PostOrdersUploadsErrors = {
      */
     401: Error;
     /**
-     * Larger than this platform accepts
+     * Larger than the limit for that type — 100 MB for video, 10 MB otherwise
      */
     413: Error;
     /**
-     * That file type is not accepted
+     * That file type is not one the platform stores
      */
     422: Error;
 };
@@ -8141,11 +8264,11 @@ export type PostReviewsUploadsErrors = {
      */
     401: Error;
     /**
-     * Larger than this platform accepts
+     * Larger than the limit for that type — 100 MB for video, 10 MB otherwise
      */
     413: Error;
     /**
-     * That file type is not accepted
+     * That file type is not one the platform stores
      */
     422: Error;
 };

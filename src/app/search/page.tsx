@@ -4,7 +4,9 @@ import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import ProductCard from "@/components/ui/ProductCard";
+import ProductCardSkeleton from "@/components/ui/ProductCardSkeleton";
 import Chip from "@/components/ui/Chip";
+import Skeleton from "@/components/ui/Skeleton";
 import { useCategories, useListingsFeed } from "@/hooks/api/useCatalog";
 import { useProvinces, useWards } from "@/hooks/useAdminAreas";
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
@@ -44,6 +46,8 @@ function priceBound(raw: string): number | undefined {
   const value = Number(raw);
   return Number.isFinite(value) && value >= 0 ? value : undefined;
 }
+
+
 
 function SearchPageContent(): React.ReactElement {
   const searchParams = useSearchParams();
@@ -360,16 +364,22 @@ function SearchPageContent(): React.ReactElement {
         <section className="md:col-span-9">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div className="font-headline text-headline-sm text-on-surface">
-              {/* total_count is null for a ranked query — the search never visits the
-                  rows it does not return — so fall back to what is on screen. */}
-              Tìm thấy <span className="font-bold text-primary">{totalCount ?? listings.length}</span> kết quả
-              cho{" "}
-              {initialQuery ? (
-                <span className="italic text-on-surface-variant">&quot;{initialQuery}&quot;</span>
+              {isLoading ? (
+                <Skeleton className="h-6 w-48 inline-block align-middle" />
               ) : (
-                <span className="italic text-on-surface-variant">
-                  &quot;{categories.find(c => c.id === selectedCategory)?.name || "Tất cả"}&quot;
-                </span>
+                <>
+                  {/* total_count is null for a ranked query — the search never visits the
+                      rows it does not return — so fall back to what is on screen. */}
+                  Tìm thấy <span className="font-bold text-primary">{totalCount ?? listings.length}</span> kết quả
+                  cho{" "}
+                  {initialQuery ? (
+                    <span className="italic text-on-surface-variant">&quot;{initialQuery}&quot;</span>
+                  ) : (
+                    <span className="italic text-on-surface-variant">
+                      &quot;{categories.find(c => c.id === selectedCategory)?.name || "Tất cả"}&quot;
+                    </span>
+                  )}
+                </>
               )}
             </div>
 
@@ -409,7 +419,7 @@ function SearchPageContent(): React.ReactElement {
             position) && (
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {provinceCode && (
-                <Chip
+               <Chip
                   selected
                   onRemove={() => {
                     setProvinceCode("");
@@ -466,8 +476,10 @@ function SearchPageContent(): React.ReactElement {
           )}
 
           {isLoading ? (
-            <div className="flex justify-center py-20 text-on-surface-variant">
-              Đang tải dữ liệu...
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </div>
           ) : listings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

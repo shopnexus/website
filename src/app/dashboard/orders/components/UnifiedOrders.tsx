@@ -41,7 +41,7 @@ export default function UnifiedOrders() {
         <div className="bg-surface-container-high p-1 rounded-xl flex w-full md:w-auto shadow-sm">
           <button 
             onClick={() => toggleRole('buying')}
-            className={`flex-1 md:px-8 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+            className={`flex md:px-8 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
               role === 'buying' 
                 ? 'bg-surface-container-lowest text-primary shadow-sm' 
                 : 'text-on-surface-variant hover:text-on-surface'

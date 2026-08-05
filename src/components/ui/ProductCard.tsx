@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { useAddFavorite, useRemoveFavorite } from "@/hooks/api/useCatalog";
+import { toast } from "react-hot-toast";
+
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
@@ -25,6 +29,8 @@ export interface ProductCardItem {
    * only filled in when the browse sent a position.
    */
   location?: { province_name: string; distance_km?: number } | null;
+  favorited?: boolean;
+  favorite_count?: number;
 }
 
 interface ProductCardProps {
@@ -34,6 +40,32 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, className = "" }: ProductCardProps) {
   const imageUrl = product.cover?.url || "https://picsum.photos/seed/fallback/600/750";
+  const { user } = useAuthStore();
+  const { mutate: addFavorite, isPending: isAdding } = useAddFavorite();
+  const { mutate: removeFavorite, isPending: isRemoving } = useRemoveFavorite();
+  const isPending = isAdding || isRemoving;
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent Link navigation
+    e.stopPropagation();
+
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để lưu sản phẩm");
+      return;
+    }
+
+    if (isPending) return;
+
+    if (product.favorited) {
+      removeFavorite(product.id, {
+        onError: () => toast.error("Có lỗi xảy ra khi bỏ lưu sản phẩm"),
+      });
+    } else {
+      addFavorite(product.id, {
+        onError: () => toast.error("Có lỗi xảy ra khi lưu sản phẩm"),
+      });
+    }
+  };
 
   return (
     <Link
@@ -48,6 +80,21 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
         />
+        <button
+          onClick={handleFavoriteClick}
+          disabled={isPending}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors z-10 disabled:opacity-50"
+          aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
+        >
+          <span
+            className={`material-symbols-outlined text-[20px] transition-colors ${
+              product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+            }`}
+            style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            favorite
+          </span>
+        </button>
       </div>
 
       <div className="p-3 flex flex-col flex-1 gap-2">

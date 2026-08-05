@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import ProductCard from "@/components/ui/ProductCard";
 import { useListingsFeed } from "@/hooks/api/useCatalog";
 
+import ProductCardSkeleton from "@/components/ui/ProductCardSkeleton";
+
 export default function HomeFeed(): React.ReactElement {
   // Presentational only for now: the API does support sorting these three ways
   // (`sort=newest` / `sort=recommended`), but `recommended` needs a token and this feed
@@ -60,8 +62,10 @@ export default function HomeFeed(): React.ReactElement {
       </div>
 
       {isLoading && products.length === 0 ? (
-        <div className="flex justify-center py-20 text-on-surface-variant">
-          Đang tải sản phẩm...
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
         </div>
       ) : (
         <>

@@ -2,16 +2,20 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HomeHero(): React.ReactElement {
   return (
     <div className="space-y-12">
       <section className="relative h-[480px] rounded-2xl overflow-hidden group">
         <div className="absolute inset-0">
-          <img
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms]"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi7xKiudAWN2adGvdyN6lEEnmrrBpeY1yS-TDEIRdVxEl2qC-eavFY7YuLEiG3IYmFfhC4GJKz4knnxihfmUIpRHhUP1DJIavxqD1CwFr1FCyM2_EkKqkjWuk__AvMvWRWSjnQXyuz4uPHnXMXJshbsNu0EhvpeTMxdpxoEEr7nJZMPvuGJsqlrGdIutl0DXiaKsU740dPscDZTOfWzeeOmMugV4Od6vklrxYI__2Yf80hmZGo2VOnVdZ2CbblD6STcScuiPHpEKM"
+          <Image
+            src="/images/hero-banner.jpg"
             alt="ShopNexus Hero Banner"
+            fill
+            priority
+            quality={90}
+            className="object-cover group-hover:scale-105 transition-transform duration-[2000ms]"
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/40 to-transparent"></div>
