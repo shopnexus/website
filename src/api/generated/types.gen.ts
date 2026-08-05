@@ -22,10 +22,10 @@ export type AccountCreateUploadRequest = {
 export type AccountId = string;
 
 /**
- * `user` self-registers and both buys and sells. `moderator` is granted by an admin. `admin` is configured, not created.
+ * `user` self-registers and both buys and sells. `moderator` is granted by an admin. `admin` is configured, not created. `support` is the support desk's own row — the second side of every ticket thread, held by exactly one account and granted by no route.
  *
  */
-export type AccountRole = 'user' | 'moderator' | 'admin';
+export type AccountRole = 'user' | 'moderator' | 'admin' | 'support';
 
 export type AccountStatus = 'active' | 'suspended';
 
@@ -115,6 +115,19 @@ export type AdminTicket = {
 export type AdminTicketPage = {
     data: Array<AdminTicket>;
     meta: CursorMeta;
+};
+
+export type AdministrativeArea = {
+    /**
+     * What an address stores — two digits for a province, five for a ward.
+     */
+    code: string;
+    kind: 'province' | 'ward';
+    name: string;
+};
+
+export type AdministrativeAreaList = {
+    data: Array<AdministrativeArea>;
 };
 
 export type AuthResult = {
@@ -315,6 +328,10 @@ export type ContactList = {
 };
 
 export type Conversation = {
+    /**
+     * The other side. On a ticket thread that is the support desk for the requester and the requester for staff — a moderator answering a ticket is not a side of the row, so every viewer-relative field here is computed as the desk for them.
+     *
+     */
     counterparty: AccountSummary;
     /**
      * How far the other side has read. This is the read receipt: a message the caller sent is seen when this is at or past its `created_at`, which is why no message carries a delivery status of its own.
@@ -333,6 +350,11 @@ export type Conversation = {
      * The caller's own read mark. Null while they have read nothing.
      */
     read_at?: string | null;
+    /**
+     * Set when this thread is a support ticket's, null on an ordinary one. A ticket is read in the support screen rather than the inbox, so a client tells them apart from the row.
+     *
+     */
+    ticket_id?: TicketId | null;
     /**
      * The counterparty's messages after the caller's read mark.
      */
@@ -985,6 +1007,11 @@ export type Message = {
      */
     deleted_at?: string | null;
     edited_at?: string | null;
+    /**
+     * True on a reply the support desk wrote, in the requester's own view of their ticket thread. Support answers as the platform, so the requester is told that much and no more; staff reading the same thread see the real sender and never this flag, because a colleague's name is what makes a thread reviewable.
+     *
+     */
+    from_support?: boolean;
     id: MessageId;
     /**
      * What the sender pointed at — a listing, a variant, an order. Client-supplied and validated against the caller's own access to each id, so it can carry a reference but never assert anything about it.
@@ -994,7 +1021,8 @@ export type Message = {
         [key: string]: unknown;
     };
     /**
-     * Null on a system message.
+     * Null on a system message, and null on a support reply seen by the requester — see `from_support`, which is how the two are told apart.
+     *
      */
     sender_id?: AccountId | null;
     type: MessageType;
@@ -1132,7 +1160,8 @@ export type OpenTicketRequest = {
     body?: string;
     kind: TicketKind;
     /**
-     * Report kinds only.
+     * Required for the five `report-*` kinds, refused for every other one — 422 either way. It depends on `kind`, so it cannot be listed in `required`.
+     *
      */
     reason?: TicketReason;
     /**
@@ -1595,10 +1624,9 @@ export type ReputationRole = 'seller' | 'buyer';
 
 export type ResolveTicketRequest = {
     /**
-     * Required. `none` is the turn-down; anything else names what was done. The two `refund-*` values are what order's verdict records on the ticket it closes.
-     *
+     * Required. `none` is the turn-down; anything else names what was done.
      */
-    action_taken: TicketAction;
+    action_taken: TicketResolutionAction;
     note?: string;
 };
 
@@ -1958,7 +1986,7 @@ export type Ticket = {
 };
 
 /**
- * What was done about it. `none` is a ticket read and answered with nothing done — the turn-down, which is why it is a value here and not a second status. The two `refund-*` ones are written by order's verdict route, never by hand.
+ * What was done about it. `none` is a ticket read and answered with nothing done — the turn-down, which is why it is a value here and not a second status. The two `refund-*` ones are written by order's verdict route and are not in the set `POST /admin/tickets/{id}/resolution` accepts — see `TicketResolutionAction`.
  *
  */
 export type TicketAction = 'none' | 'listing-removed' | 'message-removed' | 'account-suspended' | 'warning' | 'refund-granted' | 'refund-refused';
@@ -1985,6 +2013,12 @@ export type TicketReason = 'scam' | 'counterfeit' | 'prohibited' | 'harassment' 
  * What kind of thing `ref_id` names. Follows from `kind`, never sent by a client.
  */
 export type TicketRefType = 'listing' | 'account' | 'message' | 'review' | 'review-reply' | 'order' | 'refund';
+
+/**
+ * What a moderator may record by hand. Narrower than the ticket's own `action_taken`, which also has the two `refund-*` values: those are written by order's verdict route, because that is where the money moves. Sending one here is a 400 on the field.
+ *
+ */
+export type TicketResolutionAction = 'none' | 'listing-removed' | 'message-removed' | 'account-suspended' | 'warning';
 
 /**
  * `reviewing` is claimed by a moderator; `resolved` carries `action_taken`, which is where a turn-down lives as the value `none`.
@@ -3489,7 +3523,7 @@ export type PostAdminTicketsByIdResolutionData = {
 
 export type PostAdminTicketsByIdResolutionErrors = {
     /**
-     * Validation or malformed request
+     * The body is invalid, or `action_taken` is not one a moderator records by hand
      */
     400: Error;
     /**
@@ -3732,6 +3766,40 @@ export type PostAdminWithdrawalsByIdRejectionResponses = {
 };
 
 export type PostAdminWithdrawalsByIdRejectionResponse = PostAdminWithdrawalsByIdRejectionResponses[keyof PostAdminWithdrawalsByIdRejectionResponses];
+
+export type GetAdministrativeAreasData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * A province code. Omit for the provinces themselves.
+         */
+        parent?: string;
+    };
+    url: '/administrative-areas';
+};
+
+export type GetAdministrativeAreasErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * No division has that code
+     */
+    404: Error;
+};
+
+export type GetAdministrativeAreasError = GetAdministrativeAreasErrors[keyof GetAdministrativeAreasErrors];
+
+export type GetAdministrativeAreasResponses = {
+    /**
+     * OK
+     */
+    200: AdministrativeAreaList;
+};
+
+export type GetAdministrativeAreasResponse = GetAdministrativeAreasResponses[keyof GetAdministrativeAreasResponses];
 
 export type GetBankAccountsData = {
     body?: never;
@@ -8353,7 +8421,7 @@ export type PostTicketsErrors = {
      */
     409: Error;
     /**
-     * Well-formed but rejected by a business rule
+     * `ref_id` or `reason` is not what this `kind` requires — missing where it is needed, or sent where it does not belong
      */
     422: Error;
 };

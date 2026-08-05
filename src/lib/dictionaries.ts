@@ -83,6 +83,7 @@ export const ACCOUNT_ROLE_VI: Record<AccountRole, string> = {
   user: "Người dùng",
   moderator: "Kiểm duyệt viên",
   admin: "Quản trị viên",
+  support: "Bộ phận hỗ trợ",
 };
 
 export const ACCOUNT_STATUS_VI: Record<AccountStatus, string> = {
