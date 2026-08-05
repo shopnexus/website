@@ -12,12 +12,8 @@ export default function Header(): React.ReactElement | null {
   const { data: provinces = [] } = useProvinces();
   const pathname = usePathname();
 
-  // "Toàn quốc" is the empty code, which is how the results page reads "no filter".
   const provinceOptions = useMemo(
-    () => [
-      { value: "", label: "Toàn quốc" },
-      ...provinces.map((p) => ({ value: p.code, label: p.name })),
-    ],
+    () => provinces.map((p) => ({ value: p.code, label: p.name })),
     [provinces],
   );
 

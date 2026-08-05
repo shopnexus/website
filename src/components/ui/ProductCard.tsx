@@ -21,6 +21,7 @@ export interface ProductCardItem {
   id: string;
   name: string;
   price: number;
+  price_mode?: "fixed" | "negotiable";
   created_at: string;
   cover?: { url?: string | null } | null;
   seller?: { name: string; avatar?: { url?: string | null } | null };
@@ -80,6 +81,13 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
         />
+        {product.price_mode === "negotiable" && (
+          <div className="absolute top-2 left-2 z-10">
+            <span className="text-[10px] font-bold px-2 py-1 bg-tertiary-container/90 backdrop-blur-sm text-on-tertiary-container rounded shadow-sm whitespace-nowrap">
+              Thương lượng
+            </span>
+          </div>
+        )}
         <button
           onClick={handleFavoriteClick}
           disabled={isPending}
@@ -122,8 +130,8 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
         </h3>
 
         <div className="mt-auto pt-2">
-          <div className="flex items-baseline gap-2">
-            <span className="font-bold text-[1.25rem] text-primary">{formatPrice(product.price)}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-bold text-[1.25rem] text-primary shrink-0">{formatPrice(product.price)}</span>
           </div>
 
           <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-outline-variant/30 text-[11px] text-on-surface-variant font-medium">
