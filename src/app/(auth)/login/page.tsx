@@ -29,8 +29,12 @@ export default function LoginPage() {
     try {
       await login({ identifier, password });
       router.push("/");
-    } catch (err) {
-      // Lỗi đã được lưu trong store
+    } catch (err: any) {
+      if (err?.code === "invalid_credentials") {
+        toast.error("Thông tin đăng nhập không chính xác.");
+      } else {
+        toast.error(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+      }
     }
   };
 
