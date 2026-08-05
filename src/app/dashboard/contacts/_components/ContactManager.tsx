@@ -9,7 +9,7 @@ import {
   useDeleteContact,
   useUpdateContact,
 } from "@/hooks/api/useContacts";
-import { useAdminAreas } from "@/hooks/useAdminAreas";
+import { useProvinces, useWards } from "@/hooks/useAdminAreas";
 import type { Contact, ContactId, CreateContactRequest } from "@/api/generated/types.gen";
 
 /**
@@ -29,9 +29,6 @@ export default function ContactManager() {
   const updateContact = useUpdateContact();
   const deleteContact = useDeleteContact();
 
-  // Wards as well as districts: a saved address names all three levels.
-  const { data: provinces = [] } = useAdminAreas(3);
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<ContactId | null>(null);
 
@@ -41,8 +38,6 @@ export default function ContactManager() {
     country: "VN",
     province_code: "",
     province_name: "",
-    district_code: "",
-    district_name: "",
     ward_code: "",
     ward_name: "",
     address: "",
@@ -50,6 +45,9 @@ export default function ContactManager() {
     is_default_delivery: false,
     is_default_pickup: false,
   });
+
+  const { data: provinces = [] } = useProvinces();
+  const { data: wards = [] } = useWards(formData.province_code);
 
   const handleOpenForm = (contact?: Contact) => {
     if (contact) {
@@ -60,8 +58,6 @@ export default function ContactManager() {
         country: contact.country,
         province_code: contact.province_code,
         province_name: contact.province_name,
-        district_code: contact.district_code || "",
-        district_name: contact.district_name || "",
         ward_code: contact.ward_code,
         ward_name: contact.ward_name,
         address: contact.address,
@@ -78,8 +74,6 @@ export default function ContactManager() {
         country: "VN",
         province_code: "",
         province_name: "",
-        district_code: "",
-        district_name: "",
         ward_code: "",
         ward_name: "",
         address: "",
@@ -108,18 +102,19 @@ export default function ContactManager() {
     };
 
     // A blank optional field has to be omitted, not sent empty: the server validates
-    // district_code as an administrative code and "" is not one.
-    if (!payload.district_code) {
-      delete payload.district_code;
-      delete payload.district_name;
-    }
+    // address_detail's length and "" is not a value it means to store.
     if (!payload.address_detail) {
       delete payload.address_detail;
     }
 
     try {
       if (editingId) {
-        await updateContact.mutateAsync({ id: editingId, body: payload });
+        // This form only asserts province and ward, so a district saved before the tier
+        // was dropped has to go with the write rather than survive under a new ward.
+        await updateContact.mutateAsync({
+          id: editingId,
+          body: { ...payload, clear_district: true },
+        });
         toast.success("Cập nhật địa chỉ thành công.");
       } else {
         await createContact.mutateAsync(payload);
@@ -133,9 +128,6 @@ export default function ContactManager() {
   };
 
   const isSaving = createContact.isPending || updateContact.isPending;
-
-  const selectedProvince = provinces.find(p => p.code.toString() === formData.province_code);
-  const selectedDistrict = selectedProvince?.districts?.find(d => d.code.toString() === formData.district_code);
 
   return (
     <div className="space-y-6">
@@ -177,7 +169,7 @@ export default function ContactManager() {
                     <div className="flex items-start gap-2">
                       <span className="material-symbols-outlined text-[16px] mt-0.5">location_on</span>
                       <span>
-                        {contact.address_detail ? `${contact.address_detail}, ` : ""}{contact.address}, {contact.ward_name}, {contact.district_name}, {contact.province_name}
+                        {contact.address_detail ? `${contact.address_detail}, ` : ""}{contact.address}, {contact.ward_name}, {contact.province_name}
                       </span>
                     </div>
                   </div>
@@ -237,13 +229,11 @@ export default function ContactManager() {
                 <select 
                   value={formData.province_code}
                   onChange={e => {
-                    const prov = provinces.find(p => p.code.toString() === e.target.value);
+                    const prov = provinces.find(p => p.code === e.target.value);
                     setFormData({
-                      ...formData, 
-                      province_code: e.target.value, 
+                      ...formData,
+                      province_code: e.target.value,
                       province_name: prov?.name || "",
-                      district_code: "",
-                      district_name: "",
                       ward_code: "",
                       ward_name: ""
                     });
@@ -259,48 +249,23 @@ export default function ContactManager() {
               </div>
 
               <div>
-                <label className="block font-label-sm font-semibold mb-1.5">Quận / Huyện <span className="text-error">*</span></label>
-                <select 
-                  value={formData.district_code || ""}
+                <label className="block font-label-sm font-semibold mb-1.5">Phường / Xã <span className="text-error">*</span></label>
+                <select
+                  value={formData.ward_code}
                   onChange={e => {
-                    const dist = selectedProvince?.districts?.find(d => d.code.toString() === e.target.value);
+                    const ward = wards.find(w => w.code === e.target.value);
                     setFormData({
-                      ...formData, 
-                      district_code: e.target.value, 
-                      district_name: dist?.name || "",
-                      ward_code: "",
-                      ward_name: ""
+                      ...formData,
+                      ward_code: e.target.value,
+                      ward_name: ward?.name || ""
                     });
                   }}
                   className="w-full h-10 px-3 rounded-lg border border-outline focus:border-primary outline-none bg-surface"
                   required
                   disabled={!formData.province_code}
                 >
-                  <option value="">Chọn Quận/Huyện</option>
-                  {selectedProvince?.districts?.map(d => (
-                    <option key={d.code} value={d.code}>{d.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-label-sm font-semibold mb-1.5">Phường / Xã <span className="text-error">*</span></label>
-                <select 
-                  value={formData.ward_code}
-                  onChange={e => {
-                    const ward = selectedDistrict?.wards?.find(w => w.code.toString() === e.target.value);
-                    setFormData({
-                      ...formData, 
-                      ward_code: e.target.value, 
-                      ward_name: ward?.name || ""
-                    });
-                  }}
-                  className="w-full h-10 px-3 rounded-lg border border-outline focus:border-primary outline-none bg-surface"
-                  required
-                  disabled={!formData.district_code}
-                >
                   <option value="">Chọn Phường/Xã</option>
-                  {selectedDistrict?.wards?.map(w => (
+                  {wards.map(w => (
                     <option key={w.code} value={w.code}>{w.name}</option>
                   ))}
                 </select>

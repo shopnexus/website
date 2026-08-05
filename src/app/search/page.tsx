@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
 import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
 import { useCategories, useListingsFeed } from "@/hooks/api/useCatalog";
-import { useAdminAreas } from "@/hooks/useAdminAreas";
+import { useProvinces, useWards } from "@/hooks/useAdminAreas";
 import type { CategoryId, GetListingsData } from "@/api/generated/types.gen";
 
 type SortOption = NonNullable<NonNullable<GetListingsData["query"]>["sort"]>;
@@ -51,16 +51,16 @@ function SearchPageContent(): React.ReactElement {
   const [appliedPriceTo, setAppliedPriceTo] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [provinceCode, setProvinceCode] = useState<string>(provinceParam);
-  const [districtCode, setDistrictCode] = useState<string>("");
+  const [wardCode, setWardCode] = useState<string>("");
   const [position, setPosition] = useState<Position | null>(null);
   const [radiusKm, setRadiusKm] = useState<number>(25);
 
   const { data: categories = [] } = useCategories();
-  // Districts, not wards: a filter this coarse is what a browse needs, and the deep
-  // document is several times the size.
-  const { data: provinces = [] } = useAdminAreas(2);
+  const { data: provinces = [] } = useProvinces();
+  // Ward is the only level under a province now, so it is what a narrower browse offers.
+  const { data: wards = [] } = useWards(provinceCode);
 
-  const selectedProvince = provinces.find((p) => p.code.toString() === provinceCode);
+  const selectedProvince = provinces.find((p) => p.code === provinceCode);
 
   /**
    * A "near me" browse. The device's position is the only one this page can offer — the
@@ -111,9 +111,9 @@ function SearchPageContent(): React.ReactElement {
     min_price: priceBound(appliedPriceFrom),
     max_price: priceBound(appliedPriceTo),
     // Matched against the listing's own snapshot of the seller's pickup address. Only the
-    // narrowest level is sent — a district is already inside its province.
-    province_code: districtCode ? undefined : provinceCode || undefined,
-    district_code: districtCode || undefined,
+    // narrowest level is sent — a ward is already inside its province.
+    province_code: wardCode ? undefined : provinceCode || undefined,
+    ward_code: wardCode || undefined,
     // A position ranks and reports distance on its own; the radius is what excludes.
     lat: position?.lat,
     lon: position?.lon,
@@ -134,7 +134,7 @@ function SearchPageContent(): React.ReactElement {
     setAppliedPriceFrom("");
     setAppliedPriceTo("");
     setProvinceCode("");
-    setDistrictCode("");
+    setWardCode("");
     setPosition(null);
     if (sortBy === "distance") setSortBy("newest");
   };
@@ -219,28 +219,28 @@ function SearchPageContent(): React.ReactElement {
                   value={provinceCode}
                   onChange={(e) => {
                     setProvinceCode(e.target.value);
-                    setDistrictCode("");
+                    setWardCode("");
                   }}
                   className="w-full bg-surface-container rounded-lg px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary border-none text-on-surface cursor-pointer"
                 >
                   <option value="">Toàn quốc</option>
                   {provinces.map((p) => (
-                    <option key={p.code} value={p.code.toString()}>
+                    <option key={p.code} value={p.code}>
                       {p.name}
                     </option>
                   ))}
                 </select>
-                {selectedProvince?.districts && selectedProvince.districts.length > 0 && (
+                {wards.length > 0 && (
                   <select
-                    aria-label="Quận / Huyện"
-                    value={districtCode}
-                    onChange={(e) => setDistrictCode(e.target.value)}
+                    aria-label="Phường / Xã"
+                    value={wardCode}
+                    onChange={(e) => setWardCode(e.target.value)}
                     className="w-full bg-surface-container rounded-lg px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary border-none text-on-surface cursor-pointer"
                   >
-                    <option value="">Tất cả quận / huyện</option>
-                    {selectedProvince.districts.map((d) => (
-                      <option key={d.code} value={d.code.toString()}>
-                        {d.name}
+                    <option value="">Tất cả phường / xã</option>
+                    {wards.map((w) => (
+                      <option key={w.code} value={w.code}>
+                        {w.name}
                       </option>
                     ))}
                   </select>
@@ -397,11 +397,11 @@ function SearchPageContent(): React.ReactElement {
                   selected
                   onRemove={() => {
                     setProvinceCode("");
-                    setDistrictCode("");
+                    setWardCode("");
                   }}
                 >
-                  {districtCode
-                    ? selectedProvince?.districts?.find((d) => d.code.toString() === districtCode)?.name
+                  {wardCode
+                    ? wards.find((w) => w.code === wardCode)?.name
                     : selectedProvince?.name}
                 </Chip>
               )}
