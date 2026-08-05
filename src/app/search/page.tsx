@@ -7,7 +7,8 @@ import ProductCard from "@/components/ui/ProductCard";
 import Chip from "@/components/ui/Chip";
 import { useCategories, useListingsFeed } from "@/hooks/api/useCatalog";
 import { useProvinces, useWards } from "@/hooks/useAdminAreas";
-import type { CategoryId, GetListingsData } from "@/api/generated/types.gen";
+import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
+import type { CategoryId, GetListingsData, ListingCondition } from "@/api/generated/types.gen";
 
 type SortOption = NonNullable<NonNullable<GetListingsData["query"]>["sort"]>;
 
@@ -22,6 +23,14 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 
 /** What the radius selector offers. Any value here needs a position to mean anything. */
 const RADIUS_OPTIONS = [5, 10, 25, 50, 100] as const;
+
+/** The condition filter, with "" for the unfiltered browse. */
+const CONDITION_OPTIONS: Array<{ value: ListingCondition | ""; label: string }> = [
+  { value: "", label: "Tất cả" },
+  ...(Object.entries(LISTING_CONDITION_VI) as Array<[ListingCondition, string]>).map(
+    ([value, label]) => ({ value, label }),
+  ),
+];
 
 /** Where the buyer is, as `/listings` wants it. */
 interface Position {
@@ -44,7 +53,7 @@ function SearchPageContent(): React.ReactElement {
   const provinceParam = searchParams.get("province") || "";
 
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
-  const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
+  const [condition, setCondition] = useState<ListingCondition | "">("");
   const [priceFrom, setPriceFrom] = useState<string>("");
   const [priceTo, setPriceTo] = useState<string>("");
   const [appliedPriceFrom, setAppliedPriceFrom] = useState<string>("");
@@ -105,6 +114,7 @@ function SearchPageContent(): React.ReactElement {
     limit: 12,
     q: initialQuery || undefined,
     category_id: (selectedCategory as CategoryId) || undefined,
+    condition: condition || undefined,
     // Price is a server-side filter and sorting is a server-side order: `min_price`,
     // `max_price` and `sort` are all parameters `/listings` accepts. Filtering the
     // current page in memory only ever hid rows from the page that happened to load.
@@ -128,7 +138,7 @@ function SearchPageContent(): React.ReactElement {
 
   const clearAllFilters = (): void => {
     setSelectedCategory("");
-    setVerifiedOnly(false);
+    setCondition("");
     setPriceFrom("");
     setPriceTo("");
     setAppliedPriceFrom("");
@@ -316,27 +326,33 @@ function SearchPageContent(): React.ReactElement {
               </button>
             </div>
 
+            {/* Condition is a `/listings` parameter, so this is a server-side filter. It
+                replaced a "verified seller" toggle that was never sent anywhere. */}
             <div className="pt-4 border-t border-outline-variant/10">
-              <label className="flex items-center justify-between cursor-pointer group">
-                <span className="text-body-sm font-semibold flex items-center gap-2 text-on-surface">
-                  <span
-                    className="material-symbols-outlined text-primary text-[18px]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    verified
-                  </span>
-                  Người bán xác thực
-                </span>
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={verifiedOnly}
-                    onChange={(e) => setVerifiedOnly(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                </div>
-              </label>
+              <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
+                Tình trạng
+              </h3>
+              <div className="space-y-3">
+                {CONDITION_OPTIONS.map(({ value, label }) => (
+                  <label key={value || "all"} className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="radio"
+                        name="condition"
+                        checked={condition === value}
+                        onChange={() => setCondition(value)}
+                        className="peer sr-only"
+                      />
+                      <div className="w-5 h-5 rounded-full border-2 border-outline-variant peer-checked:border-primary transition-colors flex items-center justify-center">
+                        <div className="w-2.5 h-2.5 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                      </div>
+                    </div>
+                    <span className="text-body-sm text-on-surface group-hover:text-primary transition-colors">
+                      {label}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </aside>
@@ -386,7 +402,7 @@ function SearchPageContent(): React.ReactElement {
           </div>
 
           {(selectedCategory ||
-            verifiedOnly ||
+            condition ||
             appliedPriceFrom ||
             appliedPriceTo ||
             provinceCode ||
@@ -421,9 +437,9 @@ function SearchPageContent(): React.ReactElement {
                   {categories.find(c => c.id === selectedCategory)?.name || selectedCategory}
                 </Chip>
               )}
-              {verifiedOnly && (
-                <Chip selected onRemove={() => setVerifiedOnly(false)}>
-                  Người bán xác thực
+              {condition && (
+                <Chip selected onRemove={() => setCondition("")}>
+                  Tình trạng: {LISTING_CONDITION_VI[condition]}
                 </Chip>
               )}
               {(appliedPriceFrom || appliedPriceTo) && (

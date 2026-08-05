@@ -8,7 +8,7 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { useCart } from "@/hooks/api/useCart";
 import { useCreateDraft } from "@/hooks/api/useOrders";
 import { toast } from "react-hot-toast";
-import type { ListingDetail } from "@/api/generated/types.gen";
+import type { ListingDetail, Variant } from "@/api/generated/types.gen";
 import NegotiableChoiceModal from "./NegotiableChoiceModal";
 
 const formatPrice = (price: number) =>
@@ -16,11 +16,11 @@ const formatPrice = (price: number) =>
 
 export default function ProductBottomBar({
   product,
-  price,
+  selectedVariant,
 }: {
   product: ListingDetail;
-  /** The featured variant's price, resolved by the page. */
-  price: number;
+  /** The variant the page's classification picker has chosen — what every action acts on. */
+  selectedVariant: Variant;
 }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -30,9 +30,8 @@ export default function ProductBottomBar({
   const [isChoiceOpen, setIsChoiceOpen] = useState(false);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
 
-  // What "buy" and "add to cart" act on. A listing always has at least one variant —
-  // the server refuses to publish one without a priced variant.
-  const targetVariant = product.variants.find((v) => v.is_featured) ?? product.variants[0];
+  const isNegotiable = product.price_mode === "negotiable";
+  const isOutOfStock = selectedVariant.stock.available <= 0;
 
   const requireSignIn = (message: string): boolean => {
     if (isAuthenticated) return false;
@@ -41,6 +40,8 @@ export default function ProductBottomBar({
     return true;
   };
 
+  // The draft is opened for the listing: `CreateDraftRequest` takes only `listing_id` and
+  // the variant is picked at checkout.
   const buyAtAskingPrice = () => {
     createDraft.mutate(
       { listing_id: product.id },
@@ -54,7 +55,7 @@ export default function ProductBottomBar({
    */
   const handleBuyNow = () => {
     if (requireSignIn("Vui lòng đăng nhập để mua hàng")) return;
-    if (product.price_mode === "negotiable") {
+    if (isNegotiable) {
       setIsChoiceOpen(true);
       return;
     }
@@ -62,11 +63,10 @@ export default function ProductBottomBar({
   };
 
   const handleAddToCart = async () => {
-    if (!targetVariant) return;
     try {
       // A guest's cart lives in the store and is merged server-side at sign-in, so this
       // works signed out too.
-      await addItem(product.id, targetVariant.id, 1);
+      await addItem(product.id, selectedVariant.id, 1);
       toast.success("Đã thêm vào giỏ hàng.");
     } catch {
       // The global handler raises the toast.
@@ -85,10 +85,10 @@ export default function ProductBottomBar({
         <div className="hidden sm:flex items-center gap-4">
           <span className="font-label-md text-on-surface-variant">Tổng thanh toán:</span>
           <span className="font-display-lg text-[24px] text-primary font-bold leading-none">
-            {formatPrice(price)}
+            {formatPrice(selectedVariant.price)}
           </span>
         </div>
-        
+
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button variant="outline" className="px-6 py-3 shrink-0 h-12 rounded-xl text-on-surface">
             <span className="material-symbols-outlined mr-2">favorite</span>
@@ -98,14 +98,14 @@ export default function ProductBottomBar({
             variant="secondary"
             className="flex-1 sm:flex-none px-6 py-3 h-12 rounded-xl text-on-secondary-container"
             onClick={handleAddToCart}
-            disabled={!targetVariant}
+            disabled={isOutOfStock}
           >
             Thêm vào giỏ
           </Button>
 
-          {product.price_mode === "negotiable" && (
-            <Button 
-              variant="outline" 
+          {isNegotiable && (
+            <Button
+              variant="outline"
               className="flex-1 sm:flex-none px-8 py-3 h-12 rounded-xl font-bold border-primary text-primary"
               onClick={handleNegotiate}
             >
@@ -113,13 +113,13 @@ export default function ProductBottomBar({
             </Button>
           )}
 
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             className="flex-1 sm:flex-none px-8 py-3 h-12 rounded-xl font-bold"
             onClick={handleBuyNow}
-            disabled={createDraft.isPending}
+            disabled={createDraft.isPending || isOutOfStock}
           >
-            {createDraft.isPending ? "Đang xử lý..." : "Mua ngay"}
+            {isOutOfStock ? "Hết hàng" : createDraft.isPending ? "Đang xử lý..." : "Mua ngay"}
           </Button>
         </div>
       </div>
@@ -127,13 +127,18 @@ export default function ProductBottomBar({
       <NegotiableChoiceModal
         isOpen={isChoiceOpen}
         onClose={() => setIsChoiceOpen(false)}
-        price={price}
+        price={selectedVariant.price}
         onBuyNow={buyAtAskingPrice}
         onNegotiate={handleNegotiate}
         isBuying={createDraft.isPending}
       />
 
-      <OfferModal isOpen={isOfferOpen} onClose={() => setIsOfferOpen(false)} product={product} />
+      <OfferModal
+        isOpen={isOfferOpen}
+        onClose={() => setIsOfferOpen(false)}
+        product={product}
+        variant={selectedVariant}
+      />
     </div>
   );
 }

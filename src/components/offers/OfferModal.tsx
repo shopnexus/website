@@ -4,17 +4,20 @@ import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useCreateOffer } from "@/hooks/api/useOffers";
 import { ApiError } from "@/api/api-error";
-import type { ListingDetail } from "@/api/generated/types.gen";
+import type { ListingDetail, Variant } from "@/api/generated/types.gen";
 import { toast } from "react-hot-toast";
 
 export default function OfferModal({
   isOpen,
   onClose,
   product,
+  variant,
 }: {
   isOpen: boolean;
   onClose: () => void;
   product: ListingDetail | null;
+  /** The variant being negotiated over. The featured one when the caller has no selection. */
+  variant?: Variant;
 }) {
   const [total, setTotal] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
@@ -24,7 +27,8 @@ export default function OfferModal({
 
   if (!isOpen || !product) return null;
 
-  const targetVariant = product.variants.find((v) => v.is_featured) ?? product.variants[0];
+  const targetVariant =
+    variant ?? product.variants.find((v) => v.is_featured) ?? product.variants[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

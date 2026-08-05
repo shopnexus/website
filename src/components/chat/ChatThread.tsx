@@ -50,6 +50,7 @@ export default function ChatThread({
 }: ChatThreadProps) {
   const [inputText, setInputText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const me = useAuthStore((s) => s.user);
   const { messages, isLoading } = useMessages(conversationId);
@@ -66,6 +67,16 @@ export default function ChatThread({
     // markRead is stable apart from its pending flag, guarded above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, unread]);
+
+  // The newest message is the one being read, so a thread opens and a reply lands at the
+  // bottom. Deferred a frame because the row that changed the height is not laid out yet.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const list = listRef.current;
+      if (list) list.scrollTop = list.scrollHeight;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [messages]);
 
   const handleSend = () => {
     const body = inputText.trim();
@@ -110,7 +121,7 @@ export default function ChatThread({
 
   return (
     <>
-      <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-surface-container-lowest/50">
+      <div ref={listRef} className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-surface-container-lowest/50">
         {isLoading && (
           <div className="flex justify-center py-8">
             <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
