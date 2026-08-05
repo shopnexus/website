@@ -95,6 +95,12 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	carrier_down: "Đơn vị vận chuyển không phản hồi. Vui lòng thử lại.",
 	shipping_quote_invalid: "Không tính được phí vận chuyển cho địa chỉ này.",
 	payment_option_unknown: "Phương thức thanh toán không khả dụng.",
+	// The row exists but this deployment has no implementation behind it — an operator's
+	// problem, not the buyer's, so it does not tell them to change anything.
+	option_provider_unknown: "Phương thức này đang tạm ngưng. Vui lòng chọn phương thức khác.",
+	option_not_found: "Không tìm thấy tuỳ chọn này.",
+	option_category_unknown: "Không có nhóm tuỳ chọn này.",
+	option_category_required: "Thiếu nhóm tuỳ chọn cần đọc.",
 
 	// ── Đơn hàng ───────────────────────────────────────────────────────────────
 	order_not_found: "Không tìm thấy đơn hàng.",

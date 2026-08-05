@@ -11,7 +11,8 @@ import { useContacts } from "@/hooks/api/useContacts";
 import { useCheckout, useDraft, useShippingQuotes } from "@/hooks/api/useOrders";
 import { useCheckoutOffer, useOffer } from "@/hooks/api/useOffers";
 import { useListing } from "@/hooks/api/useCatalog";
-import type { DraftOrderId, OfferId } from "@/api/generated/types.gen";
+import { usePaymentOptions, usePaymentSession, useStartPayment } from "@/hooks/api/useFinance";
+import type { DraftOrderId, OfferId, PaymentSessionId } from "@/api/generated/types.gen";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -35,8 +36,12 @@ function CheckoutContent() {
   const [selectedContactId, setSelectedContactId] = useState<string>("");
   const [selectedVariantId, setSelectedVariantId] = useState<string>("");
   const [selectedShipping, setSelectedShipping] = useState<string>("");
+  const [selectedPayment, setSelectedPayment] = useState<string>("");
   const [draftQuantity, setDraftQuantity] = useState(1);
   const [note, setNote] = useState("");
+  // The session this page's own checkout opened. What the buyer waits on from here — an order
+  // exists when it settles — so it is state rather than the mutation's result.
+  const [tenderedSessionId, setTenderedSessionId] = useState<PaymentSessionId | null>(null);
 
   const { data: draft, isLoading: isLoadingDraft, isError: draftFailed } = useDraft(
     draftId ?? undefined,
@@ -49,16 +54,27 @@ function CheckoutContent() {
   const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const checkout = useCheckout();
   const checkoutOffer = useCheckoutOffer();
+  const { data: paymentOptions = [] } = usePaymentOptions();
+  const startPayment = useStartPayment();
+
+  // Coming back from a rail that took the payer away. The draft is spent by then, so this is the
+  // only thing left to read: the session says whether the money arrived. Derived rather than
+  // copied into state, like every other default on this page.
+  const returningSessionId = searchParams.get("session_id") as PaymentSessionId | null;
+  const sessionId = tenderedSessionId ?? returningSessionId;
+  const { data: session } = usePaymentSession(sessionId ?? undefined);
 
   useEffect(() => {
-    if (!draftId && !offerId) router.push("/");
-  }, [draftId, offerId, router]);
+    // A returning payer has no draft or offer in the URL and does not need one.
+    if (!draftId && !offerId && !returningSessionId) router.push("/");
+  }, [draftId, offerId, returningSessionId, router]);
 
   // Terms that cannot be read are a checkout that cannot proceed — expired, cancelled, or
   // someone else's. The global toast has already said which.
   useEffect(() => {
+    if (returningSessionId) return;
     if (draftFailed || offerFailed) router.push("/");
-  }, [draftFailed, offerFailed, router]);
+  }, [draftFailed, offerFailed, returningSessionId, router]);
 
   // The selections below are derived, not synced through effects: each falls back to a
   // default computed from data that may still be loading, and the moment the user picks
@@ -92,6 +108,12 @@ function CheckoutContent() {
     ? selectedShipping
     : (shippingOptions[0]?.option ?? "");
 
+  // Same rule as the carrier: an operator can disable a rail between page load and payment,
+  // so a selection that is no longer offered falls back instead of being sent and refused.
+  const activePayment = paymentOptions.some((o) => o.id === selectedPayment)
+    ? selectedPayment
+    : (paymentOptions[0]?.id ?? "");
+
   const selectedVariant =
     draft?.variants.find((v) => v.variant_id === activeVariantId) ?? draft?.variants[0];
 
@@ -101,11 +123,54 @@ function CheckoutContent() {
   const total = subtotal + shippingFee;
 
   const itemName = offer ? (offerListing?.name ?? "Sản phẩm đã thương lượng") : (draft?.name ?? "");
-  const isPlacing = checkout.isPending || checkoutOffer.isPending;
+  // `processing` is a leg in flight — the rail was called and has not reported. That is the only
+  // status worth blocking on: a declined leg does not fail the session, it puts it back on the
+  // shelf as `pending` so another rail can be tendered, which is what makes the retry below a
+  // retry and not a second sale.
+  const isSettling = session?.status === "processing";
+  const isPlacing =
+    checkout.isPending || checkoutOffer.isPending || startPayment.isPending || isSettling;
+  // Tendered, and the session is takeable again: the rail said no. `isError` is the other way to
+  // get here — a rail that could not be reached at all, where nothing was charged either.
+  const wasDeclined =
+    startPayment.isError || (startPayment.isSuccess && session?.status === "pending");
 
-  const onPlaced = () => {
-    toast.success("Đặt hàng thành công!");
-    router.push("/dashboard/orders");
+  // The session settling is the whole answer: the order exists because the money arrived, and
+  // nobody confirms anything in between.
+  useEffect(() => {
+    if (session?.status === "success") {
+      toast.success("Thanh toán thành công! Đơn hàng đã được tạo.");
+      router.push("/dashboard/orders");
+    }
+  }, [session?.status, router]);
+
+  /// The checkout opened a session; nothing is bought until it is paid. Tendering right here
+  /// rather than on another screen is what the buyer expects from pressing "pay", and leaving
+  /// the session untendered was how this page used to end — with a payment nobody made and an
+  /// order that never appeared.
+  const tender = (id: PaymentSessionId) => {
+    setTenderedSessionId(id);
+    startPayment.mutate(
+      {
+        sessionId: id,
+        body: {
+          payment_option: activePayment,
+          // Where the gateway sends the payer back, for a rail that takes them away. Checked
+          // against the platform's own allowlist server-side, so a host nobody configured is
+          // refused rather than followed.
+          return_url: `${window.location.origin}/checkout?session_id=${id}`,
+        },
+      },
+      {
+        onSuccess: (leg) => {
+          // A redirect rail decides nothing here: the payer has to go and come back, and the
+          // session is what says how it went when they do.
+          if (leg.checkout_url) {
+            window.location.href = leg.checkout_url;
+          }
+        },
+      },
+    );
   };
 
   const handlePlaceOrder = () => {
@@ -115,6 +180,10 @@ function CheckoutContent() {
     }
     if (!activeShipping) {
       toast.error("Vui lòng chọn phương thức vận chuyển");
+      return;
+    }
+    if (!activePayment) {
+      toast.error("Vui lòng chọn phương thức thanh toán");
       return;
     }
 
@@ -128,7 +197,7 @@ function CheckoutContent() {
             note: note || undefined,
           },
         },
-        { onSuccess: onPlaced },
+        { onSuccess: (result) => tender(result.payment_session_id) },
       );
       return;
     }
@@ -146,7 +215,7 @@ function CheckoutContent() {
           note: note || undefined,
         },
       },
-      { onSuccess: onPlaced },
+      { onSuccess: (result) => tender(result.payment_session_id) },
     );
   };
 
@@ -290,6 +359,37 @@ function CheckoutContent() {
                   )}
                 </div>
                 
+                <div className="bg-surface-container-low p-4 rounded-xl mb-4">
+                  <h4 className="font-label-md text-on-surface mb-2 text-primary">Phương thức thanh toán</h4>
+
+                  {paymentOptions.length > 0 ? (
+                    <div className="flex flex-col gap-2">
+                      {paymentOptions.map((opt) => (
+                        <label key={opt.id} className="flex items-start gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="payment"
+                            value={opt.id}
+                            checked={activePayment === opt.id}
+                            onChange={(e) => setSelectedPayment(e.target.value)}
+                            className="mt-1 text-primary focus:ring-primary"
+                          />
+                          <span className="flex flex-col">
+                            <span>{opt.name}</span>
+                            {opt.description && (
+                              <span className="text-xs text-on-surface-variant">{opt.description}</span>
+                            )}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-on-surface-variant italic">
+                      Không có phương thức thanh toán nào khả dụng. Vui lòng liên hệ hỗ trợ.
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex flex-col gap-2">
                   <span className="text-label-md text-on-surface-variant font-medium">Lời nhắn cho người bán:</span>
                   <textarea 
@@ -325,15 +425,43 @@ function CheckoutContent() {
                 </span>
               </div>
               
-              <Button 
-                variant="primary" 
-                fullWidth 
-                size="lg" 
-                onClick={handlePlaceOrder}
-                disabled={isPlacing || !selectedContact || !activeShipping}
+              <Button
+                variant="primary"
+                fullWidth
+                size="lg"
+                onClick={sessionId && wasDeclined ? () => tender(sessionId) : handlePlaceOrder}
+                disabled={isPlacing || !selectedContact || !activeShipping || !activePayment}
               >
-                {isPlacing ? "Đang xử lý..." : "Đặt hàng"}
+                {isSettling
+                  ? "Đang chờ thanh toán..."
+                  : isPlacing
+                    ? "Đang xử lý..."
+                    : wasDeclined
+                      ? "Thử lại"
+                      : "Đặt hàng"}
               </Button>
+
+              {/* A pending session is the ordinary case for a rail that reports by webhook, not
+                  an error: the page waits rather than claiming a result it does not have. */}
+              {isSettling && (
+                <p className="text-xs text-on-surface-variant text-center mt-3 px-2 leading-relaxed">
+                  Đang chờ xác nhận từ cổng thanh toán. Bạn có thể để trang này mở — đơn hàng sẽ
+                  được tạo ngay khi thanh toán hoàn tất.
+                </p>
+              )}
+              {wasDeclined && (
+                <p className="text-xs text-error text-center mt-3 px-2 leading-relaxed">
+                  Thanh toán không thành công. Hãy chọn phương thức khác và thử lại — đơn hàng vẫn
+                  đang chờ được thanh toán.
+                </p>
+              )}
+              {/* An expired or cancelled session cannot be tendered again, and the draft behind it
+                  is already spent: there is nothing to retry from this page. */}
+              {(session?.status === "failed" || session?.status === "cancelled") && (
+                <p className="text-xs text-error text-center mt-3 px-2 leading-relaxed">
+                  Phiên thanh toán đã kết thúc. Vui lòng đặt hàng lại từ trang sản phẩm.
+                </p>
+              )}
               
               <p className="text-xs text-on-surface-variant text-center mt-4 px-4 leading-relaxed">
                 Bằng việc tiến hành Đặt hàng, bạn đồng ý với các <Link href="#" className="text-primary hover:underline">Điều khoản Dịch vụ</Link> của ShopNexus.

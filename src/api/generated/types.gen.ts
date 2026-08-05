@@ -1215,6 +1215,53 @@ export type OpenTicketRequest = {
     subject: string;
 };
 
+/**
+ * One selectable entry. The last three fields are the operator's view and are absent for anyone else.
+ */
+export type Option = {
+    /**
+     * A line of explanation. May be empty.
+     */
+    description: string;
+    /**
+     * What to send as `payment_option` or `transport_option`. Permanent — a settled payment and a shipped parcel hold it.
+     */
+    id: string;
+    /**
+     * Staff only. A row switched off is not offered, but stays resolvable for the records naming it.
+     */
+    is_enabled?: boolean;
+    /**
+     * What to show the chooser.
+     */
+    name: string;
+    /**
+     * Staff only. Display order, highest first.
+     */
+    priority?: number;
+    /**
+     * Staff only. The implementation serving this row — what an admin changes to move it to another vendor.
+     */
+    provider?: string;
+};
+
+/**
+ * The kind of choice. `payment` is the rails a payment session may be tendered on, `transport` the carriers a parcel may be sent with. Both are user-visible; a category added later may be staff-only, and answers 404 to anyone else.
+ *
+ */
+export type OptionCategoryName = 'payment' | 'transport';
+
+/**
+ * A whole category. One resource rather than a collection, and deliberately unpaginated — a deployment offers a handful per category.
+ */
+export type OptionList = {
+    options: Array<Option>;
+    /**
+     * Staff only. What a row's `provider` may be set to in this deployment, so a switch is a choice from a list rather than a guess.
+     */
+    providers?: Array<string>;
+};
+
 export type Order = {
     address: OrderAddressSnapshot;
     buyer: AccountSummary;
@@ -1791,6 +1838,23 @@ export type ReviewVoteTally = {
 };
 
 /**
+ * The operator's edit. Every field is optional; absent leaves it alone.
+ */
+export type SaveOptionRequest = {
+    description?: string;
+    /**
+     * Take it out of the chooser's list without deleting the row.
+     */
+    is_enabled?: boolean;
+    name?: string;
+    priority?: number;
+    /**
+     * One of `providers` from `/admin/options`. Unknown here is 422.
+     */
+    provider?: string;
+};
+
+/**
  * A tag slug or a category id, told apart the same way a listing ref is: an opaque id always carries an underscore after its prefix and a slug never does.
  *
  * Both are legal seeds for the same query because every embedding column in this schema is `vector(1024)` indexed with `vector_cosine_ops` — one BGE-M3 space — so the distance between a category and a tag means the same thing as the distance between two tags. A seed whose vector the cron has not computed yet is rejected rather than silently ignored, since dropping it would answer a different question than the one asked.
@@ -1898,7 +1962,7 @@ export type StartPaymentRequest = {
      */
     amount?: number;
     /**
-     * A payment option slug from the common module.
+     * A slug from `GET /options?category=payment`; one nobody enabled is refused with 422.
      */
     payment_option: string;
     /**
@@ -2565,6 +2629,11 @@ export type WithdrawalRejectionRequest = {
 export type Cursor = string;
 
 export type Limit = number;
+
+/**
+ * The kind of pluggable choice.
+ */
+export type OptionCategory = OptionCategoryName;
 
 /**
  * 1-based page number.
@@ -3253,6 +3322,103 @@ export type DeleteAdminModeratorsByIdResponses = {
 };
 
 export type DeleteAdminModeratorsByIdResponse = DeleteAdminModeratorsByIdResponses[keyof DeleteAdminModeratorsByIdResponses];
+
+export type GetAdminOptionsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The kind of pluggable choice.
+         */
+        category: OptionCategoryName;
+    };
+    url: '/admin/options';
+};
+
+export type GetAdminOptionsErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Admin role required
+     */
+    403: Error;
+    /**
+     * No such category
+     */
+    404: Error;
+};
+
+export type GetAdminOptionsError = GetAdminOptionsErrors[keyof GetAdminOptionsErrors];
+
+export type GetAdminOptionsResponses = {
+    /**
+     * OK
+     */
+    200: {
+        data: OptionList;
+    };
+};
+
+export type GetAdminOptionsResponse = GetAdminOptionsResponses[keyof GetAdminOptionsResponses];
+
+export type PatchAdminOptionsByIdData = {
+    body: SaveOptionRequest;
+    path: {
+        /**
+         * The option slug.
+         */
+        id: string;
+    };
+    query: {
+        /**
+         * The kind of pluggable choice.
+         */
+        category: OptionCategoryName;
+    };
+    url: '/admin/options/{id}';
+};
+
+export type PatchAdminOptionsByIdErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Admin role required
+     */
+    403: Error;
+    /**
+     * No such option, or no such category
+     */
+    404: Error;
+    /**
+     * No provider registered by that name
+     */
+    422: Error;
+};
+
+export type PatchAdminOptionsByIdError = PatchAdminOptionsByIdErrors[keyof PatchAdminOptionsByIdErrors];
+
+export type PatchAdminOptionsByIdResponses = {
+    /**
+     * Updated
+     */
+    200: {
+        data: Option;
+    };
+};
+
+export type PatchAdminOptionsByIdResponse = PatchAdminOptionsByIdResponses[keyof PatchAdminOptionsByIdResponses];
 
 export type GetAdminPaymentSessionsData = {
     body?: never;
@@ -6867,6 +7033,46 @@ export type PostOffersByIdCheckoutResponses = {
 };
 
 export type PostOffersByIdCheckoutResponse = PostOffersByIdCheckoutResponses[keyof PostOffersByIdCheckoutResponses];
+
+export type GetOptionsData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The kind of pluggable choice.
+         */
+        category: OptionCategoryName;
+    };
+    url: '/options';
+};
+
+export type GetOptionsErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * No such category, or not one this caller may see
+     */
+    404: Error;
+};
+
+export type GetOptionsError = GetOptionsErrors[keyof GetOptionsErrors];
+
+export type GetOptionsResponses = {
+    /**
+     * OK
+     */
+    200: {
+        data: OptionList;
+    };
+};
+
+export type GetOptionsResponse = GetOptionsResponses[keyof GetOptionsResponses];
 
 export type GetOrdersData = {
     body?: never;
