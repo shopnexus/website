@@ -23,8 +23,8 @@ const STATUS_BADGES: Record<TicketStatus, string> = {
 /**
  * One ticket, which is one chat thread with a header on top.
  *
- * Support is anonymous: a reply from the desk arrives with no sender, and the thread
- * renders it as the platform rather than as a person — see ChatThread's `nullSenderAs`.
+ * Support is anonymous: a reply from the desk arrives with no sender and `from_support`
+ * set, which is what the thread renders as the platform rather than as a person.
  */
 export default function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -110,7 +110,6 @@ export default function TicketPage({ params }: { params: Promise<{ id: string }>
             <ChatThread
               conversationId={ticket.conversation_id}
               unread={thread?.unread ?? 0}
-              nullSenderAs="support"
               placeholder="Viết tin nhắn cho bộ phận hỗ trợ..."
             />
           ) : (

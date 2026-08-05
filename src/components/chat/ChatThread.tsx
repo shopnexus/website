@@ -34,12 +34,6 @@ interface ChatThreadProps {
   counterparty?: Counterparty;
   /** Attached to every outgoing message — what the sender is pointing at. */
   refs?: Record<string, unknown>;
-  /**
-   * How a message with no sender reads. `sender_id` is null both on a backend system note
-   * and on a support reply, and the contract publishes nothing that tells them apart, so
-   * the screen the thread is rendered in decides: in a ticket it is the desk answering.
-   */
-  nullSenderAs?: "system" | "support";
   /** How many unread messages the thread has, so opening it can post the read receipt. */
   unread?: number;
   placeholder?: string;
@@ -51,7 +45,6 @@ export default function ChatThread({
   conversationId,
   counterparty,
   refs,
-  nullSenderAs = "system",
   unread = 0,
   placeholder,
 }: ChatThreadProps) {
@@ -166,9 +159,9 @@ export default function ChatThread({
             );
           }
 
-          // No sender: a backend system note, or — in a ticket — the support desk. A card
-          // is always a system note, whichever screen this is.
-          if (!msg.sender_id && (nullSenderAs === "system" || card)) {
+          // A system note and a support reply both arrive with a null `sender_id`, so
+          // `from_support` is the only thing that tells them apart.
+          if (!msg.sender_id && !msg.from_support) {
             return (
               <div key={msg.id} className="flex w-full justify-center my-4">
                 <div className="flex flex-col items-center">
@@ -186,7 +179,7 @@ export default function ChatThread({
 
           // Support answers as the platform, never as a person: staff are anonymous to the
           // requester, so there is no avatar and no name to show but the desk's.
-          const fromSupport = !msg.sender_id;
+          const fromSupport = Boolean(msg.from_support);
 
           return (
             <div key={msg.id} className="flex gap-2.5 max-w-[85%] md:max-w-[75%]">

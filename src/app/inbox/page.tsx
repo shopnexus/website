@@ -24,7 +24,14 @@ function InboxContent() {
   const [showChatMobile, setShowChatMobile] = useState(false);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
 
-  const { conversations, isLoading: isLoadingConversations } = useConversations();
+  const { conversations: allConversations, isLoading: isLoadingConversations } = useConversations();
+
+  // A ticket's thread is read at /support/[id], with the ticket's status and verdict around
+  // it. Listed here it would be a nameless chat with the desk and no way back to the ticket.
+  const conversations = useMemo(
+    () => allConversations.filter((c) => !c.ticket_id),
+    [allConversations],
+  );
 
   const visibleConversations = useMemo(
     () => (activeTab === "unread" ? conversations.filter((c) => c.unread > 0) : conversations),
