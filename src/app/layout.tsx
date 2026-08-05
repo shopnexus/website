@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
@@ -95,8 +96,12 @@ export default function RootLayout({
         />
         <QueryProvider>
           <RealtimeProvider>
-            <Navbar />
-            <Header />
+            <Suspense fallback={<div className="h-[68px] sticky top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant/20 shadow-sm"></div>}>
+              <Navbar />
+            </Suspense>
+            <Suspense fallback={null}>
+              <Header />
+            </Suspense>
             <main className="flex-1">{children}</main>
             <Footer />
           </RealtimeProvider>
