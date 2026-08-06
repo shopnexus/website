@@ -2087,6 +2087,7 @@ export type TakedownRequest = {
 export type TaxCodeType = 'individual' | 'business' | 'household';
 
 export type TaxInfo = {
+    created_at: string;
     legal_name: string;
     tax_code: string;
     tax_code_type: TaxCodeType;
@@ -2095,7 +2096,7 @@ export type TaxInfo = {
      */
     updated_at: string;
     verification_status: TaxVerificationStatus;
-    verified_at: string | null;
+    verified_at?: string | null;
 };
 
 export type TaxVerificationRequest = {
@@ -2597,12 +2598,12 @@ export type Withdrawal = {
     currency: CurrencyCode;
     id: PaymentSessionId;
     outcome: WithdrawalOutcome;
-    resolution_note: string | null;
-    resolved_at: string | null;
+    resolution_note?: string | null;
+    resolved_at?: string | null;
     /**
      * The admin who decided. Null on one the owner cancelled themselves.
      */
-    resolved_by_id: AccountId | null;
+    resolved_by_id?: AccountId | null;
     /**
      * The underlying session status. `outcome` is what a client should render; this is here because a withdrawal is a payment session and hiding that would make its id unexplainable.
      *
@@ -2622,7 +2623,7 @@ export type WithdrawalApprovalRequest = {
 };
 
 /**
- * How a withdrawal ended, stated rather than inferred. The underlying session status can be translated into it — `cancelled` and `failed` are different rows, so a cash-out the payee called off is distinguishable from one an admin refused — but that translation is the platform's to make: five statuses onto four outcomes is a mapping every client would otherwise re-derive, and be one release behind on the day a status is added. `awaiting-review` covers both `pending` and `processing`.
+ * How a withdrawal ended, stated rather than inferred. The underlying session status cannot say it on its own: a cash-out the owner called off and one an admin refused both leave the money back in the wallet and the session not-successful, and telling them apart by whether `resolved_by_id` happens to be set is a rule every client would have to know. `awaiting-review` covers both `pending` and `processing`.
  *
  */
 export type WithdrawalOutcome = 'awaiting-review' | 'approved' | 'rejected' | 'cancelled';

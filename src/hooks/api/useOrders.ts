@@ -7,6 +7,10 @@ import {
 	postDraftsByIdCheckout,
 	postOrdersByIdConfirmation,
 	postOrdersByIdDecline,
+	postOrdersByIdTransportCheckpoints,
+	postOrdersByIdReceipt,
+	postOrdersByIdCancellation,
+	postOrdersByIdRefunds,
 	postShippingQuotes,
 } from "@/api/generated/sdk.gen"
 import {
@@ -24,6 +28,7 @@ import type {
 	Order,
 	OrderState,
 	ShippingQuotesRequest,
+	TransportCheckpoint,
 } from "@/api/generated/types.gen"
 import { useListings } from "./useCatalog"
 import { OPERATIONS, invalidate } from "@/api/invalidate"
@@ -213,3 +218,75 @@ export function useCheckout() {
 			),
 	})
 }
+
+/**
+ * Updates the shipment status (seller only).
+ */
+export function useAdvanceShipment() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async ({ orderId, status }: { orderId: OrderId; status: TransportCheckpoint }) => {
+			const { data } = await postOrdersByIdTransportCheckpoints({
+				path: { id: orderId },
+				body: { status },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order),
+	})
+}
+
+/**
+ * Confirms receipt of the order (buyer only).
+ */
+export function useConfirmReceipt() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async ({ orderId, attachments }: { orderId: OrderId; attachments: string[] }) => {
+			const { data } = await postOrdersByIdReceipt({
+				path: { id: orderId },
+				body: { attachments },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order),
+	})
+}
+
+/**
+ * Cancels an order.
+ */
+export function useCancelOrder() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async (orderId: OrderId) => {
+			const { data } = await postOrdersByIdCancellation({
+				path: { id: orderId },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order, OPERATIONS.listings),
+	})
+}
+
+/**
+ * Creates a refund request (buyer only).
+ */
+export function useCreateRefund() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async ({ orderId, reason, attachments }: { orderId: OrderId; reason: string; attachments?: string[] }) => {
+			const { data } = await postOrdersByIdRefunds({
+				path: { id: orderId },
+				body: { reason, attachments },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order),
+	})
+}
+

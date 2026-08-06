@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ORDER_STATE_VI } from '@/lib/dictionaries';
 import type { Listing, ListingId, Order, OrderId } from '@/api/generated/types.gen';
 import { RoleState } from '../hooks/useOrdersFeed';
-import { useConfirmOrder, useDeclineOrder } from '@/hooks/api/useOrders';
+import { useConfirmOrder, useDeclineOrder, useAdvanceShipment } from '@/hooks/api/useOrders';
 
 interface OrderFeedProps {
   orders: Order[];
@@ -83,6 +83,9 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
                 {role === 'selling' && order.state === 'awaiting-confirmation' && (
                   <SellerAnswer orderId={order.id} />
                 )}
+                {role === 'selling' && order.state === 'open' && !order.transport && (
+                  <SellerQuickShip orderId={order.id} />
+                )}
                 <Link href={`/orders/${order.id}`} className="px-4 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-bold shadow-sm hover:opacity-90 transition-opacity">
                   Chi tiết
                 </Link>
@@ -94,6 +97,22 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
     </div>
   );
 }
+
+function SellerQuickShip({ orderId }: { orderId: OrderId }) {
+  const advanceShipment = useAdvanceShipment();
+
+  return (
+    <button
+      type="button"
+      disabled={advanceShipment.isPending}
+      onClick={() => advanceShipment.mutate({ orderId, status: 'picked-up' })}
+      className="px-4 py-1.5 rounded-lg border border-primary text-primary bg-primary/5 text-xs font-bold hover:bg-primary/10 transition-colors disabled:opacity-50"
+    >
+      {advanceShipment.isPending ? 'Đang xử lý...' : 'Đã giao cho ĐVVC'}
+    </button>
+  );
+}
+
 
 /**
  * The seller's answer to a paid order: accept it, or refuse it with a reason.
@@ -132,6 +151,5 @@ function SellerAnswer({ orderId }: { orderId: OrderId }) {
         >
           Từ chối
         </button>
-    </div>
-  );
+    </div>  );
 }
