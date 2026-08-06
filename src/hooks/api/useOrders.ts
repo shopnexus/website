@@ -7,7 +7,6 @@ import {
 	postDraftsByIdCheckout,
 	postOrdersByIdConfirmation,
 	postOrdersByIdDecline,
-	postOrdersByIdTransportCheckpoints,
 	postOrdersByIdReceipt,
 	postOrdersByIdCancellation,
 	postOrdersByIdRefunds,
@@ -28,7 +27,6 @@ import type {
 	Order,
 	OrderState,
 	ShippingQuotesRequest,
-	TransportCheckpoint,
 } from "@/api/generated/types.gen"
 import { useListings } from "./useCatalog"
 import { OPERATIONS, invalidate } from "@/api/invalidate"
@@ -219,23 +217,13 @@ export function useCheckout() {
 	})
 }
 
-/**
- * Updates the shipment status (seller only).
+/*
+ * There is no hook for POST /orders/{id}/transport/checkpoints. The carrier reports where
+ * a parcel is, on its own webhook, and only staff may correct it — the route answers 403
+ * to both the seller and the buyer. Whether the parcel has left is what decides whether
+ * the order can still be cancelled and the escrow taken back, so it was never a claim a
+ * party to the sale could make: a seller who sees it wrong raises an `order-issue` ticket.
  */
-export function useAdvanceShipment() {
-	const queryClient = useQueryClient()
-	return useMutation({
-		mutationFn: async ({ orderId, status }: { orderId: OrderId; status: TransportCheckpoint }) => {
-			const { data } = await postOrdersByIdTransportCheckpoints({
-				path: { id: orderId },
-				body: { status },
-				throwOnError: true,
-			})
-			return data.data
-		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order),
-	})
-}
 
 /**
  * Confirms receipt of the order (buyer only).

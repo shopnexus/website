@@ -3148,9 +3148,9 @@ export const getOrdersByIdTransportOptions = (options: Options<GetOrdersByIdTran
 });
 
 /**
- * Report a carrier checkpoint on the outbound leg (seller)
+ * Correct a checkpoint on the outbound leg (moderator)
  *
- * The seller's route — they are the one who hands the parcel over — and a moderator may correct it; nobody else writes this status.
+ * Staff only. The carrier reports this leg on its own webhook, and this route is for a courier that got it wrong or never reported at all — neither party to the order writes it. Whether the parcel has left is what decides whether the order can still be cancelled and the escrow taken back, so a seller saying so was one request against days of the buyer's: a seller who sees the status wrong raises an `order-issue` ticket instead.
  *
  * Forward-only. Carrier reports arrive out of order, and whether the parcel has left is what decides whether the order can still be cancelled and the escrow taken back, so it is not a fact a later report may undo: a checkpoint at or behind where the shipment already is, or one on a leg that has ended, is 409.
  *

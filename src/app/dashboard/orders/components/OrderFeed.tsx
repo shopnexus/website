@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ORDER_STATE_VI } from '@/lib/dictionaries';
 import type { Listing, ListingId, Order, OrderId } from '@/api/generated/types.gen';
 import { RoleState } from '../hooks/useOrdersFeed';
-import { useConfirmOrder, useDeclineOrder, useAdvanceShipment } from '@/hooks/api/useOrders';
+import { useConfirmOrder, useDeclineOrder } from '@/hooks/api/useOrders';
 
 interface OrderFeedProps {
   orders: Order[];
@@ -83,8 +83,8 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
                 {role === 'selling' && order.state === 'awaiting-confirmation' && (
                   <SellerAnswer orderId={order.id} />
                 )}
-                {role === 'selling' && order.state === 'open' && !order.transport && (
-                  <SellerQuickShip orderId={order.id} />
+                {role === 'selling' && order.state === 'open' && (
+                  <SellerReportIssue orderId={order.id} />
                 )}
                 <Link href={`/orders/${order.id}`} className="px-4 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-bold shadow-sm hover:opacity-90 transition-opacity">
                   Chi tiết
@@ -98,18 +98,21 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
   );
 }
 
-function SellerQuickShip({ orderId }: { orderId: OrderId }) {
-  const advanceShipment = useAdvanceShipment();
-
+/**
+ * There is no "Đã giao cho ĐVVC" any more. Where the parcel is comes from the carrier's own
+ * webhook and only staff may correct it: that status decides whether the buyer may still
+ * cancel and take the escrow back, so a seller saying it had left — with nothing behind the
+ * claim — spent days of the buyer's rights on one request. What is left is asking for it to
+ * be looked at.
+ */
+function SellerReportIssue({ orderId }: { orderId: OrderId }) {
   return (
-    <button
-      type="button"
-      disabled={advanceShipment.isPending}
-      onClick={() => advanceShipment.mutate({ orderId, status: 'picked-up' })}
-      className="px-4 py-1.5 rounded-lg border border-primary text-primary bg-primary/5 text-xs font-bold hover:bg-primary/10 transition-colors disabled:opacity-50"
+    <Link
+      href={`/support?kind=order-issue&ref_id=${orderId}`}
+      className="px-4 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-bold hover:bg-surface-container transition-colors"
     >
-      {advanceShipment.isPending ? 'Đang xử lý...' : 'Đã giao cho ĐVVC'}
-    </button>
+      Báo vấn đề
+    </Link>
   );
 }
 

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
-import type { Order, TransportCheckpoint } from "@/api/generated/types.gen";
+import type { Order } from "@/api/generated/types.gen";
 import { 
-  useAdvanceShipment, 
   useConfirmReceipt, 
   useCreateRefund,
   useCancelOrder
@@ -15,11 +15,8 @@ interface OrderActionsProps {
   order: Order;
 }
 
-const TRANSPORT_FLOW: TransportCheckpoint[] = ['picked-up', 'in-transit', 'delivered'];
-
 export default function OrderActions({ order }: OrderActionsProps) {
   const { data: me } = useMe();
-  const advanceShipment = useAdvanceShipment();
   const confirmReceipt = useConfirmReceipt();
   const createRefund = useCreateRefund();
   const cancelOrder = useCancelOrder();
@@ -32,11 +29,7 @@ export default function OrderActions({ order }: OrderActionsProps) {
   const isSeller = me.id === order.seller.id;
   const isBuyer = me.id === order.buyer.id;
   
-  const isBusy = advanceShipment.isPending || confirmReceipt.isPending || createRefund.isPending || cancelOrder.isPending || isUploading;
-
-  const handleAdvanceShipment = (nextStatus: TransportCheckpoint) => {
-    advanceShipment.mutate({ orderId: order.id, status: nextStatus });
-  };
+  const isBusy = confirmReceipt.isPending || createRefund.isPending || cancelOrder.isPending || isUploading;
 
   const handleConfirmReceipt = () => {
     // Note: In a real app, this should open a modal to capture unboxing photos (attachments).
@@ -56,41 +49,24 @@ export default function OrderActions({ order }: OrderActionsProps) {
     createRefund.mutate({ orderId: order.id, reason: reason.trim(), attachments: [] });
   };
 
+  // A seller has nothing to press here. Where the parcel is comes from the carrier's own
+  // webhook and only staff may correct it, because that status is what decides whether the
+  // buyer may still cancel and take the escrow back — one request against days of theirs.
   if (isSeller) {
     if (order.state === "open") {
-      // Determine next transport status
-      let nextStatus: TransportCheckpoint = 'picked-up';
-      if (order.transport) {
-        const currentIdx = TRANSPORT_FLOW.indexOf(order.transport.status as TransportCheckpoint);
-        if (currentIdx >= 0 && currentIdx < TRANSPORT_FLOW.length - 1) {
-          nextStatus = TRANSPORT_FLOW[currentIdx + 1];
-        } else if (order.transport.status === 'delivered' || order.transport.status === 'failed' || order.transport.status === 'returned') {
-          return null; // Terminal state for shipment progression
-        }
-      }
-
-      const statusLabel = ({
-        'picked-up': 'Đã lấy hàng',
-        'in-transit': 'Đang giao hàng',
-        'delivered': 'Đã giao thành công'
-      } as Record<string, string>)[nextStatus] || 'Cập nhật trạng thái';
-
       return (
         <div className="flex flex-col gap-3 mt-6 border-t border-outline-variant pt-6">
           <h4 className="font-label-md text-on-surface">Thao tác của Người Bán</h4>
-          <Button 
-            variant="primary" 
-            fullWidth 
-            onClick={() => handleAdvanceShipment(nextStatus)}
-            disabled={isBusy}
+          <p className="text-body-sm text-on-surface-variant">
+            Trạng thái vận chuyển do đơn vị giao hàng cập nhật. Nếu bạn thấy sai, hãy báo để
+            ShopNexus kiểm tra.
+          </p>
+          <Link
+            href={`/support?kind=order-issue&ref_id=${order.id}`}
+            className="px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant text-label-lg font-bold text-center hover:bg-surface-container transition-colors"
           >
-            {isBusy ? "Đang xử lý..." : `Cập nhật: ${statusLabel}`}
-          </Button>
-          {!order.transport && (
-             <p className="text-body-sm text-on-surface-variant text-center mt-2">
-               Hãy giao hàng cho ĐVVC và bấm "Đã lấy hàng"
-             </p>
-          )}
+            Báo vấn đề vận chuyển
+          </Link>
         </div>
       );
     }
