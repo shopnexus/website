@@ -69,11 +69,11 @@ export default function OrderActions({ order }: OrderActionsProps) {
         }
       }
 
-      const statusLabel = {
+      const statusLabel = ({
         'picked-up': 'Đã lấy hàng',
         'in-transit': 'Đang giao hàng',
         'delivered': 'Đã giao thành công'
-      }[nextStatus] || 'Cập nhật trạng thái';
+      } as Record<string, string>)[nextStatus] || 'Cập nhật trạng thái';
 
       return (
         <div className="flex flex-col gap-3 mt-6 border-t border-outline-variant pt-6">
