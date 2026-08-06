@@ -1526,10 +1526,6 @@ export type PaymentSession = {
      * A session still unsettled past this point is voided by a job.
      */
     expired_at: string;
-    /**
-     * The payer. Null means the platform itself.
-     */
-    from_id?: AccountId | null;
     id: PaymentSessionId;
     kind: PaymentSessionKind;
     note: string;
@@ -1540,10 +1536,6 @@ export type PaymentSession = {
     outstanding: number;
     paid_at: string | null;
     status: PaymentSessionStatus;
-    /**
-     * The payee. Null means the platform itself.
-     */
-    to_id?: AccountId | null;
     /**
      * Amount owed, smallest unit of `currency`
      */
@@ -1618,6 +1610,11 @@ export type PublicAccount = {
     created_at: string;
     description: string | null;
     follower_count: number;
+    /**
+     * Whether the *reader* follows this account, so it is false for an anonymous read and on one's own page. It is here rather than left to the client because the alternative is paging the whole following list to find out, and a follow button with no state cannot tell "follow" from "unfollow".
+     *
+     */
+    following: boolean;
     id: AccountId;
     /**
      * Shown as a trust signal.
@@ -1665,7 +1662,8 @@ export type Refund = {
     order_id: OrderId;
     reason: string;
     /**
-     * When the return reached the seller and the inspection window opened.
+     * When the return leg was reported delivered. Set by either party's report, since it answers "is there anything left to ship" for a later verdict — whose report it was is what `status` says.
+     *
      */
     returned_at: string | null;
     /**
@@ -1686,7 +1684,7 @@ export type RefundPage = {
 /**
  * Every live value names the party whose move the refund is waiting on, and each of those carries a `deadline_at` that the party can miss:
  *
- * `awaiting-seller-review` — the seller grants it or hands it to staff; they cannot refuse it. Missing the window hands it to staff too. `disputed` — staff are looking at it. `returning` — the goods are on their way back; only a granted refund ever reaches here. `returned` — the seller inspects what arrived and may escalate until the window closes, which is where a broken or substituted return is caught.
+ * `awaiting-seller-review` — the seller grants it or hands it to staff; they cannot refuse it. Missing the window hands it to staff too. `disputed` — staff are looking at it. `returning` — the goods are on their way back; only a granted refund ever reaches here. `returned` — the seller has acknowledged the return and now inspects what arrived, and may escalate until the window closes, which is where a broken or substituted return is caught. A return the buyer reports and the seller has not goes to `disputed` rather than here.
  *
  * Then three terminals: `accepted` is money back to the buyer and the order closed with it, `rejected` is no refund and the payout stands, `cancelled` is the buyer withdrawing before the seller decided. Only the last two give the escrow up — `accepted` keeps its claim, because that money has already gone to the buyer.
  *
@@ -2546,11 +2544,6 @@ export type WalletTransaction = {
     available_delta: number;
     created_at: string;
     currency: CurrencyCode;
-    /**
-     * Shared by every leg of one logical movement — a checkout is a debit plus an escrow hold plus a fee. An opaque token for grouping rows in a response, not an address: nothing accepts it as input and no endpoint resolves it.
-     *
-     */
-    group_id?: string | null;
     held_after: number;
     /**
      * Signed change to the held balance
@@ -8216,7 +8209,7 @@ export type PostRefundsByIdReturnTransportCheckpointsError = PostRefundsByIdRetu
 
 export type PostRefundsByIdReturnTransportCheckpointsResponses = {
     /**
-     * Recorded; the refund moves to `returned` once the leg is delivered
+     * Recorded; a delivery moves the refund to `returned` when the seller reported it and to `disputed` when the buyer did
      */
     200: {
         data: Refund;
