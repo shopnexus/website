@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import { ORDER_STATE_VI, TRANSPORT_STATUS_VI } from "@/lib/dictionaries";
 import { getListings, getOrdersById } from "@/api/generated/sdk.gen";
 import type { Listing, ListingId, OrderId, TransportStatus } from "@/api/generated/types.gen";
+import OrderActions from "./_components/OrderActions";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -180,6 +181,8 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
                   </Button>
                 </Link>
               </div>
+              
+              <OrderActions order={order} />
             </div>
 
           </div>

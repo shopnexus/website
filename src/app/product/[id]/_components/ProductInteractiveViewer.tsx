@@ -132,24 +132,26 @@ export default function ProductInteractiveViewer({ product }: { product: Listing
               </div>
             )}
             
-            <div className="bg-surface rounded-2xl p-4 border border-outline-variant mt-6 flex flex-col sm:flex-row items-center gap-4 shadow-sm">
-              <Link href={`/shop/${seller.id}`} className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border border-outline-variant">
-                {seller.avatar?.url ? (
-                  <Image src={seller.avatar.url} alt={seller.name} fill className="object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-secondary-container flex items-center justify-center text-lg font-bold">
-                    {seller.name.charAt(0)}
-                  </div>
-                )}
-              </Link>
-              <div className="flex-1 text-center sm:text-left">
-                <Link href={`/shop/${seller.id}`} className="font-title-md font-bold text-on-surface hover:text-primary transition-colors flex items-center justify-center sm:justify-start gap-1">
-                  {seller.name}
+            <div className="bg-surface rounded-2xl p-4 border border-outline-variant mt-6 flex flex-col gap-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <Link href={`/shop/${seller.id}`} className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border border-outline-variant">
+                  {seller.avatar?.url ? (
+                    <Image src={seller.avatar.url} alt={seller.name} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-secondary-container flex items-center justify-center text-lg font-bold">
+                      {seller.name.charAt(0)}
+                    </div>
+                  )}
                 </Link>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/shop/${seller.id}`} className="font-title-md font-bold text-on-surface hover:text-primary transition-colors block truncate">
+                    {seller.name}
+                  </Link>
+                </div>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2">
                 <StartChatButton sellerId={seller.id} currentPath={`/product/${product.id}`} />
-                <Link href={`/shop/${seller.id}`} className="flex-1 sm:flex-none">
+                <Link href={`/shop/${seller.id}`} className="flex-1">
                   <Button variant="secondary" icon={<span className="material-symbols-outlined">storefront</span>} className="w-full">
                     Xem Shop
                   </Button>
