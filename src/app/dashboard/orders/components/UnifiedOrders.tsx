@@ -6,8 +6,14 @@ import OrderFeed from './OrderFeed';
 import { ORDER_STATE_VI } from '@/lib/dictionaries';
 import type { OrderState } from '@/api/generated/types.gen';
 
+// One tab per state the API filters by. `awaiting-confirmation` had no tab and used to fall
+// into `open`, because the server's `open` predicate only excluded the two outcomes; now that
+// it means "confirmed and in flight" — as the spec always said — a paid, unconfirmed order
+// would be reachable under 'Tất cả' alone. That is the state with a 48-hour clock on it and a
+// seller button in the feed, so it gets its own tab.
 const FILTERS: Array<{ id: 'all' | OrderState; label: string }> = [
   { id: 'all', label: 'Tất cả' },
+  { id: 'awaiting-confirmation', label: ORDER_STATE_VI['awaiting-confirmation'] },
   { id: 'open', label: ORDER_STATE_VI['open'] },
   { id: 'completed', label: ORDER_STATE_VI['completed'] },
   { id: 'cancelled', label: ORDER_STATE_VI['cancelled'] },
