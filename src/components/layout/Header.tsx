@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 import { useSearch } from "@/hooks/useSearch";
@@ -8,16 +8,21 @@ import { useProvinces } from "@/hooks/useAdminAreas";
 import Select from "@/components/ui/Select";
 
 export default function Header(): React.ReactElement | null {
+  const [isMounted, setIsMounted] = useState(false);
   const { query, setQuery, province, setProvince, handleSearch } = useSearch();
   const { data: provinces = [] } = useProvinces();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const provinceOptions = useMemo(
     () => provinces.map((p) => ({ value: p.code, label: p.name })),
     [provinces],
   );
 
-  if (pathname !== "/") {
+  if (!isMounted || pathname !== "/") {
     return null;
   }
 

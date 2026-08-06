@@ -34,13 +34,16 @@ function isSilentByNature(error: ApiError): boolean {
  */
 function toastError(error: ApiError): void {
 	if (error.fields.length > 0) {
-		toast.error(error.fields.map((f) => `• ${f.message}`).join("\n"), {
+		const message = error.fields.map((f) => `• ${f.message}`).join("\n")
+		toast.error(message, {
+			id: message,
 			duration: 5000,
 			style: { whiteSpace: "pre-line" },
 		})
 		return
 	}
-	toast.error(getErrorMessage(error.code))
+	const message = getErrorMessage(error.code)
+	toast.error(message, { id: message })
 }
 
 function shouldToast(error: unknown, meta: { silent?: boolean } | undefined): boolean {

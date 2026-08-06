@@ -91,13 +91,13 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
         <button
           onClick={handleFavoriteClick}
           disabled={isPending}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors z-10 disabled:opacity-50"
+          className="absolute top-2 right-2 p-1.5 h-9.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors z-10 disabled:opacity-50"
           aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
         >
           <span
             className={`material-symbols-outlined text-[20px] transition-colors ${
               product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
-            }`}
+              }`}
             style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
           >
             favorite
@@ -140,7 +140,7 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
               <span className="flex items-center gap-0.5 min-w-0">
                 <span className="material-symbols-outlined text-[13px] shrink-0">location_on</span>
                 <span className="truncate">
-                  {product.location.distance_km !== undefined
+                  {product.location.distance_km != null
                     ? `${product.location.distance_km.toFixed(1)} km`
                     : product.location.province_name}
                 </span>

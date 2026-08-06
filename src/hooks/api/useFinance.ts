@@ -3,7 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { postPaymentSessionsByIdPayments } from "@/api/generated/sdk.gen"
 import {
-	getOptionsOptions,
 	getPaymentSessionsByIdOptions,
 	getWalletsOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
@@ -27,19 +26,17 @@ export function useWallets(enabled = true) {
 	})
 }
 
+import { getOptionsOptions } from "@/api/generated/@tanstack/react-query.gen";
+
 /**
  * The rails a payment session may be tendered on, and the only place a valid
- * `payment_option` comes from — a hardcoded slug breaks the day an operator disables that
- * rail, and which rails a deployment offers is not a fact a client can know.
- *
- * Operator configuration rather than the user's data, so it is held for a few minutes:
- * asking again per checkout puts the same question to every buyer.
+ * `payment_option` comes from.
  */
 export function usePaymentOptions(enabled = true) {
 	return useQuery({
 		...getOptionsOptions({ query: { category: "payment" } }),
-		select: (envelope) => unwrapData(envelope).options,
-		staleTime: 5 * 60 * 1000,
+		select: (res) => res.data.options,
+		staleTime: Infinity,
 		enabled,
 	})
 }

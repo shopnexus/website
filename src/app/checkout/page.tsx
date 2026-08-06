@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import Button from "@/components/ui/Button";
 import StepIndicator from "@/components/ui/StepIndicator";
 import QuantitySelector from "@/components/ui/QuantitySelector";
@@ -50,7 +51,7 @@ function CheckoutContent() {
     offerId ?? undefined,
   );
   // A negotiated sale carries no name of its own: the offer names a listing and a variant.
-  const { data: offerListing } = useListing(offer?.listing_id);
+  const { data: listing } = useListing(offer?.listing_id || draft?.listing_id);
   const { data: contacts = [], isLoading: isLoadingContacts } = useContacts();
   const checkout = useCheckout();
   const checkoutOffer = useCheckoutOffer();
@@ -122,7 +123,7 @@ function CheckoutContent() {
   const shippingFee = shippingOptions.find((o) => o.option === activeShipping)?.fee ?? 0;
   const total = subtotal + shippingFee;
 
-  const itemName = offer ? (offerListing?.name ?? "Sản phẩm đã thương lượng") : (draft?.name ?? "");
+  const itemName = offer ? (listing?.name ?? "Sản phẩm đã thương lượng") : (draft?.name ?? "");
   // `processing` is a leg in flight — the rail was called and has not reported. That is the only
   // status worth blocking on: a declined leg does not fail the session, it puts it back on the
   // shelf as `pending` so another rail can be tendered, which is what makes the retry below a
@@ -294,7 +295,16 @@ function CheckoutContent() {
 
                 <div className="flex gap-4 mb-6">
                   <div className="relative w-20 h-20 rounded border border-outline-variant overflow-hidden shrink-0 bg-surface-container">
-                    <span className="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-on-surface-variant">image</span>
+                    {listing?.images?.[0]?.url ? (
+                      <Image
+                        src={listing.images[0].url}
+                        alt={itemName}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-on-surface-variant">image</span>
+                    )}
                   </div>
                   <div className="flex-1 flex flex-col min-w-0">
                     <span className="font-body-md font-medium text-on-surface line-clamp-2 mb-2">{itemName}</span>
