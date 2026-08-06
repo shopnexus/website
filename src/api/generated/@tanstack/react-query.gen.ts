@@ -2763,12 +2763,15 @@ export const getNotificationsUnreadCountOptions = (options?: Options<GetNotifica
     queryKey: getNotificationsUnreadCountQueryKey(options)
 });
 
-export const getOffersQueryKey = (options: Options<GetOffersData>) => createQueryKey('getOffers', options);
+export const getOffersQueryKey = (options?: Options<GetOffersData>) => createQueryKey('getOffers', options);
 
 /**
- * List negotiations, as buyer or as seller
+ * List the caller's negotiations, both sides at once
+ *
+ * Both sides in one list, and there is no `role` to pick: an account haggles as a buyer on one listing and as a seller on another, and "which of these is waiting on me" spans the two — `author_id` answers that per row, since whoever owns the standing proposal is whose turn it is *not*. A required `role` was documented here for a while and never read by the service, so both values answered the same list.
+ *
  */
-export const getOffersOptions = (options: Options<GetOffersData>) => queryOptions<GetOffersResponse, GetOffersError, GetOffersResponse, ReturnType<typeof getOffersQueryKey>>({
+export const getOffersOptions = (options?: Options<GetOffersData>) => queryOptions<GetOffersResponse, GetOffersError, GetOffersResponse, ReturnType<typeof getOffersQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getOffers({
             ...options,
@@ -2781,12 +2784,15 @@ export const getOffersOptions = (options: Options<GetOffersData>) => queryOption
     queryKey: getOffersQueryKey(options)
 });
 
-export const getOffersInfiniteQueryKey = (options: Options<GetOffersData>): QueryKey<Options<GetOffersData>> => createQueryKey('getOffers', options, true);
+export const getOffersInfiniteQueryKey = (options?: Options<GetOffersData>): QueryKey<Options<GetOffersData>> => createQueryKey('getOffers', options, true);
 
 /**
- * List negotiations, as buyer or as seller
+ * List the caller's negotiations, both sides at once
+ *
+ * Both sides in one list, and there is no `role` to pick: an account haggles as a buyer on one listing and as a seller on another, and "which of these is waiting on me" spans the two — `author_id` answers that per row, since whoever owns the standing proposal is whose turn it is *not*. A required `role` was documented here for a while and never read by the service, so both values answered the same list.
+ *
  */
-export const getOffersInfiniteOptions = (options: Options<GetOffersData>) => {
+export const getOffersInfiniteOptions = (options?: Options<GetOffersData>) => {
     const opts = infiniteQueryOptions<GetOffersResponse, GetOffersError, InfiniteData<GetOffersResponse>, QueryKey<Options<GetOffersData>>, string | Pick<QueryKey<Options<GetOffersData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
     // @ts-ignore
     {
@@ -2959,12 +2965,12 @@ export const getOptionsOptions = (options: Options<GetOptionsData>) => queryOpti
     queryKey: getOptionsQueryKey(options)
 });
 
-export const getOrdersQueryKey = (options: Options<GetOrdersData>) => createQueryKey('getOrders', options);
+export const getOrdersQueryKey = (options?: Options<GetOrdersData>) => createQueryKey('getOrders', options);
 
 /**
- * List orders, as buyer or as seller
+ * List the caller's orders, both sides by default
  */
-export const getOrdersOptions = (options: Options<GetOrdersData>) => queryOptions<GetOrdersResponse, GetOrdersError, GetOrdersResponse, ReturnType<typeof getOrdersQueryKey>>({
+export const getOrdersOptions = (options?: Options<GetOrdersData>) => queryOptions<GetOrdersResponse, GetOrdersError, GetOrdersResponse, ReturnType<typeof getOrdersQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getOrders({
             ...options,
@@ -2977,12 +2983,12 @@ export const getOrdersOptions = (options: Options<GetOrdersData>) => queryOption
     queryKey: getOrdersQueryKey(options)
 });
 
-export const getOrdersInfiniteQueryKey = (options: Options<GetOrdersData>): QueryKey<Options<GetOrdersData>> => createQueryKey('getOrders', options, true);
+export const getOrdersInfiniteQueryKey = (options?: Options<GetOrdersData>): QueryKey<Options<GetOrdersData>> => createQueryKey('getOrders', options, true);
 
 /**
- * List orders, as buyer or as seller
+ * List the caller's orders, both sides by default
  */
-export const getOrdersInfiniteOptions = (options: Options<GetOrdersData>) => {
+export const getOrdersInfiniteOptions = (options?: Options<GetOrdersData>) => {
     const opts = infiniteQueryOptions<GetOrdersResponse, GetOrdersError, InfiniteData<GetOrdersResponse>, QueryKey<Options<GetOrdersData>>, string | Pick<QueryKey<Options<GetOrdersData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
     // @ts-ignore
     {
@@ -3469,14 +3475,15 @@ export const getPaymentSessionsByIdTransactionsOptions = (options: Options<GetPa
     queryKey: getPaymentSessionsByIdTransactionsQueryKey(options)
 });
 
-export const getRefundsQueryKey = (options: Options<GetRefundsData>) => createQueryKey('getRefunds', options);
+export const getRefundsQueryKey = (options?: Options<GetRefundsData>) => createQueryKey('getRefunds', options);
 
 /**
- * List refunds, as buyer or as seller
+ * List the caller's refunds, both sides by default
  *
- * `role=seller` resolves through the order's seller; a refund row itself only records the buyer.
+ * Omit `role` for both sides, which is what "what is waiting on me" needs: a buyer's own claims and the ones raised against their sales are the same queue of things to answer. `role=seller` resolves through the order's seller, because a refund row itself only records the buyer.
+ *
  */
-export const getRefundsOptions = (options: Options<GetRefundsData>) => queryOptions<GetRefundsResponse, GetRefundsError, GetRefundsResponse, ReturnType<typeof getRefundsQueryKey>>({
+export const getRefundsOptions = (options?: Options<GetRefundsData>) => queryOptions<GetRefundsResponse, GetRefundsError, GetRefundsResponse, ReturnType<typeof getRefundsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getRefunds({
             ...options,
@@ -3489,14 +3496,15 @@ export const getRefundsOptions = (options: Options<GetRefundsData>) => queryOpti
     queryKey: getRefundsQueryKey(options)
 });
 
-export const getRefundsInfiniteQueryKey = (options: Options<GetRefundsData>): QueryKey<Options<GetRefundsData>> => createQueryKey('getRefunds', options, true);
+export const getRefundsInfiniteQueryKey = (options?: Options<GetRefundsData>): QueryKey<Options<GetRefundsData>> => createQueryKey('getRefunds', options, true);
 
 /**
- * List refunds, as buyer or as seller
+ * List the caller's refunds, both sides by default
  *
- * `role=seller` resolves through the order's seller; a refund row itself only records the buyer.
+ * Omit `role` for both sides, which is what "what is waiting on me" needs: a buyer's own claims and the ones raised against their sales are the same queue of things to answer. `role=seller` resolves through the order's seller, because a refund row itself only records the buyer.
+ *
  */
-export const getRefundsInfiniteOptions = (options: Options<GetRefundsData>) => {
+export const getRefundsInfiniteOptions = (options?: Options<GetRefundsData>) => {
     const opts = infiniteQueryOptions<GetRefundsResponse, GetRefundsError, InfiniteData<GetRefundsResponse>, QueryKey<Options<GetRefundsData>>, string | Pick<QueryKey<Options<GetRefundsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
     // @ts-ignore
     {

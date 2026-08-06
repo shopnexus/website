@@ -36,9 +36,15 @@ const FED = [
 	OPERATIONS.messages,
 ] as const
 
-export function useOffers(role: "seller" | "buyer", limit = 30) {
+/**
+ * Both sides in one list. There is no `role` to pass: an account haggles as a buyer on one
+ * listing and as a seller on another, and the route always answered both — the parameter was
+ * documented for a while and never read, so the two values returned the same rows. Which of
+ * these is waiting on you is `author_id`, per row.
+ */
+export function useOffers(limit = 30) {
 	const query = useInfiniteQuery({
-		...getOffersInfiniteOptions({ query: { limit, role } }),
+		...getOffersInfiniteOptions({ query: { limit } }),
 		...cursorPagination,
 	})
 

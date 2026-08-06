@@ -1167,10 +1167,16 @@ export type OAuthProvider = string;
 export type Offer = {
     author_id: AccountId;
     buyer_id: AccountId;
+    /**
+     * The other side of the negotiation, whichever that is for the caller. This route only ever answers a party to the row, so the viewer is one of `buyer_id`/`seller_id` and this is the one they need named.
+     *
+     */
+    counterparty: AccountSummary;
     created_at: string;
     currency: CurrencyCode;
     expires_at: string;
     id: OfferId;
+    listing: OfferListing;
     /**
      * The listing whose card the offer is shown on.
      */
@@ -1190,6 +1196,18 @@ export type Offer = {
 };
 
 export type OfferId = string;
+
+/**
+ * The little of a listing an offer row has to show, resolved rather than left as an id — a list of offers carrying only ids renders as a column of prices with nothing to tell them apart. Read live: a renamed listing reads as its current name, while the terms, which are the part that must not drift, are on the offer itself.
+ *
+ */
+export type OfferListing = {
+    /**
+     * Null on a listing with no photo.
+     */
+    cover: Resource | null;
+    name: string;
+};
 
 export type OfferPage = {
     data: Array<Offer>;
@@ -6752,8 +6770,7 @@ export type GetNotificationsUnreadCountResponse = GetNotificationsUnreadCountRes
 export type GetOffersData = {
     body?: never;
     path?: never;
-    query: {
-        role: 'buyer' | 'seller';
+    query?: {
         status?: OfferStatus;
         /**
          * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
@@ -7087,8 +7104,12 @@ export type GetOptionsResponse = GetOptionsResponses[keyof GetOptionsResponses];
 export type GetOrdersData = {
     body?: never;
     path?: never;
-    query: {
-        role: 'buyer' | 'seller';
+    query?: {
+        /**
+         * Which side to answer for. Omit for both, which is what a C2C account usually wants: it buys and sells at once, so "what is waiting on me" spans the two.
+         *
+         */
+        role?: 'buyer' | 'seller';
         state?: OrderState;
         /**
          * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
@@ -7969,8 +7990,8 @@ export type GetPaymentSessionsByIdTransactionsResponse = GetPaymentSessionsByIdT
 export type GetRefundsData = {
     body?: never;
     path?: never;
-    query: {
-        role: 'buyer' | 'seller';
+    query?: {
+        role?: 'buyer' | 'seller';
         status?: RefundStatus;
         /**
          * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.

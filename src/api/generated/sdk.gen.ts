@@ -1453,9 +1453,12 @@ export const getNotificationsUnreadCount = <ThrowOnError extends boolean = false
 });
 
 /**
- * List negotiations, as buyer or as seller
+ * List the caller's negotiations, both sides at once
+ *
+ * Both sides in one list, and there is no `role` to pick: an account haggles as a buyer on one listing and as a seller on another, and "which of these is waiting on me" spans the two — `author_id` answers that per row, since whoever owns the standing proposal is whose turn it is *not*. A required `role` was documented here for a while and never read by the service, so both values answered the same list.
+ *
  */
-export const getOffers = <ThrowOnError extends boolean = false>(options: Options<GetOffersData, ThrowOnError>): RequestResult<GetOffersResponses, GetOffersErrors, ThrowOnError> => (options.client ?? client).get<GetOffersResponses, GetOffersErrors, ThrowOnError>({
+export const getOffers = <ThrowOnError extends boolean = false>(options?: Options<GetOffersData, ThrowOnError>): RequestResult<GetOffersResponses, GetOffersErrors, ThrowOnError> => (options?.client ?? client).get<GetOffersResponses, GetOffersErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/offers',
     ...options
@@ -1564,9 +1567,9 @@ export const getOptions = <ThrowOnError extends boolean = false>(options: Option
 });
 
 /**
- * List orders, as buyer or as seller
+ * List the caller's orders, both sides by default
  */
-export const getOrders = <ThrowOnError extends boolean = false>(options: Options<GetOrdersData, ThrowOnError>): RequestResult<GetOrdersResponses, GetOrdersErrors, ThrowOnError> => (options.client ?? client).get<GetOrdersResponses, GetOrdersErrors, ThrowOnError>({
+export const getOrders = <ThrowOnError extends boolean = false>(options?: Options<GetOrdersData, ThrowOnError>): RequestResult<GetOrdersResponses, GetOrdersErrors, ThrowOnError> => (options?.client ?? client).get<GetOrdersResponses, GetOrdersErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/orders',
     ...options
@@ -1866,11 +1869,12 @@ export const getPaymentSessionsByIdTransactions = <ThrowOnError extends boolean 
 });
 
 /**
- * List refunds, as buyer or as seller
+ * List the caller's refunds, both sides by default
  *
- * `role=seller` resolves through the order's seller; a refund row itself only records the buyer.
+ * Omit `role` for both sides, which is what "what is waiting on me" needs: a buyer's own claims and the ones raised against their sales are the same queue of things to answer. `role=seller` resolves through the order's seller, because a refund row itself only records the buyer.
+ *
  */
-export const getRefunds = <ThrowOnError extends boolean = false>(options: Options<GetRefundsData, ThrowOnError>): RequestResult<GetRefundsResponses, GetRefundsErrors, ThrowOnError> => (options.client ?? client).get<GetRefundsResponses, GetRefundsErrors, ThrowOnError>({
+export const getRefunds = <ThrowOnError extends boolean = false>(options?: Options<GetRefundsData, ThrowOnError>): RequestResult<GetRefundsResponses, GetRefundsErrors, ThrowOnError> => (options?.client ?? client).get<GetRefundsResponses, GetRefundsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/refunds',
     ...options
