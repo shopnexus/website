@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import { ORDER_STATE_VI } from '@/lib/dictionaries';
-import type { Listing, ListingId, Order } from '@/api/generated/types.gen';
+import type { Listing, ListingId, Order, OrderId } from '@/api/generated/types.gen';
 import { RoleState } from '../hooks/useOrdersFeed';
+import { useConfirmOrder, useDeclineOrder } from '@/hooks/api/useOrders';
 
 interface OrderFeedProps {
   orders: Order[];
@@ -44,9 +47,10 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
 
         const totalAmount = order.total;
 
-        const statusColor = 
-          order.state === 'completed' ? 'bg-secondary-container text-on-secondary-container' : 
-          order.state === 'cancelled' ? 'bg-error-container text-on-error-container' : 
+        const statusColor =
+          order.state === 'completed' ? 'bg-secondary-container text-on-secondary-container' :
+          order.state === 'cancelled' ? 'bg-error-container text-on-error-container' :
+          order.state === 'awaiting-confirmation' ? 'bg-tertiary-container text-on-tertiary-container' :
           'bg-primary/10 text-primary';
 
         return (
@@ -76,6 +80,9 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
             <div className="flex flex-col items-end gap-1">
               <span className="text-lg font-bold text-on-surface">{formatPrice(totalAmount)}</span>
               <div className="flex gap-2 mt-2 md:mt-0">
+                {role === 'selling' && order.state === 'awaiting-confirmation' && (
+                  <SellerAnswer orderId={order.id} />
+                )}
                 <Link href={`/orders/${order.id}`} className="px-4 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-bold shadow-sm hover:opacity-90 transition-opacity">
                   Chi tiết
                 </Link>
@@ -84,6 +91,47 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * The seller's answer to a paid order: accept it, or refuse it with a reason.
+ *
+ * Only these two. A seller who does neither is chased by staff after 48 hours — the platform will
+ * not void the sale on their behalf, and will not post the goods either — so leaving it alone is
+ * not a third option that quietly resolves itself.
+ */
+function SellerAnswer({ orderId }: { orderId: OrderId }) {
+  const confirm = useConfirmOrder();
+  const decline = useDeclineOrder();
+  // Failures are not rendered here: the QueryClient toasts every mutation error once, from the
+  // server's own code, so a second copy beside the button would say the same thing twice.
+  const busy = confirm.isPending || decline.isPending;
+
+  return (
+    <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => confirm.mutate(orderId)}
+          className="px-4 py-1.5 rounded-lg bg-secondary-container text-on-secondary-container text-xs font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+        >
+          Xác nhận
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            // A reason is required by the contract and kept on the order, so it is asked for
+            // rather than defaulted: "Đã hủy" with no cause tells the buyer nothing.
+            const reason = window.prompt('Vì sao bạn từ chối đơn này?')?.trim();
+            if (reason) decline.mutate({ orderId, reason });
+          }}
+          className="px-4 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-bold hover:bg-surface-container transition-colors disabled:opacity-50"
+        >
+          Từ chối
+        </button>
     </div>
   );
 }

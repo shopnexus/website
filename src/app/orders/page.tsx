@@ -16,6 +16,12 @@ const formatPrice = (price: number) =>
 type Tab = "all" | OrderState;
 
 const STATUS_BADGES: Record<OrderState, { label: string; className: string }> = {
+  // Paid, but the seller has not accepted it yet — nothing has been handed to a carrier, and
+  // that is exactly what a buyer on this screen is waiting to hear about.
+  "awaiting-confirmation": {
+    label: "Chờ người bán xác nhận",
+    className: "bg-tertiary-container text-on-tertiary-container",
+  },
   open: { label: "Đang xử lý", className: "bg-primary/10 text-primary border border-primary/20" },
   completed: { label: "Giao thành công", className: "bg-secondary-container text-on-secondary-container" },
   cancelled: { label: "Đã hủy", className: "bg-error-container text-on-error-container" },

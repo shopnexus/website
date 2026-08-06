@@ -2,7 +2,13 @@
 
 import { useMemo } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { postDrafts, postDraftsByIdCheckout, postShippingQuotes } from "@/api/generated/sdk.gen"
+import {
+	postDrafts,
+	postDraftsByIdCheckout,
+	postOrdersByIdConfirmation,
+	postOrdersByIdDecline,
+	postShippingQuotes,
+} from "@/api/generated/sdk.gen"
 import {
 	getDraftsByIdOptions,
 	getOrdersByIdOptions,
@@ -12,6 +18,7 @@ import type {
 	CheckoutRequest,
 	CreateDraftRequest,
 	DraftOrderId,
+	OrderId,
 	Listing,
 	ListingId,
 	Order,
@@ -144,6 +151,46 @@ export function useShippingQuotes(body: ShippingQuotesRequest, enabled = true) {
  * empties the matching cart rows and moves stock, so the cached view of each of those is
  * wrong the moment it returns.
  */
+/**
+ * The seller accepting a paid sale. Nothing reaches the carrier before this, so it is the one
+ * action that moves an order out of `awaiting-confirmation` — and it is not re-runnable, because
+ * a second confirmation would book a second parcel for one sale.
+ */
+export function useConfirmOrder() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async (orderId: OrderId) => {
+			const { data } = await postOrdersByIdConfirmation({
+				path: { id: orderId },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order),
+	})
+}
+
+/**
+ * The seller refusing one. The buyer is refunded in full, delivery included, because the parcel
+ * never left — so the reason is required, and it is kept on the order rather than dropped.
+ * Listings are invalidated with it: the refusal hands the reserved stock back.
+ */
+export function useDeclineOrder() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async ({ orderId, reason }: { orderId: OrderId; reason: string }) => {
+			const { data } = await postOrdersByIdDecline({
+				path: { id: orderId },
+				body: { reason },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () =>
+			invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order, OPERATIONS.listings),
+	})
+}
+
 export function useCheckout() {
 	const queryClient = useQueryClient()
 	return useMutation({

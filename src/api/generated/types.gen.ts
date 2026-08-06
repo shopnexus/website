@@ -534,6 +534,14 @@ export type CursorMeta = {
 };
 
 /**
+ * A reason is mandatory and it is kept on the order: reputation reads it, and a buyer whose sale was refused is owed the why.
+ *
+ */
+export type DeclineOrderRequest = {
+    reason: string;
+};
+
+/**
  * Enough to find and drop a message from a rendered thread. Not the whole
  * Message: a deleted row's body is gone, and sending an emptied entity would
  * read as an edit.
@@ -1270,8 +1278,23 @@ export type Order = {
      * Set when the payout is claimed
      */
     completed_at?: string | null;
+    /**
+     * `created_at` + 48h, computed rather than stored. Staff are asked to chase the seller past this point; the sale is not voided, because neither the money nor the goods are the platform's to dispose of. Null once the seller has accepted.
+     *
+     */
+    confirmation_deadline_at?: string | null;
+    /**
+     * When the seller accepted the sale. Null means the parcel has not been booked and will not be — a buyer reading this knows what they are waiting on.
+     *
+     */
+    confirmed_at?: string | null;
     created_at: string;
     currency: CurrencyCode;
+    /**
+     * Why the seller refused, set only on an order they refused outright. A refusal is a cancellation that says who ended the sale, where `cancelled_at` alone says only that it did not happen.
+     *
+     */
+    decline_reason?: string | null;
     /**
      * The checkout this came from. Exactly one of `draft_id` and `offer_id` is set: a fixed-price sale is checked out from a draft, a negotiated one from the offer both sides accepted.
      *
@@ -1428,10 +1451,10 @@ export type OrderRef = {
 };
 
 /**
- * Derived from the two outcome timestamps: `open` means neither is set, which is also the predicate of the partial indexes behind this filter.
+ * Derived from the timestamps rather than stored. `awaiting-confirmation` is a paid order the seller has not accepted: nothing has been handed to a carrier, and it is where every sale starts. `open` is accepted and in flight. The last two are the outcomes, and they are the predicate of the partial indexes behind this filter.
  *
  */
-export type OrderState = 'open' | 'completed' | 'cancelled';
+export type OrderState = 'awaiting-confirmation' | 'open' | 'completed' | 'cancelled';
 
 export type OrderSummary = {
     cancelled: number;
@@ -1641,14 +1664,13 @@ export type Refund = {
     order_id: OrderId;
     reason: string;
     /**
-     * The seller's grounds for refusing. Null in `awaiting-buyer-action` when the seller never answered at all, which is how the two paths into that state are told apart.
-     *
-     */
-    rejection_reason?: string | null;
-    /**
      * When the return reached the seller and the inspection window opened.
      */
     returned_at?: string | null;
+    /**
+     * When the seller answered — by granting the refund, or by handing it to staff. There is no rejection reason beside it: they cannot refuse one.
+     *
+     */
     seller_decided_at?: string | null;
     status: RefundStatus;
 };
@@ -1663,12 +1685,12 @@ export type RefundPage = {
 /**
  * Every live value names the party whose move the refund is waiting on, and each of those carries a `deadline_at` that the party can miss:
  *
- * `awaiting-seller-review` — the seller accepts or rejects. Missing it hands the case to the buyer. `awaiting-buyer-action` — the buyer escalates to staff or lets the refund lapse; `rejection_reason` says whether the seller refused or just went quiet. `disputed` — staff are looking at it. `returning` — the goods are on their way back; only a granted refund ever reaches here. `returned` — the seller inspects and may escalate until the window closes.
+ * `awaiting-seller-review` — the seller grants it or hands it to staff; they cannot refuse it. Missing the window hands it to staff too. `disputed` — staff are looking at it. `returning` — the goods are on their way back; only a granted refund ever reaches here. `returned` — the seller inspects what arrived and may escalate until the window closes, which is where a broken or substituted return is caught.
  *
  * Then three terminals: `accepted` is money back to the buyer and the order closed with it, `rejected` is no refund and the payout stands, `cancelled` is the buyer withdrawing before the seller decided. Only the last two give the escrow up — `accepted` keeps its claim, because that money has already gone to the buyer.
  *
  */
-export type RefundStatus = 'awaiting-seller-review' | 'awaiting-buyer-action' | 'disputed' | 'returning' | 'returned' | 'accepted' | 'rejected' | 'cancelled';
+export type RefundStatus = 'awaiting-seller-review' | 'disputed' | 'returning' | 'returned' | 'accepted' | 'rejected' | 'cancelled';
 
 /**
  * A decision, so there is no "still deciding" choice — which is why the verdict is a boolean rather than a status enum.
@@ -1708,14 +1730,6 @@ export type RegisterRequest = {
     phone?: string;
     timezone: string;
     username?: string;
-};
-
-/**
- * A reason is mandatory: it is what the buyer decides whether to escalate on. Counter-evidence is not required here, because a rejection is not yet a case — the seller supplies it if the buyer escalates.
- *
- */
-export type RejectRefundRequest = {
-    reason: string;
 };
 
 /**
@@ -7193,6 +7207,92 @@ export type PostOrdersByIdCancellationResponses = {
 
 export type PostOrdersByIdCancellationResponse = PostOrdersByIdCancellationResponses[keyof PostOrdersByIdCancellationResponses];
 
+export type PostOrdersByIdConfirmationData = {
+    body?: never;
+    path: {
+        id: OrderId;
+    };
+    query?: never;
+    url: '/orders/{id}/confirmation';
+};
+
+export type PostOrdersByIdConfirmationErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Caller is not the seller of this order
+     */
+    403: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+    /**
+     * Order is already accepted, or has reached an outcome
+     */
+    409: Error;
+};
+
+export type PostOrdersByIdConfirmationError = PostOrdersByIdConfirmationErrors[keyof PostOrdersByIdConfirmationErrors];
+
+export type PostOrdersByIdConfirmationResponses = {
+    /**
+     * Accepted; the shipment is booked with the carrier
+     */
+    200: {
+        data: Order;
+    };
+};
+
+export type PostOrdersByIdConfirmationResponse = PostOrdersByIdConfirmationResponses[keyof PostOrdersByIdConfirmationResponses];
+
+export type PostOrdersByIdDeclineData = {
+    body: DeclineOrderRequest;
+    path: {
+        id: OrderId;
+    };
+    query?: never;
+    url: '/orders/{id}/decline';
+};
+
+export type PostOrdersByIdDeclineErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Caller is not the seller of this order
+     */
+    403: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+    /**
+     * Order is already accepted, or has reached an outcome
+     */
+    409: Error;
+};
+
+export type PostOrdersByIdDeclineError = PostOrdersByIdDeclineErrors[keyof PostOrdersByIdDeclineErrors];
+
+export type PostOrdersByIdDeclineResponses = {
+    /**
+     * Refused; the order is cancelled and the buyer refunded
+     */
+    200: {
+        data: Order;
+    };
+};
+
+export type PostOrdersByIdDeclineResponse = PostOrdersByIdDeclineResponses[keyof PostOrdersByIdDeclineResponses];
+
 export type PostOrdersByIdReceiptData = {
     body: ConfirmReceiptRequest;
     path: {
@@ -8072,51 +8172,6 @@ export type PostRefundsByIdAttachmentsResponses = {
 };
 
 export type PostRefundsByIdAttachmentsResponse = PostRefundsByIdAttachmentsResponses[keyof PostRefundsByIdAttachmentsResponses];
-
-export type PostRefundsByIdRejectionData = {
-    body: RejectRefundRequest;
-    path: {
-        id: RefundId;
-    };
-    query?: never;
-    url: '/refunds/{id}/rejection';
-};
-
-export type PostRefundsByIdRejectionErrors = {
-    /**
-     * Validation or malformed request
-     */
-    400: Error;
-    /**
-     * Missing or invalid credentials
-     */
-    401: Error;
-    /**
-     * Caller is not the seller of this order
-     */
-    403: Error;
-    /**
-     * Resource not found
-     */
-    404: Error;
-    /**
-     * Refund is not awaiting seller review
-     */
-    409: Error;
-};
-
-export type PostRefundsByIdRejectionError = PostRefundsByIdRejectionErrors[keyof PostRefundsByIdRejectionErrors];
-
-export type PostRefundsByIdRejectionResponses = {
-    /**
-     * Rejected; the buyer may now escalate
-     */
-    200: {
-        data: Refund;
-    };
-};
-
-export type PostRefundsByIdRejectionResponse = PostRefundsByIdRejectionResponses[keyof PostRefundsByIdRejectionResponses];
 
 export type PostRefundsByIdReturnTransportCheckpointsData = {
     body: TransportCheckpointRequest;

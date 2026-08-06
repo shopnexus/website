@@ -55,6 +55,7 @@ export const PRICE_MODE_VI: Record<PriceMode, string> = {
 // ── Orders ───────────────────────────────────────────────────────────────────
 
 export const ORDER_STATE_VI: Record<OrderState, string> = {
+  "awaiting-confirmation": "Chờ người bán xác nhận",
   open: "Đang xử lý",
   completed: "Hoàn thành",
   cancelled: "Đã hủy",
@@ -204,7 +205,6 @@ export const TICKET_REASON_VI: Record<TicketReason, string> = {
 
 export const REFUND_STATUS_VI: Record<RefundStatus, string> = {
   "awaiting-seller-review": "Chờ người bán xem xét",
-  "awaiting-buyer-action": "Chờ người mua phản hồi",
   disputed: "Đang tranh chấp",
   returning: "Đang hoàn hàng",
   returned: "Đã hoàn hàng",

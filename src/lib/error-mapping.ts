@@ -142,7 +142,11 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	refund_not_due: "Chưa đến lúc thực hiện bước này của yêu cầu hoàn tiền.",
 	not_awaiting_seller: "Yêu cầu hoàn tiền không còn chờ người bán phản hồi.",
 	not_awaiting_buyer: "Yêu cầu hoàn tiền không còn chờ người mua phản hồi.",
-	rejection_needs_reason: "Cần nêu lý do khi từ chối.",
+	// A seller cannot refuse a refund any more, so `rejection_needs_reason` is gone. These are the
+	// codes the seller-confirmation step added.
+	order_not_confirmed: "Người bán chưa xác nhận đơn này.",
+	order_already_confirmed: "Đơn này đã được xác nhận.",
+	decline_needs_reason: "Cần nêu lý do khi từ chối đơn.",
 
 	// ── Theo dõi và nhắn tin ───────────────────────────────────────────────────
 	self_follow: "Không thể tự theo dõi chính mình.",
