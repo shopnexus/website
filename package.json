@@ -20,6 +20,7 @@
     "react-hot-toast": "^2.6.0",
     "zustand": "^5.0.14"
   },
+  "//dependencyCaps": "eslint stays on 9 and typescript on 5 because of the ecosystem, not by choice. eslint 10 breaks eslint-plugin-react (pulled in by eslint-config-next): it calls a context API v10 removed, so a lint run dies before reporting anything. typescript 7 is refused outright by typescript-eslint — only 8.66.1-alpha supports it — which takes the lint step with it. Retry both when eslint-config-next ships an eslint-10 plugin set and typescript-eslint 9 is stable.",
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.99.0",
     "@playwright/test": "^1.62.1",
@@ -27,7 +28,6 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "_comment_caps": "Two majors are held back by the ecosystem, not by choice. eslint 10 breaks eslint-plugin-react (via eslint-config-next): it calls a context API v10 removed, so every lint run dies before reporting anything. typescript 7 is refused outright by typescript-eslint (only 8.66.1-alpha supports it), which takes the lint step with it. Retry both when eslint-config-next ships an eslint-10 plugin set and typescript-eslint 9 is stable.",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4.3.3",
