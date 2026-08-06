@@ -41,7 +41,7 @@ export type AccountStatus = 'active' | 'suspended';
  * The compact form used in follower and following lists.
  */
 export type AccountSummary = {
-    avatar?: Resource | null;
+    avatar: Resource | null;
     id: AccountId;
     name: string;
 };
@@ -66,20 +66,20 @@ export type AddCartItemRequest = {
  */
 export type AdminAccount = {
     created_at: string;
-    email?: string | null;
+    email: string | null;
     email_verified: boolean;
     id: AccountId;
     identity_verified: boolean;
     name: string;
-    phone?: string | null;
+    phone: string | null;
     role: AccountRole;
     status: AccountStatus;
     /**
      * Null while suspended means the suspension is permanent.
      */
-    suspended_until?: string | null;
-    suspension_reason?: string | null;
-    username?: string | null;
+    suspended_until: string | null;
+    suspension_reason: string | null;
+    username: string | null;
 };
 
 export type AdminAccountPage = {
@@ -102,19 +102,19 @@ export type AdminTicket = {
     /**
      * The moderator working it. Staff-only, and null until it is claimed.
      */
-    assignee?: AccountSummary | null;
+    assignee: AccountSummary | null;
     /**
      * How many other unresolved tickets name the same target. A pattern is what a decision rests on rather than a single complaint.
      *
      */
     open_tickets_against_target: number;
     requester: AccountSummary;
-    resolved_by?: AccountSummary | null;
+    resolved_by: AccountSummary | null;
     /**
-     * What the ticket is about, shaped by `ref_type`. Fetched from the module that owns it, and absent once that module no longer has it — a listing already taken down.
+     * What the ticket is about, shaped by `ref_type`. Fetched from the module that owns it, and empty once that module no longer has it — a listing already taken down — as well as on a ticket about nothing in particular.
      *
      */
-    target?: {
+    target: {
         [key: string]: unknown;
     };
     ticket: Ticket;
@@ -190,8 +190,8 @@ export type Category = {
     /**
      * Null for a root category.
      */
-    parent_id?: CategoryId | null;
-    score?: SimilarityScore;
+    parent_id: CategoryId | null;
+    score: SimilarityScore | null;
 };
 
 export type CategoryId = string;
@@ -292,7 +292,7 @@ export type Contact = {
     /**
      * Unit or floor or notes.
      */
-    address_detail?: string | null;
+    address_detail: string | null;
     address_type: ContactAddressType;
     country: string;
     created_at: string;
@@ -300,25 +300,25 @@ export type Contact = {
      * Null where the country has no district tier. Vietnam dropped it in 2025 and now goes province to ward.
      *
      */
-    district_code?: string | null;
-    district_name?: string | null;
+    district_code: string | null;
+    district_name: string | null;
     full_name: string;
     id: ContactId;
     is_default_delivery: boolean;
     is_default_pickup: boolean;
-    latitude?: number | null;
-    longitude?: number | null;
+    latitude: number | null;
+    longitude: number | null;
     /**
      * E.164.
      */
     phone: string;
     phone_verified: boolean;
-    postal_code?: string | null;
+    postal_code: string | null;
     /**
      * Per-carrier territory ids. Carriers number territories their own way and some still require a district.
      *
      */
-    provider_codes?: {
+    provider_codes: {
         [key: string]: unknown;
     };
     province_code: string;
@@ -345,10 +345,10 @@ export type Conversation = {
      * How far the other side has read. This is the read receipt: a message the caller sent is seen when this is at or past its `created_at`, which is why no message carries a delivery status of its own.
      *
      */
-    counterparty_read_at?: string | null;
+    counterparty_read_at: string | null;
     created_at: string;
     id: ConversationId;
-    last_message?: Message | null;
+    last_message: Message | null;
     /**
      * Starts at the creation time so an empty thread still sorts predictably in the inbox.
      *
@@ -357,12 +357,12 @@ export type Conversation = {
     /**
      * The caller's own read mark. Null while they have read nothing.
      */
-    read_at?: string | null;
+    read_at: string | null;
     /**
      * Set when this thread is a support ticket's, null on an ordinary one. A ticket is read in the support screen rather than the inbox, so a client tells them apart from the row.
      *
      */
-    ticket_id?: TicketId | null;
+    ticket_id: TicketId | null;
     /**
      * The counterparty's messages after the caller's read mark.
      */
@@ -588,7 +588,7 @@ export type DraftOrder = {
      * Set when the buyer closed it, the expiry did, or a checkout spent it — a session is claimed as it is checked out, so exactly one checkout can succeed.
      *
      */
-    cancelled_at?: string | null;
+    cancelled_at: string | null;
     created_at: string;
     currency: CurrencyCode;
     id: DraftOrderId;
@@ -612,7 +612,7 @@ export type DraftOrderPage = {
  *
  */
 export type DraftVariantSnapshot = {
-    attributes?: {
+    attributes: {
         [key: string]: unknown;
     };
     /**
@@ -681,7 +681,7 @@ export type Feedback = {
      * Null while the rating is still blind. Only published feedback is visible to anyone but its author and counted towards reputation.
      *
      */
-    published_at?: string | null;
+    published_at: string | null;
     ratee_id: AccountId;
     rater: AccountSummary;
     rating: number;
@@ -707,15 +707,15 @@ export type IdentityDocument = {
      * When the document itself runs out. A payout gate reads this as well as the status.
      *
      */
-    expires_at?: string | null;
+    expires_at: string | null;
     id: IdentityDocumentId;
     /**
      * KYC vendor, kebab-case.
      */
     provider: string;
-    rejection_reason?: string | null;
+    rejection_reason: string | null;
     status: IdentityStatus;
-    verified_at?: string | null;
+    verified_at: string | null;
 };
 
 export type IdentityDocumentId = string;
@@ -750,11 +750,11 @@ export type IdentityVerdictRequest = {
 
 export type IdentityVerificationTicket = {
     document: IdentityDocument;
-    vendor_session_expires_at?: string | null;
+    vendor_session_expires_at: string | null;
     /**
      * Where the caller finishes the check with the vendor.
      */
-    vendor_session_url?: string | null;
+    vendor_session_url: string | null;
 };
 
 /**
@@ -763,14 +763,14 @@ export type IdentityVerificationTicket = {
 export type Listing = {
     category_id: CategoryId;
     condition: ListingCondition;
-    cover?: Resource | null;
+    cover: Resource | null;
     created_at: string;
     currency: CurrencyCode;
     /**
      * Set on a listing the seller removed. Only an `ids` lookup returns one, so that an order or a cart referencing it can still be rendered.
      *
      */
-    deleted_at?: string | null;
+    deleted_at: string | null;
     /**
      * Whether the caller has this on their wishlist. False for an anonymous request. A plain join, because the wishlist is a catalog table — the client never has to fetch its own saves to know which hearts to fill in.
      *
@@ -781,7 +781,7 @@ export type Listing = {
      * Where the goods are. Null on a listing that was never published — the address is taken when the seller publishes, because that is when it becomes something a buyer can find.
      *
      */
-    location?: ListingLocation | null;
+    location: ListingLocation | null;
     name: string;
     /**
      * The featured variant's price, or the cheapest one when a price sort is in force. Not stored on the listing.
@@ -799,7 +799,7 @@ export type Listing = {
      *
      */
     review_count: number;
-    score?: SimilarityScore;
+    score: SimilarityScore | null;
     seller: AccountSummary;
     /**
      * URL-friendly, globally unique and fixed at creation.
@@ -815,12 +815,12 @@ export type Listing = {
      * The listing's own tags, on the card so chips render without a request per row. Empty when it has none.
      *
      */
-    tags?: Array<TagSlug>;
+    tags: Array<TagSlug>;
     /**
      * When staff removed this listing — which is the only thing that tells a takedown apart from the seller hiding their own, since both read `hidden`. Null otherwise. The reason is on the detail read, because it is a sentence rather than a badge.
      *
      */
-    taken_down_at?: string | null;
+    taken_down_at: string | null;
 };
 
 /**
@@ -836,7 +836,7 @@ export type ListingDetail = {
     /**
      * Set on a listing the seller removed.
      */
-    deleted_at?: string | null;
+    deleted_at: string | null;
     description: string;
     /**
      * How many accounts saved it — social proof on the product page. Only here and not on the card: it is a count per listing, cheap for one row and N counts for a page of them.
@@ -847,7 +847,7 @@ export type ListingDetail = {
      * Whether the caller has this saved. False for an anonymous request.
      */
     favorited: boolean;
-    featured_variant_id?: VariantId | null;
+    featured_variant_id: VariantId | null;
     id: ListingId;
     /**
      * Ordered. The first is the cover.
@@ -857,13 +857,13 @@ export type ListingDetail = {
      * Where the goods are. Null on a listing that was never published — the address is taken when the seller publishes, because that is when it becomes something a buyer can find.
      *
      */
-    location?: ListingLocation | null;
+    location: ListingLocation | null;
     name: string;
     /**
      * An edit waiting on moderation, null when there is none. Visible to the owner and to staff only; buyers see the published version until it is approved.
      *
      */
-    pending_edit?: PendingEdit | null;
+    pending_edit: PendingEdit | null;
     price_mode: PriceMode;
     rating: number;
     /**
@@ -888,12 +888,12 @@ export type ListingDetail = {
      * What the moderator chose to tell the seller, and null when they chose not to (`notify_seller: false` on the takedown). The full reason is in the audit trail either way. Publishing again clears both fields, so they always describe why the listing is down *now* rather than why it once was.
      *
      */
-    takedown_reason?: string | null;
+    takedown_reason: string | null;
     /**
      * When staff removed the listing. Null when it is live, and null when the seller hid it themselves — the two used to be indistinguishable, which left a seller unable to tell that their listing had been removed at all.
      *
      */
-    taken_down_at?: string | null;
+    taken_down_at: string | null;
     variants: Array<Variant>;
 };
 
@@ -908,7 +908,7 @@ export type ListingLocation = {
      * How far the goods are from where the buyer said they are. Absent unless the browse sent a position, and absent for an address that was never geocoded.
      *
      */
-    distance_km?: number;
+    distance_km: number | null;
     /**
      * Null where the country has no district tier. Code and name travel together.
      */
@@ -959,7 +959,7 @@ export type ListingSuggestion = {
     /**
      * Attributes it could read off the photos, as plain strings.
      */
-    specifications?: {
+    specifications: {
         [key: string]: unknown;
     };
     /**
@@ -967,10 +967,10 @@ export type ListingSuggestion = {
      */
     tags: Array<TagSlug>;
     /**
-     * What the voice note was heard as, echoed so the seller can see why a field is wrong rather than guess. Absent when they sent no recording.
+     * What the voice note was heard as, echoed so the seller can see why a field is wrong rather than guess. Empty when they sent no recording.
      *
      */
-    transcript?: string;
+    transcript: string;
     /**
      * Estimated parcel weight, which is what a shipping quote needs.
      */
@@ -1010,7 +1010,7 @@ export type MarkNotificationsReadRequest = {
  */
 export type Me = {
     created_at: string;
-    email?: string | null;
+    email: string | null;
     email_verified: boolean;
     /**
      * False on a provider-only account. Unlinking the last provider is refused when this is false.
@@ -1021,11 +1021,11 @@ export type Me = {
      * Whether a live verified identity document exists. The payout gate reads this.
      */
     identity_verified: boolean;
-    phone?: string | null;
+    phone: string | null;
     profile: Profile;
     role: AccountRole;
     status: AccountStatus;
-    username?: string | null;
+    username: string | null;
 };
 
 export type Message = {
@@ -1038,24 +1038,25 @@ export type Message = {
      */
     body: string;
     /**
+     * Empty on an ordinary message, so a client reads "no card" as an empty object rather than a missing key.
      * What a system message renders, and for a price negotiation that is `{"offer_id": "ofr_…"}` and nothing else — the terms are read from the offer, so a counter-offer cannot leave an old price on screen. Written only by the backend and rejected on a `user` message, otherwise anyone could send a card that looks like an offer the seller accepted.
      *
      */
-    card?: {
+    card: {
         [key: string]: unknown;
-    } | null;
+    };
     conversation_id: ConversationId;
     created_at: string;
     /**
      * Set on a redacted message. The row stays so a thread has no unexplained gaps.
      */
-    deleted_at?: string | null;
-    edited_at?: string | null;
+    deleted_at: string | null;
+    edited_at: string | null;
     /**
      * True on a reply the support desk wrote, in the requester's own view of their ticket thread. Support answers as the platform, so the requester is told that much and no more; staff reading the same thread see the real sender and never this flag, because a colleague's name is what makes a thread reviewable.
      *
      */
-    from_support?: boolean;
+    from_support: boolean;
     id: MessageId;
     /**
      * What the sender pointed at — a listing, a variant, an order. Client-supplied and validated against the caller's own access to each id, so it can carry a reference but never assert anything about it.
@@ -1068,7 +1069,7 @@ export type Message = {
      * Null on a system message, and null on a support reply seen by the requester — see `from_support`, which is how the two are told apart.
      *
      */
-    sender_id?: AccountId | null;
+    sender_id: AccountId | null;
     type: MessageType;
 };
 
@@ -1110,7 +1111,7 @@ export type Notification = {
     payload: {
         [key: string]: unknown;
     };
-    read_at?: string | null;
+    read_at: string | null;
     title: string;
 };
 
@@ -1178,7 +1179,7 @@ export type Offer = {
     /**
      * Shown on the offer card beside the proposed price
      */
-    reason?: string;
+    reason: string;
     seller_id: AccountId;
     status: OfferStatus;
     /**
@@ -1238,7 +1239,7 @@ export type Option = {
     /**
      * Staff only. A row switched off is not offered, but stays resolvable for the records naming it.
      */
-    is_enabled?: boolean;
+    is_enabled: boolean | null;
     /**
      * What to show the chooser.
      */
@@ -1246,11 +1247,11 @@ export type Option = {
     /**
      * Staff only. Display order, highest first.
      */
-    priority?: number;
+    priority: number | null;
     /**
      * Staff only. The implementation serving this row — what an admin changes to move it to another vendor.
      */
-    provider?: string;
+    provider: string;
 };
 
 /**
@@ -1267,55 +1268,55 @@ export type OptionList = {
     /**
      * Staff only. What a row's `provider` may be set to in this deployment, so a switch is a choice from a list rather than a guess.
      */
-    providers?: Array<string>;
+    providers: Array<string>;
 };
 
 export type Order = {
     address: OrderAddressSnapshot;
     buyer: AccountSummary;
-    cancelled_at?: string | null;
+    cancelled_at: string | null;
     /**
      * Set when the payout is claimed
      */
-    completed_at?: string | null;
+    completed_at: string | null;
     /**
      * `created_at` + 48h, computed rather than stored. Staff are asked to chase the seller past this point; the sale is not voided, because neither the money nor the goods are the platform's to dispose of. Null once the seller has accepted.
      *
      */
-    confirmation_deadline_at?: string | null;
+    confirmation_deadline_at: string | null;
     /**
      * When the seller accepted the sale. Null means the parcel has not been booked and will not be — a buyer reading this knows what they are waiting on.
      *
      */
-    confirmed_at?: string | null;
+    confirmed_at: string | null;
     created_at: string;
     currency: CurrencyCode;
     /**
      * Why the seller refused, set only on an order they refused outright. A refusal is a cancellation that says who ended the sale, where `cancelled_at` alone says only that it did not happen.
      *
      */
-    decline_reason?: string | null;
+    decline_reason: string | null;
     /**
      * The checkout this came from. Exactly one of `draft_id` and `offer_id` is set: a fixed-price sale is checked out from a draft, a negotiated one from the offer both sides accepted.
      *
      */
-    draft_id?: DraftOrderId | null;
+    draft_id: DraftOrderId | null;
     id: OrderId;
-    items?: Array<OrderItem>;
+    items: Array<OrderItem>;
     /**
      * The accepted negotiation this came from. Null on a fixed-price sale.
      */
-    offer_id?: OfferId | null;
+    offer_id: OfferId | null;
     /**
      * `received_at` + 72h, computed rather than stored. The seller is paid out at this point unless a refund still has a claim on the escrow.
      *
      */
-    payout_deadline_at?: string | null;
+    payout_deadline_at: string | null;
     /**
      * When the escrow reached the seller. Null on a completed order means the release has not landed yet — the platform owes the seller and knows it, and a retry pass keeps trying until it does.
      *
      */
-    payout_released_at?: string | null;
+    payout_released_at: string | null;
     pickup_address: OrderAddressSnapshot;
     /**
      * Unboxing evidence, captured with the receipt confirmation and never added to afterwards — a refund is judged on what the buyer showed at the moment of unboxing.
@@ -1325,7 +1326,7 @@ export type Order = {
     /**
      * When the buyer confirmed receipt. Null means the payout clock has not started.
      */
-    received_at?: string | null;
+    received_at: string | null;
     seller: AccountSummary;
     state: OrderState;
     /**
@@ -1337,7 +1338,7 @@ export type Order = {
      * The shipment, carried in full rather than as an id: it has no read of its own outside the order it belongs to.
      *
      */
-    transport?: Transport;
+    transport: Transport | null;
 };
 
 /**
@@ -1348,7 +1349,7 @@ export type OrderAddressSnapshot = {
     /**
      * The street line and anything below it
      */
-    address_detail?: string | null;
+    address_detail: string | null;
     /**
      * ISO 3166-1 alpha-2
      */
@@ -1356,14 +1357,14 @@ export type OrderAddressSnapshot = {
     /**
      * Null where the country has no district tier
      */
-    district_code?: string | null;
+    district_code: string | null;
     full_name: string;
     /**
      * E.164
      */
     phone: string;
-    province_code?: string;
-    ward_code?: string;
+    province_code: string;
+    ward_code: string;
 };
 
 /**
@@ -1371,16 +1372,16 @@ export type OrderAddressSnapshot = {
  *
  */
 export type OrderFeedback = {
-    mine?: Feedback | null;
+    mine: Feedback | null;
     /**
      * When the blind window closes and whatever has been submitted becomes visible, whether or not both sides rated. Null once both are published. Exposed for the same reason the order module exposes its deadlines: a client that cannot count down has to guess.
      *
      */
-    reveal_at?: string | null;
+    reveal_at: string | null;
     /**
      * Present only once published.
      */
-    theirs?: Feedback | null;
+    theirs: Feedback | null;
     /**
      * Whether the counterparty has rated at all. Shown while their rating is still blind so the caller knows a reveal is coming.
      *
@@ -1395,7 +1396,7 @@ export type OrderId = string;
  *
  */
 export type OrderItem = {
-    cancelled_at?: string | null;
+    cancelled_at: string | null;
     created_at: string;
     currency: CurrencyCode;
     id: OrderItemId;
@@ -1407,12 +1408,12 @@ export type OrderItem = {
     /**
      * Buyer note, per checkout
      */
-    note?: string;
+    note: string;
     /**
      * Null until the payment session completes and the webhook writes the order. Nobody confirms it — a seller can refuse a price, never a sale.
      *
      */
-    order_id?: OrderId | null;
+    order_id: OrderId | null;
     /**
      * The single session covering every line of this checkout.
      */
@@ -1531,13 +1532,13 @@ export type PaymentSession = {
     from_id?: AccountId | null;
     id: PaymentSessionId;
     kind: PaymentSessionKind;
-    note?: string;
+    note: string;
     /**
      * The total less what has already settled on a rail: what a further payment may still tender. Computed, because a stored copy would be a second fact to keep in step with every leg.
      *
      */
     outstanding: number;
-    paid_at?: string | null;
+    paid_at: string | null;
     status: PaymentSessionStatus;
     /**
      * The payee. Null means the platform itself.
@@ -1569,16 +1570,16 @@ export type PaymentSessionStatus = 'pending' | 'processing' | 'success' | 'cance
  *
  */
 export type PendingEdit = {
-    attachments?: Array<ResourceId>;
-    category_id?: CategoryId;
-    condition?: ListingCondition;
-    description?: string;
-    name?: string;
-    price_mode?: PriceMode;
-    specifications?: {
+    attachments: Array<ResourceId>;
+    category_id: CategoryId | null;
+    condition: ListingCondition | null;
+    description: string | null;
+    name: string | null;
+    price_mode: PriceMode | null;
+    specifications: {
         [key: string]: unknown;
     };
-    tags?: Array<TagSlug>;
+    tags: Array<TagSlug>;
 };
 
 /**
@@ -1592,12 +1593,12 @@ export type PendingEdit = {
 export type PriceMode = 'fixed' | 'negotiable';
 
 export type Profile = {
-    avatar?: Resource | null;
+    avatar: Resource | null;
     country: string;
     created_at: string;
-    date_of_birth?: string | null;
-    description?: string | null;
-    gender?: ProfileGender | null;
+    date_of_birth: string | null;
+    description: string | null;
+    gender: ProfileGender | null;
     locale: string;
     name: string;
     timezone: string;
@@ -1610,12 +1611,12 @@ export type ProfileGender = 'male' | 'female' | 'other';
  *
  */
 export type PublicAccount = {
-    avatar?: Resource | null;
+    avatar: Resource | null;
     /**
      * Member since.
      */
     created_at: string;
-    description?: string | null;
+    description: string | null;
     follower_count: number;
     id: AccountId;
     /**
@@ -1659,19 +1660,19 @@ export type Refund = {
      * When the party named by `status` runs out of time, and missing it is itself a move. Null while the case waits on staff or a carrier, and in the terminal states.
      *
      */
-    deadline_at?: string | null;
+    deadline_at: string | null;
     id: RefundId;
     order_id: OrderId;
     reason: string;
     /**
      * When the return reached the seller and the inspection window opened.
      */
-    returned_at?: string | null;
+    returned_at: string | null;
     /**
      * When the seller answered — by granting the refund, or by handing it to staff. There is no rejection reason beside it: they cannot refuse one.
      *
      */
-    seller_decided_at?: string | null;
+    seller_decided_at: string | null;
     status: RefundStatus;
 };
 
@@ -1771,7 +1772,7 @@ export type Resource = {
     /**
      * Content hash, read back from storage at completion.
      */
-    checksum?: string;
+    checksum: string;
     id: ResourceId;
     mime: string;
     /**
@@ -1787,11 +1788,11 @@ export type Resource = {
      */
     size: number;
     /**
-     * Short-lived URL to fetch the bytes. Absent until a module can presign one, so a consumer that needs the bytes has to treat it as "not available yet" rather than as an empty object. Not a stable address: store the id, not this.
+     * Short-lived URL to fetch the bytes. Empty until a module can presign one, so a consumer that needs the bytes has to treat an empty string as "not available yet". Not a stable address: store the id, not this.
      *
      */
-    url?: string;
-    url_expires_at?: string;
+    url: string;
+    url_expires_at: string | null;
 };
 
 export type ResourceId = string;
@@ -1814,7 +1815,7 @@ export type Review = {
      * Null until the author edits it. A review rewritten after the seller answered it should say so, and the reply thread cannot say it on its own.
      *
      */
-    updated_at?: string | null;
+    updated_at: string | null;
     votes: ReviewVoteTally;
 };
 
@@ -1847,7 +1848,7 @@ export type ReviewVoteTally = {
     /**
      * The caller's own vote. Null when they have not voted.
      */
-    my_vote?: -1 | 1;
+    my_vote: -1 | 1;
     not_helpful: number;
 };
 
@@ -2064,8 +2065,8 @@ export type SuspendAccountRequest = {
 };
 
 export type Tag = {
-    description?: string | null;
-    score?: SimilarityScore;
+    description: string | null;
+    score: SimilarityScore | null;
     slug: TagSlug;
 };
 
@@ -2116,24 +2117,24 @@ export type Ticket = {
     /**
      * Null until the ticket is resolved.
      */
-    action_taken?: TicketAction | null;
+    action_taken: TicketAction | null;
     /**
      * The thread this ticket is discussed in — where the requester's own words went and where support answers. Null only between the row being written and the thread being opened; reading the ticket repairs it.
      *
      */
-    conversation_id?: ConversationId | null;
+    conversation_id: ConversationId | null;
     created_at: string;
     id: TicketId;
     kind: TicketKind;
-    reason?: TicketReason | null;
+    reason: TicketReason | null;
     /**
      * Opaque id of what the ticket is about, kinded by `ref_type`. Null on a ticket about nothing in particular.
      *
      */
-    ref_id?: string | null;
-    ref_type?: TicketRefType | null;
-    resolution_note?: string | null;
-    resolved_at?: string | null;
+    ref_id: string | null;
+    ref_type: TicketRefType | null;
+    resolution_note: string | null;
+    resolved_at: string | null;
     status: TicketStatus;
     subject: string;
 };
@@ -2188,19 +2189,22 @@ export type Transaction = {
      */
     amount: number;
     /**
-     * Where to send the payer for this leg. Null once the rail no longer needs it, or for rails that have none.
+     * Where to send the payer for this leg. Empty once the rail no longer needs it, or for rails that have none.
      */
-    checkout_url?: string | null;
+    checkout_url: string;
     created_at: string;
     /**
      * What the rail actually debits, which split tender may make differ from the session's currency.
      */
     currency: CurrencyCode;
-    error?: string | null;
+    /**
+     * Empty unless the rail reported a failure on this leg.
+     */
+    error: string;
     /**
      * Gateway URL expiry
      */
-    expired_at?: string | null;
+    expired_at: string | null;
     id: TransactionId;
     note: string;
     /**
@@ -2210,9 +2214,9 @@ export type Transaction = {
     /**
      * The leg this one reverses. Set on reversals, null on originals.
      */
-    reverses_id?: TransactionId | null;
+    reverses_id: TransactionId | null;
     session_id: PaymentSessionId;
-    settled_at?: string | null;
+    settled_at: string | null;
     status: TransactionStatus;
 };
 
@@ -2432,7 +2436,7 @@ export type UploadSlot = {
     /**
      * Send these with the PUT verbatim, when the signature covers any.
      */
-    headers?: {
+    headers: {
         [key: string]: string;
     };
     resource_id: ResourceId;
@@ -2555,13 +2559,13 @@ export type WalletTransaction = {
     kind: WalletTransactionKind;
     note: string;
     /**
-     * Opaque id of the referenced entity, its prefix given by `ref_type`.
+     * Opaque id of the referenced entity, its prefix given by `ref_type`. Empty when `ref_type` is.
      */
-    ref_id?: string | null;
+    ref_id: string;
     /**
-     * What this movement was for. Null on an adjustment.
+     * What this movement was for. Empty on an adjustment, which references nothing.
      */
-    ref_type?: 'order' | 'payment-session';
+    ref_type: '' | 'order' | 'payment-session';
     /**
      * Position in this wallet's ledger, from 1. Identifies the row and orders it; a gap means a missing movement. Per wallet, so each currency counts from 1 again.
      *

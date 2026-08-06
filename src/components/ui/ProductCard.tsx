@@ -27,9 +27,10 @@ export interface ProductCardItem {
   seller?: { name: string; avatar?: { url?: string | null } | null };
   /**
    * Where the goods are. Null on a listing that was never published, and `distance_km` is
-   * only filled in when the browse sent a position.
+   * null unless the browse sent a position — the server always sends the key, so this
+   * mirrors the contract rather than accepting `undefined` the API never produces.
    */
-  location?: { province_name: string; distance_km?: number } | null;
+  location?: { province_name: string; distance_km?: number | null } | null;
   favorited?: boolean;
   favorite_count?: number;
 }
