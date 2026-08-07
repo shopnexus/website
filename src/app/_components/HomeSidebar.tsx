@@ -3,9 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useCategories } from "@/hooks/api/useCatalog";
-import { CATEGORY_IMAGES } from "@/constants/categoryImages";
-
-const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=300&auto=format&fit=crop";
+import { CATEGORY_IMAGES, DEFAULT_CATEGORY_IMAGE } from "@/constants/categoryImages";
 
 export default function HomeSidebar(): React.ReactElement {
   const { data: categories = [], isLoading } = useCategories();
@@ -35,7 +33,7 @@ export default function HomeSidebar(): React.ReactElement {
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               {displayCategories.map((cat) => {
-                const image = CATEGORY_IMAGES[cat.id] || DEFAULT_IMAGE;
+                const image = CATEGORY_IMAGES[cat.id] || DEFAULT_CATEGORY_IMAGE;
                 return (
                   <Link key={cat.id} href={`/search?category=${cat.id}`} className="group cursor-pointer block">
                     <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-white p-1">
