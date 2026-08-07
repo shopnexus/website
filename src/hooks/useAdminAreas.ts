@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { getAdministrativeAreasOptions } from "@/api/generated/@tanstack/react-query.gen"
 import { unwrapData } from "@/api/unwrap"
+import { useIsClient } from "@/hooks/useIsClient"
 
 /**
  * The administrative divisions an address is written in, from our own API.
@@ -18,19 +19,27 @@ import { unwrapData } from "@/api/unwrap"
 const AREA_QUERY = { staleTime: Infinity, gcTime: Infinity, meta: { silent: true } } as const
 
 export function useProvinces() {
+	const isClient = useIsClient()
+
 	return useQuery({
 		...getAdministrativeAreasOptions(),
 		select: unwrapData,
+		// Query data rendered on the server is not dehydrated into the browser's cache.
+		// Deferring this public vocabulary until after hydration keeps the initial option
+		// list identical on both sides, then fetches it once the client takes over.
+		enabled: isClient,
 		...AREA_QUERY,
 	})
 }
 
 /** A province's wards. Idle until a province is chosen, so nothing asks for "the wards of nowhere". */
 export function useWards(provinceCode: string) {
+	const isClient = useIsClient()
+
 	return useQuery({
 		...getAdministrativeAreasOptions({ query: { parent: provinceCode } }),
 		select: unwrapData,
-		enabled: Boolean(provinceCode),
+		enabled: isClient && Boolean(provinceCode),
 		...AREA_QUERY,
 	})
 }
