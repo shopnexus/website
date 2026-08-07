@@ -474,7 +474,7 @@ function CheckoutContent() {
               )}
               
               <p className="text-xs text-on-surface-variant text-center mt-4 px-4 leading-relaxed">
-                Bằng việc tiến hành Đặt hàng, bạn đồng ý với các <Link href="#" className="text-primary hover:underline">Điều khoản Dịch vụ</Link> của ShopNexus.
+                Bằng việc tiến hành Đặt hàng, bạn đồng ý với các <Link href="/terms" className="text-primary hover:underline">Điều khoản Dịch vụ</Link> của ShopNexus.
               </p>
             </div>
           </div>

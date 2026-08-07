@@ -63,6 +63,21 @@ export const OPERATIONS = {
 	// Counts and daily buckets over the caller's own orders, which every listing or order
 	// write can move.
 	ordersSummary: "getOrdersSummary",
+	// Staff configuration. The category tree, the tag dictionary and the buyer-facing
+	// option list are public reads that an admin write moves, so an admin mutation has to
+	// drop the public cache as well as the staff one — otherwise the shopper's chooser
+	// keeps offering a carrier that was switched off a minute ago.
+	adminAccounts: "getAdminAccounts",
+	categories: "getCategories",
+	tags: "getTags",
+	adminOptions: "getAdminOptions",
+	options: "getOptions",
+	// Staff moderation queues. Every verdict here also moves the requester's own view —
+	// a resolved ticket is one the reporter reads as resolved, an approved listing is one
+	// the marketplace serves — so the public operation is dropped beside the staff one.
+	adminTickets: "getAdminTickets",
+	adminTicket: "getAdminTicketsById",
+	adminListings: "getAdminListings",
 } as const
 
 export type Operation = (typeof OPERATIONS)[keyof typeof OPERATIONS]

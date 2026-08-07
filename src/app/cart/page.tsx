@@ -12,7 +12,6 @@ const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 /** A flat placeholder until checkout quotes the real thing per parcel and address. */
-const ESTIMATED_SHIPPING_FEE = 35000;
 
 export default function CartPage() {
   const { items, subtotal, isLoading, updateQuantity, removeItem } = useCart();
@@ -28,7 +27,10 @@ export default function CartPage() {
     return [...groups.values()];
   }, [items]);
 
-  const total = subtotal + (items.length > 0 ? ESTIMATED_SHIPPING_FEE : 0);
+  // No shipping here: it is quoted per address by the carrier at checkout, so any figure
+  // the cart shows is invented — and this one was being added into the total people read
+  // as what they would pay.
+  const total = subtotal;
 
   if (isLoading && items.length === 0) {
     return (
@@ -124,11 +126,6 @@ export default function CartPage() {
                     })}
                   </div>
 
-                  <div className="px-6 py-4 border-t border-outline-variant border-dashed flex items-center gap-4">
-                    <span className="material-symbols-outlined text-primary">local_offer</span>
-                    <input type="text" placeholder="Nhập mã giảm giá của Shop" className="flex-1 bg-transparent text-body-sm outline-none placeholder:text-outline-variant" />
-                    <span className="font-label-md text-primary cursor-pointer hover:underline">Lưu</span>
-                  </div>
                 </div>
               ))}
             </div>
@@ -143,17 +140,13 @@ export default function CartPage() {
                     <span className="text-on-surface font-medium">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Phí vận chuyển dự kiến</span>
-                    <span className="text-on-surface font-medium">{formatPrice(ESTIMATED_SHIPPING_FEE)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Mã giảm giá ShopNexus</span>
-                    <Link href="#" className="text-primary hover:underline">Chọn mã</Link>
+                    <span>Phí vận chuyển</span>
+                    <span className="text-on-surface-variant">Tính ở bước thanh toán</span>
                   </div>
                 </div>
                 
                 <div className="flex justify-between items-end mb-6">
-                  <span className="font-label-md text-on-surface">Tổng cộng</span>
+                  <span className="font-label-md text-on-surface">Tạm tính</span>
                   <span className="font-display-lg text-[28px] text-primary font-bold leading-none">
                     {formatPrice(total)}
                   </span>

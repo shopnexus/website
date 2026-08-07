@@ -139,6 +139,10 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	ticket_ref_unexpected: "Loại yêu cầu này không gắn với nội dung nào cụ thể.",
 	ticket_reason_mismatch: "Lý do chỉ dùng cho các yêu cầu báo cáo.",
 	ticket_decided_elsewhere: "Yêu cầu này được xử lý khi bộ phận hỗ trợ quyết định việc hoàn tiền.",
+	// The staff queue's two conflicts. Losing a claim race is normal traffic, not a fault,
+	// so it reads as information rather than as an error the moderator caused.
+	ticket_not_claimable: "Yêu cầu này đã có người khác tiếp nhận hoặc đã được xử lý xong.",
+	ticket_action_invalid: "Hành động xử lý này không hợp lệ cho yêu cầu đó.",
 
 	// ── Hoàn tiền ──────────────────────────────────────────────────────────────
 	refund_not_found: "Không tìm thấy yêu cầu hoàn tiền.",
@@ -174,6 +178,19 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	return_url_not_allowed: "Đường dẫn quay lại không được chấp nhận.",
 	finance_unreachable: "Hệ thống thanh toán đang bận. Vui lòng thử lại sau.",
 	catalog_unavailable: "Không tải được dữ liệu sản phẩm. Vui lòng thử lại.",
+
+	// ── Vận hành (chỉ hiện với kiểm duyệt viên và quản trị viên) ───────────────
+	moderator_required: "Thao tác này cần quyền kiểm duyệt viên.",
+	admin_required: "Thao tác này cần quyền quản trị viên.",
+	// The listing queue's two conflicts: another moderator got there first, or the row was
+	// never awaiting a decision to begin with.
+	not_awaiting_moderation: "Tin đăng này không còn chờ duyệt.",
+	invalid_transition: "Tin đăng này không ở trạng thái cho phép thao tác đó.",
+	category_name_taken: "Đã có danh mục trùng tên này.",
+	category_in_use: "Vẫn còn tin đăng thuộc danh mục này. Hãy chuyển chúng sang danh mục khác trước.",
+	// The server takes an advisory lock and walks the tree, so this is a real answer about
+	// the tree — not a guess a form could have made before sending.
+	category_cycle: "Không thể đặt danh mục này nằm dưới chính nó hoặc dưới một danh mục con của nó.",
 }
 
 /** Generic fallback. Never surfaces the server's English developer message. */

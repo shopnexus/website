@@ -32,20 +32,23 @@ export default function Footer() {
           </Link>
 
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-[14px] font-semibold leading-4 text-on-surface-variant">
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="/about" className="hover:text-primary transition-colors">
               Về chúng tôi
+            </Link>
+            <Link href="/help" className="hover:text-primary transition-colors">
+              Trợ giúp
             </Link>
             <Link href="/support" className="hover:text-primary transition-colors">
               Trung tâm hỗ trợ
             </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="/terms" className="hover:text-primary transition-colors">
               Điều khoản sử dụng
             </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="/privacy" className="hover:text-primary transition-colors">
               Chính sách bảo mật
             </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
-              Liên hệ
+            <Link href="/cookies" className="hover:text-primary transition-colors">
+              Cookie
             </Link>
           </div>
 
