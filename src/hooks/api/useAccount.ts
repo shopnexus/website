@@ -223,7 +223,7 @@ export function useToggleFollow() {
 
 // ── Email verification ───────────────────────────────────────────────────────
 
-import { postEmailVerificationRequests } from "@/api/generated/sdk.gen"
+import { postEmailVerificationRequests, postEmailVerifications } from "@/api/generated/sdk.gen"
 
 /**
  * Send the verification message to the address already on the account.
@@ -237,5 +237,23 @@ export function useRequestEmailVerification() {
 		mutationFn: async () => {
 			await postEmailVerificationRequests({ throwOnError: true })
 		},
+	})
+}
+
+/**
+ * Confirming the token from the emailed link.
+ *
+ * Its own route because the link has to land somewhere: the token arrives in a URL the
+ * recipient clicks, often in a browser with no session at all, so this cannot live behind
+ * the signed-in settings screen that asks for the mail. Invalidates `me` — the whole point
+ * is that `email_verified` flips.
+ */
+export function useVerifyEmail() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async (token: string) => {
+			await postEmailVerifications({ body: { token }, throwOnError: true })
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.me),
 	})
 }

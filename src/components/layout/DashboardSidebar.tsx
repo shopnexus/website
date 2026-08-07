@@ -5,25 +5,57 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 
+interface NavItem {
+  name: string;
+  path: string;
+  icon: string;
+}
+
 export default function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuthStore();
 
-  const navItems = [
-    { name: "Tổng quan", path: "/dashboard", icon: "dashboard" },
-    { name: "Đã lưu", path: "/dashboard/favorites", icon: "favorite" },
-    { name: "Hồ sơ cá nhân", path: "/dashboard/profile", icon: "person" },
-    { name: "Sổ địa chỉ", path: "/dashboard/contacts", icon: "contacts" },
-    { name: "Bảo mật", path: "/dashboard/security", icon: "shield" },
-    { name: "Xác minh danh tính", path: "/dashboard/verification", icon: "verified_user" },
-    { name: "Sản phẩm của tôi", path: "/dashboard/products", icon: "inventory_2" },
-    { name: "Đơn hàng", path: "/orders", icon: "receipt_long" },
-    { name: "Hoàn tiền", path: "/refunds", icon: "assignment_return" },
-    { name: "Ví của tôi", path: "/dashboard/wallet", icon: "account_balance_wallet" },
-    { name: "Thống kê", path: "/dashboard/analytics", icon: "bar_chart" },
-    { name: "Cài đặt bán hàng", path: "/dashboard/settings", icon: "settings" },
-    { name: "Cài đặt thông báo", path: "/dashboard/notifications", icon: "notifications" },
-    { name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" },
+  // Fourteen flat rows is a list you read rather than scan, and it had grown by accretion —
+  // "Cài đặt bán hàng" sat next to "Cài đặt thông báo" although one is a shop and the other
+  // is an inbox. Grouped by the job at hand instead, with headings rather than collapsible
+  // sections: a group you have to open is a group you have to remember the name of.
+  const groups: Array<{ label: string | null; items: NavItem[] }> = [
+    { label: null, items: [{ name: "Tổng quan", path: "/dashboard", icon: "dashboard" }] },
+    {
+      label: "Giao dịch",
+      items: [
+        { name: "Đơn hàng", path: "/orders", icon: "receipt_long" },
+        { name: "Hoàn tiền", path: "/refunds", icon: "assignment_return" },
+        { name: "Ví của tôi", path: "/dashboard/wallet", icon: "account_balance_wallet" },
+      ],
+    },
+    {
+      label: "Bán hàng",
+      items: [
+        { name: "Sản phẩm của tôi", path: "/dashboard/products", icon: "inventory_2" },
+        { name: "Thống kê", path: "/dashboard/analytics", icon: "bar_chart" },
+        { name: "Cài đặt bán hàng", path: "/dashboard/settings", icon: "storefront" },
+      ],
+    },
+    {
+      label: "Bộ sưu tập",
+      items: [
+        { name: "Đã lưu", path: "/dashboard/favorites", icon: "favorite" },
+        // The page existed with nothing linking to it.
+        { name: "Đang theo dõi", path: "/dashboard/following", icon: "group" },
+      ],
+    },
+    {
+      label: "Tài khoản",
+      items: [
+        { name: "Hồ sơ cá nhân", path: "/dashboard/profile", icon: "person" },
+        { name: "Sổ địa chỉ", path: "/dashboard/contacts", icon: "contacts" },
+        { name: "Bảo mật", path: "/dashboard/security", icon: "shield" },
+        { name: "Xác minh danh tính", path: "/dashboard/verification", icon: "verified_user" },
+        { name: "Thông báo", path: "/dashboard/notifications", icon: "notifications" },
+      ],
+    },
+    { label: null, items: [{ name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" }] },
   ];
 
   return (
@@ -47,27 +79,39 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
           </Link>
         </div>
 
-        <nav className="flex-1 px-4 flex flex-col gap-1 mt-4">
-          {navItems.map((item) => {
-            const isActive = pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={[
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-label-md",
-                  isActive
-                    ? "bg-primary-container text-on-primary-container font-bold"
-                    : "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface",
-                ].join(" ")}
-              >
-                <span className="material-symbols-outlined text-[20px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
-                  {item.icon}
-                </span>
-                {item.name}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-4 flex flex-col gap-1 mt-4 overflow-y-auto">
+          {groups.map((group, index) => (
+            <div key={group.label ?? `plain-${index}`} className="flex flex-col gap-1">
+              {group.label && (
+                <h2 className="px-4 pt-4 pb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-on-surface-variant">
+                  {group.label}
+                </h2>
+              )}
+              {group.items.map((item) => {
+                const isActive = pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    className={[
+                      "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors font-label-md",
+                      isActive
+                        ? "bg-primary-container text-on-primary-container font-bold"
+                        : "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface",
+                    ].join(" ")}
+                  >
+                    <span
+                      className="material-symbols-outlined text-[20px]"
+                      style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                    >
+                      {item.icon}
+                    </span>
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
         
         <div className="p-4 mt-auto">
