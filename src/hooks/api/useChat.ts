@@ -3,6 +3,8 @@
 import { useMemo } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
+	deleteMessagesById,
+	patchMessagesById,
 	postConversationsByIdMessages,
 	postConversationsByIdRead,
 	postConversations,
@@ -17,6 +19,7 @@ import {
 } from "@/api/generated/@tanstack/react-query.gen"
 import type {
 	ConversationId,
+	MessageId,
 	SendMessageRequest,
 	StartConversationRequest,
 	CreateUploadRequest,
@@ -100,6 +103,65 @@ export function useSendMessage(conversationId: ConversationId | undefined) {
 			Promise.all([
 				queryClient.invalidateQueries({ queryKey: [{ _id: MESSAGES }] }),
 				// The conversation list shows the last message and its timestamp.
+				queryClient.invalidateQueries({ queryKey: [{ _id: CONVERSATIONS }] }),
+			]),
+	})
+}
+
+/**
+ * A message the sender wants to change or unsend.
+ *
+ * Both routes take the message's own `created_at` as a query parameter: `chat.message` is
+ * partitioned on it, so without it the row has to be hunted through every chunk. The
+ * client always holds the message it is acting on, so it always has the value.
+ */
+export interface MessageRef {
+	id: MessageId
+	/** Passed straight back from the message being acted on. */
+	createdAt: string
+}
+
+/** Rewrite the body of your own message. The server records that it was edited. */
+export function useEditMessage() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ id, createdAt, body }: MessageRef & { body: string }) => {
+			const { data } = await patchMessagesById({
+				path: { id },
+				query: { created_at: createdAt },
+				body: { body },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		// The list shows the last message, which an edit to it rewrites.
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: [{ _id: MESSAGES }] }),
+				queryClient.invalidateQueries({ queryKey: [{ _id: CONVERSATIONS }] }),
+			]),
+	})
+}
+
+/**
+ * Unsend: the row survives with its body and attachments cleared, so a thread that is
+ * evidence in a dispute has no unexplained gaps.
+ */
+export function useDeleteMessage() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ id, createdAt }: MessageRef) => {
+			await deleteMessagesById({
+				path: { id },
+				query: { created_at: createdAt },
+				throwOnError: true,
+			})
+		},
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: [{ _id: MESSAGES }] }),
 				queryClient.invalidateQueries({ queryKey: [{ _id: CONVERSATIONS }] }),
 			]),
 	})
