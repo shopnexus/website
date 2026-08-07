@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { ApiError } from "@/api/api-error";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,11 +30,11 @@ export default function LoginPage() {
     try {
       await login({ identifier, password });
       router.push("/");
-    } catch (err: any) {
-      if (err?.code === "invalid_credentials") {
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "invalid_credentials") {
         toast.error("Thông tin đăng nhập không chính xác.");
       } else {
-        toast.error(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+        toast.error(err instanceof Error && err.message ? err.message : "Đăng nhập thất bại. Vui lòng thử lại.");
       }
     }
   };

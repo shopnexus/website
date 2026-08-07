@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /**
@@ -13,14 +13,22 @@ export function useSearch(initialProvince = "") {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [query, setQuery] = useState(searchParams.get("q") || "");
-  const [province, setProvince] = useState(searchParams.get("province") || initialProvince);
+  const urlQuery = searchParams.get("q") || "";
+  const urlProvince = searchParams.get("province") || initialProvince;
 
-  // Sync local state when the URL changes (e.g., user submits search from another bar or navigates back)
-  useEffect(() => {
-    setQuery(searchParams.get("q") || "");
-    setProvince(searchParams.get("province") || initialProvince);
-  }, [searchParams, initialProvince]);
+  const [query, setQuery] = useState(urlQuery);
+  const [province, setProvince] = useState(urlProvince);
+
+  // The URL is the truth; this state only holds what is being typed before it is
+  // submitted. So the reset happens *during* render when the URL moves under us — a
+  // search run from another box, or the back button — rather than in an effect, which
+  // committed the stale value first and re-rendered over it.
+  const [syncedTo, setSyncedTo] = useState({ urlQuery, urlProvince });
+  if (syncedTo.urlQuery !== urlQuery || syncedTo.urlProvince !== urlProvince) {
+    setSyncedTo({ urlQuery, urlProvince });
+    setQuery(urlQuery);
+    setProvince(urlProvince);
+  }
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();

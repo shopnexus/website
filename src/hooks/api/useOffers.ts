@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
 	deleteOffersById,
+	patchOffersById,
 	postOffers,
 	postOffersByIdAcceptance,
 	postOffersByIdCheckout,
@@ -16,6 +17,7 @@ import type {
 	OfferId,
 	CreateOfferRequest,
 	CheckoutOfferRequest,
+	UpdateOfferRequest,
 } from "@/api/generated/types.gen"
 import { OPERATIONS, invalidate } from "@/api/invalidate"
 import { cursorPagination, flattenPages } from "@/api/pagination"
@@ -79,6 +81,30 @@ export function useAcceptOffer() {
 	return useMutation({
 		mutationFn: async (id: OfferId) => {
 			const { data } = await postOffersByIdAcceptance({ path: { id }, throwOnError: true })
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, ...FED),
+	})
+}
+
+/**
+ * Putting different terms on the table.
+ *
+ * Only the party who does *not* hold the standing proposal may move — the two sides
+ * alternate, and `author_id` says whose turn it is. Countering flips the authorship and
+ * restarts the 12-hour window, which is why it is a revision of one negotiation rather
+ * than a second offer: one active offer per (buyer, variant) is a database constraint.
+ *
+ * The web client had no counter at all, so a seller who wanted a different price could
+ * only refuse and ask the buyer to start again — losing the thread's history and the
+ * buyer's original terms with it.
+ */
+export function useCounterOffer() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ id, body }: { id: OfferId; body: UpdateOfferRequest }) => {
+			const { data } = await patchOffersById({ path: { id }, body, throwOnError: true })
 			return data.data
 		},
 		onSuccess: () => invalidate(queryClient, ...FED),

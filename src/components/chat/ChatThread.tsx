@@ -15,6 +15,7 @@ import type { ConversationId } from "@/api/generated/types.gen";
 import OfferMessageCard from "@/components/offers/OfferMessageCard";
 import ImageViewerModal from "@/components/ui/ImageViewerModal";
 import { toast } from "react-hot-toast";
+import type { Resource } from "@/api/generated/types.gen";
 
 /**
  * One chat thread: its messages and the box you write in.
@@ -49,7 +50,7 @@ function AttachmentPreview({
   onImageClick,
   onDownload,
 }: {
-  attachment: any;
+  attachment: Resource;
   isMine: boolean;
   onImageClick: (url: string) => void;
   onDownload: (e: React.MouseEvent, url: string) => void;

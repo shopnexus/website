@@ -338,27 +338,23 @@ function InboxContent() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    size="sm"
-                    className="rounded-lg shadow-sm font-bold py-2 text-xs"
-                    onClick={() => {
-                      if (activeProduct && activeConv) {
-                        setIsOfferModalOpen(true);
-                      }
-                    }}
-                  >
-                    Đề nghị giá
-                  </Button>
-                  <button className="w-full py-2 bg-secondary-container text-on-secondary-container border border-secondary/20 rounded-lg font-bold text-xs hover:bg-secondary-container/80 transition-colors">
-                    Đánh dấu đã bán
-                  </button>
-                  <button className="w-full py-2 border border-outline/40 text-on-surface-variant rounded-lg font-bold text-xs hover:bg-surface-container transition-colors">
-                    Chặn người dùng
-                  </button>
-                </div>
+                {/* Only where there is something to negotiate over. It used to render
+                    always and silently do nothing on a thread with no listing attached —
+                    which is the same thread that says "Không có sản phẩm đính kèm" right
+                    above it. */}
+                {activeProduct && activeConv && (
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      size="sm"
+                      className="rounded-lg shadow-sm font-bold py-2 text-xs"
+                      onClick={() => setIsOfferModalOpen(true)}
+                    >
+                      Đề nghị giá
+                    </Button>
+                  </div>
+                )}
 
                 <div className="pt-5 border-t border-outline-variant/30">
                   <h3 className="font-headline text-[11px] font-bold uppercase tracking-wider text-outline mb-3">

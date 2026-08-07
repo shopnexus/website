@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "react-hot-toast";
+import { ApiError } from "@/api/api-error";
 
 interface GoogleLoginButtonProps {
   text?: string;
@@ -52,11 +53,11 @@ export default function GoogleLoginButton({
         try {
           await loginWithGoogle(response.code);
           router.push("/");
-        } catch (err: any) {
-          if (err?.code === "invalid_credentials") {
+        } catch (err) {
+          if (err instanceof ApiError && err.code === "invalid_credentials") {
             toast.error("Thông tin đăng nhập không chính xác.");
           } else {
-            toast.error(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+            toast.error(err instanceof Error && err.message ? err.message : "Đăng nhập thất bại. Vui lòng thử lại.");
           }
         }
       },

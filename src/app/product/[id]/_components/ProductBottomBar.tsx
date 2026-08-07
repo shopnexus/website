@@ -7,6 +7,7 @@ import OfferModal from "@/components/offers/OfferModal";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCart } from "@/hooks/api/useCart";
 import { useCreateDraft } from "@/hooks/api/useOrders";
+import { useAddFavorite, useRemoveFavorite } from "@/hooks/api/useCatalog";
 import { useStartConversation } from "@/hooks/api/useChat";
 import { toast } from "react-hot-toast";
 import type { ListingDetail, Variant } from "@/api/generated/types.gen";
@@ -28,6 +29,8 @@ export default function ProductBottomBar({
   const { addItem } = useCart();
   const createDraft = useCreateDraft();
   const startConversation = useStartConversation();
+  const addFavorite = useAddFavorite();
+  const removeFavorite = useRemoveFavorite();
 
   const handleOfferSuccess = () => {
     startConversation.mutate(
@@ -103,9 +106,30 @@ export default function ProductBottomBar({
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="outline" className="px-6 py-3 shrink-0 h-12 rounded-xl text-on-surface">
-            <span className="material-symbols-outlined mr-2">favorite</span>
-            Lưu
+          {/* The product card in every listing grid has toggled favourites all along; the
+              detail page — where someone actually decides to keep something — had the
+              button drawn and wired to nothing. */}
+          <Button
+            variant="outline"
+            className="px-6 py-3 shrink-0 h-12 rounded-xl text-on-surface"
+            disabled={addFavorite.isPending || removeFavorite.isPending}
+            aria-pressed={product.favorited}
+            onClick={() => {
+              if (requireSignIn("Vui lòng đăng nhập để lưu sản phẩm")) return;
+              const toggle = product.favorited ? removeFavorite : addFavorite;
+              toggle.mutate(product.id, {
+                onSuccess: () =>
+                  toast.success(product.favorited ? "Đã bỏ lưu" : "Đã lưu sản phẩm"),
+              });
+            }}
+          >
+            <span
+              className="material-symbols-outlined mr-2"
+              style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+            >
+              favorite
+            </span>
+            {product.favorited ? "Đã lưu" : "Lưu"}
           </Button>
           <Button
             variant="secondary"
