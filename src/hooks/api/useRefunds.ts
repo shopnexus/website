@@ -13,6 +13,7 @@ import {
 	getRefundsInfiniteOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import type {
+	OrderId,
 	RefundId,
 	RefundStatus,
 	ResourceId,
@@ -39,6 +40,27 @@ export function useRefunds(status?: RefundStatus, limit = 20) {
 	const refunds = useMemo(() => flattenPages(query.data), [query.data])
 
 	return { ...query, refunds }
+}
+
+/**
+ * The live refund on one order, if there is one.
+ *
+ * `Order` carries no refund field, so this is the only way a screen about an order can
+ * know a case is open on it — and two of them need to: the notice that links to the case,
+ * and the action matrix, which otherwise offers "yêu cầu hoàn tiền" on an order that
+ * already has one and answers `refund_already_open`.
+ *
+ * Reads the caller's own refund list, which both screens share through one cached query.
+ */
+export function useOpenRefundFor(orderId: OrderId | undefined) {
+	const { refunds, isLoading } = useRefunds()
+
+	const refund = useMemo(
+		() => (orderId ? refunds.find((row) => row.order_id === orderId) : undefined),
+		[refunds, orderId],
+	)
+
+	return { refund, isLoading }
 }
 
 export function useRefund(id: string | undefined) {

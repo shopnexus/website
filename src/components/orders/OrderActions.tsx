@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { toast } from "react-hot-toast"
 import Button from "@/components/ui/Button"
 import ConfirmReceiptDialog from "./ConfirmReceiptDialog"
@@ -8,6 +9,7 @@ import DeclineDialog from "./DeclineDialog"
 import RateOrderDialog from "./RateOrderDialog"
 import RefundDialog from "./RefundDialog"
 import { useCancelOrder, useConfirmOrder } from "@/hooks/api/useOrders"
+import { useOpenRefundFor } from "@/hooks/api/useRefunds"
 import { useMe } from "@/hooks/api/useAccount"
 import {
 	canCancel,
@@ -58,6 +60,9 @@ export default function OrderActions({
 	const cancelOrder = useCancelOrder()
 
 	const [dialog, setDialog] = useState<"receipt" | "refund" | "rate" | "decline" | null>(null)
+	// `Order` says nothing about refunds, so without this the button below is offered on an
+	// order that already has a case open — and answers `refund_already_open`.
+	const { refund: openRefund } = useOpenRefundFor(order.id)
 
 	const { isBuyer, isSeller } = sideOf(order, me?.id)
 	// A moderator or a signed-out reader is on neither side and presses nothing.
@@ -134,8 +139,10 @@ export default function OrderActions({
 	}
 
 	// Beside the receipt even in a row: confirming is irreversible, so the alternative has
-	// to be on screen at the moment of the decision rather than one page away.
-	if (isBuyer && canRequestRefund(order) && (detail || canConfirmReceipt(order))) {
+	// to be on screen at the moment of the decision rather than one page away. Suppressed
+	// once a case is open — one live refund per order is a database constraint, so the
+	// second press could only ever be an error.
+	if (isBuyer && !openRefund && canRequestRefund(order) && (detail || canConfirmReceipt(order))) {
 		actions.push(
 			<Button
 				key="refund"
@@ -147,6 +154,17 @@ export default function OrderActions({
 			>
 				Yêu cầu hoàn tiền
 			</Button>,
+		)
+	}
+
+	// The case that replaced it, so the row still leads somewhere.
+	if (openRefund) {
+		actions.push(
+			<Link key="open-refund" href={`/refunds/${openRefund.id}`} className={full ? "block" : ""}>
+				<Button variant="outline" size={size} fullWidth={full}>
+					Xem yêu cầu hoàn tiền
+				</Button>
+			</Link>,
 		)
 	}
 
