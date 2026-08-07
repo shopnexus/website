@@ -1921,7 +1921,8 @@ export const postRefundsByIdAcceptance = <ThrowOnError extends boolean = false>(
 /**
  * Add evidence to a refund case
  *
- * Either party to the order, while the case is open. A closed one is the record a verdict was reached on, so nothing is added to it afterwards.
+ * The buyer, while the case is open. A closed one is the record a verdict was reached on, so nothing is added to it afterwards. The seller does not write here — they answer by opening a `refund-dispute` ticket, and that thread carries their evidence.
+ *
  */
 export const postRefundsByIdAttachments = <ThrowOnError extends boolean = false>(options: Options<PostRefundsByIdAttachmentsData, ThrowOnError>): RequestResult<PostRefundsByIdAttachmentsResponses, PostRefundsByIdAttachmentsErrors, ThrowOnError> => (options.client ?? client).post<PostRefundsByIdAttachmentsResponses, PostRefundsByIdAttachmentsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

@@ -1,71 +1,56 @@
-import { useState } from "react";
+"use client"
 
-export type TimeRange = "daily" | "weekly" | "monthly";
+import { useMemo, useState } from "react"
+import { useOrdersSummary } from "@/hooks/api/useOrdersSummary"
+import { buildMetrics, countPlaced, fillDays, windowsFor } from "../_lib/summary.logic"
+import type { AnalyticsView, RangeId, SummaryRole } from "../types"
 
-export interface Metric {
-  id: string;
-  label: string;
-  value: string;
-  change: number;
-  icon: string;
-}
+/**
+ * The analytics page's data.
+ *
+ * Two reads of the same endpoint, not one: the window on screen and the window before
+ * it, which is where every "+12%" on this page comes from. Asking for both is the only
+ * honest way to draw a comparison — the summary reports one window and nothing about
+ * its history.
+ *
+ * The window boundary is frozen on mount rather than recomputed each render, so the
+ * query key stays stable; a `Date.now()` inline would mint a new key every render and
+ * refetch forever.
+ */
+export function useAnalyticsData(): AnalyticsView & {
+	range: RangeId
+	setRange: (r: RangeId) => void
+	role: SummaryRole
+	setRole: (r: SummaryRole) => void
+} {
+	const [range, setRange] = useState<RangeId>("30d")
+	const [role, setRole] = useState<SummaryRole>("seller")
+	const [anchor] = useState(() => Date.now())
 
-export function useAnalyticsData() {
-  const [timeRange, setTimeRange] = useState<TimeRange>("daily");
+	const { current, previous } = useMemo(() => windowsFor(range, anchor), [range, anchor])
 
-  const metrics: Metric[] = [
-    {
-      id: "revenue",
-      label: "Tổng doanh thu",
-      value: timeRange === "daily" ? "12.450.000đ" : timeRange === "weekly" ? "84.500.000đ" : "345.200.000đ",
-      change: timeRange === "daily" ? 12.5 : timeRange === "weekly" ? 5.4 : 18.2,
-      icon: "payments",
-    },
-    {
-      id: "views",
-      label: "Lượt xem trang",
-      value: timeRange === "daily" ? "1,204" : timeRange === "weekly" ? "8,450" : "32,100",
-      change: timeRange === "daily" ? 8.2 : timeRange === "weekly" ? -1.5 : 12.4,
-      icon: "visibility",
-    },
-    {
-      id: "conversion",
-      label: "Tỷ lệ chuyển đổi",
-      value: timeRange === "daily" ? "3.42%" : timeRange === "weekly" ? "3.55%" : "3.80%",
-      change: timeRange === "daily" ? -2.4 : timeRange === "weekly" ? 0.5 : 1.2,
-      icon: "ads_click",
-    },
-    {
-      id: "repeat",
-      label: "Khách hàng cũ",
-      value: timeRange === "daily" ? "24" : timeRange === "weekly" ? "145" : "892",
-      change: timeRange === "daily" ? 15.0 : timeRange === "weekly" ? 8.4 : 22.1,
-      icon: "group",
-    },
-  ];
+	const currentQuery = useOrdersSummary(role, current.from, current.to)
+	const previousQuery = useOrdersSummary(role, previous.from, previous.to)
 
-  const revenueChart = [
-    { label: "T2", value: 65 },
-    { label: "T3", value: 45 },
-    { label: "T4", value: 85 },
-    { label: "T5", value: 55 },
-    { label: "T6", value: 95 },
-    { label: "T7", value: 70 },
-    { label: "CN", value: 60 },
-  ];
+	const metrics = useMemo(
+		() => buildMetrics(currentQuery.data, previousQuery.data),
+		[currentQuery.data, previousQuery.data],
+	)
 
-  const audienceOrigins = [
-    { country: "Hà Nội", percentage: 42, color: "bg-primary" },
-    { country: "TP. Hồ Chí Minh", percentage: 35, color: "bg-secondary" },
-    { country: "Đà Nẵng", percentage: 12, color: "bg-primary-container" },
-    { country: "Khác", percentage: 11, color: "bg-surface-variant" },
-  ];
+	const buckets = useMemo(
+		() => fillDays(currentQuery.data?.daily ?? [], current.from, current.to),
+		[currentQuery.data, current.from, current.to],
+	)
 
-  return {
-    timeRange,
-    setTimeRange,
-    metrics,
-    revenueChart,
-    audienceOrigins,
-  };
+	return {
+		range,
+		setRange,
+		role,
+		setRole,
+		metrics,
+		buckets,
+		totals: currentQuery.data?.totals ?? [],
+		isLoading: currentQuery.isLoading,
+		isEmpty: Boolean(currentQuery.data) && countPlaced(currentQuery.data) === 0,
+	}
 }

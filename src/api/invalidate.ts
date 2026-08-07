@@ -45,6 +45,24 @@ export const OPERATIONS = {
 	draft: "getDraftsById",
 	tickets: "getTickets",
 	ticket: "getTicketsById",
+	// Product reviews. Both are dropped together by a vote, a reply or a new review: the
+	// listing page holds the paged list and a single-review read holds the whole reply
+	// thread, and a tally that moved on one is stale on the other.
+	listingReviews: "getListingsByListingIdReviews",
+	review: "getReviewsById",
+	// A new review moves the seller's product-review average, which the shop header reads.
+	reputation: "getAccountsByAccountIdReputation",
+	// Money the seller holds and the paperwork behind moving it out. A withdrawal debits
+	// the wallet the moment it is raised and credits it back when it is cancelled, so the
+	// balance, the ledger and the request list are always stale together.
+	wallets: "getWallets",
+	walletTransactions: "getWalletsByCurrencyTransactions",
+	bankAccounts: "getBankAccounts",
+	withdrawals: "getWithdrawals",
+	taxInfo: "getTaxInfo",
+	// Counts and daily buckets over the caller's own orders, which every listing or order
+	// write can move.
+	ordersSummary: "getOrdersSummary",
 } as const
 
 export type Operation = (typeof OPERATIONS)[keyof typeof OPERATIONS]

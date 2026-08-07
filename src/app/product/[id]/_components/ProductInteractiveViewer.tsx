@@ -8,9 +8,12 @@ import { useAuthStore } from "@/stores/use-auth-store";
 import { useAddFavorite, useRemoveFavorite } from "@/hooks/api/useCatalog";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import StarRating from "@/components/ui/StarRating";
+import TagRail from "@/components/ui/TagRail";
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
+import { formatRating } from "@/lib/reviews";
 import type { ListingDetail, Variant } from "@/api/generated/types.gen";
-import StartChatButton from "./StartChatButton";
+import StartChatButton from "@/components/ui/StartChatButton";
 import ProductBottomBar from "./ProductBottomBar";
 
 const formatPrice = (price: number) =>
@@ -161,7 +164,7 @@ export default function ProductInteractiveViewer({ product }: { product: Listing
           </div>
 
           <div className="flex-1">
-            <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex items-start justify-between gap-4 mb-2">
               <h1 className="text-2xl font-bold text-on-surface">
                 {product.name}
               </h1>
@@ -181,6 +184,31 @@ export default function ProductInteractiveViewer({ product }: { product: Listing
                 </span>
               </button>
             </div>
+
+            {/* The listing already carries all of this — the rating and its count, the
+                completed sales, how many people saved it — and none of it was on screen.
+                The rating is a link because the section it summarises is on this page. */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 font-body-sm text-on-surface-variant">
+              {product.review_count > 0 ? (
+                <a href="#reviews" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                  <StarRating rating={product.rating} size={16} />
+                  <span className="font-bold text-on-surface">{formatRating(product.rating)}</span>
+                  <span className="underline decoration-dotted underline-offset-4">
+                    {product.review_count} đánh giá
+                  </span>
+                </a>
+              ) : (
+                <a href="#reviews" className="hover:text-primary transition-colors">
+                  Chưa có đánh giá
+                </a>
+              )}
+              <span aria-hidden="true">·</span>
+              <span>Đã bán {product.sold}</span>
+              <span aria-hidden="true">·</span>
+              <span>{product.favorite_count} lượt lưu</span>
+            </div>
+
+            <TagRail tags={product.tags} className="mb-6" />
 
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 mb-6 shadow-sm">
               <h3 className="font-headline-sm font-bold mb-4">Mô tả</h3>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Button from "@/components/ui/Button";
+import PhoneVerification from "./PhoneVerification";
 import { toast } from "react-hot-toast";
 import {
   useContacts,
@@ -162,9 +163,10 @@ export default function ContactManager() {
                   </div>
                   
                   <div className="space-y-1 mb-4 text-body-md text-on-surface-variant">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="material-symbols-outlined text-[16px]">call</span>
                       {contact.phone}
+                      <PhoneVerification contact={contact} />
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="material-symbols-outlined text-[16px] mt-0.5">location_on</span>

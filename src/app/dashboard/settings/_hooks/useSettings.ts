@@ -1,31 +1,53 @@
-import { useState } from "react";
+"use client"
 
-export type SettingsTab = "profile" | "shipping" | "payments" | "security";
+import { useState } from "react"
+import { toast } from "react-hot-toast"
+import type { ContactId } from "@/api/generated/types.gen"
+import { useContacts, useUpdateContact } from "@/hooks/api/useContacts"
+import { useOptions } from "@/hooks/api/useOptions"
+import type { SettingsTab } from "../types"
 
+/**
+ * The seller-side settings this platform actually has.
+ *
+ * Two of the three sections are read-only, and deliberately so: which carriers and which
+ * payment rails are live is an operator's configuration, served by `GET /options`, and
+ * there is no seller-facing route to change it. Showing them is still worth doing —
+ * "why can't buyers pick express delivery" is answered here rather than in support.
+ *
+ * The one thing a seller does own is which saved address a courier collects from, which
+ * is a flag on the contact row.
+ */
 export function useSettings() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+	const [tab, setTab] = useState<SettingsTab>("pickup")
 
-  const [shopName, setShopName] = useState("Cửa hàng Minh");
-  const [shopBio, setShopBio] = useState("Cửa hàng chuyên cung cấp các sản phẩm chất lượng cao, bền vững và tiện ích cho ngôi nhà hiện đại.");
-  const [email, setEmail] = useState("hello@minhshop.vn");
-  const [warehouseCity, setWarehouseCity] = useState("Hà Nội, VN");
+	const { data: contacts = [], isLoading: contactsLoading } = useContacts()
+	const carriers = useOptions("transport")
+	const rails = useOptions("payment")
+	const updateContact = useUpdateContact()
 
-  const [shippingStandard, setShippingStandard] = useState(true);
-  const [shippingExpress, setShippingExpress] = useState(false);
+	const defaultPickup = contacts.find((contact) => contact.is_default_pickup)
 
-  const handleSave = () => {
-    console.log("Saving settings...", { shopName, shopBio, email, warehouseCity, shippingStandard, shippingExpress });
-  };
+	const setDefaultPickup = (id: ContactId) => {
+		// One flag, sent alone: the server moves it off whichever row held it, and sending
+		// the rest of the address back would re-assert fields nobody edited.
+		updateContact.mutate(
+			{ id, body: { is_default_pickup: true } },
+			{ onSuccess: () => toast.success("Đã đổi địa chỉ lấy hàng mặc định.") },
+		)
+	}
 
-  return {
-    activeTab,
-    setActiveTab,
-    shopName, setShopName,
-    shopBio, setShopBio,
-    email, setEmail,
-    warehouseCity, setWarehouseCity,
-    shippingStandard, setShippingStandard,
-    shippingExpress, setShippingExpress,
-    handleSave,
-  };
+	return {
+		tab,
+		setTab,
+		contacts,
+		contactsLoading,
+		defaultPickup,
+		setDefaultPickup,
+		isSaving: updateContact.isPending,
+		carriers: carriers.data ?? [],
+		carriersLoading: carriers.isLoading,
+		rails: rails.data ?? [],
+		railsLoading: rails.isLoading,
+	}
 }

@@ -1,87 +1,56 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import ProductCard from "@/components/ui/ProductCard";
-import { useListingsFeed } from "@/hooks/api/useCatalog";
-
 import ProductCardSkeleton from "@/components/ui/ProductCardSkeleton";
+import { useHomeFeed } from "./useHomeFeed";
 
 export default function HomeFeed(): React.ReactElement {
-  // Presentational only for now: the API does support sorting these three ways
-  // (`sort=newest` / `sort=recommended`), but `recommended` needs a token and this feed
-  // renders for signed-out visitors too, so wiring it is a separate change.
-  const [activeTab, setActiveTab] = useState<"all" | "newest" | "suggested">("all");
-
-  const {
-    listings: products,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useListingsFeed({ limit: 12 });
+  const { tabs, active, setSort, feed } = useHomeFeed();
+  const { listings, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = feed;
 
   return (
     <section>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <h2 className="font-headline font-bold text-headline-md text-on-surface">Dòng Khám Phá</h2>
-        <div className="flex gap-4 border-b sm:border-none border-outline-variant/20 w-full sm:w-auto pb-2 sm:pb-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab("all")}
-            className={`text-label-md font-bold transition-colors cursor-pointer pb-1 sm:pb-0 ${
-              activeTab === "all"
-                ? "text-primary border-b-2 sm:border-b-2 border-primary"
-                : "text-on-surface-variant hover:text-primary border-b-2 border-transparent"
-            }`}
-          >
-            Tất cả
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("newest")}
-            className={`text-label-md font-bold transition-colors cursor-pointer pb-1 sm:pb-0 ${
-              activeTab === "newest"
-                ? "text-primary border-b-2 sm:border-b-2 border-primary"
-                : "text-on-surface-variant hover:text-primary border-b-2 border-transparent"
-            }`}
-          >
-            Vừa đăng
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("suggested")}
-            className={`text-label-md font-bold transition-colors cursor-pointer pb-1 sm:pb-0 ${
-              activeTab === "suggested"
-                ? "text-primary border-b-2 sm:border-b-2 border-primary"
-                : "text-on-surface-variant hover:text-primary border-b-2 border-transparent"
-            }`}
-          >
-            Đề xuất
-          </button>
+        <div className="flex gap-4 border-b sm:border-none border-outline-variant/20 w-full sm:w-auto pb-2 sm:pb-0 overflow-x-auto hide-scrollbar">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSort(tab.id)}
+              aria-pressed={active === tab.id}
+              className={`shrink-0 text-label-md font-bold transition-colors cursor-pointer pb-1 sm:pb-0 border-b-2 ${
+                active === tab.id
+                  ? "text-primary border-primary"
+                  : "text-on-surface-variant hover:text-primary border-transparent"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {isLoading && products.length === 0 ? (
+      {isLoading && listings.length === 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
+          {Array.from({ length: 8 }).map((_, index) => (
+            <ProductCardSkeleton key={index} />
           ))}
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {listings.map((listing) => (
+              <ProductCard key={listing.id} product={listing} />
             ))}
           </div>
-          
-          {products.length === 0 && (
-            <div className="text-center py-12 text-on-surface-variant">
-              Không có sản phẩm nào.
-            </div>
+
+          {listings.length === 0 && (
+            <div className="text-center py-12 text-on-surface-variant">Không có sản phẩm nào.</div>
           )}
 
-          {hasNextPage && products.length > 0 && (
+          {hasNextPage && listings.length > 0 && (
             <div className="mt-12 flex justify-center">
               <button
                 type="button"
@@ -92,9 +61,7 @@ export default function HomeFeed(): React.ReactElement {
                 <span className="material-symbols-outlined text-sm" aria-hidden="true">
                   {isFetchingNextPage ? "sync" : "add"}
                 </span>
-                <span>
-                  {isFetchingNextPage ? "Đang tải..." : "Tải thêm sản phẩm"}
-                </span>
+                <span>{isFetchingNextPage ? "Đang tải..." : "Tải thêm sản phẩm"}</span>
               </button>
             </div>
           )}

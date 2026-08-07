@@ -5,10 +5,11 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import {
 	getAccountsByAccountIdFeedbackInfiniteOptions,
 	getAccountsByAccountIdReputationOptions,
+	getAccountsByIdFollowersInfiniteOptions,
 	getAccountsByIdOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import type { AccountId, ReputationRole } from "@/api/generated/types.gen"
-import { cursorPagination, flattenPages } from "@/api/pagination"
+import { cursorPagination, flattenPages, pagePagination, totalCountOf } from "@/api/pagination"
 import { unwrapData } from "@/api/unwrap"
 
 /**
@@ -40,12 +41,24 @@ export function useReputation(id: AccountId | undefined, role: ReputationRole = 
 	})
 }
 
-/** Published feedback an account has received. A blind submission stays hidden until the window closes. */
-export function useAccountFeedback(id: AccountId | undefined, limit = 20) {
+/**
+ * Published feedback an account has received. A blind submission stays hidden until the
+ * window closes.
+ *
+ * `role` is which side of the order the account was on, and it is a real distinction: the
+ * same person is rated as a seller by the people who bought from them and as a buyer by
+ * the people who sold to them. Omitting it answers both at once, which mixes two claims
+ * into one list.
+ */
+export function useAccountFeedback(
+	id: AccountId | undefined,
+	role?: ReputationRole,
+	limit = 20,
+) {
 	const query = useInfiniteQuery({
 		...getAccountsByAccountIdFeedbackInfiniteOptions({
 			path: { accountID: id! },
-			query: { limit },
+			query: { role, limit },
 		}),
 		...cursorPagination,
 		enabled: Boolean(id),
@@ -54,4 +67,20 @@ export function useAccountFeedback(id: AccountId | undefined, limit = 20) {
 	const feedback = useMemo(() => flattenPages(query.data), [query.data])
 
 	return { ...query, feedback }
+}
+
+/**
+ * Who follows this account. Page-paginated, so the total is a real count rather than a
+ * short page — which is what lets the tab carry a number.
+ */
+export function useFollowers(id: AccountId | undefined, limit = 24) {
+	const query = useInfiniteQuery({
+		...getAccountsByIdFollowersInfiniteOptions({ path: { id: id! }, query: { limit } }),
+		...pagePagination,
+		enabled: Boolean(id),
+	})
+
+	const followers = useMemo(() => flattenPages(query.data), [query.data])
+
+	return { ...query, followers, totalCount: totalCountOf(query.data) }
 }

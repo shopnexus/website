@@ -1666,7 +1666,8 @@ export type RefreshRequest = {
  */
 export type Refund = {
     /**
-     * The buyer's evidence, topped up until the case closes.
+     * The buyer's evidence, topped up until the case closes. Theirs alone: this is the claim being made, not a shared file — the seller's answer lives on the `refund-dispute` ticket they open, so the two sides stay legible apart.
+     *
      */
     attachments: Array<Resource>;
     buyer_id: AccountId;
@@ -1864,7 +1865,7 @@ export type ReviewVoteTally = {
     /**
      * The caller's own vote. Null when they have not voted.
      */
-    my_vote: -1 | 1;
+    my_vote: -1 | 1 | null;
     not_helpful: number;
 };
 

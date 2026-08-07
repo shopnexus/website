@@ -1,38 +1,53 @@
-import type { Metric } from "../_hooks/useAnalyticsData";
+import type { Metric } from "../types";
 
-export default function MetricCard({ metric }: { metric: Metric }) {
-  const isPositive = metric.change > 0;
-  
-  let iconBg = "bg-primary-fixed";
-  let iconColor = "text-on-primary-fixed";
-  
-  if (metric.icon === "visibility") {
-    iconBg = "bg-secondary-fixed";
-    iconColor = "text-on-secondary-fixed";
-  } else if (metric.icon === "ads_click") {
-    iconBg = "bg-tertiary-fixed";
-    iconColor = "text-on-tertiary-fixed";
-  } else if (metric.icon === "group") {
-    iconBg = "bg-surface-container-highest";
-    iconColor = "text-on-surface";
-  }
+/**
+ * One headline number.
+ *
+ * The delta chip is absent — not zero, not a dash — when there is no previous window to
+ * compare against, because a shop's first week has no growth rate and printing one is a
+ * claim the data does not make.
+ */
+export default function MetricCard({ metric, loading }: { metric: Metric; loading: boolean }) {
+  const positive = metric.change !== null && metric.change > 0;
+  const negative = metric.change !== null && metric.change < 0;
 
   return (
-    <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm transition-transform hover:-translate-y-1 duration-300">
-      <div className="flex justify-between items-start mb-4">
-        <span className={`material-symbols-outlined p-2 rounded-lg ${iconBg} ${iconColor}`}>
+    <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/40 shadow-sm">
+      <div className="flex justify-between items-start mb-5">
+        <span className="material-symbols-outlined p-2 rounded-xl bg-surface-container-high text-on-surface-variant">
           {metric.icon}
         </span>
-        <span 
-          className={`text-[11px] font-bold px-2 py-1 rounded-full ${
-            isPositive ? "text-primary bg-primary/10" : "text-error bg-error-container/50"
-          }`}
-        >
-          {isPositive ? "+" : ""}{metric.change}%
-        </span>
+        {metric.change !== null && (
+          <span
+            className={[
+              "text-[11px] font-bold px-2 py-1 rounded-full inline-flex items-center gap-0.5",
+              positive ? "text-primary bg-primary/10" : "",
+              negative ? "text-error bg-error/10" : "",
+              !positive && !negative ? "text-on-surface-variant bg-surface-container-high" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <span className="material-symbols-outlined text-[13px]">
+              {positive ? "trending_up" : negative ? "trending_down" : "trending_flat"}
+            </span>
+            {positive ? "+" : ""}
+            {metric.change}%
+          </span>
+        )}
       </div>
+
       <p className="text-body-sm text-on-surface-variant mb-1 font-medium">{metric.label}</p>
-      <h3 className="text-2xl font-bold font-headline tracking-tight text-on-surface">{metric.value}</h3>
+      {loading ? (
+        <div className="h-8 w-28 rounded-md bg-surface-container-high animate-pulse" />
+      ) : (
+        <h3 className="text-2xl font-bold font-headline tracking-tight text-on-surface tabular-nums">
+          {metric.value}
+        </h3>
+      )}
+      <p className="text-[11px] text-on-surface-variant mt-2 leading-snug">
+        {metric.change === null ? "Không có kỳ trước để so sánh" : metric.hint}
+      </p>
     </div>
   );
 }

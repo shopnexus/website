@@ -5,11 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import ListingRowActions from "./ListingRowActions";
 import { useProductsData, type ProductFilter } from "../_hooks/useProductsData";
 import { LISTING_STATUS_VI } from "@/lib/dictionaries";
-
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+import { formatMoney } from "@/lib/money";
 
 const PRODUCT_FILTERS: Array<{ id: ProductFilter; label: string }> = [
   { id: "all", label: "Tất cả sản phẩm" },
@@ -130,17 +129,10 @@ export default function ProductTable() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-bold text-on-surface">
-                      {formatPrice(product.price)}
+                      {formatMoney(product.price, product.currency)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 rounded-full transition-all" title="Chỉnh sửa">
-                          <span className="material-symbols-outlined text-[20px]">edit</span>
-                        </button>
-                        <button className="p-2 text-on-surface-variant hover:text-error hover:bg-error/5 rounded-full transition-all" title="Xóa">
-                          <span className="material-symbols-outlined text-[20px]">delete</span>
-                        </button>
-                      </div>
+                      <ListingRowActions listing={product} />
                     </td>
                   </tr>
                 ))}
@@ -168,12 +160,8 @@ export default function ProductTable() {
                     {product.name}
                   </Link>
                   <div className="mt-auto pt-2 flex items-center justify-between border-t border-outline-variant/30">
-                    <span className="font-bold text-primary">{formatPrice(product.price)}</span>
-                    <div className="flex gap-1">
-                      <button className="p-1.5 text-on-surface-variant hover:text-primary rounded-full transition-all" title="Chỉnh sửa">
-                        <span className="material-symbols-outlined text-[18px]">edit</span>
-                      </button>
-                    </div>
+                    <span className="font-bold text-primary">{formatMoney(product.price, product.currency)}</span>
+                    <ListingRowActions listing={product} compact />
                   </div>
                 </div>
               </div>

@@ -1,16 +1,13 @@
 "use client";
 
-import { toast } from "react-hot-toast";
+import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useIdentityDocuments } from "@/hooks/api/useAccount";
-import type { IdentityDocumentType, IdentityStatus } from "@/api/generated/types.gen";
-
-const STATUS_LABELS: Record<IdentityStatus, string> = {
-  pending: "Đang chờ duyệt",
-  verified: "Đã xác minh",
-  rejected: "Bị từ chối",
-};
+import { IDENTITY_DOCUMENT_TYPE_VI, IDENTITY_STATUS_VI } from "@/lib/dictionaries";
+import type { IdentityStatus } from "@/api/generated/types.gen";
+import VerificationForm from "./_components/VerificationForm";
+import { canSubmitAnother, latestDocument } from "./_lib/kyc.logic";
 
 const STATUS_STYLES: Record<IdentityStatus, string> = {
   pending: "bg-primary-container text-on-primary-container",
@@ -18,53 +15,79 @@ const STATUS_STYLES: Record<IdentityStatus, string> = {
   rejected: "bg-error/10 text-error",
 };
 
-const DOC_TYPE_LABELS: Record<IdentityDocumentType, string> = {
-  "national-id": "CCCD / CMND",
-  passport: "Hộ chiếu",
-  "driver-license": "Giấy phép lái xe",
-};
-
 export default function VerificationPage() {
   const user = useAuthStore((s) => s.user);
+  const fetchProfile = useAuthStore((s) => s.fetchProfile);
   const { data: history = [], isLoading } = useIdentityDocuments();
 
-  const handleStartVerification = () => {
-    // POST /identity-documents exists and useStartVerification wraps it, but submitting
-    // needs the scan uploaded and the document type chosen first — that capture flow is
-    // not built, so starting one here would post an unusable document.
-    toast.success("Tính năng xác minh danh tính đang được phát triển.");
-  };
+  const [formOpen, setFormOpen] = useState(false);
+
+  const latest = latestDocument(history);
+  const canSubmit = canSubmitAnother(history);
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8">
       <div>
         <h1 className="font-headline-md font-bold text-on-surface mb-2">Xác minh danh tính (KYC)</h1>
-        <p className="font-body-sm text-on-surface-variant">Xác minh danh tính để mở khóa toàn bộ tính năng mua bán trên nền tảng.</p>
+        <p className="font-body-sm text-on-surface-variant">
+          Xác minh danh tính để mở khóa việc đăng bán và rút tiền về ngân hàng.
+        </p>
       </div>
 
-      <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-          <h2 className="font-headline-sm font-bold text-on-surface mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">verified_user</span>
-            Trạng thái hiện tại
-          </h2>
-          <div className="font-body-md">
-            Bạn hiện đang ở trạng thái:{" "}
-            <strong className="text-on-surface">
-              {user?.identity_verified ? "Đã xác minh" : "Chưa xác minh"}
-            </strong>
+      <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div>
+            <h2 className="font-headline-sm font-bold text-on-surface mb-2 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">verified_user</span>
+              Trạng thái hiện tại
+            </h2>
+            <div className="font-body-md">
+              Tài khoản:{" "}
+              <strong className="text-on-surface">
+                {user?.identity_verified ? "Đã xác minh" : "Chưa xác minh"}
+              </strong>
+              {latest && !user?.identity_verified && (
+                <>
+                  {" · "}Giấy tờ gần nhất: {IDENTITY_STATUS_VI[latest.status]}
+                </>
+              )}
+            </div>
+            {latest?.status === "rejected" && latest.rejection_reason && (
+              <p className="font-body-sm text-error mt-2">
+                Lý do từ chối: {latest.rejection_reason}. Bạn có thể gửi lại giấy tờ khác.
+              </p>
+            )}
+            {latest?.status === "pending" && (
+              <p className="font-body-sm text-on-surface-variant mt-2 max-w-lg">
+                Giấy tờ của bạn đang được kiểm tra. Bạn sẽ nhận được thông báo khi có kết quả.
+              </p>
+            )}
+            {!latest && (
+              <p className="font-body-sm text-on-surface-variant mt-2 max-w-lg">
+                Chuẩn bị sẵn giấy tờ tuỳ thân và chụp một ảnh chân dung. Quá trình chỉ mất vài phút.
+              </p>
+            )}
           </div>
-          {!user?.identity_verified && (
-            <p className="font-body-sm text-on-surface-variant mt-2 max-w-lg">
-              Hoàn thành xác minh danh tính để có thể đăng bán sản phẩm và tham gia các tính năng nâng cao. Quá trình chỉ mất khoảng 3 phút.
-            </p>
+
+          {canSubmit && !formOpen && (
+            <Button onClick={() => setFormOpen(true)} className="shrink-0">
+              {latest ? "Gửi lại giấy tờ" : "Bắt đầu xác minh"}
+            </Button>
           )}
         </div>
 
-        {!user?.identity_verified && (
-          <Button onClick={handleStartVerification} className="shrink-0">
-            Bắt đầu xác minh
-          </Button>
+        {formOpen && canSubmit && (
+          <div className="border-t border-outline-variant pt-6">
+            <VerificationForm
+              onDone={() => {
+                setFormOpen(false);
+                // A verdict can land on the same request — a vendor that reads the scans
+                // answers now — and `identity_verified` on the account is what the header
+                // and the sell route read.
+                void fetchProfile();
+              }}
+            />
+          </div>
         )}
       </div>
 
@@ -76,7 +99,9 @@ export default function VerificationPage() {
 
         {isLoading ? (
           <div className="flex justify-center p-4">
-            <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
+            <span className="material-symbols-outlined animate-spin text-primary">
+              progress_activity
+            </span>
           </div>
         ) : history.length === 0 ? (
           <div className="text-center p-6 bg-surface-container-lowest rounded-lg border border-outline-variant border-dashed text-on-surface-variant font-body-sm">
@@ -85,10 +110,13 @@ export default function VerificationPage() {
         ) : (
           <div className="space-y-4">
             {history.map((doc) => (
-              <div key={doc.id} className="flex items-start justify-between gap-4 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant">
+              <div
+                key={doc.id}
+                className="flex items-start justify-between gap-4 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant"
+              >
                 <div>
                   <div className="font-label-md font-semibold text-on-surface">
-                    {DOC_TYPE_LABELS[doc.doc_type]}
+                    {IDENTITY_DOCUMENT_TYPE_VI[doc.doc_type]}
                   </div>
                   <div className="font-body-sm text-on-surface-variant">
                     {/* verified_at is the decision date; there is no updated_at. */}
@@ -108,7 +136,7 @@ export default function VerificationPage() {
                 <span
                   className={`px-2 py-1 text-xs font-semibold rounded-full shrink-0 ${STATUS_STYLES[doc.status]}`}
                 >
-                  {STATUS_LABELS[doc.status]}
+                  {IDENTITY_STATUS_VI[doc.status]}
                 </span>
               </div>
             ))}

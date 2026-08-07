@@ -19,8 +19,9 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
     { name: "Sản phẩm của tôi", path: "/dashboard/products", icon: "inventory_2" },
     { name: "Đơn hàng", path: "/orders", icon: "receipt_long" },
     { name: "Hoàn tiền", path: "/refunds", icon: "assignment_return" },
+    { name: "Ví của tôi", path: "/dashboard/wallet", icon: "account_balance_wallet" },
     { name: "Thống kê", path: "/dashboard/analytics", icon: "bar_chart" },
-    { name: "Cài đặt Shop", path: "/dashboard/settings", icon: "settings" },
+    { name: "Cài đặt bán hàng", path: "/dashboard/settings", icon: "settings" },
     { name: "Cài đặt thông báo", path: "/dashboard/notifications", icon: "notifications" },
     { name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" },
   ];

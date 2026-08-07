@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { useUpdateIdentifiers } from "@/hooks/api/useAccount";
+import { useRequestEmailVerification, useUpdateIdentifiers } from "@/hooks/api/useAccount";
 import { toast } from "react-hot-toast";
 import type { UpdateAccountRequest } from "@/api/generated/types.gen";
 
@@ -35,6 +35,7 @@ export default function IdentifiersForm() {
   const [username, setUsername] = useState(user?.username || "");
 
   const updateIdentifiers = useUpdateIdentifiers();
+  const requestEmailVerification = useRequestEmailVerification();
 
   // Loaded during render, keyed on the account id — see the same pattern in ProfileForm.
   // An effect would paint the inputs empty and fill them on a second pass, and keying on
@@ -97,11 +98,29 @@ export default function IdentifiersForm() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
           />
+          {/* Only offered for the address the server already holds: the request takes no
+              body and reads the account's own email, so a freshly typed address has to be
+              saved first or the message goes to the previous one. */}
           {!user?.email_verified && user?.email && (
-            <p className="text-error text-[11px] mt-1 font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">error</span>
-              Email chưa được xác minh
-            </p>
+            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+              <p className="text-error text-[11px] font-medium flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">error</span>
+                Email chưa được xác minh
+              </p>
+              <button
+                type="button"
+                disabled={requestEmailVerification.isPending}
+                onClick={() =>
+                  requestEmailVerification.mutate(undefined, {
+                    onSuccess: () =>
+                      toast.success("Đã gửi email xác minh. Mở hộp thư và bấm vào liên kết."),
+                  })
+                }
+                className="text-primary text-[11px] font-semibold hover:underline disabled:opacity-50 cursor-pointer"
+              >
+                {requestEmailVerification.isPending ? "Đang gửi..." : "Gửi lại email xác minh"}
+              </button>
+            </div>
           )}
         </div>
         

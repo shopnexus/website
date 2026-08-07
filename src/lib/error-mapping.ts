@@ -121,6 +121,12 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	review_rating_range: "Số sao phải từ 1 đến 5.",
 	review_body_too_long: "Nội dung đánh giá tối đa 2000 ký tự.",
 	review_forbidden: "Bạn không có quyền sửa đánh giá này.",
+	listing_not_in_order: "Đơn hàng bạn chọn không có sản phẩm này.",
+	review_reply_not_found: "Không tìm thấy phản hồi này.",
+	review_reply_forbidden: "Bạn không có quyền xoá phản hồi này.",
+	vote_value: "Bình chọn chỉ nhận giá trị hữu ích hoặc không hữu ích.",
+	self_vote: "Không thể bình chọn đánh giá của chính mình.",
+	vote_not_found: "Bạn chưa bình chọn đánh giá này.",
 	feedback_exists: "Bạn đã đánh giá phía bên kia cho đơn hàng này.",
 	self_feedback: "Không thể tự đánh giá chính mình.",
 

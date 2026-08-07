@@ -13,12 +13,15 @@ import type {
   PriceMode,
   ProfileGender,
   RefundStatus,
+  TaxCodeType,
+  TaxVerificationStatus,
   TicketAction,
   TicketKind,
   TicketReason,
   TicketStatus,
   TransactionStatus,
   TransportStatus,
+  WalletTransactionKind,
   WithdrawalOutcome,
 } from "@/api/generated/types.gen";
 
@@ -153,6 +156,34 @@ export const WITHDRAWAL_OUTCOME_VI: Record<WithdrawalOutcome, string> = {
   approved: "Đã duyệt",
   rejected: "Bị từ chối",
   cancelled: "Đã hủy",
+};
+
+/**
+ * What moved a wallet balance. Named from the owner's side rather than the ledger's:
+ * `escrow-hold` is money of theirs the platform is holding, not an operation performed
+ * on a table.
+ */
+export const WALLET_TRANSACTION_KIND_VI: Record<WalletTransactionKind, string> = {
+  topup: "Nạp tiền",
+  "escrow-hold": "Tạm giữ cho đơn hàng",
+  "escrow-release": "Giải ngân từ tạm giữ",
+  payout: "Tiền bán hàng",
+  refund: "Hoàn tiền",
+  withdrawal: "Rút tiền",
+  fee: "Phí",
+  adjustment: "Điều chỉnh",
+};
+
+export const TAX_CODE_TYPE_VI: Record<TaxCodeType, string> = {
+  individual: "Cá nhân",
+  business: "Doanh nghiệp",
+  household: "Hộ kinh doanh",
+};
+
+export const TAX_VERIFICATION_STATUS_VI: Record<TaxVerificationStatus, string> = {
+  pending: "Chờ xác minh",
+  verified: "Đã xác minh",
+  rejected: "Bị từ chối",
 };
 
 // ── Trust & Safety ───────────────────────────────────────────────────────────

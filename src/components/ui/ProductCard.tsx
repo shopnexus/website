@@ -33,6 +33,15 @@ export interface ProductCardItem {
   location?: { province_name: string; distance_km?: number | null } | null;
   favorited?: boolean;
   favorite_count?: number;
+  /**
+   * Average review rating, 0 when nobody has reviewed it, and the count beside it —
+   * because a 5.0 from one review and a 5.0 from two hundred are not the same claim, and
+   * a card that showed only the average would say they were.
+   */
+  rating?: number;
+  review_count?: number;
+  /** Completed sales. An open checkout does not count and a cancelled one never did. */
+  sold?: number;
 }
 
 interface ProductCardProps {
@@ -41,7 +50,10 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, className = "" }: ProductCardProps) {
-  const imageUrl = product.cover?.url || "https://picsum.photos/seed/fallback/600/750";
+  // No placeholder service. A picsum fallback fetched a random stranger's photo from a
+  // third party and rendered it where the product goes — a listing with no photo then
+  // looked like a listing with the wrong one, which is worse than looking empty.
+  const imageUrl = product.cover?.url;
   const { user } = useAuthStore();
   const { mutate: addFavorite, isPending: isAdding } = useAddFavorite();
   const { mutate: removeFavorite, isPending: isRemoving } = useRemoveFavorite();
@@ -75,13 +87,19 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
       className={`bg-surface rounded-xl overflow-hidden border border-outline-variant/30 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow duration-300 flex flex-col group cursor-pointer ${className}`}
     >
       <div className="relative aspect-[4/3] bg-surface-container overflow-hidden shrink-0">
-        <Image
-          src={imageUrl}
-          alt={product.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-        />
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          />
+        ) : (
+          <span className="absolute inset-0 flex items-center justify-center text-on-surface-variant material-symbols-outlined text-[32px]">
+            inventory_2
+          </span>
+        )}
         {product.price_mode === "negotiable" && (
           <div className="absolute top-2 left-2 z-10">
             <span className="text-[10px] font-bold px-2 py-1 bg-tertiary-container/90 backdrop-blur-sm text-on-tertiary-container rounded shadow-sm whitespace-nowrap">
@@ -129,6 +147,26 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
         <h3 className="font-headline text-[15px] leading-snug text-on-surface line-clamp-2 mt-0.5 font-bold">
           {product.name}
         </h3>
+
+        {/* Social proof, and only when there is any: "0.0 (0)" beside a price reads as a
+            verdict on the goods rather than as a listing nobody has bought yet. */}
+        {(product.review_count ?? 0) > 0 && (
+          <div className="flex items-center gap-1 text-[11px] text-on-surface-variant">
+            <span
+              className="material-symbols-outlined text-[13px] text-primary"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+              aria-hidden="true"
+            >
+              star
+            </span>
+            <span className="font-bold text-on-surface">{(product.rating ?? 0).toFixed(1)}</span>
+            <span>({product.review_count})</span>
+            {(product.sold ?? 0) > 0 && <span className="truncate">· Đã bán {product.sold}</span>}
+          </div>
+        )}
+        {(product.review_count ?? 0) === 0 && (product.sold ?? 0) > 0 && (
+          <div className="text-[11px] text-on-surface-variant">Đã bán {product.sold}</div>
+        )}
 
         <div className="mt-auto pt-2">
           <div className="flex items-center justify-between gap-2">

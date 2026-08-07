@@ -57,3 +57,43 @@ export function useDeleteContact() {
 		onSuccess: () => invalidate(queryClient, OPERATIONS.contacts),
 	})
 }
+
+// ── Phone verification ───────────────────────────────────────────────────────
+
+import {
+	postContactsByIdPhoneVerificationRequests,
+	postContactsByIdPhoneVerifications,
+} from "@/api/generated/sdk.gen"
+
+/**
+ * Send a one-time code by SMS to the number on this address.
+ *
+ * Throttled server-side per number, so a 429 is an ordinary answer and not a fault: the
+ * caller surfaces it as "wait a moment" rather than as a failure to retry through.
+ */
+export function useRequestContactPhoneCode() {
+	return useMutation({
+		mutationFn: async (id: ContactId) => {
+			await postContactsByIdPhoneVerificationRequests({ path: { id }, throwOnError: true })
+		},
+	})
+}
+
+/**
+ * Confirm the code. The verified flag is on the contact row, so the list is what goes
+ * stale — the account's own phone is a different identifier and is untouched by this.
+ */
+export function useVerifyContactPhone() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async ({ id, code }: { id: ContactId; code: string }) => {
+			const { data } = await postContactsByIdPhoneVerifications({
+				path: { id },
+				body: { code },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.contacts),
+	})
+}

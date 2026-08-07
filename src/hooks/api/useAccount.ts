@@ -220,3 +220,22 @@ export function useToggleFollow() {
 		onSettled: () => invalidate(queryClient, OPERATIONS.following),
 	})
 }
+
+// ── Email verification ───────────────────────────────────────────────────────
+
+import { postEmailVerificationRequests } from "@/api/generated/sdk.gen"
+
+/**
+ * Send the verification message to the address already on the account.
+ *
+ * There is nothing to pass: the server reads the address off the caller's own account, so
+ * this cannot be used to probe whether some other address exists. Confirming the token in
+ * the message is a separate route, reached from the link rather than from this screen.
+ */
+export function useRequestEmailVerification() {
+	return useMutation({
+		mutationFn: async () => {
+			await postEmailVerificationRequests({ throwOnError: true })
+		},
+	})
+}

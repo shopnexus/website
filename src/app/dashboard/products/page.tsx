@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ProductTable from "./_components/ProductTable";
 
 export default function MyProductsPage() {
@@ -10,10 +11,13 @@ export default function MyProductsPage() {
             Quản lý kho hàng, theo dõi tình trạng sản phẩm và tối ưu hóa danh sách bán hàng của bạn.
           </p>
         </div>
-        <button className="bg-primary text-on-primary px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-md active:scale-95 self-start md:self-auto font-label-md">
+        <Link
+          href="/sell"
+          className="bg-primary text-on-primary px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-md active:scale-95 self-start md:self-auto font-label-md"
+        >
           <span className="material-symbols-outlined">add</span>
           Đăng sản phẩm mới
-        </button>
+        </Link>
       </header>
 
       <ProductTable />

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useCategories } from "@/hooks/api/useCatalog";
 import { CATEGORY_IMAGES, DEFAULT_CATEGORY_IMAGE } from "@/constants/categoryImages";
+import HomeTagCloud from "./HomeTagCloud";
 
 export default function HomeSidebar(): React.ReactElement {
   const { data: categories = [], isLoading } = useCategories();
@@ -63,6 +64,8 @@ export default function HomeSidebar(): React.ReactElement {
           </div>
         )}
       </div>
+
+      <HomeTagCloud />
     </aside>
   );
 }
