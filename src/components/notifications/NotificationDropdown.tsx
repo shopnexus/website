@@ -60,7 +60,7 @@ export default function NotificationDropdown() {
           notifications
         </span>
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-1 translate-x-1/2 -translate-y-1/2 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-surface">
+          <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}

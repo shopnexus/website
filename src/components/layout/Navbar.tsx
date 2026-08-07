@@ -8,6 +8,7 @@ import { useSearch } from "@/hooks/useSearch";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useCartStore } from "@/stores/use-cart-store";
 import { useCartItems } from "@/hooks/api/useCart";
+import { useChatUnreadCount } from "@/hooks/api/useChat";
 import { useIsClient } from "@/hooks/useIsClient";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
@@ -22,6 +23,8 @@ export default function Navbar(): React.ReactElement {
   const localCount = useCartStore((state) => state.localItems.length);
   const { data: serverItems } = useCartItems(isAuthenticated);
   const cartItemsCount = isAuthenticated ? (serverItems?.length ?? 0) : localCount;
+  const { data: chatUnreadCount } = useChatUnreadCount(isAuthenticated);
+  const unreadMessagesCount = chatUnreadCount?.unread ?? 0;
   const mounted = useIsClient();
 
   const shouldShowSearchBar = pathname !== "/" || isScrolledPastHero;
@@ -136,7 +139,7 @@ export default function Navbar(): React.ReactElement {
                 <Link
                   href="/inbox"
                   aria-label="chat_bubble"
-                  className={`hidden sm:flex pb-1 px-2 transition-all cursor-pointer items-center justify-center border-b-2 duration-300 ${
+                  className={`relative hidden sm:flex pb-1 px-2 transition-all cursor-pointer items-center justify-center border-b-2 duration-300 ${
                     pathname === "/inbox"
                       ? "text-primary border-primary font-bold"
                       : "text-on-surface-variant border-transparent hover:text-primary"
@@ -148,6 +151,11 @@ export default function Navbar(): React.ReactElement {
                   >
                     chat_bubble
                   </span>
+                  {unreadMessagesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                      {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   href="/dashboard"
@@ -246,7 +254,7 @@ export default function Navbar(): React.ReactElement {
         </Link>
         <Link
           href="/inbox"
-          className={`flex flex-col items-center justify-center px-4 py-1 active:scale-95 duration-150 border-b-2 transition-all ${
+          className={`relative flex flex-col items-center justify-center px-4 py-1 active:scale-95 duration-150 border-b-2 transition-all ${
             pathname === "/inbox" ? "text-primary border-primary font-bold" : "text-on-surface-variant border-transparent"
           }`}
         >
@@ -254,6 +262,11 @@ export default function Navbar(): React.ReactElement {
             chat_bubble
           </span>
           <span className="font-label text-label-sm">Tin nhắn</span>
+          {unreadMessagesCount > 0 && (
+            <span className="absolute top-0 right-2 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+              {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+            </span>
+          )}
         </Link>
       </nav>
       )}
