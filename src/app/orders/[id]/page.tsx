@@ -2,10 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Button from "@/components/ui/Button";
-import { ORDER_STATE_VI, TRANSPORT_STATUS_VI } from "@/lib/dictionaries";
+import { TRANSPORT_STATUS_VI } from "@/lib/dictionaries";
+import { orderStatusLabel } from "@/lib/order-state";
 import { getListings, getOrdersById } from "@/api/generated/sdk.gen";
 import type { Listing, ListingId, OrderId, TransportStatus } from "@/api/generated/types.gen";
-import OrderActions from "./_components/OrderActions";
+import OrderActions from "@/components/orders/OrderActions";
+import OrderContactButton from "@/components/orders/OrderContactButton";
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -53,9 +55,11 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
       <div className="max-w-[1000px] mx-auto px-4 md:px-8">
 
-        <Link href="/orders" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-label-md">
+        {/* The unified list, not /orders: both sides of a sale open this page, and the
+            buyer-only list is a dead end for the seller who arrived from the dashboard. */}
+        <Link href="/dashboard/orders" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-label-md">
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-          Quay lại Đơn mua
+          Quay lại danh sách đơn
         </Link>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -64,8 +68,11 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6 border-b border-outline-variant border-dashed pb-4">
                 <h2 className="font-headline-sm font-bold">Trạng thái đơn hàng</h2>
+                {/* The outcome first, then the parcel. Reading the shipment whenever there
+                    was one made a cancelled order whose carrier row still said `in-transit`
+                    render as if it were on its way. */}
                 <span className="font-label-md text-primary font-bold uppercase">
-                  {transport ? TRANSPORT_STATUS_VI[transport.status] : ORDER_STATE_VI[order.state]}
+                  {orderStatusLabel(order)}
                 </span>
               </div>
 
@@ -97,9 +104,7 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
                   <span className="material-symbols-outlined">store</span>
                   {order.seller.name}
                 </h3>
-                <Button variant="outline" size="sm" icon={<span className="material-symbols-outlined">chat</span>}>
-                  Liên hệ Shop
-                </Button>
+                <OrderContactButton order={order} size="sm" />
               </div>
 
               <div className="flex flex-col gap-4">
@@ -171,18 +176,23 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
                 <span className="font-price-lg text-primary text-xl font-bold">{formatPrice(goodsTotal + shippingFee)}</span>
               </div>
 
-              {/* Every problem with an order — a parcel that never came, an item that is
-                  not what was described, a payment that went wrong — is a ticket of the
-                  matching kind, carrying this order's id. */}
+              {/* Everything this order's two parties may still do about it, in the one
+                  place with enough context to do it — a refund needs a reason and photos,
+                  a receipt needs the unboxing evidence. */}
               <div className="flex flex-col gap-2 border-t border-outline-variant pt-6 mt-6">
+                <OrderActions order={order} variant="detail" />
+
+                {/* Every problem with an order — a parcel that never came, an item that is
+                    not what was described, a payment that went wrong — is a ticket of the
+                    matching kind, carrying this order's id. Where the parcel *is* comes
+                    from the carrier's webhook and only staff may correct it, so this is
+                    what a seller who sees it wrong has instead of a status button. */}
                 <Link href={`/support?kind=order-issue&ref_id=${order.id}`} className="block">
-                  <Button variant="outline" fullWidth>
+                  <Button variant="ghost" fullWidth>
                     Báo cáo sự cố đơn hàng
                   </Button>
                 </Link>
               </div>
-              
-              <OrderActions order={order} />
             </div>
 
           </div>

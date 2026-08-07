@@ -1,0 +1,155 @@
+import type { AccountId, Order, Transport } from "@/api/generated/types.gen"
+
+/**
+ * What may be done to an order, derived from the order itself.
+ *
+ * Three screens render order buttons — the buyer's list, the dashboard feed and the
+ * detail page — and each used to decide for itself. They disagreed: only the dashboard
+ * offered the seller's 48-hour answer, only the detail page offered a receipt, and none
+ * of them offered a cancellation at all, though the route has always been there. So the
+ * rules live here once, as plain functions over `Order`, and the buttons are one
+ * component built from them.
+ *
+ * Every predicate mirrors the server's own guard, deliberately: a button is a claim about
+ * what the route will accept, and one that asks a question the service does not ask is a
+ * 409 the user has to read.
+ */
+
+/** `domain.Transport.Shipped` — what makes `Cancel` refuse. `pending` has not moved. */
+export function hasShipped(transport: Transport | null): boolean {
+	if (!transport) return false
+	switch (transport.status) {
+		case "picked-up":
+		case "in-transit":
+		case "delivered":
+		case "returned":
+		case "failed":
+			return true
+		default:
+			return false
+	}
+}
+
+/** `domain.Order.Settled` — an outcome was reached and nothing is owed either way. */
+export function isFinished(order: Order): boolean {
+	return order.state === "completed" || order.state === "cancelled"
+}
+
+export function isAwaitingConfirmation(order: Order): boolean {
+	return order.state === "awaiting-confirmation"
+}
+
+/**
+ * The parcel has not left, so the escrow — carriage included — goes back whole.
+ *
+ * True for **both** parties: the route lets anyone on the order cancel and then refuses
+ * on `Cancel(transport.Shipped())`, so the button asks exactly the question the service
+ * asks. This is the window that was missing everywhere on the web client.
+ */
+export function canCancel(order: Order): boolean {
+	return !isFinished(order) && !hasShipped(order.transport)
+}
+
+/**
+ * The buyer saying the goods arrived, which starts the seller's 72-hour payout clock.
+ *
+ * `state === "open"` is not redundant beside the parcel: it means the seller accepted.
+ * Reading the shipment alone let an `awaiting-confirmation` order whose transport row
+ * said `delivered` invite a receipt for a sale nobody had confirmed.
+ */
+export function canConfirmReceipt(order: Order): boolean {
+	return (
+		order.state === "open" &&
+		order.received_at === null &&
+		order.transport?.status === "delivered"
+	)
+}
+
+/**
+ * The buyer's other exit, and the complement of {@link canCancel} by design: before the
+ * parcel moves a cancellation returns everything at once, and afterwards a refund is the
+ * only route the service will take (`CreateRefund` refuses a settled order).
+ */
+export function canRequestRefund(order: Order): boolean {
+	return !isFinished(order) && hasShipped(order.transport)
+}
+
+/**
+ * Feedback is blind and one submission per direction, so it opens only at the end — and
+ * for both sides, since a seller who cannot rate leaves the buyer's rating waiting on the
+ * blind window rather than on them.
+ *
+ * Narrower than the service, which only refuses `open`: a cancelled sale is one that never
+ * happened, and offering to rate it invites a score for a parcel nobody sent.
+ */
+export function canRate(order: Order): boolean {
+	return order.state === "completed"
+}
+
+/** The outcome first, then the parcel: an order that ended says so whatever the carrier last reported. */
+export function orderStatusLabel(order: Order): string {
+	if (order.state === "cancelled") return "Đã hủy"
+	if (order.state === "completed") return "Hoàn thành"
+	// Worded for neither side — who waits on whom is said by orderStatusLine.
+	if (order.state === "awaiting-confirmation") return "Chờ xác nhận"
+	switch (order.transport?.status) {
+		case undefined:
+		case null:
+			return "Đang xử lý"
+		case "pending":
+			return "Chờ lấy hàng"
+		case "picked-up":
+			return "Đã lấy hàng"
+		case "in-transit":
+			return "Đang giao"
+		case "delivered":
+			return "Đã giao"
+		case "returned":
+			return "Đã trả về"
+		case "failed":
+			return "Giao thất bại"
+		case "cancelled":
+			return "Vận chuyển đã hủy"
+	}
+}
+
+/**
+ * The status as a sentence about whose move it is.
+ *
+ * Only `awaiting-confirmation` needs one: it is the single state where the two sides are
+ * looking at different facts — a clock for the seller, held money for the buyer.
+ */
+export function orderStatusLine(order: Order, { selling }: { selling: boolean }): string {
+	if (!isAwaitingConfirmation(order)) return orderStatusLabel(order)
+
+	const left = remainingLabel(order.confirmation_deadline_at)
+	if (selling) return left ? `Cần bạn xác nhận · còn ${left}` : "Cần bạn xác nhận"
+
+	const held = new Intl.NumberFormat("vi-VN", {
+		style: "currency",
+		currency: order.currency,
+	}).format(order.total)
+	return `ShopNexus đang giữ ${held} · chờ người bán xác nhận`
+}
+
+/**
+ * "4 giờ", "12 phút", "đã quá hạn" — readable at a glance, because an absolute timestamp
+ * makes the reader do the subtraction.
+ */
+export function remainingLabel(deadline: string | null): string | null {
+	if (!deadline) return null
+	const left = new Date(deadline).getTime() - Date.now()
+	if (left <= 0) return "đã quá hạn"
+	const minutes = Math.floor(left / 60_000)
+	if (minutes >= 1440) return `${Math.floor(minutes / 1440)} ngày`
+	if (minutes >= 60) return `${Math.floor(minutes / 60)} giờ`
+	return `${minutes} phút`
+}
+
+/** Which side of the order the viewer is on. Neither, for a moderator or a signed-out reader. */
+export function sideOf(order: Order, me: AccountId | undefined) {
+	return {
+		isBuyer: me !== undefined && order.buyer.id === me,
+		isSeller: me !== undefined && order.seller.id === me,
+	}
+}

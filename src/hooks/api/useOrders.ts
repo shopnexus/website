@@ -10,11 +10,15 @@ import {
 	postOrdersByIdReceipt,
 	postOrdersByIdCancellation,
 	postOrdersByIdRefunds,
+	postOrdersByOrderIdFeedback,
+	postOrdersUploads,
+	postOrdersUploadsByIdConfirmation,
 	postShippingQuotes,
 } from "@/api/generated/sdk.gen"
 import {
 	getDraftsByIdOptions,
 	getOrdersByIdOptions,
+	getOrdersByOrderIdFeedbackOptions,
 	getOrdersInfiniteOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import type {
@@ -26,11 +30,13 @@ import type {
 	ListingId,
 	Order,
 	OrderState,
+	ResourceId,
 	ShippingQuotesRequest,
 } from "@/api/generated/types.gen"
 import { useListings } from "./useCatalog"
 import { OPERATIONS, invalidate } from "@/api/invalidate"
 import { cursorPagination, flattenPages } from "@/api/pagination"
+import { sameOriginUploadUrl } from "@/api/upload"
 import { unwrapData } from "@/api/unwrap"
 
 export type OrderRole = "buyer" | "seller"
@@ -226,12 +232,54 @@ export function useCheckout() {
  */
 
 /**
+ * A photo of the unboxing, or of what a refund is being asked for.
+ *
+ * Three steps and the middle one leaves this API: a signed slot, a PUT straight to
+ * storage, then a confirmation that makes the row real. The order routes have their own
+ * pair — the resource has to belong to the module that will read it back, so an avatar's
+ * upload route cannot stand in.
+ *
+ * `postOrdersByIdReceipt` refuses an empty list, so a failure here has to fail the whole
+ * confirmation rather than send one with nothing attached.
+ */
+export function useUploadOrderEvidence() {
+	return useMutation({
+		mutationFn: async (file: File): Promise<ResourceId> => {
+			const { data: reserved } = await postOrdersUploads({
+				body: { filename: file.name, mime: file.type, size: file.size },
+				throwOnError: true,
+			})
+			const slot = reserved.data
+
+			const put = await fetch(sameOriginUploadUrl(slot.url), {
+				method: "PUT",
+				body: file,
+				headers: { "Content-Type": file.type, ...slot.headers },
+			})
+			if (!put.ok) throw new Error("Tải ảnh lên thất bại.")
+
+			const { data: confirmed } = await postOrdersUploadsByIdConfirmation({
+				path: { id: slot.resource_id },
+				throwOnError: true,
+			})
+			return confirmed.data.id
+		},
+	})
+}
+
+/**
  * Confirms receipt of the order (buyer only).
  */
 export function useConfirmReceipt() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ orderId, attachments }: { orderId: OrderId; attachments: string[] }) => {
+		mutationFn: async ({
+			orderId,
+			attachments,
+		}: {
+			orderId: OrderId
+			attachments: ResourceId[]
+		}) => {
 			const { data } = await postOrdersByIdReceipt({
 				path: { id: orderId },
 				body: { attachments },
@@ -266,7 +314,7 @@ export function useCancelOrder() {
 export function useCreateRefund() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ orderId, reason, attachments }: { orderId: OrderId; reason: string; attachments?: string[] }) => {
+		mutationFn: async ({ orderId, reason, attachments }: { orderId: OrderId; reason: string; attachments?: ResourceId[] }) => {
 			const { data } = await postOrdersByIdRefunds({
 				path: { id: orderId },
 				body: { reason, attachments },
@@ -275,6 +323,49 @@ export function useCreateRefund() {
 			return data.data
 		},
 		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order),
+	})
+}
+
+/**
+ * Both directions of one order's feedback, as far as the caller may see them.
+ *
+ * `theirs` stays null while the rating is blind and `theirs_submitted` says whether
+ * anything is waiting — which is what lets the rating dialog say "họ đã đánh giá" without
+ * showing what they wrote.
+ */
+export function useOrderFeedback(orderId: OrderId | undefined) {
+	return useQuery({
+		...getOrdersByOrderIdFeedbackOptions({ path: { orderID: orderId! } }),
+		select: unwrapData,
+		enabled: Boolean(orderId),
+	})
+}
+
+/**
+ * Rate the counterparty. One submission per direction, so it cannot be revised: a rating
+ * editable after seeing the other side is not blind. The direction is derived from which
+ * side of the order the caller is on and is never sent.
+ */
+export function useSubmitFeedback() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async ({
+			orderId,
+			rating,
+			comment,
+		}: {
+			orderId: OrderId
+			rating: number
+			comment?: string
+		}) => {
+			const { data } = await postOrdersByOrderIdFeedback({
+				path: { orderID: orderId },
+				body: { rating, comment },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () => invalidate(queryClient, OPERATIONS.orderFeedback),
 	})
 }
 

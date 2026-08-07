@@ -7,6 +7,8 @@ import Tabs from "@/components/ui/Tabs";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { ORDER_STATE_VI } from "@/lib/dictionaries";
+import OrderActions from "@/components/orders/OrderActions";
+import OrderContactButton from "@/components/orders/OrderContactButton";
 import { useOrderListings, useOrdersFeed } from "@/hooks/api/useOrders";
 import type { OrderState } from "@/api/generated/types.gen";
 
@@ -15,16 +17,16 @@ const formatPrice = (price: number) =>
 
 type Tab = "all" | OrderState;
 
-const STATUS_BADGES: Record<OrderState, { label: string; className: string }> = {
+// Colour only — the words come from ORDER_STATE_VI, because a second copy of them is how
+// one screen ended up calling a completed order "Giao thành công" and every other one
+// "Hoàn thành".
+const STATUS_STYLES: Record<OrderState, string> = {
   // Paid, but the seller has not accepted it yet — nothing has been handed to a carrier, and
   // that is exactly what a buyer on this screen is waiting to hear about.
-  "awaiting-confirmation": {
-    label: "Chờ người bán xác nhận",
-    className: "bg-tertiary-container text-on-tertiary-container",
-  },
-  open: { label: "Đang xử lý", className: "bg-primary/10 text-primary border border-primary/20" },
-  completed: { label: "Giao thành công", className: "bg-secondary-container text-on-secondary-container" },
-  cancelled: { label: "Đã hủy", className: "bg-error-container text-on-error-container" },
+  "awaiting-confirmation": "bg-tertiary-container text-on-tertiary-container",
+  open: "bg-primary/10 text-primary border border-primary/20",
+  completed: "bg-secondary-container text-on-secondary-container",
+  cancelled: "bg-error-container text-on-error-container",
 };
 
 export default function OrdersPage() {
@@ -40,8 +42,12 @@ export default function OrdersPage() {
 
   const listingsById = useOrderListings(orders);
 
+  // `awaiting-confirmation` had no tab, so the one state with a 48-hour clock on it — and
+  // the buyer's only window to cancel and get everything back — was reachable under 'Tất
+  // cả' alone.
   const tabs = [
     { id: "all", label: "Tất cả" },
+    { id: "awaiting-confirmation", label: ORDER_STATE_VI["awaiting-confirmation"] },
     { id: "open", label: ORDER_STATE_VI.open },
     { id: "completed", label: ORDER_STATE_VI.completed },
     { id: "cancelled", label: ORDER_STATE_VI.cancelled },
@@ -67,8 +73,6 @@ export default function OrdersPage() {
             </div>
           ) : (
             orders.map((order, idx) => {
-              const badge = STATUS_BADGES[order.state];
-
               return (
                 <div key={order.id} className={["bg-surface border border-outline-variant p-6 shadow-sm", idx === 0 ? "rounded-b-2xl" : "rounded-2xl"].join(" ")}>
                   <div className="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant border-dashed">
@@ -84,7 +88,9 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-on-surface-variant hidden sm:inline-block">Mã ĐH: {order.id}</span>
                       <span className="text-on-surface-variant hidden sm:inline-block">|</span>
-                      <Badge variant="surface" className={badge.className}>{badge.label}</Badge>
+                      <Badge variant="surface" className={STATUS_STYLES[order.state]}>
+                        {ORDER_STATE_VI[order.state]}
+                      </Badge>
                     </div>
                   </div>
 
@@ -129,25 +135,18 @@ export default function OrdersPage() {
                         <span className="font-price-lg text-primary text-xl font-bold">{formatPrice(order.total)}</span>
                       </div>
 
-                      <div className="flex gap-2 w-full sm:w-auto">
-                        {order.state === "open" && (
-                          <>
-                            <Link href={`/orders/${order.id}`} className="flex-1 sm:flex-none">
-                              <Button variant="primary" className="w-full">Theo dõi đơn hàng</Button>
-                            </Link>
-                            <Button variant="outline" className="flex-1 sm:flex-none hidden sm:flex">Liên hệ</Button>
-                          </>
-                        )}
-
-                        {order.state === "completed" && (
-                          <>
-                            <Button variant="primary" className="flex-1 sm:flex-none">Đánh giá</Button>
-                            <Button variant="outline" className="flex-1 sm:flex-none">Mua lại</Button>
-                            <Link href={`/orders/${order.id}`} className="hidden sm:block">
-                              <Button variant="ghost">Chi tiết</Button>
-                            </Link>
-                          </>
-                        )}
+                      {/* One matrix for every order screen. What used to be here was four
+                          buttons with no onClick between them — "Liên hệ", "Đánh giá",
+                          "Mua lại" — and nothing at all on an order awaiting the seller or
+                          on a cancelled one, so a buyer could not even open those. */}
+                      <div className="flex flex-wrap justify-end gap-2 w-full sm:w-auto">
+                        <OrderActions order={order} />
+                        <OrderContactButton order={order} size="sm" variant="ghost" />
+                        <Link href={`/orders/${order.id}`}>
+                          <Button variant="ghost" size="sm">
+                            {order.state === "open" ? "Theo dõi đơn hàng" : "Chi tiết"}
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>

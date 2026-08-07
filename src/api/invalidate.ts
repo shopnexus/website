@@ -33,6 +33,7 @@ export const OPERATIONS = {
 	conversationsUnread: "getConversationsUnreadCount",
 	orders: "getOrders",
 	order: "getOrdersById",
+	orderFeedback: "getOrdersByOrderIdFeedback",
 	offers: "getOffers",
 	// The single offer behind a negotiation card. This is the one the inbox actually
 	// renders (`OfferMessageCard` → `useOffer`), so a counter-offer that does not

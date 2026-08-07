@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { ORDER_STATE_VI } from '@/lib/dictionaries';
-import type { Listing, ListingId, Order, OrderId } from '@/api/generated/types.gen';
+import { orderStatusLine } from '@/lib/order-state';
+import type { Listing, ListingId, Order } from '@/api/generated/types.gen';
 import { RoleState } from '../hooks/useOrdersFeed';
-import { useConfirmOrder, useDeclineOrder } from '@/hooks/api/useOrders';
+import OrderActions from '@/components/orders/OrderActions';
 
 interface OrderFeedProps {
   orders: Order[];
@@ -76,17 +77,17 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
                   {role === 'buying' ? order.seller?.name || 'Ẩn danh' : order.buyer?.name || 'Khách hàng'}
                 </span>
               </p>
+              {/* Who is waiting on whom, and how long is left of it — the row's whole job is
+                  that nothing with a clock on it goes unnoticed. */}
+              <p className="text-xs text-on-surface-variant">
+                {orderStatusLine(order, { selling: role === 'selling' })}
+              </p>
             </div>
             <div className="flex flex-col items-end gap-1">
               <span className="text-lg font-bold text-on-surface">{formatPrice(totalAmount)}</span>
-              <div className="flex gap-2 mt-2 md:mt-0">
-                {role === 'selling' && order.state === 'awaiting-confirmation' && (
-                  <SellerAnswer orderId={order.id} />
-                )}
-                {role === 'selling' && order.state === 'open' && (
-                  <SellerReportIssue orderId={order.id} />
-                )}
-                <Link href={`/orders/${order.id}`} className="px-4 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-bold shadow-sm hover:opacity-90 transition-opacity">
+              <div className="flex flex-wrap justify-end items-center gap-2 mt-2 md:mt-0">
+                <OrderActions order={order} />
+                <Link href={`/orders/${order.id}`} className="px-4 py-1.5 rounded-lg bg-surface-container text-on-surface-variant text-xs font-bold hover:bg-surface-container-high transition-colors">
                   Chi tiết
                 </Link>
               </div>
@@ -96,63 +97,4 @@ export default function OrderFeed({ orders, listingsById, role, isLoading }: Ord
       })}
     </div>
   );
-}
-
-/**
- * There is no "Đã giao cho ĐVVC" any more. Where the parcel is comes from the carrier's own
- * webhook and only staff may correct it: that status decides whether the buyer may still
- * cancel and take the escrow back, so a seller saying it had left — with nothing behind the
- * claim — spent days of the buyer's rights on one request. What is left is asking for it to
- * be looked at.
- */
-function SellerReportIssue({ orderId }: { orderId: OrderId }) {
-  return (
-    <Link
-      href={`/support?kind=order-issue&ref_id=${orderId}`}
-      className="px-4 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-bold hover:bg-surface-container transition-colors"
-    >
-      Báo vấn đề
-    </Link>
-  );
-}
-
-
-/**
- * The seller's answer to a paid order: accept it, or refuse it with a reason.
- *
- * Only these two. A seller who does neither is chased by staff after 48 hours — the platform will
- * not void the sale on their behalf, and will not post the goods either — so leaving it alone is
- * not a third option that quietly resolves itself.
- */
-function SellerAnswer({ orderId }: { orderId: OrderId }) {
-  const confirm = useConfirmOrder();
-  const decline = useDeclineOrder();
-  // Failures are not rendered here: the QueryClient toasts every mutation error once, from the
-  // server's own code, so a second copy beside the button would say the same thing twice.
-  const busy = confirm.isPending || decline.isPending;
-
-  return (
-    <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => confirm.mutate(orderId)}
-          className="px-4 py-1.5 rounded-lg bg-secondary-container text-on-secondary-container text-xs font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          Xác nhận
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            // A reason is required by the contract and kept on the order, so it is asked for
-            // rather than defaulted: "Đã hủy" with no cause tells the buyer nothing.
-            const reason = window.prompt('Vì sao bạn từ chối đơn này?')?.trim();
-            if (reason) decline.mutate({ orderId, reason });
-          }}
-          className="px-4 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-bold hover:bg-surface-container transition-colors disabled:opacity-50"
-        >
-          Từ chối
-        </button>
-    </div>  );
 }
