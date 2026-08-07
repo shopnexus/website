@@ -95,11 +95,12 @@ export default function RefundActions({
 					action === "escalate" ? (
 						// Not a route of its own: handing a case to staff *is* opening a
 						// `refund-dispute` ticket, and the verdict comes back as that ticket
-						// closing. The id is carried in the link, because the support form
-						// otherwise asks the user to type an `rfd_…` by hand.
+						// closing. The ref is the **order**, not the refund: a dispute is filed
+						// against the sale, which is what lands both parties' complaints about
+						// it in one thread. Sending the refund id is `invalid_id`.
 						<Link
 							key={action}
-							href={`/support?kind=refund-dispute&ref_id=${refund.id}`}
+							href={`/support?kind=refund-dispute&ref_id=${refund.order_id}`}
 							className="block"
 						>
 							<Button variant="outline" fullWidth>

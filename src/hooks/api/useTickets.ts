@@ -70,7 +70,10 @@ export const TICKET_REF_PREFIX: Partial<Record<TicketKind, string>> = {
 	"report-message": "msg",
 	"report-review": "rvw",
 	"report-review-reply": "rpl",
-	"refund-dispute": "rfd",
+	// An order, not a refund. A refund dispute is filed against the *sale* — that is what
+	// puts both parties' complaints about it in one thread — so `rfd_…` here is refused
+	// with `invalid_id` before the ticket is ever built.
+	"refund-dispute": "ord",
 	"order-issue": "ord",
 }
 
