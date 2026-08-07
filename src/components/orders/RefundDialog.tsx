@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
@@ -27,6 +28,7 @@ export default function RefundDialog({
 	open: boolean
 	onClose: () => void
 }) {
+	const router = useRouter()
 	const [reason, setReason] = useState("")
 	const [evidence, setEvidence] = useState<Evidence[]>([])
 	const createRefund = useCreateRefund()
@@ -35,11 +37,14 @@ export default function RefundDialog({
 		createRefund.mutate(
 			{ orderId, reason: reason.trim(), attachments: evidence.map((item) => item.id) },
 			{
-				onSuccess: () => {
+				onSuccess: (refund) => {
 					toast.success("Đã gửi yêu cầu hoàn tiền")
 					setReason("")
 					setEvidence([])
 					onClose()
+					// Straight to the case. Submitting used to drop the buyer back on the order
+					// with no sign anything had happened, and nowhere to follow it.
+					router.push(`/refunds/${refund.id}`)
 				},
 			},
 		)

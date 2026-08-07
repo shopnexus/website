@@ -18,6 +18,7 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
     { name: "Xác minh danh tính", path: "/dashboard/verification", icon: "verified_user" },
     { name: "Sản phẩm của tôi", path: "/dashboard/products", icon: "inventory_2" },
     { name: "Đơn hàng", path: "/orders", icon: "receipt_long" },
+    { name: "Hoàn tiền", path: "/refunds", icon: "assignment_return" },
     { name: "Thống kê", path: "/dashboard/analytics", icon: "bar_chart" },
     { name: "Cài đặt Shop", path: "/dashboard/settings", icon: "settings" },
     { name: "Cài đặt thông báo", path: "/dashboard/notifications", icon: "notifications" },

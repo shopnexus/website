@@ -33,7 +33,9 @@ export default function OrderInbox() {
 	} = useOrderInbox()
 
 	return (
-		<main className="max-w-[880px] mx-auto px-4 md:px-8 py-8 pb-24 min-h-screen">
+		// A <div>, not a <main>: the root layout already wraps children in one, and a
+		// second landmark makes a screen reader announce two "main" regions.
+		<div className="max-w-[880px] mx-auto px-4 md:px-8 py-8 pb-24 min-h-screen">
 			<header className="mb-8">
 				<h1 className="font-headline-md text-3xl font-extrabold tracking-tight text-on-surface">
 					Đơn hàng
@@ -77,7 +79,7 @@ export default function OrderInbox() {
 					)}
 				</div>
 			)}
-		</main>
+		</div>
 	)
 }
 
