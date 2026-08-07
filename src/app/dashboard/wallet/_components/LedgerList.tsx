@@ -82,9 +82,9 @@ export default function LedgerList({
             const direction = movementDirection(tx);
             return (
               <li key={tx.seq} className="p-5 flex items-start gap-4">
-                <span
+                <div
                   className={[
-                    "material-symbols-outlined w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-[20px]",
+                    "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
                     direction === "in"
                       ? "bg-secondary-container text-on-secondary-container"
                       : direction === "out"
@@ -92,8 +92,10 @@ export default function LedgerList({
                         : "bg-surface-container-high text-on-surface-variant",
                   ].join(" ")}
                 >
-                  {KIND_ICONS[tx.kind]}
-                </span>
+                  <span className="material-symbols-outlined text-[20px] leading-none">
+                    {KIND_ICONS[tx.kind]}
+                  </span>
+                </div>
 
                 <div className="min-w-0 flex-1">
                   <div className="font-label-md font-semibold text-on-surface">

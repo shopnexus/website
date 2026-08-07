@@ -41,9 +41,9 @@ export default function OptionList({
           key={option.id}
           className="flex items-start gap-4 p-4 bg-surface rounded-xl border border-outline-variant"
         >
-          <span className="material-symbols-outlined w-11 h-11 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
-            {icon}
-          </span>
+          <div className="w-11 h-11 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined">{icon}</span>
+          </div>
           <div className="min-w-0">
             <p className="font-label-md font-bold text-on-surface">{option.name}</p>
             {option.description && (

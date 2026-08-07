@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import QuantitySelector from "@/components/ui/QuantitySelector";
 import { useCart, type ResolvedCartItem } from "@/hooks/api/useCart";
+import { useCreateDraft } from "@/hooks/api/useOrders";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { toast } from "react-hot-toast";
 import type { AccountSummary } from "@/api/generated/types.gen";
 
 const formatPrice = (price: number) =>
@@ -14,7 +18,39 @@ const formatPrice = (price: number) =>
 /** A flat placeholder until checkout quotes the real thing per parcel and address. */
 
 export default function CartPage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const { items, subtotal, isLoading, updateQuantity, removeItem } = useCart();
+  const createDraft = useCreateDraft();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+
+  /**
+   * API constraint: A draft (`POST /drafts`) is created for exactly one listing.
+   * Therefore, we only allow selecting one listing at a time in the cart.
+   */
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để thanh toán");
+      router.push("/login?callbackUrl=/cart");
+      return;
+    }
+
+    if (!selectedListingId) {
+      toast.error("Vui lòng chọn 1 sản phẩm để thanh toán");
+      return;
+    }
+
+    setIsCheckingOut(true);
+    try {
+      const draft = await createDraft.mutateAsync({ listing_id: selectedListingId });
+      router.push(`/checkout?draft_id=${draft.id}`);
+    } catch {
+      // Global error handler shows the toast.
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   const groupedItems = useMemo(() => {
     const groups = new Map<string, { seller: AccountSummary; items: ResolvedCartItem[] }>();
@@ -27,10 +63,9 @@ export default function CartPage() {
     return [...groups.values()];
   }, [items]);
 
-  // No shipping here: it is quoted per address by the carrier at checkout, so any figure
-  // the cart shows is invented — and this one was being added into the total people read
-  // as what they would pay.
-  const total = subtotal;
+  // The cart total is now calculated based on the selected listing
+  const selectedItems = items.filter((item) => item.listing.id === selectedListingId);
+  const total = selectedItems.reduce((acc, item) => acc + (item.variant?.price ?? 0) * item.quantity, 0);
 
   if (isLoading && items.length === 0) {
     return (
@@ -61,7 +96,7 @@ export default function CartPage() {
                 <div key={group.seller.id} className="bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-sm">
                   <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" className="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary focus:ring-offset-background" defaultChecked />
+                      <span className="material-symbols-outlined text-primary">storefront</span>
                       <span className="font-headline-sm text-base font-bold text-on-surface flex items-center gap-1">
                         {group.seller.name}
                       </span>
@@ -78,7 +113,13 @@ export default function CartPage() {
                       return (
                       <div key={cartItemId} className={["p-6 flex flex-col sm:flex-row gap-4", iIdx > 0 ? "border-t border-outline-variant" : ""].join(" ")}>
                         <div className="flex items-start gap-4">
-                          <input type="checkbox" className="w-5 h-5 mt-4 rounded text-primary border-outline-variant focus:ring-primary focus:ring-offset-background" defaultChecked />
+                          <input
+                            type="radio"
+                            name="cart-item-selection"
+                            checked={listing.id === selectedListingId}
+                            onChange={() => setSelectedListingId(listing.id)}
+                            className="w-5 h-5 mt-4 rounded-full text-primary border-outline-variant focus:ring-primary focus:ring-offset-background cursor-pointer"
+                          />
                           <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-outline-variant shrink-0">
                             {image?.url ? (
                               <Image src={image.url} alt={listing.name} fill className="object-cover" />
@@ -136,8 +177,8 @@ export default function CartPage() {
                 
                 <div className="flex flex-col gap-4 text-body-md text-on-surface-variant border-b border-outline-variant pb-6 mb-6">
                   <div className="flex justify-between">
-                    <span>Tạm tính ({items.length} sản phẩm)</span>
-                    <span className="text-on-surface font-medium">{formatPrice(subtotal)}</span>
+                    <span>Tạm tính ({selectedItems.reduce((acc, item) => acc + item.quantity, 0)} sản phẩm)</span>
+                    <span className="text-on-surface font-medium">{formatPrice(total)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Phí vận chuyển</span>
@@ -152,11 +193,15 @@ export default function CartPage() {
                   </span>
                 </div>
                 
-                <Link href="/checkout" className="block w-full">
-                  <Button variant="primary" fullWidth size="lg">
-                    Thanh toán
-                  </Button>
-                </Link>
+                <Button
+                  variant="primary"
+                  fullWidth
+                  size="lg"
+                  disabled={isCheckingOut || !selectedListingId}
+                  onClick={handleCheckout}
+                >
+                  {isCheckingOut ? "Đang tạo đơn hàng..." : "Thanh toán"}
+                </Button>
                 
                 <div className="mt-6 p-4 bg-surface-container-low rounded-xl flex items-start gap-3">
                   <span className="material-symbols-outlined text-primary mt-0.5">verified_user</span>
