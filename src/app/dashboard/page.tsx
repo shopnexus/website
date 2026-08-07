@@ -24,7 +24,10 @@ export default function DashboardPage(){
   const { listings: myProducts } = useListingsFeed({ mine: true, limit: 3 });
   const { data: wallets } = useWallets();
   const { data: reputation } = useReputation(user?.id, "seller");
-  const { orders: openOrders } = useOrdersFeed("seller", "open", 5);
+  // `open` means the seller already confirmed and the parcel is with a carrier — the
+  // opposite of needing them. `awaiting-confirmation` is the state with a 48-hour clock
+  // on it, and it was the one this widget never showed.
+  const { orders: openOrders } = useOrdersFeed("seller", "awaiting-confirmation", 5);
   const { data: chatUnread } = useChatUnreadCount();
 
   // The seller's own currency, whichever wallet they actually hold. Available and held
@@ -191,8 +194,8 @@ export default function DashboardPage(){
                       </div>
                       <div className="font-body-sm text-on-surface-variant mt-1">
                         {openOrders.length > 1
-                          ? `${openOrders.length} đơn đang chờ xử lý`
-                          : "Chờ xác nhận & chuẩn bị hàng"}
+                          ? `${openOrders.length} đơn đang chờ bạn xác nhận`
+                          : "Đang chờ bạn xác nhận"}
                       </div>
                     </div>
                     <span className="text-xs text-on-surface-variant shrink-0">

@@ -141,7 +141,7 @@ function CheckoutContent() {
   useEffect(() => {
     if (session?.status === "success") {
       toast.success("Thanh toán thành công! Đơn hàng đã được tạo.");
-      router.push("/dashboard/orders");
+      router.push("/orders");
     }
   }, [session?.status, router]);
 

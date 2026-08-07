@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Danh sách các trang yêu cầu đăng nhập
-const protectedRoutes = ["/dashboard", "/inbox", "/sell", "/settings", "/cart", "/notifications"];
+const protectedRoutes = ["/dashboard", "/orders", "/inbox", "/sell", "/settings", "/cart", "/notifications"];
 // Danh sách các trang chỉ dành cho khách (guest)
 const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
 

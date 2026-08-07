@@ -42,11 +42,14 @@ import { unwrapData } from "@/api/unwrap"
 export type OrderRole = "buyer" | "seller"
 
 /**
- * Orders, as buyer or as seller. Cursor-paginated: the list index is
- * (owner_id, created_at DESC), so a keyset seek is exact and does not drift when an
- * order arrives at the head mid-page.
+ * Orders. Cursor-paginated: the list index is (owner_id, created_at DESC), so a keyset
+ * seek is exact and does not drift when an order arrives at the head mid-page.
+ *
+ * `role` is optional and omitting it is the normal case — the route then answers every
+ * order the caller is a party to, either side. A screen that asks "what needs me" spans
+ * both, and asking twice would need two cursors merged by hand.
  */
-export function useOrdersFeed(role: OrderRole, state?: OrderState, limit = 20) {
+export function useOrdersFeed(role?: OrderRole, state?: OrderState, limit = 20) {
 	const query = useInfiniteQuery({
 		...getOrdersInfiniteOptions({ query: { role, state, limit } }),
 		...cursorPagination,

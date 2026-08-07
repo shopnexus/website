@@ -55,9 +55,7 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
     <div className="bg-surface-container-lowest min-h-screen py-8 pb-24">
       <div className="max-w-[1000px] mx-auto px-4 md:px-8">
 
-        {/* The unified list, not /orders: both sides of a sale open this page, and the
-            buyer-only list is a dead end for the seller who arrived from the dashboard. */}
-        <Link href="/dashboard/orders" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-label-md">
+        <Link href="/orders" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors mb-6 font-label-md">
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           Quay lại danh sách đơn
         </Link>

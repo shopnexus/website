@@ -116,33 +116,55 @@ export function orderStatusLabel(order: Order): string {
 /**
  * The status as a sentence about whose move it is.
  *
- * Only `awaiting-confirmation` needs one: it is the single state where the two sides are
- * looking at different facts — a clock for the seller, held money for the buyer.
+ * Two states need one, and they are exactly the two where an order is blocked on a person
+ * rather than on a courier — so the sentence names the work instead of the position of the
+ * parcel. "Đã giao" beside a button reading "Đã nhận hàng" was a status telling the reader
+ * a fact they could see, while the thing they had to *do* went unsaid.
  */
-export function orderStatusLine(order: Order, { selling }: { selling: boolean }): string {
-	if (!isAwaitingConfirmation(order)) return orderStatusLabel(order)
+export function orderStatusLine(
+	order: Order,
+	{ selling, now }: { selling: boolean; now?: number },
+): string {
+	if (isAwaitingConfirmation(order)) {
+		const left = remainingLabel(order.confirmation_deadline_at, now)
+		if (selling) return left ? `Cần bạn xác nhận · còn ${left}` : "Cần bạn xác nhận"
 
-	const left = remainingLabel(order.confirmation_deadline_at)
-	if (selling) return left ? `Cần bạn xác nhận · còn ${left}` : "Cần bạn xác nhận"
+		const held = new Intl.NumberFormat("vi-VN", {
+			style: "currency",
+			currency: order.currency,
+		}).format(order.total)
+		return `ShopNexus đang giữ ${held} · chờ người bán xác nhận`
+	}
 
-	const held = new Intl.NumberFormat("vi-VN", {
-		style: "currency",
-		currency: order.currency,
-	}).format(order.total)
-	return `ShopNexus đang giữ ${held} · chờ người bán xác nhận`
+	if (canConfirmReceipt(order)) {
+		return selling
+			? "Đã giao · chờ người mua xác nhận"
+			: "Hàng đã tới — xác nhận để hoàn tất đơn"
+	}
+
+	return orderStatusLabel(order)
 }
 
 /**
  * "4 giờ", "12 phút", "đã quá hạn" — readable at a glance, because an absolute timestamp
  * makes the reader do the subtraction.
+ *
+ * `now` is a parameter so a component can pass its ticking clock and stay a pure function
+ * of its props; reading it here would make the same render produce different output.
  */
-export function remainingLabel(deadline: string | null): string | null {
+export function remainingLabel(deadline: string | null, now: number = Date.now()): string | null {
 	if (!deadline) return null
-	const left = new Date(deadline).getTime() - Date.now()
+	const left = new Date(deadline).getTime() - now
 	if (left <= 0) return "đã quá hạn"
 	const minutes = Math.floor(left / 60_000)
 	if (minutes >= 1440) return `${Math.floor(minutes / 1440)} ngày`
-	if (minutes >= 60) return `${Math.floor(minutes / 60)} giờ`
+	// Two units inside the last day, because one is a lie in both directions here: flooring
+	// showed "1 giờ" the instant a two-hour window opened, and rounding up would have told
+	// a seller with 61 minutes left that they had two hours.
+	if (minutes >= 60) {
+		const rest = minutes % 60
+		return rest === 0 ? `${minutes / 60} giờ` : `${Math.floor(minutes / 60)} giờ ${rest} phút`
+	}
 	return `${minutes} phút`
 }
 
