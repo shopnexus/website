@@ -7,6 +7,7 @@ import Modal from "@/components/ui/Modal";
 import { IDENTITY_DOCUMENT_TYPE_VI } from "@/lib/dictionaries";
 import { needsExpiry } from "../_lib/identity.logic";
 import type { VerdictDraft } from "../types";
+import ChoiceGroup from "@/components/ui/ChoiceGroup";
 
 /**
  * The verdict.
@@ -57,34 +58,16 @@ export default function VerdictDialog({
           </p>
         </div>
 
-        <div className="flex gap-2" role="group" aria-label="Kết luận">
-          <button
-            type="button"
-            aria-pressed={verifying}
-            onClick={() => onDraftChange({ ...draft, status: "verified" })}
-            className={[
-              "flex-1 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer",
-              verifying
-                ? "bg-primary text-on-primary border-primary"
-                : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
-            ].join(" ")}
-          >
-            Xác thực
-          </button>
-          <button
-            type="button"
-            aria-pressed={!verifying}
-            onClick={() => onDraftChange({ ...draft, status: "rejected" })}
-            className={[
-              "flex-1 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer",
-              !verifying
-                ? "bg-error text-on-error border-error"
-                : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
-            ].join(" ")}
-          >
-            Từ chối
-          </button>
-        </div>
+        <ChoiceGroup
+          label="Kết luận"
+          value={draft.status}
+          onChange={(status) => onDraftChange({ ...draft, status })}
+          disabled={isPending}
+          choices={[
+            { value: "verified", label: "Xác thực" },
+            { value: "rejected", label: "Từ chối", tone: "danger" },
+          ]}
+        />
 
         {verifying && (
           <label className="block">
@@ -132,7 +115,7 @@ export default function VerdictDialog({
             onClick={onSubmit}
             disabled={isPending || Boolean(problem)}
           >
-            {isPending ? "Đang gửi…" : verifying ? "Xác thực" : "Từ chối"}
+            {isPending ? "Đang gửi…" : verifying ? "Ghi kết luận: xác thực" : "Ghi kết luận: từ chối"}
           </Button>
         </div>
       </div>

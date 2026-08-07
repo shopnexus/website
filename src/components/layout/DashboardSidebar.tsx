@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { isStaff } from "@/components/layout/AdminSidebar";
 
 interface NavItem {
   name: string;
@@ -57,6 +58,16 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
     },
     { label: null, items: [{ name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" }] },
   ];
+
+  // The staff surface had eleven working pages and nothing anywhere linking to them, so the
+  // only way in was typing the URL. Shown only to staff: to everyone else it would be a row
+  // that leads to a redirect.
+  if (isStaff(user?.role)) {
+    groups.splice(1, 0, {
+      label: "Vận hành",
+      items: [{ name: "Bảng điều hành", path: "/admin", icon: "admin_panel_settings" }],
+    });
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-73px)] bg-surface-container-lowest">

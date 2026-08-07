@@ -7,6 +7,7 @@ import Modal from "@/components/ui/Modal";
 import { formatMoney } from "@/lib/money";
 import { bankLabel } from "../_lib/withdrawals.logic";
 import type { ResolveDraft, ResolveMode } from "../types";
+import ChoiceGroup from "@/components/ui/ChoiceGroup";
 
 /**
  * The decision, with the consequence written above the button.
@@ -53,34 +54,16 @@ export default function ResolveWithdrawalDialog({
           </div>
         </div>
 
-        <div className="flex gap-2" role="group" aria-label="Quyết định">
-          <button
-            type="button"
-            aria-pressed={approving}
-            onClick={() => onModeChange("approve")}
-            className={[
-              "flex-1 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer",
-              approving
-                ? "bg-primary text-on-primary border-primary"
-                : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
-            ].join(" ")}
-          >
-            Duyệt chi
-          </button>
-          <button
-            type="button"
-            aria-pressed={!approving}
-            onClick={() => onModeChange("reject")}
-            className={[
-              "flex-1 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer",
-              !approving
-                ? "bg-error text-on-error border-error"
-                : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
-            ].join(" ")}
-          >
-            Từ chối
-          </button>
-        </div>
+        <ChoiceGroup
+          label="Quyết định"
+          value={mode}
+          onChange={onModeChange}
+          disabled={isPending}
+          choices={[
+            { value: "approve", label: "Duyệt chi" },
+            { value: "reject", label: "Từ chối", tone: "danger" },
+          ]}
+        />
 
         <p className="font-body-sm text-on-surface-variant leading-relaxed">
           {approving
@@ -134,7 +117,7 @@ export default function ResolveWithdrawalDialog({
             onClick={onSubmit}
             disabled={isPending || Boolean(problem)}
           >
-            {isPending ? "Đang gửi…" : approving ? "Duyệt chi" : "Từ chối"}
+            {isPending ? "Đang gửi…" : approving ? "Xác nhận duyệt chi" : "Xác nhận từ chối"}
           </Button>
         </div>
       </div>
