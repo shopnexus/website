@@ -53,8 +53,8 @@ export default function VerdictDialog({
           {/* Said out loud because the screen looks incomplete otherwise: there is nothing
               else to show, and a moderator hunting for the scans should stop hunting. */}
           <p className="font-body-sm text-on-surface-variant mt-2 leading-relaxed">
-            Nền tảng không lưu số giấy tờ hay ảnh chụp — chỉ lưu kết luận. Bạn đang xác nhận
-            kết quả kiểm tra của nhà cung cấp, không nhập lại thông tin giấy tờ.
+            Nền tảng không lưu số trên giấy tờ. Bạn đang xác nhận hoặc bác kết quả kiểm tra
+            của nhà cung cấp dựa trên ảnh ở thẻ hồ sơ, không nhập lại thông tin giấy tờ.
           </p>
         </div>
 

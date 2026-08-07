@@ -4,14 +4,14 @@ import type { AdminIdentityDocument } from "@/api/generated/types.gen";
 import Button from "@/components/ui/Button";
 import { IDENTITY_DOCUMENT_TYPE_VI, IDENTITY_STATUS_VI } from "@/lib/dictionaries";
 import { STATUS_CHIP, STATUS_RAIL, isExpired, needsExpiry } from "../_lib/identity.logic";
+import ScanStrip from "./ScanStrip";
 
 /**
  * One case in the queue.
  *
- * There is no document number and no scan on this screen because the platform stores
- * neither — the vendor performs the check and only its verdict is kept. So what a
- * moderator is given is the subject, the type, and which vendor answered; anything that
- * looked like a document number here would be invented.
+ * There is no document *number* — the platform stores none, and anything that looked like
+ * one here would be invented. The scans are here, because a moderator overruling the
+ * vendor's verdict is deciding a payout, and the alternative is a rubber stamp.
  */
 export default function IdentityCard({
   entry,
@@ -71,6 +71,10 @@ export default function IdentityCard({
               {document.rejection_reason}
             </p>
           )}
+
+          <div className="mt-4">
+            <ScanStrip scans={entry.scans} />
+          </div>
         </div>
 
         {document.status === "pending" && (

@@ -16,9 +16,9 @@ export default function AdminIdentityDocumentsPage() {
           Xác minh danh tính
         </h1>
         <p className="text-on-surface-variant font-body-md max-w-2xl mt-2">
-          Nền tảng chỉ lưu kết luận, không lưu số giấy tờ hay ảnh chụp. Việc của bạn là xác nhận
-          kết quả nhà cung cấp trả về — và ghi ngày hết hạn với loại giấy tờ có hạn, vì cổng chi
-          tiền đọc ngày đó.
+          Nền tảng không lưu số trên giấy tờ, nhưng có giữ ảnh để bạn đối chiếu: kết quả nhà
+          cung cấp trả về không phải quyết định cuối cùng. Nhớ ghi ngày hết hạn với loại giấy
+          tờ có hạn, vì cổng chi tiền đọc ngày đó chứ không chỉ đọc trạng thái.
         </p>
       </header>
 

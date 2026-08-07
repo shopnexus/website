@@ -5,8 +5,9 @@ export const metadata = { title: "Chính sách bảo mật | ShopNexus" };
 
 /**
  * What the system actually stores and sends, read off the modules rather than generalised
- * from a template — including the two facts most policies get wrong by omission: card
- * details never reach this platform, and identity scans are not kept.
+ * from a template — including the fact most policies get wrong by omission: card details
+ * never reach this platform. Identity scans *are* kept, and saying so is the point: the
+ * page has to track what the code does, or it is worse than having none.
  */
 export default function PrivacyPage() {
   return (
@@ -35,6 +36,12 @@ export default function PrivacyPage() {
             <strong>Tin nhắn:</strong> nội dung trò chuyện giữa bạn và người bạn giao dịch.
           </li>
           <li>
+            <strong>Ảnh giấy tờ khi xác minh danh tính:</strong> ảnh mặt trước, mặt sau và ảnh
+            chân dung bạn gửi lên. Chúng được giữ lại vì kết quả của đối tác eKYC không phải
+            là quyết định cuối cùng — nhân viên ShopNexus có thể xem xét lại, và một quyết
+            định về việc bạn có được rút tiền hay không thì phải dựa trên bằng chứng.
+          </li>
+          <li>
             <strong>Nhật ký kỹ thuật:</strong> thời gian, đường dẫn và mã trạng thái của các
             yêu cầu tới máy chủ, để vận hành và tìm lỗi.
           </li>
@@ -48,9 +55,9 @@ export default function PrivacyPage() {
             họ. Số thẻ không bao giờ đi qua máy chủ ShopNexus.
           </li>
           <li>
-            <strong>Ảnh chụp và số giấy tờ tuỳ thân.</strong> Việc xác minh do đối tác eKYC
-            thực hiện; chúng tôi chỉ nhận lại kết quả (đạt/không đạt) và ngày hết hạn của giấy
-            tờ.
+            <strong>Số giấy tờ tuỳ thân.</strong> Việc xác minh do đối tác eKYC thực hiện;
+            chúng tôi nhận lại kết quả (đạt/không đạt) và ngày hết hạn, không nhận số trên
+            giấy tờ. Nghĩa là dữ liệu này không đủ để mạo danh bạn ở nơi khác.
           </li>
         </ul>
       </Section>
@@ -87,6 +94,11 @@ export default function PrivacyPage() {
           Nhân viên hỗ trợ đọc được nội dung của yêu cầu hỗ trợ mà bạn mở, để xử lý vụ việc.
           Với bạn, họ hiện diện dưới danh nghĩa bộ phận hỗ trợ chứ không phải tài khoản cá
           nhân.
+        </p>
+        <p>
+          Ảnh giấy tờ tuỳ thân chỉ nhân viên kiểm duyệt xem được, và chỉ trong màn xét duyệt
+          hồ sơ xác minh. Người bạn giao dịch không bao giờ nhìn thấy chúng, và chúng cũng
+          không xuất hiện trong phần lịch sử xác minh của chính bạn.
         </p>
       </Section>
 

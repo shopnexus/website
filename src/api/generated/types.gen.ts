@@ -88,11 +88,13 @@ export type AdminAccountPage = {
 };
 
 /**
- * A queue entry, which needs the subject alongside the document.
+ * A queue entry, which needs the subject alongside the document — and the scans the vendor read, because a moderator overruling that verdict is deciding a payout and a review screen with nothing on it is a rubber stamp.
+ *
  */
 export type AdminIdentityDocument = {
     account: AccountSummary;
     document: IdentityDocument;
+    scans: IdentityScans;
 };
 
 /**
@@ -730,6 +732,19 @@ export type IdentityDocumentPage = {
 };
 
 export type IdentityDocumentType = 'national-id' | 'passport' | 'driver-license';
+
+/**
+ * What the vendor read. Staff-only — these hang off the queue entry rather than off `IdentityDocument`, so an account's own read of its verification history stays the verdict and nothing else.
+ *
+ */
+export type IdentityScans = {
+    /**
+     * Null where the document has no back, such as a passport.
+     */
+    back: Resource | null;
+    front: Resource | null;
+    selfie: Resource | null;
+};
 
 export type IdentityStatus = 'pending' | 'verified' | 'rejected';
 
