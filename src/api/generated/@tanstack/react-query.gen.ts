@@ -630,14 +630,14 @@ export const getAdminPaymentSessionsInfiniteQueryKey = (options?: Options<GetAdm
  * Filter by kind, status and a settlement window. Intended for tying platform totals to what the rails report.
  */
 export const getAdminPaymentSessionsInfiniteOptions = (options?: Options<GetAdminPaymentSessionsData>) => {
-    const opts = infiniteQueryOptions<GetAdminPaymentSessionsResponse, GetAdminPaymentSessionsError, InfiniteData<GetAdminPaymentSessionsResponse>, QueryKey<Options<GetAdminPaymentSessionsData>>, string | Pick<QueryKey<Options<GetAdminPaymentSessionsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    const opts = infiniteQueryOptions<GetAdminPaymentSessionsResponse, GetAdminPaymentSessionsError, InfiniteData<GetAdminPaymentSessionsResponse>, QueryKey<Options<GetAdminPaymentSessionsData>>, number | Pick<QueryKey<Options<GetAdminPaymentSessionsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
     // @ts-ignore
     {
         queryFn: async ({ pageParam, queryKey, signal }) => {
             // @ts-ignore
             const page: Pick<QueryKey<Options<GetAdminPaymentSessionsData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
                 query: {
-                    cursor: pageParam
+                    page: pageParam
                 }
             };
             const params = createInfiniteParams(queryKey, page);
@@ -4200,14 +4200,14 @@ export const getWalletsByCurrencyTransactionsInfiniteQueryKey = (options: Option
  *
  */
 export const getWalletsByCurrencyTransactionsInfiniteOptions = (options: Options<GetWalletsByCurrencyTransactionsData>) => {
-    const opts = infiniteQueryOptions<GetWalletsByCurrencyTransactionsResponse, GetWalletsByCurrencyTransactionsError, InfiniteData<GetWalletsByCurrencyTransactionsResponse>, QueryKey<Options<GetWalletsByCurrencyTransactionsData>>, string | Pick<QueryKey<Options<GetWalletsByCurrencyTransactionsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
+    const opts = infiniteQueryOptions<GetWalletsByCurrencyTransactionsResponse, GetWalletsByCurrencyTransactionsError, InfiniteData<GetWalletsByCurrencyTransactionsResponse>, QueryKey<Options<GetWalletsByCurrencyTransactionsData>>, number | Pick<QueryKey<Options<GetWalletsByCurrencyTransactionsData>>[0], 'body' | 'headers' | 'path' | 'query'>>(
     // @ts-ignore
     {
         queryFn: async ({ pageParam, queryKey, signal }) => {
             // @ts-ignore
             const page: Pick<QueryKey<Options<GetWalletsByCurrencyTransactionsData>>[0], 'body' | 'headers' | 'path' | 'query'> = typeof pageParam === 'object' ? pageParam : {
                 query: {
-                    cursor: pageParam
+                    page: pageParam
                 }
             };
             const params = createInfiniteParams(queryKey, page);

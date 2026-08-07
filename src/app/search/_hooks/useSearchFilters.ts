@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useCategories, useListingsFeed, type ListingFilters } from "@/hooks/api/useCatalog";
 import { useProvinces, useWards } from "@/hooks/useAdminAreas";
@@ -16,6 +16,17 @@ import {
   sortIsAvailable,
 } from "../_lib/search.logic";
 
+/** Build a new URLSearchParams from the current one, applying a patch of key→value overrides.
+ *  A value of "" removes the key entirely to keep URLs clean. */
+function patchParams(current: URLSearchParams, patch: Record<string, string>): string {
+  const next = new URLSearchParams(current);
+  for (const [k, v] of Object.entries(patch)) {
+    if (v) next.set(k, v);
+    else next.delete(k);
+  }
+  return next.toString();
+}
+
 const PAGE_SIZE = 12;
 
 /**
@@ -27,13 +38,30 @@ const PAGE_SIZE = 12;
  */
 export function useSearchFilters() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = searchParams.get("q") || "";
   const { isAuthenticated } = useAuthStore();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    () => searchParams.get("category") || "",
+  // category and tag are URL-authoritative so that:
+  // 1. Picking either after a search re-fires GET /listings?q=...&category_id=...
+  // 2. The URL is shareable and survives a page refresh.
+  const selectedCategory = searchParams.get("category") ?? "";
+  const tag = (searchParams.get("tag") ?? "") as TagSlug;
+
+  const setSelectedCategory = useCallback(
+    (id: string) => {
+      router.replace(`?${patchParams(searchParams, { category: id, tag: "" })}`, { scroll: false });
+    },
+    [router, searchParams],
   );
-  const [tag, setTag] = useState<TagSlug>(() => searchParams.get("tag") || "");
+
+  const setTag = useCallback(
+    (slug: TagSlug) => {
+      router.replace(`?${patchParams(searchParams, { tag: slug })}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
   const [condition, setCondition] = useState<ConditionFilter>("");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
@@ -99,8 +127,8 @@ export function useSearchFilters() {
   };
 
   const clearAll = () => {
-    setSelectedCategory("");
-    setTag("");
+    // Clear URL-driven filters in one replace to avoid double navigation.
+    router.replace(`?${patchParams(searchParams, { category: "", tag: "" })}`, { scroll: false });
     setCondition("");
     setPriceFrom("");
     setPriceTo("");

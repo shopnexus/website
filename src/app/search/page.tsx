@@ -2,7 +2,6 @@
 
 import React, { Suspense } from "react";
 import ActiveFilterChips from "./_components/ActiveFilterChips";
-import SearchCategoryNav from "./_components/SearchCategoryNav";
 import SearchFilterPanel from "./_components/SearchFilterPanel";
 import SearchResults from "./_components/SearchResults";
 import SearchToolbar from "./_components/SearchToolbar";
@@ -13,12 +12,6 @@ function SearchPageContent(): React.ReactElement {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 w-full">
-      <SearchCategoryNav
-        categories={search.rootCategories}
-        selectedId={search.selectedCategory}
-        onSelect={search.setSelectedCategory}
-      />
-
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         <SearchFilterPanel search={search} />
 

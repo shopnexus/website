@@ -3480,9 +3480,9 @@ export type GetAdminPaymentSessionsData = {
          */
         to?: string;
         /**
-         * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
+         * 1-based page number.
          */
-        cursor?: string;
+        page?: number;
         limit?: number;
     };
     url: '/admin/payment-sessions';
@@ -9076,9 +9076,9 @@ export type GetWalletsByCurrencyTransactionsData = {
     query?: {
         kind?: WalletTransactionKind;
         /**
-         * Opaque cursor from the previous page's `next_cursor`. Omit for the first page.
+         * 1-based page number.
          */
-        cursor?: string;
+        page?: number;
         limit?: number;
     };
     url: '/wallets/{currency}/transactions';

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import type { Category } from "@/api/generated/types.gen";
 import type { SearchState } from "../_hooks/useSearchFilters";
 import { CONDITION_OPTIONS, RADIUS_OPTIONS } from "../_lib/search.logic";
 import SearchTagFilter from "./SearchTagFilter";
@@ -9,6 +11,129 @@ const HEADING = "font-label-md text-on-surface-variant uppercase tracking-wider 
 const FIELD =
   "w-full bg-surface-container rounded-lg px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary border-none text-on-surface";
 
+// ---------------------------------------------------------------------------
+// CategoryDropdown – button trigger + floating panel
+// ---------------------------------------------------------------------------
+function CategoryDropdown({ search }: { search: SearchState }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    if (!open) return;
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  const selectedName = search.selectedCategory
+    ? (search.categories.find((c: Category) => c.id === search.selectedCategory)?.name ?? "Danh mục")
+    : "Tất cả danh mục";
+
+  function pick(id: string) {
+    search.setSelectedCategory(id);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <h3 className={HEADING}>Danh mục</h3>
+
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-2 bg-surface-container rounded-lg px-3 py-2 text-body-sm cursor-pointer hover:bg-surface-container-high transition-colors border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary"
+      >
+        <span className={search.selectedCategory ? "font-bold text-primary" : "text-on-surface"}>
+          {selectedName}
+        </span>
+        <span
+          className="material-symbols-outlined text-[18px] text-on-surface-variant transition-transform duration-200"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          aria-hidden="true"
+        >
+          expand_more
+        </span>
+      </button>
+
+      {/* Dropdown panel */}
+      {open && (
+        <div
+          role="listbox"
+          aria-label="Chọn danh mục"
+          className="absolute z-50 mt-1 w-full bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/30 py-1 max-h-72 overflow-y-auto"
+        >
+          {/* "Tất cả" option */}
+          <button
+            role="option"
+            aria-selected={!search.selectedCategory}
+            type="button"
+            onClick={() => pick("")}
+            className={`w-full text-left text-body-sm px-3 py-2 transition-colors cursor-pointer ${
+              !search.selectedCategory
+                ? "bg-primary/10 text-primary font-bold"
+                : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+            }`}
+          >
+            Tất cả danh mục
+          </button>
+
+          {/* Root categories + subcategories indented */}
+          {search.rootCategories.map((cat: Category) => {
+            const subs = search.categories.filter((c: Category) => c.parent_id === cat.id);
+            const isRootSelected = search.selectedCategory === cat.id;
+            return (
+              <div key={cat.id}>
+                <button
+                  role="option"
+                  aria-selected={isRootSelected}
+                  type="button"
+                  onClick={() => pick(cat.id)}
+                  className={`w-full text-left text-body-sm px-3 py-2 transition-colors cursor-pointer ${
+                    isRootSelected
+                      ? "bg-primary/10 text-primary font-bold"
+                      : "text-on-surface hover:bg-surface-container"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+                {subs.map((sub: Category) => {
+                  const isSubSelected = search.selectedCategory === sub.id;
+                  return (
+                    <button
+                      key={sub.id}
+                      role="option"
+                      aria-selected={isSubSelected}
+                      type="button"
+                      onClick={() => pick(sub.id)}
+                      className={`w-full text-left text-body-sm pl-7 pr-3 py-1.5 transition-colors cursor-pointer ${
+                        isSubSelected
+                          ? "bg-primary/10 text-primary font-bold"
+                          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+                      }`}
+                    >
+                      {sub.name}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SearchFilterPanel
+// ---------------------------------------------------------------------------
+
 /** Every server-side filter `/listings` accepts, as the rail beside the results. */
 export default function SearchFilterPanel({ search }: { search: SearchState }) {
   return (
@@ -16,23 +141,8 @@ export default function SearchFilterPanel({ search }: { search: SearchState }) {
       <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/30 space-y-6">
         <h2 className="font-headline font-bold text-headline-sm text-on-surface">Bộ lọc</h2>
 
-        {search.subCategories.length > 0 && (
-          <div>
-            <h3 className={HEADING}>Danh mục phụ</h3>
-            <div className="space-y-2">
-              {search.subCategories.map((sub) => (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => search.setSelectedCategory(sub.id)}
-                  className="block w-full text-left text-body-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
-                >
-                  {sub.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* --- Danh mục dropdown --- */}
+        <CategoryDropdown search={search} />
 
         <SearchTagFilter
           selected={search.tag}
@@ -51,10 +161,11 @@ export default function SearchFilterPanel({ search }: { search: SearchState }) {
                 search.setWardCode("");
               }}
               className={`${FIELD} cursor-pointer`}
+              suppressHydrationWarning
             >
               <option value="">Toàn quốc</option>
               {search.provinces.map((province) => (
-                <option key={province.code} value={province.code}>
+                <option key={province.code} value={province.code} suppressHydrationWarning>
                   {province.name}
                 </option>
               ))}
@@ -65,10 +176,11 @@ export default function SearchFilterPanel({ search }: { search: SearchState }) {
                 value={search.wardCode}
                 onChange={(event) => search.setWardCode(event.target.value)}
                 className={`${FIELD} cursor-pointer`}
+                suppressHydrationWarning
               >
                 <option value="">Tất cả phường / xã</option>
                 {search.wards.map((ward) => (
-                  <option key={ward.code} value={ward.code}>
+                  <option key={ward.code} value={ward.code} suppressHydrationWarning>
                     {ward.name}
                   </option>
                 ))}
