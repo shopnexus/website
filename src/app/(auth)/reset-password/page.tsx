@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
   const score = getStrengthScore(password);
 
   return (
-    <main className="flex-grow flex items-center justify-center min-h-screen py-20 px-4 relative overflow-hidden z-10">
+    <div className="flex-grow flex items-center justify-center min-h-screen py-20 px-4 relative overflow-hidden z-10">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
         <div className="absolute top-1/4 -left-24 w-96 h-96 bg-primary-fixed/20 rounded-full blur-[120px] animate-pulse" />
@@ -188,6 +188,6 @@ export default function ResetPasswordPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

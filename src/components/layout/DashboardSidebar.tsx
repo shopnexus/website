@@ -77,9 +77,11 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0">
+      {/* A <div>: the root layout already opens the page's one <main>, and this sits
+          inside it — two landmarks make a screen reader announce two "main" regions. */}
+      <div className="flex-1 min-w-0">
         {children}
-      </main>
+      </div>
     </div>
   );
 }

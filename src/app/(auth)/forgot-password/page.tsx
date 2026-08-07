@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="flex-grow flex items-center justify-center w-full min-h-screen px-6 relative overflow-hidden z-10 py-20">
+    <div className="flex-grow flex items-center justify-center w-full min-h-screen px-6 relative overflow-hidden z-10 py-20">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
         <div className="absolute top-1/4 -left-24 w-96 h-96 bg-primary-fixed/20 rounded-full blur-[120px] animate-pulse" />
@@ -127,6 +127,6 @@ export default function ForgotPasswordPage() {
           </p>
         </footer>
       </div>
-    </main>
+    </div>
   );
 }

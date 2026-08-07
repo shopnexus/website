@@ -39,7 +39,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex-grow flex items-center justify-center p-4 md:p-8 py-12 relative z-10">
+    <div className="flex-grow flex items-center justify-center p-4 md:p-8 py-12 relative z-10">
       {/* Split-Screen Auth Container */}
       <div className="flex flex-col md:flex-row w-full max-w-6xl bg-surface-container-lowest rounded-xl overflow-hidden shadow-lg shadow-black/5 border border-outline-variant/50">
         
@@ -167,6 +167,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

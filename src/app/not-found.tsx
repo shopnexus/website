@@ -17,7 +17,7 @@ export default function NotFound() {
             opacity: 0.03;
         }
       `}} />
-      <main className="min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-6 relative overflow-hidden bg-background">
+      <div className="min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-6 relative overflow-hidden bg-background">
         {/* Background Decor */}
         <div className="absolute inset-0 grainy-bg pointer-events-none"></div>
         <div className="absolute top-1/4 -left-24 w-96 h-96 bg-primary-fixed/20 rounded-full blur-[100px] pointer-events-none"></div>
@@ -93,7 +93,7 @@ export default function NotFound() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }
