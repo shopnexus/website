@@ -1,6 +1,14 @@
 import type { ReactNode } from "react";
 
-type BadgeVariant = "primary" | "secondary" | "error" | "success" | "outline" | "surface" | "glass";
+type BadgeVariant =
+  | "primary"
+  | "secondary"
+  | "error"
+  | "success"
+  | "warning"
+  | "outline"
+  | "surface"
+  | "glass";
 
 interface BadgeProps {
   variant?: BadgeVariant;
@@ -13,7 +21,10 @@ const variantStyles: Record<BadgeVariant, string> = {
   primary: "bg-primary text-on-primary",
   secondary: "bg-secondary-container text-on-secondary-container",
   error: "bg-error text-on-error",
-  success: "bg-[#10b981] text-white", 
+  success: "bg-[#10b981] text-white",
+  // Waiting on somebody. The same pair the order countdown chip already uses, so a
+  // "Chờ lấy hàng" badge and the "còn 4 giờ" beside it read as one thought.
+  warning: "bg-tertiary-container text-on-tertiary-container",
   outline: "bg-transparent text-on-surface border border-outline-variant",
   surface: "bg-surface-container-high text-on-surface",
   glass: "bg-black/50 text-white backdrop-blur-md", 

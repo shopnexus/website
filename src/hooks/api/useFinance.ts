@@ -1,7 +1,10 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { postPaymentSessionsByIdPayments } from "@/api/generated/sdk.gen"
+import {
+	postPaymentSessionsByIdCancellation,
+	postPaymentSessionsByIdPayments,
+} from "@/api/generated/sdk.gen"
 import {
 	getPaymentSessionsByIdOptions,
 	getWalletsOptions,
@@ -77,6 +80,33 @@ export function useStartPayment() {
  * landing is what creates the order, and it lands on a webhook this client never sees.
  * Polling stops at a terminal status, so a finished checkout costs nothing to stay mounted.
  */
+/**
+ * The payer walking away before the money moves.
+ *
+ * Only the payer of a `buyer-checkout` may, and only while it is still `pending` or
+ * `processing` — a paid session is refunded instead, which is a different flow entirely.
+ * Everything the server refuses is refused for a reason, so the button asks exactly the
+ * question the route asks and nothing is guarded twice.
+ *
+ * Drops the checkout lines as well as the session: they are what the order screen renders
+ * for an unpaid purchase, and a cancelled session leaves them behind as rows offering to
+ * pay for something nobody can pay for any more.
+ */
+export function useCancelPaymentSession() {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: async (sessionId: PaymentSessionId) => {
+			const { data } = await postPaymentSessionsByIdCancellation({
+				path: { id: sessionId },
+				throwOnError: true,
+			})
+			return data.data
+		},
+		onSuccess: () =>
+			invalidate(queryClient, OPERATIONS.items, OPERATIONS.paymentSession, OPERATIONS.orders),
+	})
+}
+
 export function usePaymentSession(id: PaymentSessionId | undefined, watch = true) {
 	return useQuery({
 		...getPaymentSessionsByIdOptions({ path: { id: id! } }),

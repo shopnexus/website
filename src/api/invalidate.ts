@@ -33,6 +33,11 @@ export const OPERATIONS = {
 	conversationsUnread: "getConversationsUnreadCount",
 	orders: "getOrders",
 	order: "getOrdersById",
+	// Checkout lines, which the order screen reads for purchases the payment webhook has
+	// not turned into orders yet. Stale the moment a session behind one is cancelled or
+	// paid, and no `getOrders` invalidation touches them — they are not orders.
+	items: "getItems",
+	paymentSession: "getPaymentSessionsById",
 	orderFeedback: "getOrdersByOrderIdFeedback",
 	refunds: "getRefunds",
 	refund: "getRefundsById",

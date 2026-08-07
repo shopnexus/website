@@ -114,6 +114,45 @@ export function orderStatusLabel(order: Order): string {
 }
 
 /**
+ * What a status *means*, so one label never gets two colours and two labels never share
+ * one they do not deserve.
+ *
+ * Lives beside {@link orderStatusLabel} because the two are one decision: the label was
+ * rendered `text-primary` at every value it can take, so "Giao thất bại" and "Đã giao"
+ * came out identical — a delivery that failed read exactly like one that arrived.
+ *
+ * `cancelled` is `neutral`, not `danger`. A cancellation is an ordinary way for a sale to
+ * end and the money is already back; painting it red tells the reader something broke.
+ * Red is kept for the two states where the parcel will not arrive and somebody has to act.
+ */
+export type OrderStatusTone = "waiting" | "moving" | "success" | "neutral" | "danger"
+
+export function orderStatusTone(order: Order): OrderStatusTone {
+	if (order.state === "cancelled") return "neutral"
+	if (order.state === "completed") return "success"
+	if (order.state === "awaiting-confirmation") return "waiting"
+
+	switch (order.transport?.status) {
+		case undefined:
+		case null:
+		case "pending":
+			// Nobody has moved yet: the seller still owes the carrier a parcel.
+			return "waiting"
+		case "picked-up":
+		case "in-transit":
+		case "delivered":
+			// In motion. `delivered` belongs here rather than in `success` — the goods
+			// arrived but the order has not ended, and the buyer still has to confirm.
+			return "moving"
+		case "returned":
+			return "neutral"
+		case "failed":
+		case "cancelled":
+			return "danger"
+	}
+}
+
+/**
  * The status as a sentence about whose move it is.
  *
  * Two states need one, and they are exactly the two where an order is blocked on a person

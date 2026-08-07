@@ -1,28 +1,32 @@
-import { waitingGroupTitle, type WaitingSide } from "@/lib/order-waiting"
-
 /**
- * A group's label. Only `CẦN BẠN` is coloured — a heading where every heading is bold is
- * a heading that emphasises nothing.
+ * A group's label.
+ *
+ * Only the two groups that are blocked on the reader are coloured — a heading where every
+ * heading is bold is a heading that emphasises nothing.
+ *
+ * Takes a title rather than a `WaitingSide` because one group on this screen is not a
+ * waiting side at all: an unpaid checkout has no order behind it to have a side.
  */
 export default function WaitingGroupHeader({
-	side,
-	count,
+	title,
+	tone = "muted",
 }: {
-	side: WaitingSide
-	count: number
+	title: string
+	tone?: "muted" | "primary" | "tertiary"
 }) {
-	const needsYou = side === "you"
+	const text =
+		tone === "primary" ? "text-primary" : tone === "tertiary" ? "text-tertiary" : "text-on-surface-variant"
+	const rule =
+		tone === "primary" ? "bg-primary/30" : tone === "tertiary" ? "bg-tertiary/30" : "bg-outline-variant/50"
 
 	return (
 		<div className="flex items-center gap-3 pt-2">
 			<h2
-				className={`font-label-md text-xs font-bold uppercase tracking-[0.08em] ${
-					needsYou ? "text-primary" : "text-on-surface-variant"
-				}`}
+				className={`font-label-md text-xs font-bold uppercase tracking-[0.08em] ${text}`}
 			>
-				{waitingGroupTitle(side, count)}
+				{title}
 			</h2>
-			<div className={`flex-1 h-px ${needsYou ? "bg-primary/30" : "bg-outline-variant/50"}`} />
+			<div className={`flex-1 h-px ${rule}`} />
 		</div>
 	)
 }

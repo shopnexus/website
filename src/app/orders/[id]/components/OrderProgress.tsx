@@ -1,4 +1,4 @@
-import { orderStatusLabel } from "@/lib/order-state"
+import OrderStatusBadge from "@/components/orders/OrderStatusBadge"
 import type { Order, TransportStatus } from "@/api/generated/types.gen"
 
 /**
@@ -30,10 +30,10 @@ export default function OrderProgress({ order }: { order: Order }) {
 			<div className="flex justify-between items-center mb-6 border-b border-outline-variant border-dashed pb-4">
 				<h2 className="font-headline-sm font-bold">Trạng thái đơn hàng</h2>
 				{/* The outcome first, then the parcel: an order that ended says so whatever the
-				    carrier last reported. */}
-				<span className="font-label-md text-primary font-bold uppercase">
-					{orderStatusLabel(order)}
-				</span>
+				    carrier last reported. Coloured by what the status means — this was
+				    `text-primary` at every one of the ten values the label can take, so a
+				    failed delivery was drawn exactly like a successful one. */}
+				<OrderStatusBadge order={order} />
 			</div>
 
 			{order.state === "awaiting-confirmation" ? (
@@ -107,7 +107,11 @@ function Cancelled({ order }: { order: Order }) {
 		<div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
 			<div className="flex justify-between items-center mb-4 border-b border-outline-variant border-dashed pb-4">
 				<h2 className="font-headline-sm font-bold">Trạng thái đơn hàng</h2>
-				<span className="font-label-md text-error font-bold uppercase">Đã hủy</span>
+				{/* The same badge, not a second hardcoded copy: this span read "Đã hủy" whatever
+				    the order said, so the one status with two render paths was also the one
+				    that could disagree with itself. The panel below stays red — the refusal
+				    and its reason are the alarming part, not the outcome label. */}
+				<OrderStatusBadge order={order} />
 			</div>
 
 			<div className="flex items-start gap-3">

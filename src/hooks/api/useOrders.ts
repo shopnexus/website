@@ -17,6 +17,7 @@ import {
 } from "@/api/generated/sdk.gen"
 import {
 	getDraftsByIdOptions,
+	getItemsOptions,
 	getOrdersByIdOptions,
 	getOrdersByOrderIdFeedbackOptions,
 	getOrdersInfiniteOptions,
@@ -82,22 +83,50 @@ const MAX_RESOLVED_LISTINGS = 100
  * One request for a whole page of orders, cached under the id set, so paging in more
  * orders re-resolves only what changed.
  */
-export function useOrderListings(orders: ReadonlyArray<Order>) {
-	const listingIds = useMemo(() => {
-		const ids = new Set<ListingId>()
-		for (const order of orders) {
-			for (const item of order.items ?? []) ids.add(item.listing_id)
-		}
-		return [...ids].slice(0, MAX_RESOLVED_LISTINGS)
-	}, [orders])
+export function useListingMap(listingIds: ReadonlyArray<ListingId>) {
+	const capped = useMemo(
+		() => [...new Set(listingIds)].slice(0, MAX_RESOLVED_LISTINGS),
+		[listingIds],
+	)
 
-	const { data } = useListings({ ids: listingIds, limit: MAX_RESOLVED_LISTINGS }, 1)
+	const { data } = useListings({ ids: capped, limit: MAX_RESOLVED_LISTINGS }, 1)
 
 	return useMemo(() => {
 		const map = new Map<ListingId, Listing>()
 		for (const listing of data ?? []) map.set(listing.id, listing)
 		return map
 	}, [data])
+}
+
+export function useOrderListings(orders: ReadonlyArray<Order>) {
+	const listingIds = useMemo(() => {
+		const ids = new Set<ListingId>()
+		for (const order of orders) {
+			for (const item of order.items ?? []) ids.add(item.listing_id)
+		}
+		return [...ids]
+	}, [orders])
+
+	return useListingMap(listingIds)
+}
+
+/**
+ * Checkout lines the money has not produced an order for yet.
+ *
+ * These are the purchases missing from the order screen entirely. An order is written by
+ * the payment webhook — `order_id` is null until then — so a buyer who opened a checkout
+ * and did not finish paying has nothing in `GET /orders` at all, and the money is still
+ * theirs to send. `pending=true` is the contract's own filter for exactly this: lines no
+ * order covers and nobody cancelled.
+ *
+ * Not paginated. A buyer has a handful of unfinished checkouts at most, and a cursor here
+ * would be machinery for a list that is nearly always empty.
+ */
+export function usePendingItems(limit = 50) {
+	return useQuery({
+		...getItemsOptions({ query: { role: "buyer", pending: true, limit } }),
+		select: (res) => res.data,
+	})
 }
 
 // ── Checkout ─────────────────────────────────────────────────────────────────

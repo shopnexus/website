@@ -4,8 +4,10 @@ import Link from "next/link"
 import Button from "@/components/ui/Button"
 import Skeleton from "@/components/ui/Skeleton"
 import OrderCard from "./OrderCard"
+import PendingCheckoutCard from "./PendingCheckoutCard"
 import WaitingGroupHeader from "./WaitingGroupHeader"
 import { useOrderInbox } from "../hooks/useOrderInbox"
+import { waitingGroupTitle } from "@/lib/order-waiting"
 
 /**
  * Every order, both sides of every sale, in three groups by whose turn it is.
@@ -24,6 +26,7 @@ export default function OrderInbox() {
 		me,
 		groups,
 		order,
+		pendingCheckouts,
 		listingsById,
 		isLoading,
 		isEmpty,
@@ -51,12 +54,33 @@ export default function OrderInbox() {
 				<EmptyState />
 			) : (
 				<div className="flex flex-col gap-3">
+					{/* Above everything: this is the only group where waiting loses the buyer the
+					    purchase outright, and it was missing from this screen entirely. */}
+					{pendingCheckouts.length > 0 && (
+						<section className="flex flex-col gap-3">
+							<WaitingGroupHeader
+								title={`CHỜ THANH TOÁN (${pendingCheckouts.length})`}
+								tone="tertiary"
+							/>
+							{pendingCheckouts.map((checkout) => (
+								<PendingCheckoutCard
+									key={checkout.sessionId}
+									checkout={checkout}
+									listingsById={listingsById}
+								/>
+							))}
+						</section>
+					)}
+
 					{order.map((side) => {
 						const rows = groups[side]
 						if (rows.length === 0) return null
 						return (
 							<section key={side} className="flex flex-col gap-3">
-								<WaitingGroupHeader side={side} count={rows.length} />
+								<WaitingGroupHeader
+									title={waitingGroupTitle(side, rows.length)}
+									tone={side === "you" ? "primary" : "muted"}
+								/>
 								{rows.map((row) => (
 									<OrderCard
 										key={row.id}

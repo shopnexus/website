@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import ResumePayment from "./components/ResumePayment";
 import StepIndicator from "@/components/ui/StepIndicator";
 import QuantitySelector from "@/components/ui/QuantitySelector";
 import { toast } from "react-hot-toast";
@@ -63,7 +64,14 @@ function CheckoutContent() {
   // copied into state, like every other default on this page.
   const returningSessionId = searchParams.get("session_id") as PaymentSessionId | null;
   const sessionId = tenderedSessionId ?? returningSessionId;
-  const { data: session } = usePaymentSession(sessionId ?? undefined);
+  const { data: session, isLoading: isLoadingSession } = usePaymentSession(sessionId ?? undefined);
+
+  // Came back with nothing but the session. Not every rail reports a cancellation — SePay's
+  // hosted page has a back button and no webhook behind it — so the session is still `pending`
+  // and good until `expired_at`, and this page has to offer the way back to the gateway. It
+  // used to render `null` here, because the guard below asks for a draft the payer no longer
+  // has: a live, payable order showed as a blank screen.
+  const isResuming = !draftId && !offerId && Boolean(returningSessionId);
 
   useEffect(() => {
     // A returning payer has no draft or offer in the URL and does not need one.
@@ -219,6 +227,22 @@ function CheckoutContent() {
       { onSuccess: (result) => tender(result.payment_session_id) },
     );
   };
+
+  // Before the draft/offer guards: a returning payer has neither, and waiting on the address
+  // book would stall a screen that never asks for an address.
+  if (isResuming) {
+    return (
+      <ResumePayment
+        session={session}
+        isLoading={isLoadingSession}
+        paymentOptions={paymentOptions}
+        activePayment={activePayment}
+        onSelectPayment={setSelectedPayment}
+        onRetry={() => returningSessionId && tender(returningSessionId)}
+        isRetrying={startPayment.isPending}
+      />
+    );
+  }
 
   if (isLoadingDraft || isLoadingOffer || isLoadingContacts) {
     return <div className="min-h-screen py-12 flex justify-center">Đang tải thông tin...</div>;
