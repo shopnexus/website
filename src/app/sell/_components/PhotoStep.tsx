@@ -57,7 +57,7 @@ export default function PhotoStep({
 				</button>
 				{photos.map((photo, index) => (
 					<div key={photo.id} className="group relative aspect-square overflow-hidden rounded-2xl border border-outline-variant bg-surface-container">
-						{photo.url ? <Image src={photo.url} alt={`Ảnh sản phẩm ${index + 1}`} fill sizes="(max-width: 640px) 50vw, 220px" className="object-cover" /> : null}
+						{photo.previewUrl || photo.url ? <Image src={photo.previewUrl || photo.url} alt={`Ảnh sản phẩm ${index + 1}`} fill sizes="(max-width: 640px) 50vw, 220px" className="object-cover" /> : null}
 						<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-xs font-semibold text-white">
 							{index === 0 ? "Ảnh bìa" : `Ảnh ${index + 1}`}
 						</div>

@@ -32,7 +32,8 @@ export function useListingPhotoUpload() {
 					})
 					if (!response.ok) throw new Error(`Upload failed with status ${response.status}`)
 					const resource = await confirmUpload.mutateAsync(slot.resource_id)
-					uploaded.push({ id: resource.id, url: resource.url ?? "" })
+					const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined
+					uploaded.push({ id: resource.id, url: resource.url ?? "", previewUrl })
 				} catch {
 					// Keep successful files from the same selection. The caller reports the partial result.
 				} finally {

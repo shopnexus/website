@@ -16,6 +16,7 @@ export interface FormPair {
 export interface ListingPhoto {
 	id: ResourceId
 	url: string
+	previewUrl?: string
 }
 
 export interface VariantDraft {

@@ -15,6 +15,7 @@ export interface PendingAttachment {
 	id: ResourceId
 	name: string
 	resource: Resource
+	previewUrl?: string
 }
 
 export interface ChatThreadProps {

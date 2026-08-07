@@ -22,10 +22,14 @@ export function useSellForm() {
 	}
 
 	function removePhoto(id: ResourceId): void {
-		setForm((current) => ({
-			...current,
-			photos: current.photos.filter((photo) => photo.id !== id),
-		}))
+		setForm((current) => {
+			const photo = current.photos.find((p) => p.id === id)
+			if (photo?.previewUrl) URL.revokeObjectURL(photo.previewUrl)
+			return {
+				...current,
+				photos: current.photos.filter((p) => p.id !== id),
+			}
+		})
 	}
 
 	function updatePair(

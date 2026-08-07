@@ -55,9 +55,9 @@ export default function ChatComposer({
 							key={item.id}
 							className="group relative w-14 h-14 rounded-lg overflow-hidden border border-outline-variant/40 bg-surface-container"
 						>
-							{item.resource.url ? (
+							{item.previewUrl || item.resource.url ? (
 								<Image
-									src={item.resource.url}
+									src={item.previewUrl || item.resource.url!}
 									alt={item.name}
 									fill
 									className="object-cover"

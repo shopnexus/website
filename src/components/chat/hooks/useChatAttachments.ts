@@ -50,9 +50,13 @@ export function useChatAttachments() {
 						if (!response.ok) throw new Error("upload failed")
 
 						const resource = await confirmUpload.mutateAsync(slot.resource_id)
+						const previewUrl = file.type.startsWith("image/")
+							? URL.createObjectURL(file)
+							: undefined
+
 						setPending((current) => [
 							...current,
-							{ id: resource.id, name: file.name, resource },
+							{ id: resource.id, name: file.name, resource, previewUrl },
 						])
 					} finally {
 						setUploadingCount((count) => count - 1)
@@ -67,10 +71,21 @@ export function useChatAttachments() {
 	)
 
 	const remove = useCallback((id: ResourceId) => {
-		setPending((current) => current.filter((item) => item.id !== id))
+		setPending((current) => {
+			const item = current.find((i) => i.id === id)
+			if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl)
+			return current.filter((i) => i.id !== id)
+		})
 	}, [])
 
-	const clear = useCallback(() => setPending([]), [])
+	const clear = useCallback(() => {
+		setPending((current) => {
+			current.forEach((item) => {
+				if (item.previewUrl) URL.revokeObjectURL(item.previewUrl)
+			})
+			return []
+		})
+	}, [])
 
 	return { pending, uploadingCount, isUploading: uploadingCount > 0, add, remove, clear }
 }
