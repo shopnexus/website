@@ -25,7 +25,13 @@ export type RefundAction =
 	| "claim-return-delivered"
 	/** The seller acknowledging the return, which opens their 48-hour inspection window. */
 	| "confirm-return-received"
-	/** Either party, any live status. */
+	/**
+	 * The buyer adding to their evidence.
+	 *
+	 * Theirs alone: `attachments` is the claim being made, not a shared case file. The
+	 * seller answers by opening a `refund-dispute` ticket, whose thread carries their
+	 * evidence — so the two sides stay legible apart.
+	 */
 	| "add-evidence"
 
 export function refundIsSettled(status: RefundStatus): boolean {
@@ -39,7 +45,7 @@ export function refundActionsFor(refund: Refund, { isBuyer }: { isBuyer: boolean
 		// The seller grants it or hands it to staff; the buyer withdraws. Letting the 48
 		// hours lapse also hands it to staff, so doing nothing is not a third option.
 		case "awaiting-seller-review":
-			return isBuyer ? ["withdraw", "add-evidence"] : ["accept", "escalate", "add-evidence"]
+			return isBuyer ? ["withdraw", "add-evidence"] : ["accept", "escalate"]
 
 		// No carrier is ever booked for the return leg, so the two parties report it
 		// themselves. That is also why these buttons have to exist: without them the case
@@ -47,17 +53,17 @@ export function refundActionsFor(refund: Refund, { isBuyer }: { isBuyer: boolean
 		case "returning":
 			return isBuyer
 				? ["report-return-sent", "claim-return-delivered", "add-evidence"]
-				: ["confirm-return-received", "add-evidence"]
+				: ["confirm-return-received"]
 
 		// The seller is inspecting and may still contest until the window closes; letting
 		// it close refunds the buyer automatically.
 		case "returned":
-			return isBuyer ? ["add-evidence"] : ["escalate", "add-evidence"]
+			return isBuyer ? ["add-evidence"] : ["escalate"]
 
-		// Staff hold it. Neither side decides anything, but either may still file evidence
-		// for whoever will read it.
+		// Staff hold it. Neither side decides anything; the buyer may still file evidence
+		// for whoever will read it, and the seller already has their ticket thread.
 		case "disputed":
-			return ["add-evidence"]
+			return isBuyer ? ["add-evidence"] : []
 
 		default:
 			return []
