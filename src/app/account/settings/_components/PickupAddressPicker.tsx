@@ -36,7 +36,7 @@ export default function PickupAddressPicker({
           Bạn chưa lưu địa chỉ nào. Người bán cần ít nhất một địa chỉ để đăng tin.
         </p>
         <Link href="/account/contacts">
-          <Button>Mở sổ địa chỉ</Button>
+          <Button>Mở thông tin liên lạc</Button>
         </Link>
       </div>
     );

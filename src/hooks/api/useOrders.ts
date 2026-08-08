@@ -50,10 +50,11 @@ export type OrderRole = "buyer" | "seller"
  * order the caller is a party to, either side. A screen that asks "what needs me" spans
  * both, and asking twice would need two cursors merged by hand.
  */
-export function useOrdersFeed(role?: OrderRole, state?: OrderState, limit = 20) {
+export function useOrdersFeed(role?: OrderRole, state?: OrderState, limit = 20, enabled = true) {
 	const query = useInfiniteQuery({
 		...getOrdersInfiniteOptions({ query: { role, state, limit } }),
 		...cursorPagination,
+		enabled,
 	})
 
 	const orders = useMemo(() => flattenPages(query.data), [query.data])
@@ -122,10 +123,11 @@ export function useOrderListings(orders: ReadonlyArray<Order>) {
  * Not paginated. A buyer has a handful of unfinished checkouts at most, and a cursor here
  * would be machinery for a list that is nearly always empty.
  */
-export function usePendingItems(limit = 50) {
+export function usePendingItems(enabled = true, limit = 50) {
 	return useQuery({
 		...getItemsOptions({ query: { role: "buyer", pending: true, limit } }),
 		select: (res) => res.data,
+		enabled,
 	})
 }
 

@@ -1,7 +1,7 @@
 import OrderInbox from "./components/OrderInbox"
 
-export const metadata = { title: "Đơn hàng | ShopNexus" }
+export const metadata = { title: "Đơn mua | ShopNexus" }
 
 export default function OrdersPage() {
-	return <OrderInbox />
+	return <OrderInbox role="buyer" />
 }

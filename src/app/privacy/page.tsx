@@ -25,7 +25,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Địa chỉ:</strong> địa chỉ nhận và lấy hàng. Khi một đơn được tạo, địa chỉ
-            được <em>sao chép</em> vào đơn đó — sửa sổ địa chỉ về sau không làm thay đổi nơi
+            được <em>sao chép</em> vào đơn đó — sửa thông tin liên lạc về sau không làm thay đổi nơi
             một kiện hàng cũ đã được gửi tới.
           </li>
           <li>

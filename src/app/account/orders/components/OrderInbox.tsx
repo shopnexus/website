@@ -1,52 +1,71 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import Button from "@/components/ui/Button"
 import Skeleton from "@/components/ui/Skeleton"
 import OrderCard from "./OrderCard"
 import PendingCheckoutCard from "./PendingCheckoutCard"
-import WaitingGroupHeader from "./WaitingGroupHeader"
-import { useOrderInbox } from "../hooks/useOrderInbox"
-import { waitingGroupTitle } from "@/lib/order-waiting"
+import { useOrderInbox, type OrderTab } from "../hooks/useOrderInbox"
+import { waitingSideOf } from "@/lib/order-waiting"
 
 /**
- * Every order, both sides of every sale, in three groups by whose turn it is.
- *
- * What this replaces: two competing screens — a buyer-only list at `/account/orders` and a
- * dashboard list behind a "Đơn mua | Đơn bán" toggle — carrying nine filter controls
- * between them over what is typically a handful of rows, plus three stat cards computed
- * from whichever page happened to be loaded, so the numbers changed as you scrolled.
- *
- * There is no search box either. The one that was here filtered in memory, over loaded
- * rows only, because `/account/orders` accepts no text parameter — so it silently answered "not
- * found" for orders that simply had not been paged in yet.
+ * The unified order inbox that switches tabs by state.
  */
-export default function OrderInbox() {
+export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
+	const [activeTab, setActiveTab] = useState<OrderTab>("all")
+
 	const {
 		me,
-		groups,
-		order,
+		orders,
 		pendingCheckouts,
 		listingsById,
 		isLoading,
 		isEmpty,
-		hasMoreFinished,
+		hasNextPage,
 		isFetchingNextPage,
-		showMoreFinished,
-	} = useOrderInbox()
+		fetchNextPage,
+	} = useOrderInbox(role, activeTab)
+
+	const tabs: { id: OrderTab; label: string }[] = [{ id: "all", label: "Tất cả" }]
+	if (role === "buyer") {
+		tabs.push({ id: "pending-payment", label: "Chờ thanh toán" })
+	}
+	tabs.push(
+		{ id: "awaiting-confirmation", label: "Chờ xác nhận" },
+		{ id: "open", label: "Đang xử lý" },
+		{ id: "completed", label: "Hoàn thành" },
+		{ id: "cancelled", label: "Đã hủy" }
+	)
 
 	return (
-		// A <div>, not a <main>: the root layout already wraps children in one, and a
-		// second landmark makes a screen reader announce two "main" regions.
 		<div className="max-w-[880px] mx-auto px-4 md:px-8 py-8 pb-24 min-h-screen">
-			<header className="mb-8">
+			<header className="mb-6">
 				<h1 className="font-headline-md text-3xl font-extrabold tracking-tight text-on-surface">
-					Đơn hàng
+					{role === "buyer" ? "Đơn mua" : "Đơn bán"}
 				</h1>
 				<p className="text-body-md text-on-surface-variant mt-1">
-					Mọi giao dịch của bạn, mua và bán, xếp theo việc đang chờ ai.
+					{role === "buyer"
+						? "Các đơn hàng bạn đã đặt mua."
+						: "Các đơn hàng người khác mua từ bạn."}
 				</p>
 			</header>
+
+			<div className="flex overflow-x-auto border-b border-outline-variant mb-6 gap-6">
+				{tabs.map((tab) => (
+					<button
+						key={tab.id}
+						onClick={() => setActiveTab(tab.id)}
+						className={`pb-3 font-label-md transition-colors border-b-2 whitespace-nowrap ${
+							activeTab === tab.id
+								? "border-primary text-primary"
+								: "border-transparent text-on-surface-variant hover:text-on-surface"
+						}`}
+					>
+						{tab.label}
+					</button>
+				))}
+			</div>
 
 			{isLoading ? (
 				<OrdersSkeleton />
@@ -54,14 +73,8 @@ export default function OrderInbox() {
 				<EmptyState />
 			) : (
 				<div className="flex flex-col gap-3">
-					{/* Above everything: this is the only group where waiting loses the buyer the
-					    purchase outright, and it was missing from this screen entirely. */}
 					{pendingCheckouts.length > 0 && (
 						<section className="flex flex-col gap-3">
-							<WaitingGroupHeader
-								title={`CHỜ THANH TOÁN (${pendingCheckouts.length})`}
-								tone="tertiary"
-							/>
 							{pendingCheckouts.map((checkout) => (
 								<PendingCheckoutCard
 									key={checkout.sessionId}
@@ -72,32 +85,24 @@ export default function OrderInbox() {
 						</section>
 					)}
 
-					{order.map((side) => {
-						const rows = groups[side]
-						if (rows.length === 0) return null
-						return (
-							<section key={side} className="flex flex-col gap-3">
-								<WaitingGroupHeader
-									title={waitingGroupTitle(side, rows.length)}
-									tone={side === "you" ? "primary" : "muted"}
+					{orders.length > 0 && (
+						<section className="flex flex-col gap-3">
+							{orders.map((row) => (
+								<OrderCard
+									key={row.id}
+									order={row}
+									side={waitingSideOf(row, me)}
+									me={me}
+									listingsById={listingsById}
 								/>
-								{rows.map((row) => (
-									<OrderCard
-										key={row.id}
-										order={row}
-										side={side}
-										me={me}
-										listingsById={listingsById}
-									/>
-								))}
-							</section>
-						)
-					})}
+							))}
+						</section>
+					)}
 
-					{hasMoreFinished && (
+					{hasNextPage && (
 						<div className="flex justify-center pt-4">
-							<Button variant="outline" disabled={isFetchingNextPage} onClick={showMoreFinished}>
-								{isFetchingNextPage ? "Đang tải..." : "Xem thêm đơn đã xong"}
+							<Button variant="outline" disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
+								{isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
 							</Button>
 						</div>
 					)}
@@ -132,7 +137,7 @@ function EmptyState() {
 			</span>
 			<h2 className="font-headline-sm font-bold text-on-surface">Chưa có đơn hàng nào</h2>
 			<p className="text-body-sm text-on-surface-variant max-w-sm">
-				Đơn bạn mua và đơn người khác mua của bạn đều xuất hiện ở đây.
+				Chưa có giao dịch nào xuất hiện ở đây.
 			</p>
 			<Link href="/search" className="mt-2">
 				<Button variant="primary">Khám phá sản phẩm</Button>

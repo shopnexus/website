@@ -22,7 +22,7 @@ const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
  * already confirmed and the parcel is with a carrier, which is the opposite of needing
  * them — so that is the queue the "needs you" card counts.
  */
-export function useDashboardOverview(accountId: AccountId | undefined) {
+export function useDashboardOverview(accountId: AccountId | undefined, isSeller: boolean) {
 	const [anchor] = useState(() => Date.now())
 	const window = useMemo(
 		() => ({
@@ -32,13 +32,14 @@ export function useDashboardOverview(accountId: AccountId | undefined) {
 		[anchor],
 	)
 
-	const { listings } = useListingsFeed({ mine: true, limit: 3 })
+	const { listings } = useListingsFeed({ mine: true, limit: 3 }, isSeller)
 	const { data: wallets, isLoading: walletLoading } = useWallets()
 	const { data: reputation } = useReputation(accountId, "seller")
-	const { orders: pendingOrders } = useOrdersFeed("seller", "awaiting-confirmation", 5)
-	const { data: chatUnread } = useChatUnreadCount()
+	const { orders: pendingOrders } = useOrdersFeed("seller", "awaiting-confirmation", 5, isSeller)
+	const { orders: recentPurchases } = useOrdersFeed("buyer", undefined, 5, !isSeller)
+	const { data: chatUnread, isLoading: chatLoading } = useChatUnreadCount()
 	const { data: summary, isLoading: summaryLoading } = useOrdersSummary(
-		"seller",
+		isSeller ? "seller" : "buyer",
 		window.from,
 		window.to,
 	)
@@ -54,7 +55,9 @@ export function useDashboardOverview(accountId: AccountId | undefined) {
 		walletLoading,
 		reputation,
 		pendingOrders,
+		recentPurchases,
 		chatUnread: chatUnread?.unread ?? 0,
+		chatLoading,
 		summary,
 		summaryLoading,
 		revenue,

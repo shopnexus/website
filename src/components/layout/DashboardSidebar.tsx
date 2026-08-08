@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { isStaff } from "@/components/layout/AdminSidebar";
 
@@ -14,30 +14,54 @@ interface NavItem {
 
 export default function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user } = useAuthStore();
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   // Fourteen flat rows is a list you read rather than scan, and it had grown by accretion —
   // "Cài đặt bán hàng" sat next to "Cài đặt thông báo" although one is a shop and the other
   // is an inbox. Grouped by the job at hand instead, with headings rather than collapsible
   // sections: a group you have to open is a group you have to remember the name of.
+  const isSeller = Boolean(user?.identity_verified);
+
   const groups: Array<{ label: string | null; items: NavItem[] }> = [
-    { label: null, items: [{ name: "Tổng quan", path: "/account", icon: "dashboard" }] },
     {
-      label: "Giao dịch",
+      label: "Tài khoản",
       items: [
-        { name: "Đơn hàng", path: "/account/orders", icon: "receipt_long" },
+        { name: "Hồ sơ cá nhân", path: "/account/profile", icon: "person" },
+        { name: "Thông tin liên lạc", path: "/account/contacts", icon: "contacts" },
+        { name: "Bảo mật", path: "/account/security", icon: "shield" },
+        { name: "Xác minh danh tính", path: "/account/verification", icon: "verified_user" },
+        { name: "Thông báo", path: "/account/notifications", icon: "notifications" },
+      ],
+    },
+    {
+      label: "Mua hàng",
+      items: [
+        { name: "Đơn mua", path: "/account/orders", icon: "receipt_long" },
         { name: "Hoàn tiền", path: "/account/refunds", icon: "assignment_return" },
         { name: "Ví của tôi", path: "/account/wallet", icon: "account_balance_wallet" },
       ],
     },
-    {
+  ];
+
+  if (isSeller) {
+    groups.push({
       label: "Bán hàng",
       items: [
         { name: "Sản phẩm của tôi", path: "/account/products", icon: "inventory_2" },
+        { name: "Đơn bán", path: "/account/sales", icon: "receipt_long" },
         { name: "Thống kê", path: "/account/analytics", icon: "bar_chart" },
         { name: "Cài đặt bán hàng", path: "/account/settings", icon: "storefront" },
       ],
-    },
+    });
+  }
+
+  groups.push(
     {
       label: "Bộ sưu tập",
       items: [
@@ -46,24 +70,14 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
         { name: "Đang theo dõi", path: "/account/following", icon: "group" },
       ],
     },
-    {
-      label: "Tài khoản",
-      items: [
-        { name: "Hồ sơ cá nhân", path: "/account/profile", icon: "person" },
-        { name: "Sổ địa chỉ", path: "/account/contacts", icon: "contacts" },
-        { name: "Bảo mật", path: "/account/security", icon: "shield" },
-        { name: "Xác minh danh tính", path: "/account/verification", icon: "verified_user" },
-        { name: "Thông báo", path: "/account/notifications", icon: "notifications" },
-      ],
-    },
-    { label: null, items: [{ name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" }] },
-  ];
+    { label: null, items: [{ name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" }] }
+  );
 
   // The staff surface had eleven working pages and nothing anywhere linking to them, so the
   // only way in was typing the URL. Shown only to staff: to everyone else it would be a row
   // that leads to a redirect.
   if (isStaff(user?.role)) {
-    groups.splice(1, 0, {
+    groups.unshift({
       label: "Vận hành",
       items: [{ name: "Bảng điều hành", path: "/admin", icon: "admin_panel_settings" }],
     });
@@ -90,11 +104,11 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
           </Link>
         </div>
 
-        <nav className="flex-1 px-4 flex flex-col gap-1 mt-4 overflow-y-auto">
+        <nav className="flex-1 px-4 flex flex-col gap-1 overflow-y-auto">
           {groups.map((group, index) => (
             <div key={group.label ?? `plain-${index}`} className="flex flex-col gap-1">
               {group.label && (
-                <h2 className="px-4 pt-4 pb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-on-surface-variant">
+                <h2 className={`px-4 pb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-on-surface-variant ${index === 0 ? "pt-0" : "pt-4"}`}>
                   {group.label}
                 </h2>
               )}
@@ -125,11 +139,25 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
           ))}
         </nav>
         
-        <div className="p-4 mt-auto">
-          <Link href="/sell" className="flex items-center justify-center gap-2 bg-surface-container-high text-on-surface font-label-md w-full py-3 rounded-xl hover:bg-surface-variant transition-colors border border-outline-variant">
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            Đăng tin mới
-          </Link>
+        <div className="p-4 mt-auto flex flex-col gap-2">
+          {isSeller ? (
+            <Link href="/sell" className="flex items-center justify-center gap-2 bg-primary text-on-primary font-label-md w-full py-3 rounded-xl hover:opacity-90 transition-all shadow-sm">
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              Đăng tin mới
+            </Link>
+          ) : (
+            <Link href="/account/verification" className="flex items-center justify-center gap-2 bg-surface-container-high text-on-surface font-label-md w-full py-3 rounded-xl hover:bg-surface-variant transition-colors border border-outline-variant">
+              <span className="material-symbols-outlined text-[18px]">storefront</span>
+              Bắt đầu bán hàng
+            </Link>
+          )}
+          <button 
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2 text-error font-label-md w-full py-3 rounded-xl hover:bg-error/10 transition-colors mt-2"
+          >
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+            Đăng xuất
+          </button>
         </div>
       </aside>
 

@@ -81,7 +81,7 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
           </label>
           {contacts.length === 0 ? (
             <p className="font-body-sm text-on-surface-variant bg-surface-container-low rounded-lg p-3">
-              Bạn chưa có địa chỉ nào. Thêm một địa chỉ ở Sổ địa chỉ trước khi đăng bán.
+              Bạn chưa có địa chỉ nào. Thêm một địa chỉ ở Thông tin liên lạc trước khi đăng bán.
             </p>
           ) : (
             <select

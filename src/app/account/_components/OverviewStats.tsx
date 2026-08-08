@@ -27,6 +27,7 @@ export default function OverviewStats({
   summaryLoading,
   revenue,
   reputation,
+  isSeller,
 }: {
   balance: Balance;
   balanceLoading: boolean;
@@ -34,8 +35,9 @@ export default function OverviewStats({
   summaryLoading: boolean;
   revenue: MoneyByCurrency | undefined;
   reputation: Reputation | undefined;
+  isSeller: boolean;
 }) {
-  const tiles = [
+  let tiles = [
     {
       label: "Số dư khả dụng",
       period: "Hiện tại",
@@ -56,7 +58,7 @@ export default function OverviewStats({
       loading: summaryLoading,
     },
     {
-      label: "Đơn hàng",
+      label: isSeller ? "Đơn bán" : "Đơn mua",
       period: "30 ngày",
       value: String(
         (summary?.open ?? 0) + (summary?.completed ?? 0) + (summary?.cancelled ?? 0),
@@ -78,6 +80,10 @@ export default function OverviewStats({
     },
   ];
 
+  if (!isSeller) {
+    tiles = tiles.filter((t) => t.label === "Số dư khả dụng" || t.label === "Đơn mua");
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
       {tiles.map((tile) => (
@@ -85,16 +91,18 @@ export default function OverviewStats({
           key={tile.label}
           className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm"
         >
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <div className="font-label-sm text-on-surface-variant">{tile.label}</div>
-              <div className="text-[10px] uppercase tracking-wider text-on-surface-variant/70 mt-0.5">
+          <div className="flex items-start justify-between mb-4 gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="font-label-sm text-on-surface-variant break-words">{tile.label}</div>
+              <div className="text-[10px] uppercase tracking-wider text-on-surface-variant/70 mt-0.5 truncate">
                 {tile.period}
               </div>
             </div>
-            <span className="material-symbols-outlined w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
-              {tile.icon}
-            </span>
+            <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
+                {tile.icon}
+              </span>
+            </div>
           </div>
 
           {tile.loading ? (

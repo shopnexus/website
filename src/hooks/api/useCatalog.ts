@@ -76,10 +76,11 @@ export function useListings(filters: ListingFilters = {}, page = 1) {
  * so this walks `page` and stops at `total_count`, or on a short page when the query was
  * ranked and reported no total.
  */
-export function useListingsFeed(filters: ListingFilters = {}) {
+export function useListingsFeed(filters: ListingFilters = {}, enabled = true) {
 	const query = useInfiniteQuery({
 		...getListingsInfiniteOptions({ query: filters }),
 		...pagePagination,
+		enabled,
 	})
 
 	const listings = useMemo(() => flattenPages(query.data), [query.data])
