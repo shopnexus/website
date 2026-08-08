@@ -51,7 +51,7 @@ export function useChatAttachments() {
 
 						const resource = await confirmUpload.mutateAsync(slot.resource_id)
 						const previewUrl = file.type.startsWith("image/")
-							? URL.createObjectURL(file)
+							? resource.url
 							: undefined
 
 						setPending((current) => [
@@ -71,20 +71,11 @@ export function useChatAttachments() {
 	)
 
 	const remove = useCallback((id: ResourceId) => {
-		setPending((current) => {
-			const item = current.find((i) => i.id === id)
-			if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl)
-			return current.filter((i) => i.id !== id)
-		})
+		setPending((current) => current.filter((i) => i.id !== id))
 	}, [])
 
 	const clear = useCallback(() => {
-		setPending((current) => {
-			current.forEach((item) => {
-				if (item.previewUrl) URL.revokeObjectURL(item.previewUrl)
-			})
-			return []
-		})
+		setPending([])
 	}, [])
 
 	return { pending, uploadingCount, isUploading: uploadingCount > 0, add, remove, clear }
