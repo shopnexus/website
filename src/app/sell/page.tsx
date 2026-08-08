@@ -116,7 +116,9 @@ export default function SellPage() {
 		return (
 			<div className="min-h-screen bg-surface-container-low px-4 py-16">
 				<div className="mx-auto max-w-xl rounded-3xl border border-outline-variant bg-surface p-8 text-center shadow-sm">
-					<span className="material-symbols-outlined mx-auto grid size-16 place-items-center rounded-2xl bg-primary/10 text-4xl text-primary">verified_user</span>
+					<div className="mx-auto grid size-20 place-items-center rounded-[20px] bg-primary/10 text-primary">
+						<span className="material-symbols-outlined text-5xl leading-none">verified_user</span>
+					</div>
 					<h1 className="mt-6 text-2xl font-bold text-on-surface">Xác minh danh tính để bắt đầu bán</h1>
 					<p className="mx-auto mt-3 max-w-md text-sm leading-6 text-on-surface-variant">Server dùng cùng trạng thái xác minh cho quyền đăng bán và nhận tiền. Hoàn tất bước này trước để không bị chặn sau khi có đơn đầu tiên.</p>
 					<Link href="/dashboard/verification" className="mt-7 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-on-primary shadow-sm transition hover:brightness-110"><span className="material-symbols-outlined">badge</span>Xác minh ngay</Link>

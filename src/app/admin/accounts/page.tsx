@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function AdminAccountsPage() {
   return (
-    <div className="p-6 lg:p-8 max-w-6xl">
+    <div className="p-6 lg:p-8 max-w-6xl mx-auto">
       <PageHeader
         eyebrow="Người dùng"
         title="Tài khoản"

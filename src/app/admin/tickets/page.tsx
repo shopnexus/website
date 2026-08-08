@@ -28,7 +28,7 @@ export default function AdminTicketsPage() {
 	)
 
 	return (
-		<div className="p-6 lg:p-8 flex flex-col gap-6 max-w-[1100px]">
+		<div className="p-6 lg:p-8 flex flex-col gap-6 max-w-[1100px] mx-auto">
 			<header className="flex flex-col gap-1">
 				<h1 className="font-headline-md font-bold text-on-surface">Hàng đợi yêu cầu hỗ trợ</h1>
 				<p className="font-body-sm text-on-surface-variant">

@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function AdminCategoriesPage() {
   return (
-    <div className="p-6 lg:p-8 max-w-5xl">
+    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
       <PageHeader
         eyebrow="Cấu hình"
         title="Danh mục"
