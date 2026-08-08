@@ -33,7 +33,7 @@ export default function RefundVerdictDialog({
 		<Modal
 			open={open}
 			onClose={onClose}
-			title={buyerWins ? "Xử người mua thắng?" : "Xử người bán thắng?"}
+			title={buyerWins ? "Xác nhận hoàn tiền cho người mua?" : "Xác nhận từ chối hoàn tiền?"}
 		>
 			<div className="flex flex-col gap-4">
 				{buyerWins ? (

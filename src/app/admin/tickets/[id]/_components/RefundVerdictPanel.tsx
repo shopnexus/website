@@ -128,14 +128,14 @@ export default function RefundVerdictPanel({
 					disabled={!idIsUsable || verdict.isPending}
 					onClick={() => setConfirming(true)}
 				>
-					Người mua thắng
+					Hoàn tiền cho người mua
 				</Button>
 				<Button
 					variant="outline"
 					disabled={!idIsUsable || verdict.isPending}
 					onClick={() => setConfirming(false)}
 				>
-					Người bán thắng
+					Từ chối hoàn tiền
 				</Button>
 			</div>
 
