@@ -5,26 +5,11 @@ export type ClientOptions = {
 };
 
 /**
- * Like `CreateUploadRequest`, plus `kind`: the same store serves an avatar and an identity scan, so the service has to be told which it is presigning.
+ * The shared upload request plus `kind`: the same store serves an avatar and an identity scan, but only an avatar may ever resolve to a public link, so the service has to be told which it is presigning before a byte moves.
  *
  */
-export type AccountCreateUploadRequest = {
-    /**
-     * Kept only for its extension. The stored key is generated — a path a client chose is a directory traversal waiting for a backend that resolves one.
-     *
-     */
-    filename: string;
+export type AccountCreateUploadRequest = CreateUploadRequest & {
     kind: 'avatar' | 'identity';
-    /**
-     * One of the types this platform stores: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, `video/mp4`, `video/quicktime` (an iPhone's `.mov`), `video/webm`. Anything else is 422 whatever its size. The allowlist is the store's, so every upload route accepts the same set — which of them a client offers is its own choice.
-     *
-     */
-    mime: string;
-    /**
-     * Declared up front and refused before a byte moves. The bound here is the video one: a `video*` upload may reach 100 MB, everything else is held to 10 MB, and a limit that depends on the type cannot be written as one number. The confirmed row records the size the *store* measured, not this.
-     *
-     */
-    size: number;
 };
 
 export type AccountId = string;
@@ -1553,6 +1538,11 @@ export type PasswordResetRequest = {
 };
 
 export type PaymentSession = {
+    /**
+     * The gateway page an unfinished payment attempt is still waiting at — send the payer straight back to it. Empty when there is nothing to return to: no attempt yet, a rail that redirects nowhere, or a session past its deadline. A client that finds it empty has to ask for a rail first, through `POST /payment-sessions/{id}/payments`.
+     *
+     */
+    checkout_url: string;
     created_at: string;
     currency: CurrencyCode;
     /**
@@ -1820,7 +1810,7 @@ export type Resource = {
      */
     size: number;
     /**
-     * Short-lived URL to fetch the bytes. Empty until a module can presign one, so a consumer that needs the bytes has to treat an empty string as "not available yet". Not a stable address: store the id, not this.
+     * Short-lived URL to fetch the bytes, signed by the store that actually holds them — answered by the confirmation and by every response that carries a resource. Empty only when no link could be produced, so a consumer that needs the bytes has to treat an empty string as "not available" rather than as an empty object. Not a stable address: store the id, not this.
      *
      */
     url: string;
@@ -2221,7 +2211,7 @@ export type Transaction = {
      */
     amount: number;
     /**
-     * Where to send the payer for this leg. Empty once the rail no longer needs it, or for rails that have none.
+     * Where to send the payer for this leg, answered for as long as the leg can still be paid. Empty once it has settled or expired, and for rails that redirect nowhere.
      */
     checkout_url: string;
     created_at: string;

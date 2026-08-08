@@ -1531,6 +1531,7 @@ export const postConversationsUploadsMutation = (options?: Partial<Options<PostC
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be attached to a message. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postConversationsUploadsByIdConfirmationMutation = (options?: Partial<Options<PostConversationsUploadsByIdConfirmationData>>): UseMutationOptions<PostConversationsUploadsByIdConfirmationResponse, PostConversationsUploadsByIdConfirmationError, Options<PostConversationsUploadsByIdConfirmationData>> => {
@@ -2290,6 +2291,7 @@ export const postListingsUploadsMutation = (options?: Partial<Options<PostListin
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be attached to a listing. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postListingsUploadsByIdConfirmationMutation = (options?: Partial<Options<PostListingsUploadsByIdConfirmationData>>): UseMutationOptions<PostListingsUploadsByIdConfirmationResponse, PostListingsUploadsByIdConfirmationError, Options<PostListingsUploadsByIdConfirmationData>> => {
@@ -2572,6 +2574,7 @@ export const postMeUploadsMutation = (options?: Partial<Options<PostMeUploadsDat
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be set as an avatar or submitted as an identity scan. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postMeUploadsByIdConfirmationMutation = (options?: Partial<Options<PostMeUploadsByIdConfirmationData>>): UseMutationOptions<PostMeUploadsByIdConfirmationResponse, PostMeUploadsByIdConfirmationError, Options<PostMeUploadsByIdConfirmationData>> => {
@@ -3269,6 +3272,7 @@ export const postOrdersUploadsMutation = (options?: Partial<Options<PostOrdersUp
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be named as evidence on a receipt confirmation or a refund. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postOrdersUploadsByIdConfirmationMutation = (options?: Partial<Options<PostOrdersUploadsByIdConfirmationData>>): UseMutationOptions<PostOrdersUploadsByIdConfirmationResponse, PostOrdersUploadsByIdConfirmationError, Options<PostOrdersUploadsByIdConfirmationData>> => {
@@ -3437,6 +3441,8 @@ export const postPaymentSessionsByIdCancellationMutation = (options?: Partial<Op
  * Pay a session through one rail
  *
  * Creates a ledger leg on the chosen rail and returns it with the gateway redirect in `checkout_url`. Omit `amount` to tender the whole outstanding balance; pass it to split the session across several rails, calling this again per rail until the total is covered.
+ *
+ * Tendering a rail that already has an unfinished attempt **resumes** it: the same leg comes back with the same `checkout_url`, and `amount` is ignored. A redirect rail reports nothing when the payer closes its tab, so a second live gateway page would be one the session cannot account for — whichever payment landed second would have no outstanding balance left to settle against.
  *
  * The leg starts `pending` and only the provider's webhook settles it — this response is not a receipt. Poll the session or the leg for the outcome.
  *
@@ -3819,6 +3825,7 @@ export const postReviewsUploadsMutation = (options?: Partial<Options<PostReviews
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be attached to a review. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postReviewsUploadsByIdConfirmationMutation = (options?: Partial<Options<PostReviewsUploadsByIdConfirmationData>>): UseMutationOptions<PostReviewsUploadsByIdConfirmationResponse, PostReviewsUploadsByIdConfirmationError, Options<PostReviewsUploadsByIdConfirmationData>> => {

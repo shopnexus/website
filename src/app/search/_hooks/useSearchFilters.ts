@@ -67,7 +67,10 @@ export function useSearchFilters() {
   const [priceTo, setPriceTo] = useState("");
   const [appliedPriceFrom, setAppliedPriceFrom] = useState("");
   const [appliedPriceTo, setAppliedPriceTo] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  // `null` is "not chosen", which is not the same as any particular ordering: the default
+  // depends on whether something was typed, and storing one here would freeze the answer
+  // from the moment the page mounted.
+  const [sortBy, setSortBy] = useState<SortOption | null>(null);
   const [mode, setMode] = useState<SearchMode>("hybrid");
   // An administrative code, from the search box on the home page.
   const [provinceCode, setProvinceCode] = useState<string>(
@@ -87,6 +90,10 @@ export function useSearchFilters() {
     hasPosition: position !== null,
     isSignedIn: isAuthenticated,
   };
+  // What is really in force, which is what both the request and the selector must say. They
+  // used to disagree: the selector showed the shopper's lapsed pick while the request carried
+  // the fallback, so the page claimed one ordering and served another.
+  const activeSort = effectiveSort(sortBy, availability);
 
   const filters: ListingFilters = {
     limit: PAGE_SIZE,
@@ -100,7 +107,7 @@ export function useSearchFilters() {
     max_price: priceBound(appliedPriceTo),
     ...locationFilter(provinceCode, wardCode),
     ...positionFilter(position, radiusKm),
-    sort: effectiveSort(sortBy, availability),
+    sort: activeSort,
   };
 
   const feed = useListingsFeed(filters);
@@ -123,7 +130,9 @@ export function useSearchFilters() {
 
   const clearPosition = () => {
     setPosition(null);
-    if (sortBy === "distance") setSortBy("newest");
+    // Back to unchosen rather than to a named ordering: the shopper never picked one, and
+    // the default is what they had before they asked for distance.
+    if (sortBy === "distance") setSortBy(null);
   };
 
   const clearAll = () => {
@@ -183,7 +192,7 @@ export function useSearchFilters() {
       setPriceFrom("");
       setPriceTo("");
     },
-    sortBy,
+    sortBy: activeSort,
     setSortBy,
     mode,
     setMode,

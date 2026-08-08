@@ -766,6 +766,7 @@ export const postConversationsUploads = <ThrowOnError extends boolean = false>(o
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be attached to a message. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postConversationsUploadsByIdConfirmation = <ThrowOnError extends boolean = false>(options: Options<PostConversationsUploadsByIdConfirmationData, ThrowOnError>): RequestResult<PostConversationsUploadsByIdConfirmationResponses, PostConversationsUploadsByIdConfirmationErrors, ThrowOnError> => (options.client ?? client).post<PostConversationsUploadsByIdConfirmationResponses, PostConversationsUploadsByIdConfirmationErrors, ThrowOnError>({
@@ -1184,6 +1185,7 @@ export const postListingsUploads = <ThrowOnError extends boolean = false>(option
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be attached to a listing. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postListingsUploadsByIdConfirmation = <ThrowOnError extends boolean = false>(options: Options<PostListingsUploadsByIdConfirmationData, ThrowOnError>): RequestResult<PostListingsUploadsByIdConfirmationResponses, PostListingsUploadsByIdConfirmationErrors, ThrowOnError> => (options.client ?? client).post<PostListingsUploadsByIdConfirmationResponses, PostListingsUploadsByIdConfirmationErrors, ThrowOnError>({
@@ -1349,6 +1351,7 @@ export const postMeUploads = <ThrowOnError extends boolean = false>(options: Opt
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be set as an avatar or submitted as an identity scan. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postMeUploadsByIdConfirmation = <ThrowOnError extends boolean = false>(options: Options<PostMeUploadsByIdConfirmationData, ThrowOnError>): RequestResult<PostMeUploadsByIdConfirmationResponses, PostMeUploadsByIdConfirmationErrors, ThrowOnError> => (options.client ?? client).post<PostMeUploadsByIdConfirmationResponses, PostMeUploadsByIdConfirmationErrors, ThrowOnError>({
@@ -1755,6 +1758,7 @@ export const postOrdersUploads = <ThrowOnError extends boolean = false>(options:
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be named as evidence on a receipt confirmation or a refund. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postOrdersUploadsByIdConfirmation = <ThrowOnError extends boolean = false>(options: Options<PostOrdersUploadsByIdConfirmationData, ThrowOnError>): RequestResult<PostOrdersUploadsByIdConfirmationResponses, PostOrdersUploadsByIdConfirmationErrors, ThrowOnError> => (options.client ?? client).post<PostOrdersUploadsByIdConfirmationResponses, PostOrdersUploadsByIdConfirmationErrors, ThrowOnError>({
@@ -1843,6 +1847,8 @@ export const postPaymentSessionsByIdCancellation = <ThrowOnError extends boolean
  * Pay a session through one rail
  *
  * Creates a ledger leg on the chosen rail and returns it with the gateway redirect in `checkout_url`. Omit `amount` to tender the whole outstanding balance; pass it to split the session across several rails, calling this again per rail until the total is covered.
+ *
+ * Tendering a rail that already has an unfinished attempt **resumes** it: the same leg comes back with the same `checkout_url`, and `amount` is ignored. A redirect rail reports nothing when the payer closes its tab, so a second live gateway page would be one the session cannot account for — whichever payment landed second would have no outstanding balance left to settle against.
  *
  * The leg starts `pending` and only the provider's webhook settles it — this response is not a receipt. Poll the session or the leg for the outcome.
  *
@@ -2079,6 +2085,7 @@ export const postReviewsUploads = <ThrowOnError extends boolean = false>(options
  * Confirm the bytes are at the store
  *
  * Until this lands the resource resolves to nothing, so a half-finished upload cannot be attached to a review. The recorded size is the store's, not the one declared when the slot was reserved.
+ * The answer carries a signed `url` for the bytes just uploaded. That is the only time it is handed over unasked: a second confirmation is refused, and the resource is otherwise only seen through whatever it gets attached to.
  *
  */
 export const postReviewsUploadsByIdConfirmation = <ThrowOnError extends boolean = false>(options: Options<PostReviewsUploadsByIdConfirmationData, ThrowOnError>): RequestResult<PostReviewsUploadsByIdConfirmationResponses, PostReviewsUploadsByIdConfirmationErrors, ThrowOnError> => (options.client ?? client).post<PostReviewsUploadsByIdConfirmationResponses, PostReviewsUploadsByIdConfirmationErrors, ThrowOnError>({
