@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ContentPage, { Section } from "@/components/content/ContentPage";
 
-export const metadata = { title: "Chính sách cookie | ShopNexus" };
+export const metadata = { title: "Chính sách cookie" };
 
 /**
  * Short because the truth is short: this site stores three things in the browser and none

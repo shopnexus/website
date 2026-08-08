@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ContentPage, { Section } from "@/components/content/ContentPage";
 
-export const metadata = { title: "Giao dịch an toàn | ShopNexus" };
+export const metadata = { title: "Giao dịch an toàn" };
 
 /**
  * The page the chat's safety tip links to — it had no target at all, so the one moment the

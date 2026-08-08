@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ContentPage, { Section } from "@/components/content/ContentPage";
 
-export const metadata = { title: "Điều khoản sử dụng | ShopNexus" };
+export const metadata = { title: "Điều khoản sử dụng" };
 
 /**
  * Every number here is read off the running system, not invented: the windows come from

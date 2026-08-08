@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ContentPage, { Section } from "@/components/content/ContentPage";
 
-export const metadata = { title: "Về ShopNexus | ShopNexus" };
+export const metadata = { title: "Về ShopNexus" };
 
 export default function AboutPage() {
   return (

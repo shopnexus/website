@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import VerifyEmail from "./_components/VerifyEmail";
 
-export const metadata = { title: "Xác minh email | ShopNexus" };
+export const metadata = { title: "Xác minh email" };
 
 export default function VerifyEmailPage() {
   return (

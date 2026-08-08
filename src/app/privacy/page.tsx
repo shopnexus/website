@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ContentPage, { Section } from "@/components/content/ContentPage";
 
-export const metadata = { title: "Chính sách bảo mật | ShopNexus" };
+export const metadata = { title: "Chính sách bảo mật" };
 
 /**
  * What the system actually stores and sends, read off the modules rather than generalised

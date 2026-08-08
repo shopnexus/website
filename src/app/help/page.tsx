@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ContentPage, { Section } from "@/components/content/ContentPage";
 
-export const metadata = { title: "Trợ giúp | ShopNexus" };
+export const metadata = { title: "Trợ giúp" };
 
 const GUIDES = [
   { href: "/help/safety", icon: "shield", title: "Giao dịch an toàn", note: "Vì sao luôn thanh toán qua sàn, và khi nào nên yêu cầu hoàn tiền." },

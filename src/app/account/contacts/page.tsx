@@ -1,7 +1,7 @@
 import ContactManager from "./_components/ContactManager";
 
 export const metadata = {
-  title: "Thông tin liên lạc | Shopnexus",
+  title: "Thông tin liên lạc",
 };
 
 export default function ContactsPage() {
