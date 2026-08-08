@@ -16,13 +16,17 @@ const formatPrice = (amount: number, currency: string) =>
  *
  * This screen exists because the rails do not all report a cancellation. SePay's hosted page
  * has a back button and no webhook behind it, so a buyer who presses it leaves the session
- * exactly as it was — `pending`, funded by nobody, and good until `expired_at`. Nothing is
- * wrong and nothing needs undoing; the only thing missing is a way back to the gateway.
+ * exactly as it was — funded by nobody and good until `expired_at`. Nothing is wrong and
+ * nothing needs undoing; the only thing missing is a way back to the gateway.
  *
- * The checkout form is not repeated here. The draft that opened this session is spent and its
- * terms — address, carrier, price — are frozen into the session already, so re-asking would
- * offer choices that can no longer change anything. The one thing still open is which rail to
- * try, because the last one was not completed.
+ * `checkout_url` is that way back, and when the server answers one it is the whole screen:
+ * the rail chooser is not offered beside it, because tendering a *different* rail while one
+ * attempt is still open is refused — the platform cannot tell an abandoned page from a
+ * payment under way, and two live pages on one session can both be paid.
+ *
+ * The checkout form is not repeated here either. The draft that opened this session is spent
+ * and its terms — address, carrier, price — are frozen into the session already, so re-asking
+ * would offer choices that can no longer change anything.
  */
 export default function ResumePayment({
   session,
@@ -72,9 +76,13 @@ export default function ResumePayment({
   // and asking again for the whole total would take the settled part twice.
   const due = session.outstanding;
 
-  // `processing` is a leg in flight — the rail was called and has not reported. Nothing to press.
-  const settling = session.status === "processing";
   const finished = session.status === "cancelled" || session.status === "failed";
+  // The page the rail is still waiting at. Its presence is what tells "the payer walked away
+  // from a gateway that is still open" apart from "the rail was called and said nothing" —
+  // two situations that look identical in the session's own status.
+  const gateway = !expired && !finished ? session.checkout_url : "";
+  // A leg in flight with nowhere to send anybody: nothing to press but cancel.
+  const settling = session.status === "processing" && !gateway;
   const canRetry = session.status === "pending" && !expired && due > 0;
   // Exactly what `CancelSession` accepts. `processing` is included on purpose and by the
   // server's own rule: a rail that took the payer away and never reported leaves the
@@ -119,10 +127,17 @@ export default function ResumePayment({
             </Notice>
           )}
 
-          {canRetry && (
+          {gateway && (
+            <Notice tone="info" icon="info">
+              Bạn đã rời khỏi cổng thanh toán trước khi hoàn tất. Đơn hàng vẫn được giữ
+              {left ? ` — còn ${left} để thanh toán` : ""}. Mở lại trang thanh toán để tiếp tục.
+            </Notice>
+          )}
+
+          {!gateway && canRetry && (
             <>
               <Notice tone="info" icon="info">
-                Bạn đã rời khỏi cổng thanh toán trước khi hoàn tất. Đơn hàng vẫn được giữ
+                Bạn chưa chọn phương thức thanh toán cho đơn này. Đơn hàng vẫn được giữ
                 {left ? ` — còn ${left} để thanh toán` : ""}. Chọn phương thức và tiếp tục.
               </Notice>
 
@@ -161,16 +176,24 @@ export default function ResumePayment({
           )}
 
           <div className="flex flex-col sm:flex-row gap-3">
-            {canRetry && (
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={onRetry}
-                disabled={isRetrying || !activePayment}
-              >
-                {isRetrying ? "Đang chuyển tới cổng thanh toán..." : "Thanh toán lại"}
-              </Button>
+            {gateway ? (
+              <a href={gateway} className="sm:flex-1 w-full">
+                <Button variant="primary" size="lg" fullWidth>
+                  Mở lại trang thanh toán
+                </Button>
+              </a>
+            ) : (
+              canRetry && (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  onClick={onRetry}
+                  disabled={isRetrying || !activePayment}
+                >
+                  {isRetrying ? "Đang chuyển tới cổng thanh toán..." : "Thanh toán"}
+                </Button>
+              )
             )}
             <Link href="/orders" className="sm:w-auto w-full">
               <Button variant="outline" size="lg" fullWidth>

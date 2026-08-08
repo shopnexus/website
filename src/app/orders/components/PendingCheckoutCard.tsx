@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import Button from "@/components/ui/Button"
 import CancelCheckoutDialog from "@/components/orders/CancelCheckoutDialog"
+import { usePaymentSession } from "@/hooks/api/useFinance"
 import type { PendingCheckout } from "@/lib/pending-checkout"
 import type { Listing, ListingId } from "@/api/generated/types.gen"
 
@@ -30,6 +31,13 @@ export default function PendingCheckoutCard({
 	listingsById: Map<ListingId, Listing>
 }) {
 	const [cancelling, setCancelling] = useState(false)
+	// Not polled: this row is a link, not a screen waiting on an outcome, and a page of them
+	// would otherwise re-ask for every abandoned checkout every two seconds.
+	const { data: session } = usePaymentSession(checkout.sessionId, false)
+	// The gateway page the payer left, when one is still waiting. Going there is the whole
+	// point of the button — routing through the checkout screen only to press another button
+	// puts a step between the buyer and the thing they came back to do.
+	const gateway = session?.checkout_url
 
 	const firstItem = checkout.items[0]
 	const firstListing = firstItem ? listingsById.get(firstItem.listing_id) : undefined
@@ -84,11 +92,22 @@ export default function PendingCheckoutCard({
 					>
 						Huỷ đơn
 					</button>
-					<Link href={`/checkout?session_id=${checkout.sessionId}`}>
-						<Button variant="primary" size="sm">
-							Tiếp tục thanh toán
-						</Button>
-					</Link>
+					{gateway ? (
+						<a href={gateway}>
+							<Button variant="primary" size="sm">
+								Tiếp tục thanh toán
+							</Button>
+						</a>
+					) : (
+						// No attempt is waiting — nothing was tendered, or the one that was has
+						// expired — so the buyer still has to pick a rail before there is a page
+						// to open. Says so, rather than promising the gateway and delivering a form.
+						<Link href={`/checkout?session_id=${checkout.sessionId}`}>
+							<Button variant="primary" size="sm">
+								Chọn cách thanh toán
+							</Button>
+						</Link>
+					)}
 				</div>
 			</div>
 

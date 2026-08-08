@@ -107,12 +107,21 @@ export function useCancelPaymentSession() {
 	})
 }
 
-export function usePaymentSession(id: PaymentSessionId | undefined, watch = true) {
+/**
+ * One payment session, polled until it settles.
+ *
+ * `poll` is off for a caller that only wants to know where the payer left off — a list of
+ * abandoned checkouts reads one session per row, and re-asking for every one of them every
+ * two seconds buys nothing: nothing on that screen changes when a webhook lands except a row
+ * leaving, and the list itself is invalidated for that.
+ */
+export function usePaymentSession(id: PaymentSessionId | undefined, poll = true) {
 	return useQuery({
 		...getPaymentSessionsByIdOptions({ path: { id: id! } }),
 		select: unwrapData,
-		enabled: Boolean(id) && watch,
+		enabled: Boolean(id),
 		refetchInterval: (query) => {
+			if (!poll) return false
 			const status = query.state.data?.data.status
 			return status === "pending" || status === "processing" ? 2000 : false
 		},
