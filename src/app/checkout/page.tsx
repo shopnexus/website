@@ -149,7 +149,7 @@ function CheckoutContent() {
   useEffect(() => {
     if (session?.status === "success") {
       toast.success("Thanh toán thành công! Đơn hàng đã được tạo.");
-      router.push("/orders");
+      router.push("/account/orders");
     }
   }, [session?.status, router]);
 
@@ -270,7 +270,7 @@ function CheckoutContent() {
                   <span className="material-symbols-outlined text-primary">location_on</span>
                   Địa chỉ nhận hàng
                 </h2>
-                <Link href="/dashboard/contacts" className="text-primary font-label-md hover:underline">Quản lý địa chỉ</Link>
+                <Link href="/account/contacts" className="text-primary font-label-md hover:underline">Quản lý địa chỉ</Link>
               </div>
               
               {selectedContact ? (

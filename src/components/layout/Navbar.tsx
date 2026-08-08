@@ -158,17 +158,17 @@ export default function Navbar(): React.ReactElement {
                   )}
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/account"
                   aria-label="person"
                   className={`hidden sm:flex pb-1 px-2 transition-all cursor-pointer items-center justify-center border-b-2 duration-300 ${
-                    pathname === "/dashboard"
+                    pathname === "/account"
                       ? "text-primary border-primary font-bold"
                       : "text-on-surface-variant border-transparent hover:text-primary"
                   }`}
                 >
                   <span
                     className="material-symbols-outlined"
-                    style={{ fontVariationSettings: pathname === "/dashboard" ? "'FILL' 1" : "'FILL' 0" }}
+                    style={{ fontVariationSettings: pathname === "/account" ? "'FILL' 1" : "'FILL' 0" }}
                   >
                     person
                   </span>
@@ -242,12 +242,12 @@ export default function Navbar(): React.ReactElement {
           <span className="font-label text-label-sm">Tìm kiếm</span>
         </Link>
         <Link
-          href="/dashboard/favorites"
+          href="/account/favorites"
           className={`flex flex-col items-center justify-center px-4 py-1 active:scale-95 duration-150 border-b-2 transition-all ${
-            pathname === "/dashboard/favorites" ? "text-primary border-primary font-bold" : "text-on-surface-variant border-transparent"
+            pathname === "/account/favorites" ? "text-primary border-primary font-bold" : "text-on-surface-variant border-transparent"
           }`}
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === "/dashboard/favorites" ? "'FILL' 1" : "'FILL' 0" }}>
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: pathname === "/account/favorites" ? "'FILL' 1" : "'FILL' 0" }}>
             favorite
           </span>
           <span className="font-label text-label-sm">Đã lưu</span>

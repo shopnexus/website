@@ -113,7 +113,7 @@ export default function PrivacyPage() {
       <Section id="quyen" title="6. Quyền của bạn">
         <p>
           Bạn xem và sửa hồ sơ, địa chỉ, phương thức đăng nhập trong{" "}
-          <Link href="/dashboard/profile">trang quản lý tài khoản</Link>. Với yêu cầu xoá dữ
+          <Link href="/account/profile">trang quản lý tài khoản</Link>. Với yêu cầu xoá dữ
           liệu, hãy mở một yêu cầu qua <Link href="/support">Trung tâm hỗ trợ</Link>.
         </p>
         <p>

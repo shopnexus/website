@@ -73,7 +73,7 @@ export default function DashboardPage() {
             <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
               <h2 className="font-headline-sm font-bold text-on-surface">Sản phẩm của tôi</h2>
               <Link
-                href="/dashboard/products"
+                href="/account/products"
                 className="text-primary font-label-md hover:underline"
               >
                 Xem tất cả
@@ -121,7 +121,7 @@ export default function DashboardPage() {
                             )}
                           </div>
                           <Link
-                            href={`/dashboard/products/${listing.id}`}
+                            href={`/account/products/${listing.id}`}
                             className="font-label-md text-on-surface hover:text-primary transition-colors truncate max-w-[220px]"
                           >
                             {listing.name}
@@ -154,7 +154,7 @@ export default function DashboardPage() {
 
             <div className="p-4 border-t border-outline-variant flex justify-center bg-surface-container-lowest">
               <Link
-                href="/dashboard/products"
+                href="/account/products"
                 className="text-primary font-label-md hover:underline"
               >
                 Quản lý toàn bộ sản phẩm
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                       {new Date(nextOrder.created_at).toLocaleDateString("vi-VN")}
                     </span>
                   </div>
-                  <Link href={`/orders/${nextOrder.id}`}>
+                  <Link href={`/account/orders/${nextOrder.id}`}>
                     <Button size="sm" variant="primary" fullWidth>
                       Xem đơn hàng
                     </Button>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
                 ? `${formatMoney(wallet.held_balance, wallet.currency)} đang được giữ hộ cho các đơn chưa kết thúc.`
                 : "Toàn bộ số dư của bạn đã sẵn sàng để rút."}
             </p>
-            <Link href="/dashboard/wallet">
+            <Link href="/account/wallet">
               <Button size="sm" variant="outline" fullWidth>
                 Xem số dư và rút tiền
               </Button>

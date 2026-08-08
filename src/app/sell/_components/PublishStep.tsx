@@ -34,7 +34,7 @@ export default function PublishStep({ contacts, activePickupId, onPickupChange }
 				</div>
 			) : (
 				<div className="rounded-2xl border border-error/25 bg-error-container/25 p-5">
-					<div className="flex items-start gap-3"><span className="material-symbols-outlined text-error">wrong_location</span><div><h3 className="font-semibold text-on-surface">Chưa có địa chỉ lấy hàng</h3><p className="mt-1 text-sm leading-6 text-on-surface-variant">Bạn vẫn có thể lưu nháp, nhưng server sẽ từ chối gửi duyệt cho đến khi có địa chỉ.</p><Link href="/dashboard/contacts" className="mt-3 inline-flex text-sm font-bold text-primary hover:underline">Thêm địa chỉ trong sổ liên hệ</Link></div></div>
+					<div className="flex items-start gap-3"><span className="material-symbols-outlined text-error">wrong_location</span><div><h3 className="font-semibold text-on-surface">Chưa có địa chỉ lấy hàng</h3><p className="mt-1 text-sm leading-6 text-on-surface-variant">Bạn vẫn có thể lưu nháp, nhưng server sẽ từ chối gửi duyệt cho đến khi có địa chỉ.</p><Link href="/account/contacts" className="mt-3 inline-flex text-sm font-bold text-primary hover:underline">Thêm địa chỉ trong sổ liên hệ</Link></div></div>
 				</div>
 			)}
 

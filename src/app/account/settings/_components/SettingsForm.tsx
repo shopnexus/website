@@ -119,7 +119,7 @@ export default function SettingsForm() {
                 </p>
               </div>
               <Link
-                href="/dashboard/wallet"
+                href="/account/wallet"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-semibold text-sm hover:brightness-110 transition-all"
               >
                 Mở ví

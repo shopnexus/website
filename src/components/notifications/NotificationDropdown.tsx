@@ -70,7 +70,7 @@ export default function NotificationDropdown() {
         <div className="absolute top-full right-0 mt-2 w-80 bg-surface rounded-2xl shadow-lg border border-outline-variant overflow-hidden z-50">
           <div className="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest">
             <h3 className="font-headline-sm font-bold text-on-surface">Thông báo</h3>
-            <Link href="/dashboard/notifications" className="text-primary text-[12px] font-medium hover:underline">
+            <Link href="/account/notifications" className="text-primary text-[12px] font-medium hover:underline">
               Cài đặt
             </Link>
           </div>

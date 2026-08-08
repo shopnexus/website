@@ -56,7 +56,7 @@ export default function RefundDetail({ id }: { id: string }) {
 					<div>
 						<h1 className="font-headline-sm font-bold text-on-surface">Yêu cầu hoàn tiền</h1>
 						<Link
-							href={`/orders/${refund.order_id}`}
+							href={`/account/orders/${refund.order_id}`}
 							className="text-body-sm text-primary hover:underline"
 						>
 							Đơn {refund.order_id}
@@ -116,7 +116,7 @@ export default function RefundDetail({ id }: { id: string }) {
 				<RefundActions refund={refund} isBuyer={isBuyer} />
 
 				{settled && (
-					<Link href={`/orders/${refund.order_id}`} className="block">
+					<Link href={`/account/orders/${refund.order_id}`} className="block">
 						<Button variant="outline" fullWidth>
 							Xem đơn hàng
 						</Button>

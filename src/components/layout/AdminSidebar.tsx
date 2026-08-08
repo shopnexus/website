@@ -67,7 +67,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
   // row itself. This only keeps a non-staff visitor from staring at a shell of empty
   // tables and 403 toasts.
   useEffect(() => {
-    if (!isLoading && !allowed) router.replace("/dashboard");
+    if (!isLoading && !allowed) router.replace("/account");
   }, [isLoading, allowed, router]);
 
   if (isLoading) {
@@ -126,7 +126,7 @@ export default function AdminSidebar({ children }: { children: React.ReactNode }
 
         <div className="p-4 mt-auto">
           <Link
-            href="/dashboard"
+            href="/account"
             className="flex items-center justify-center gap-2 bg-surface-container-high text-on-surface font-label-md w-full py-3 rounded-xl hover:bg-surface-variant transition-colors border border-outline-variant"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>

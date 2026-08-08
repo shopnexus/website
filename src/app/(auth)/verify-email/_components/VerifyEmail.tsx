@@ -74,7 +74,7 @@ export default function VerifyEmail() {
             Từ giờ bạn nhận được thông báo về đơn hàng và có thể khôi phục mật khẩu qua địa
             chỉ này.
           </p>
-          <Link href="/dashboard" className="w-full mt-2">
+          <Link href="/account" className="w-full mt-2">
             <Button variant="primary" fullWidth>
               Về trang quản lý
             </Button>
@@ -108,7 +108,7 @@ export default function VerifyEmail() {
       )}
 
       {(state === "failed" || state === "missing") && (
-        <Link href="/dashboard/security" className="w-full mt-2">
+        <Link href="/account/security" className="w-full mt-2">
           <Button variant="outline" fullWidth>
             Gửi lại email xác minh
           </Button>

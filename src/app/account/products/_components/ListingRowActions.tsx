@@ -26,7 +26,7 @@ export default function ListingRowActions({
   return (
     <div className="flex justify-end gap-1">
       <Link
-        href={`/dashboard/products/${listing.id}`}
+        href={`/account/products/${listing.id}`}
         title="Chỉnh sửa"
         aria-label={`Chỉnh sửa ${listing.name}`}
         className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 rounded-full transition-all"

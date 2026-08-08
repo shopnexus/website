@@ -89,7 +89,7 @@ export default function NotificationSidebar({
 			</nav>
 
 			<Link
-				href="/dashboard/notifications"
+				href="/account/notifications"
 				className="block p-5 bg-primary-container/10 rounded-2xl border border-primary/15 hover:bg-primary-container/20 transition-colors"
 			>
 				<p className="text-body-sm text-primary font-bold mb-1.5 flex items-center gap-2">

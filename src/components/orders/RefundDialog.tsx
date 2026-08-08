@@ -44,7 +44,7 @@ export default function RefundDialog({
 					onClose()
 					// Straight to the case. Submitting used to drop the buyer back on the order
 					// with no sign anything had happened, and nowhere to follow it.
-					router.push(`/refunds/${refund.id}`)
+					router.push(`/account/refunds/${refund.id}`)
 				},
 			},
 		)

@@ -35,7 +35,7 @@ export default function PickupAddressPicker({
         <p className="font-body-md text-on-surface-variant mb-4">
           Bạn chưa lưu địa chỉ nào. Người bán cần ít nhất một địa chỉ để đăng tin.
         </p>
-        <Link href="/dashboard/contacts">
+        <Link href="/account/contacts">
           <Button>Mở sổ địa chỉ</Button>
         </Link>
       </div>

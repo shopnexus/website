@@ -195,7 +195,7 @@ export default function ResumePayment({
                 </Button>
               )
             )}
-            <Link href="/orders" className="sm:w-auto w-full">
+            <Link href="/account/orders" className="sm:w-auto w-full">
               <Button variant="outline" size="lg" fullWidth>
                 Xem đơn hàng của tôi
               </Button>
@@ -219,7 +219,7 @@ export default function ResumePayment({
         open={cancelling}
         onClose={() => setCancelling(false)}
         // Nothing left on this screen once the session is gone — it exists only to pay one.
-        onCancelled={() => router.push("/orders")}
+        onCancelled={() => router.push("/account/orders")}
       />
     </Shell>
   );
@@ -261,7 +261,7 @@ function Empty({ icon, title, body }: { icon: string; title: string; body: strin
       <span className="material-symbols-outlined text-[40px] text-on-surface-variant">{icon}</span>
       <h1 className="font-headline-sm font-bold">{title}</h1>
       <p className="text-body-sm text-on-surface-variant max-w-[380px]">{body}</p>
-      <Link href="/orders" className="mt-2">
+      <Link href="/account/orders" className="mt-2">
         <Button variant="outline">Xem đơn hàng của tôi</Button>
       </Link>
     </div>

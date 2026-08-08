@@ -160,7 +160,7 @@ export default function OrderActions({
 	// The case that replaced it, so the row still leads somewhere.
 	if (openRefund) {
 		actions.push(
-			<Link key="open-refund" href={`/refunds/${openRefund.id}`} className={full ? "block" : ""}>
+			<Link key="open-refund" href={`/account/refunds/${openRefund.id}`} className={full ? "block" : ""}>
 				<Button variant="outline" size={size} fullWidth={full}>
 					Xem yêu cầu hoàn tiền
 				</Button>

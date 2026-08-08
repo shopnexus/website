@@ -11,7 +11,7 @@ import type { OrderId } from "@/api/generated/types.gen"
  * "There is a refund case on this order", and a way into it.
  *
  * `Order` carries no refund field, so the link has to come from the refund side — one
- * cached list read, shared with `/refunds`. Without it a seller learns nothing: a case
+ * cached list read, shared with `/account/refunds`. Without it a seller learns nothing: a case
  * raised against their sale is invisible on the only page they open about that sale, and
  * their 48-hour window runs out while they look at a page that never mentions it.
  */
@@ -27,7 +27,7 @@ export default function OrderRefundNotice({ orderId }: { orderId: OrderId }) {
 
 	return (
 		<Link
-			href={`/refunds/${refund.id}`}
+			href={`/account/refunds/${refund.id}`}
 			className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${
 				settled
 					? "border-outline-variant bg-surface-container-low"

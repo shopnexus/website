@@ -114,7 +114,7 @@ function Group({
 				return (
 					<Link
 						key={refund.id}
-						href={`/refunds/${refund.id}`}
+						href={`/account/refunds/${refund.id}`}
 						className={`flex flex-col gap-1 p-4 rounded-xl border transition-colors ${
 							highlight
 								? "bg-surface border-outline-variant border-l-4 border-l-primary shadow-sm"

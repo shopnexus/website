@@ -26,7 +26,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     <div className="p-4 md:p-8 max-w-[1280px] mx-auto pb-12">
       <nav className="mb-6">
         <Link
-          href="/dashboard/products"
+          href="/account/products"
           className="inline-flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors font-label-md"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>

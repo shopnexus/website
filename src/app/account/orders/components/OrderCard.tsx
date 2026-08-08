@@ -65,7 +65,7 @@ export default function OrderCard({
 			].join(" ")}
 		>
 			<Link
-				href={`/orders/${order.id}`}
+				href={`/account/orders/${order.id}`}
 				className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-surface-container border border-outline-variant/60"
 			>
 				{/* No placeholder service: a picsum URL made every order row fetch a random
@@ -82,7 +82,7 @@ export default function OrderCard({
 			<div className="flex-1 min-w-0 flex flex-col gap-1">
 				<div className="flex items-start justify-between gap-3">
 					<Link
-						href={`/orders/${order.id}`}
+						href={`/account/orders/${order.id}`}
 						className="font-label-md font-bold text-on-surface line-clamp-1 hover:text-primary transition-colors"
 					>
 						{firstListing?.name ?? "Đơn hàng"}

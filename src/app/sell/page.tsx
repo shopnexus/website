@@ -80,7 +80,7 @@ export default function SellPage() {
 		try {
 			const id = await productFlow.saveDraft(buildCreateListingRequest(sellForm.form))
 			toast.success("Đã lưu bản nháp.")
-			router.push(`/dashboard/products/${id}`)
+			router.push(`/account/products/${id}`)
 		} catch {
 			// The API layer presents the structured server error.
 		}
@@ -100,11 +100,11 @@ export default function SellPage() {
 			)
 			if (result.published) {
 				toast.success("Đã gửi tin cho kiểm duyệt.")
-				router.push("/dashboard/products")
+				router.push("/account/products")
 				return
 			}
 			toast("Tin đã được lưu nháp. Mở trình chỉnh sửa để hoàn tất gửi duyệt.", { icon: "📝" })
-			router.push(`/dashboard/products/${result.listingId}`)
+			router.push(`/account/products/${result.listingId}`)
 		} catch {
 			// Creation failed before a draft existed; the global handler shows why.
 		}
@@ -121,7 +121,7 @@ export default function SellPage() {
 					</div>
 					<h1 className="mt-6 text-2xl font-bold text-on-surface">Xác minh danh tính để bắt đầu bán</h1>
 					<p className="mx-auto mt-3 max-w-md text-sm leading-6 text-on-surface-variant">Server dùng cùng trạng thái xác minh cho quyền đăng bán và nhận tiền. Hoàn tất bước này trước để không bị chặn sau khi có đơn đầu tiên.</p>
-					<Link href="/dashboard/verification" className="mt-7 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-on-primary shadow-sm transition hover:brightness-110"><span className="material-symbols-outlined">badge</span>Xác minh ngay</Link>
+					<Link href="/account/verification" className="mt-7 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-on-primary shadow-sm transition hover:brightness-110"><span className="material-symbols-outlined">badge</span>Xác minh ngay</Link>
 				</div>
 			</div>
 		)
@@ -132,7 +132,7 @@ export default function SellPage() {
 			<div className="border-b border-outline-variant bg-surface">
 				<div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 md:px-8">
 					<div><p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Seller studio</p><h1 className="mt-1 text-2xl font-extrabold tracking-tight text-on-surface">Tạo tin đăng mới</h1></div>
-					<Link href="/dashboard/products" className="grid size-10 place-items-center rounded-full text-on-surface-variant transition hover:bg-surface-container hover:text-on-surface" aria-label="Đóng"><span className="material-symbols-outlined">close</span></Link>
+					<Link href="/account/products" className="grid size-10 place-items-center rounded-full text-on-surface-variant transition hover:bg-surface-container hover:text-on-surface" aria-label="Đóng"><span className="material-symbols-outlined">close</span></Link>
 				</div>
 			</div>
 

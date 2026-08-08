@@ -12,13 +12,13 @@ import { waitingGroupTitle } from "@/lib/order-waiting"
 /**
  * Every order, both sides of every sale, in three groups by whose turn it is.
  *
- * What this replaces: two competing screens — a buyer-only list at `/orders` and a
+ * What this replaces: two competing screens — a buyer-only list at `/account/orders` and a
  * dashboard list behind a "Đơn mua | Đơn bán" toggle — carrying nine filter controls
  * between them over what is typically a handful of rows, plus three stat cards computed
  * from whichever page happened to be loaded, so the numbers changed as you scrolled.
  *
  * There is no search box either. The one that was here filtered in memory, over loaded
- * rows only, because `/orders` accepts no text parameter — so it silently answered "not
+ * rows only, because `/account/orders` accepts no text parameter — so it silently answered "not
  * found" for orders that simply had not been paged in yet.
  */
 export default function OrderInbox() {

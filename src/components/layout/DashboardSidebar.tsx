@@ -21,39 +21,39 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
   // is an inbox. Grouped by the job at hand instead, with headings rather than collapsible
   // sections: a group you have to open is a group you have to remember the name of.
   const groups: Array<{ label: string | null; items: NavItem[] }> = [
-    { label: null, items: [{ name: "Tổng quan", path: "/dashboard", icon: "dashboard" }] },
+    { label: null, items: [{ name: "Tổng quan", path: "/account", icon: "dashboard" }] },
     {
       label: "Giao dịch",
       items: [
-        { name: "Đơn hàng", path: "/orders", icon: "receipt_long" },
-        { name: "Hoàn tiền", path: "/refunds", icon: "assignment_return" },
-        { name: "Ví của tôi", path: "/dashboard/wallet", icon: "account_balance_wallet" },
+        { name: "Đơn hàng", path: "/account/orders", icon: "receipt_long" },
+        { name: "Hoàn tiền", path: "/account/refunds", icon: "assignment_return" },
+        { name: "Ví của tôi", path: "/account/wallet", icon: "account_balance_wallet" },
       ],
     },
     {
       label: "Bán hàng",
       items: [
-        { name: "Sản phẩm của tôi", path: "/dashboard/products", icon: "inventory_2" },
-        { name: "Thống kê", path: "/dashboard/analytics", icon: "bar_chart" },
-        { name: "Cài đặt bán hàng", path: "/dashboard/settings", icon: "storefront" },
+        { name: "Sản phẩm của tôi", path: "/account/products", icon: "inventory_2" },
+        { name: "Thống kê", path: "/account/analytics", icon: "bar_chart" },
+        { name: "Cài đặt bán hàng", path: "/account/settings", icon: "storefront" },
       ],
     },
     {
       label: "Bộ sưu tập",
       items: [
-        { name: "Đã lưu", path: "/dashboard/favorites", icon: "favorite" },
+        { name: "Đã lưu", path: "/account/favorites", icon: "favorite" },
         // The page existed with nothing linking to it.
-        { name: "Đang theo dõi", path: "/dashboard/following", icon: "group" },
+        { name: "Đang theo dõi", path: "/account/following", icon: "group" },
       ],
     },
     {
       label: "Tài khoản",
       items: [
-        { name: "Hồ sơ cá nhân", path: "/dashboard/profile", icon: "person" },
-        { name: "Sổ địa chỉ", path: "/dashboard/contacts", icon: "contacts" },
-        { name: "Bảo mật", path: "/dashboard/security", icon: "shield" },
-        { name: "Xác minh danh tính", path: "/dashboard/verification", icon: "verified_user" },
-        { name: "Thông báo", path: "/dashboard/notifications", icon: "notifications" },
+        { name: "Hồ sơ cá nhân", path: "/account/profile", icon: "person" },
+        { name: "Sổ địa chỉ", path: "/account/contacts", icon: "contacts" },
+        { name: "Bảo mật", path: "/account/security", icon: "shield" },
+        { name: "Xác minh danh tính", path: "/account/verification", icon: "verified_user" },
+        { name: "Thông báo", path: "/account/notifications", icon: "notifications" },
       ],
     },
     { label: null, items: [{ name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" }] },
@@ -73,7 +73,7 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
     <div className="flex min-h-[calc(100vh-73px)] bg-surface-container-lowest">
       <aside className="w-64 shrink-0 bg-surface border-r border-outline-variant hidden lg:flex flex-col">
         <div className="p-6">
-          <Link href="/dashboard" className="flex items-center gap-3">
+          <Link href="/account" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full overflow-hidden border border-outline-variant relative bg-surface-container-high flex items-center justify-center">
               {user?.profile?.avatar?.url ? (
                 <Image src={user.profile.avatar.url} alt="Shop" fill className="object-cover" />
