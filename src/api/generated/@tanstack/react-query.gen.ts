@@ -1935,7 +1935,7 @@ export const getListingsQueryKey = (options?: Options<GetListingsData>) => creat
  *
  * `q` makes it a search and moves the default sort to `relevance`. `lexical` matches the name by trigram and tolerates missing diacritics, `semantic` runs an approximate nearest-neighbour search over the dense embedding, and `hybrid` combines the dense vector with the sparse lexical one, which is what the embedding model is built for. Each hit then carries `score`, always so that higher is better. A listing whose embedding has not been computed yet can only be found lexically.
  *
- * `sort=recommended` is the personalised feed: nearest-neighbour search over listing embeddings from the caller's interest slots. It needs a token, and falls back to newest for an account with no interests computed yet.
+ * `sort=recommended` is the personalised feed. A buyer is credited with up to four interests at once, derived from what they saved and refreshed as they save more; each one searches the catalogue on its own and the results are merged in proportion to how much of that buyer's behaviour it accounts for, so an occasional taste still reaches the page instead of being crowded out by the dominant one. Their own listings and anything already on their wishlist are left out, and a listing with no embedding yet cannot be ranked at all. It needs a token, and falls back to newest for an account with no interests computed yet.
  *
  * `mine=true` restricts the result to the caller's own listings, and is the only case in which `status` is honoured — a seller has to see what is not public, and nobody else may.
  *
@@ -1970,7 +1970,7 @@ export const getListingsInfiniteQueryKey = (options?: Options<GetListingsData>):
  *
  * `q` makes it a search and moves the default sort to `relevance`. `lexical` matches the name by trigram and tolerates missing diacritics, `semantic` runs an approximate nearest-neighbour search over the dense embedding, and `hybrid` combines the dense vector with the sparse lexical one, which is what the embedding model is built for. Each hit then carries `score`, always so that higher is better. A listing whose embedding has not been computed yet can only be found lexically.
  *
- * `sort=recommended` is the personalised feed: nearest-neighbour search over listing embeddings from the caller's interest slots. It needs a token, and falls back to newest for an account with no interests computed yet.
+ * `sort=recommended` is the personalised feed. A buyer is credited with up to four interests at once, derived from what they saved and refreshed as they save more; each one searches the catalogue on its own and the results are merged in proportion to how much of that buyer's behaviour it accounts for, so an occasional taste still reaches the page instead of being crowded out by the dominant one. Their own listings and anything already on their wishlist are left out, and a listing with no embedding yet cannot be ranked at all. It needs a token, and falls back to newest for an account with no interests computed yet.
  *
  * `mine=true` restricts the result to the caller's own listings, and is the only case in which `status` is honoured — a seller has to see what is not public, and nobody else may.
  *

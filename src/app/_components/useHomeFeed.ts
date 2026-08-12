@@ -22,18 +22,26 @@ export interface FeedTab {
  * of them, in the same order.
  */
 export const FEED_TABS: FeedTab[] = [
+  { id: "recommended", label: "Gợi ý cho bạn", needsAccount: true },
   { id: "newest", label: "Vừa đăng" },
   { id: "best-selling", label: "Bán chạy" },
   { id: "rating", label: "Đánh giá cao" },
-  { id: "recommended", label: "Gợi ý cho bạn", needsAccount: true },
 ];
+
+/**
+ * What the home page opens on. The personal ranking, because it is the only ordering that
+ * answers "what is here for me" — and it is the one that falls back on its own: an account
+ * with nothing computed yet is served the newest listings by the API itself, so a first-time
+ * buyer sees the same page they used to and everyone else sees theirs.
+ */
+const DEFAULT_SORT: Sort = "recommended";
 
 export function useHomeFeed(limit = 12) {
   const { isAuthenticated } = useAuthStore();
-  const [sort, setSort] = useState<Sort>("newest");
+  const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
 
-  // `sort=recommended` is 401 without a token, so a visitor who signs out while it is
-  // selected falls back rather than sending a request that can only fail.
+  // `sort=recommended` is 401 without a token, so a visitor — and anyone who signs out while
+  // it is selected — falls back rather than sending a request that can only fail.
   const tabs = FEED_TABS.filter((tab) => !tab.needsAccount || isAuthenticated);
   const active: Sort = tabs.some((tab) => tab.id === sort) ? sort : "newest";
 

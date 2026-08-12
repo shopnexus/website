@@ -356,7 +356,10 @@ export function useCreateRefund() {
 			})
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order),
+		// The case list too: it is where the buyer is sent next, and the order it was raised
+		// on now carries it — an order left cached would go on offering a second refund.
+		onSuccess: () =>
+			invalidate(queryClient, OPERATIONS.orders, OPERATIONS.order, OPERATIONS.refunds),
 	})
 }
 

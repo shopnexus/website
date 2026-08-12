@@ -37,6 +37,7 @@ import { unwrapData } from "@/api/unwrap"
  */
 
 const CONVERSATIONS = "getConversations"
+const CONVERSATION = "getConversationsById"
 const MESSAGES = "getConversationsByIdMessages"
 const UNREAD = "getConversationsUnreadCount"
 
@@ -178,6 +179,9 @@ export function useMarkConversationRead() {
 		onSuccess: () =>
 			Promise.all([
 				queryClient.invalidateQueries({ queryKey: [{ _id: CONVERSATIONS }] }),
+				// The single-thread read too: it is what the ticket screens pass as `unread`,
+				// so leaving it cached keeps a thread claiming unread after the mark landed.
+				queryClient.invalidateQueries({ queryKey: [{ _id: CONVERSATION }] }),
 				queryClient.invalidateQueries({ queryKey: [{ _id: UNREAD }] }),
 			]),
 	})

@@ -36,7 +36,14 @@ export function applyRealtimeEvent(client: QueryClient, event: RealtimeEvent): v
 		case "chat.message_created":
 			prependMessage(client, event.data)
 			// The list shows the last message and its timestamp, and the badge counts it.
-			void invalidate(client, OPERATIONS.conversations, OPERATIONS.conversationsUnread)
+			// The single-thread read too — one row, and it is where the ticket screens get
+			// the `unread` that makes an open thread post its read receipt.
+			void invalidate(
+				client,
+				OPERATIONS.conversations,
+				OPERATIONS.conversation,
+				OPERATIONS.conversationsUnread,
+			)
 			return
 
 		case "chat.message_updated":

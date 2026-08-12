@@ -42,7 +42,7 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
 
             <OrderProgress order={order} />
 
-            <OrderRefundNotice orderId={order.id} />
+            <OrderRefundNotice order={order} />
 
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <div className="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">

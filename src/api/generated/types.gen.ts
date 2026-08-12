@@ -1345,6 +1345,11 @@ export type Order = {
      * When the buyer confirmed receipt. Null means the payout clock has not started.
      */
     received_at: string | null;
+    /**
+     * The most recent refund case raised on this sale, settled or not; null when there has never been one. Read it rather than searching the caller's own refund list: only one unsettled case may exist at a time, so a screen that offers a second one is offering a 409.
+     *
+     */
+    refund: RefundSummary | null;
     seller: AccountSummary;
     state: OrderState;
     /**
@@ -1714,6 +1719,21 @@ export type RefundPage = {
  *
  */
 export type RefundStatus = 'awaiting-seller-review' | 'disputed' | 'returning' | 'returned' | 'accepted' | 'rejected' | 'cancelled';
+
+/**
+ * A case as an order carries it: that it exists, where it stands, and where to read it. The reason and the evidence stay on the case's own page — an order list that embedded them would resolve an upload URL per row to render nothing.
+ *
+ */
+export type RefundSummary = {
+    created_at: string;
+    id: RefundId;
+    /**
+     * Whether the case has ended. False is what stops another being raised, so this is the question a "request a refund" control has to ask — the blocking statuses are an index's, not a list for each client to re-derive.
+     *
+     */
+    settled: boolean;
+    status: RefundStatus;
+};
 
 /**
  * A decision, so there is no "still deciding" choice — which is why the verdict is a boolean rather than a status enum.

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import type { ConversationId, ListingId } from "@/api/generated/types.gen"
 import { lastReferencedListingId } from "@/components/chat/chat.logic"
@@ -14,6 +14,7 @@ import type { InboxTab } from "../_types"
 
 /** Everything the inbox screen is, minus the markup. */
 export function useInbox() {
+	const router = useRouter()
 	const searchParams = useSearchParams()
 	const queryC = searchParams.get("c")
 	const queryListingId = searchParams.get("listing_id")
@@ -24,19 +25,22 @@ export function useInbox() {
 	const [showThreadOnMobile, setShowThreadOnMobile] = useState(false)
 
 	const accountId = useAuthStore((state) => state.user?.id)
-	const {
-		conversations: allConversations,
-		isLoading,
-		hasNextPage,
-		fetchNextPage,
-		isFetchingNextPage,
-	} = useConversations()
+	const { conversations, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } =
+		useConversations()
 
-	// A ticket's thread is read at /support/[id], with the ticket's status and verdict
-	// around it. Listed here it would be a nameless chat with the desk and no way back.
-	const conversations = useMemo(
-		() => allConversations.filter((conversation) => !conversation.ticket_id),
-		[allConversations],
+	/**
+	 * The threads this pane can open — every one except a ticket's.
+	 *
+	 * A ticket is still *listed*, because `GET /conversations/unread-count` counts it and
+	 * that badge is what a user comes here to clear: dropping the row left "N tin nhắn chưa
+	 * đọc" over a list with nothing unread in it, and the empty "Chưa đọc" tab then offered
+	 * a next page that does not exist. It is *read* at /support/[id] instead, where the
+	 * status and the verdict are, so `select` sends it there rather than opening a nameless
+	 * thread with the desk here.
+	 */
+	const openable = useMemo(
+		() => conversations.filter((conversation) => !conversation.ticket_id),
+		[conversations],
 	)
 
 	const visible = useMemo(
@@ -58,13 +62,13 @@ export function useInbox() {
 	// Derived rather than synced: the first conversation is the default until one is
 	// picked, and a picked thread that leaves the list falls back to the first again.
 	const activeId =
-		(selectedId && conversations.some((conversation) => conversation.id === selectedId)
+		(selectedId && openable.some((conversation) => conversation.id === selectedId)
 			? selectedId
-			: queryC && conversations.some((conversation) => conversation.id === queryC)
+			: queryC && openable.some((conversation) => conversation.id === queryC)
 				? (queryC as ConversationId)
-				: conversations[0]?.id) ?? ""
+				: openable[0]?.id) ?? ""
 
-	const active = conversations.find((conversation) => conversation.id === activeId)
+	const active = openable.find((conversation) => conversation.id === activeId)
 
 	// The same query ChatThread reads, so this shares its cache rather than fetching again.
 	const { messages } = useMessages(activeId || undefined)
@@ -81,6 +85,11 @@ export function useInbox() {
 	const { data: listing } = useListing(listingId)
 
 	const select = (id: ConversationId) => {
+		const ticketId = conversations.find((conversation) => conversation.id === id)?.ticket_id
+		if (ticketId) {
+			router.push(`/support/${ticketId}`)
+			return
+		}
 		setSelectedId(id)
 		setShowThreadOnMobile(true)
 	}

@@ -9,7 +9,6 @@ import DeclineDialog from "./DeclineDialog"
 import RateOrderDialog from "./RateOrderDialog"
 import RefundDialog from "./RefundDialog"
 import { useCancelOrder, useConfirmOrder } from "@/hooks/api/useOrders"
-import { useOpenRefundFor } from "@/hooks/api/useRefunds"
 import { useMe } from "@/hooks/api/useAccount"
 import {
 	canCancel,
@@ -60,9 +59,12 @@ export default function OrderActions({
 	const cancelOrder = useCancelOrder()
 
 	const [dialog, setDialog] = useState<"receipt" | "refund" | "rate" | "decline" | null>(null)
-	// `Order` says nothing about refunds, so without this the button below is offered on an
-	// order that already has a case open — and answers `refund_already_open`.
-	const { refund: openRefund } = useOpenRefundFor(order.id)
+	// The order's own answer, so "is there a case on this sale" is known at the same moment
+	// the order is. It used to be searched for in the caller's refund list, which meant the
+	// button below was offered until that second request came back — and for ever once the
+	// list ran past its first page.
+	const refund = order.refund
+	const openRefund = refund && !refund.settled ? refund : null
 
 	const { isBuyer, isSeller } = sideOf(order, me?.id)
 	// A moderator or a signed-out reader is on neither side and presses nothing.
@@ -140,8 +142,9 @@ export default function OrderActions({
 
 	// Beside the receipt even in a row: confirming is irreversible, so the alternative has
 	// to be on screen at the moment of the decision rather than one page away. Suppressed
-	// once a case is open — one live refund per order is a database constraint, so the
-	// second press could only ever be an error.
+	// while a case is *open* and not merely present — `refund_one_active_per_order` covers
+	// the unsettled statuses only, so a withdrawn or decided case leaves the route willing
+	// to take another one and the button asks the same question the route does.
 	if (isBuyer && !openRefund && canRequestRefund(order) && (detail || canConfirmReceipt(order))) {
 		actions.push(
 			<Button
@@ -157,10 +160,11 @@ export default function OrderActions({
 		)
 	}
 
-	// The case that replaced it, so the row still leads somewhere.
-	if (openRefund) {
+	// The case, settled or not, so a row that no longer offers a refund still leads to the
+	// one it already has.
+	if (refund) {
 		actions.push(
-			<Link key="open-refund" href={`/account/refunds/${openRefund.id}`} className={full ? "block" : ""}>
+			<Link key="refund-case" href={`/account/refunds/${refund.id}`} className={full ? "block" : ""}>
 				<Button variant="outline" size={size} fullWidth={full}>
 					Xem yêu cầu hoàn tiền
 				</Button>
