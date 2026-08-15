@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
 import OfferModal from "@/components/offers/OfferModal";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -26,6 +27,7 @@ export default function ProductBottomBar({
 }) {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
   const { addItem } = useCart();
   const createDraft = useCreateDraft();
   const startConversation = useStartConversation();
@@ -48,6 +50,27 @@ export default function ProductBottomBar({
 
   const isNegotiable = product.price_mode === "negotiable";
   const isOutOfStock = selectedVariant.stock.available <= 0;
+
+  // Không ai mua được tin của chính mình — server chặn ở draft, ở giỏ hàng và ở cả
+  // thương lượng — nên thanh này không bày ra ba cái nút chỉ để dẫn tới một 403.
+  // Chỗ đó dành cho việc người bán thật sự làm được ở đây: sửa tin.
+  if (user?.id === product.seller.id) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 p-4">
+        <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-4">
+          <span className="flex items-center gap-2 font-label-md text-on-surface-variant">
+            <span className="material-symbols-outlined">storefront</span>
+            Đây là tin đăng của bạn
+          </span>
+          <Link href={`/account/products/${product.id}`}>
+            <Button variant="primary" className="px-8 py-3 h-12 rounded-xl font-bold">
+              Chỉnh sửa tin
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const requireSignIn = (message: string): boolean => {
     if (isAuthenticated) return false;

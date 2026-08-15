@@ -32,15 +32,31 @@ export default function OfferModal({
   const targetVariant =
     variant ?? product.variants.find((v) => v.is_featured) ?? product.variants[0];
 
+  const parsedTotal = parseInt(total.replace(/\D/g, ""), 10);
+  const hasTotal = Number.isFinite(parsedTotal) && parsedTotal > 0;
+  /**
+   * Thương lượng chỉ đi xuống: giá niêm yết vốn đã là lời đề nghị bán ở mức đó, nên
+   * một đề nghị cao hơn là thứ không ai cần route này — người mua chỉ việc bấm mua.
+   * Server trả 422 `offer_above_asking` cho đúng chuyện này; hỏi ở đây để người ta
+   * biết ngay lúc gõ chứ không phải sau khi bấm gửi.
+   *
+   * Trần là **tổng tiền** vì ô này nhập tổng, đúng phép so sánh server làm — so trên
+   * đơn giá suy ra sẽ để lọt một tổng vượt trần do làm tròn xuống.
+   */
+  const ceiling = (targetVariant?.price ?? 0) * quantity;
+  const aboveAsking = hasTotal && ceiling > 0 && parsedTotal > ceiling;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetVariant) return;
 
-    const parsedTotal = parseInt(total.replace(/\D/g, ""), 10);
-    if (isNaN(parsedTotal) || parsedTotal <= 0) {
+    if (!hasTotal) {
       toast.error("Vui lòng nhập giá trị hợp lệ");
       return;
     }
+    // Nút đã bị vô hiệu hoá ở trạng thái này; đây là chốt cho đường vào còn lại —
+    // phím Enter gửi form trong lúc câu báo lỗi đang hiện.
+    if (aboveAsking) return;
 
     createOffer.mutate(
       {
@@ -106,8 +122,19 @@ export default function OfferModal({
                 value={total}
                 onChange={(e) => setTotal(e.target.value)}
                 placeholder="Ví dụ: 500000"
-                className="w-full px-4 py-2 bg-surface-container rounded-xl border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                aria-invalid={aboveAsking}
+                className={`w-full px-4 py-2 bg-surface-container rounded-xl border outline-none transition-all ${
+                  aboveAsking
+                    ? "border-error focus:border-error focus:ring-1 focus:ring-error"
+                    : "border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary"
+                }`}
               />
+              {aboveAsking && (
+                <p className="mt-1 text-xs text-error">
+                  Không cao hơn giá niêm yết ({new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(ceiling)}
+                  {quantity > 1 ? ` cho ${quantity} sản phẩm` : ""}).
+                </p>
+              )}
             </div>
             
             <div>
@@ -137,7 +164,12 @@ export default function OfferModal({
 
         <div className="px-6 py-4 border-t border-outline-variant flex justify-end gap-3 bg-surface-container-lowest">
           <Button variant="outline" onClick={onClose} type="button">Hủy</Button>
-          <Button variant="primary" type="submit" form="offer-form" disabled={createOffer.isPending}>
+          <Button
+            variant="primary"
+            type="submit"
+            form="offer-form"
+            disabled={createOffer.isPending || aboveAsking}
+          >
             {createOffer.isPending ? "Đang gửi..." : "Gửi đề nghị"}
           </Button>
         </div>

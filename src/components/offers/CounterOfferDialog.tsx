@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
 import { useCounterOffer } from "@/hooks/api/useOffers"
+import { useListing } from "@/hooks/api/useCatalog"
 import type { Offer } from "@/api/generated/types.gen"
 
 const formatPrice = (value: number) =>
@@ -32,8 +33,19 @@ export default function CounterOfferDialog({
 	const [reason, setReason] = useState("")
 	const counterOffer = useCounterOffer()
 
+	// Giá niêm yết là trần của mức trả giá, và DTO của offer không mang nó — chỉ có
+	// `variant_id`. Nên một lượt đọc riêng, và chỉ khi hộp thoại mở. Đọc hỏng thì hộp
+	// thoại không tự bịa ra một cái trần: server vẫn là chỗ giữ luật, và chặn người ta
+	// trả giá vì một lượt đọc phụ hỏng là đổi một bất tiện lấy một chức năng.
+	const { data: listing } = useListing(open ? offer.listing_id : undefined)
+	const askingUnitPrice = listing?.variants.find((v) => v.id === offer.variant_id)?.price
+
 	const parsed = Number.parseInt(total.replace(/\D/g, ""), 10)
-	const valid = Number.isFinite(parsed) && parsed > 0 && quantity > 0
+	// Trần của **tổng tiền**, vì ô nhập là tổng chứ không phải giá mỗi cái — cùng phép
+	// so sánh server làm. Đổi theo số lượng, nên ô số lượng cũng làm câu báo lỗi đổi.
+	const ceiling = askingUnitPrice && askingUnitPrice > 0 ? askingUnitPrice * quantity : undefined
+	const aboveAsking = ceiling !== undefined && Number.isFinite(parsed) && parsed > ceiling
+	const valid = Number.isFinite(parsed) && parsed > 0 && quantity > 0 && !aboveAsking
 
 	const submit = () => {
 		if (!valid) return
@@ -72,10 +84,20 @@ export default function CounterOfferDialog({
 						value={total}
 						onChange={(event) => setTotal(event.target.value)}
 						placeholder="Nhập số tiền"
-						className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary text-body-md outline-none transition-all"
+						aria-invalid={aboveAsking}
+						className={`w-full px-3 py-2 rounded-lg bg-surface-container border text-body-md outline-none transition-all ${
+							aboveAsking
+								? "border-error focus:border-error focus:ring-1 focus:ring-error"
+								: "border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary"
+						}`}
 					/>
-					{valid && (
-						<span className="text-body-sm text-on-surface-variant">{formatPrice(parsed)}</span>
+					{aboveAsking ? (
+						<span className="text-body-sm text-error">
+							Không cao hơn giá niêm yết ({formatPrice(ceiling)}
+							{quantity > 1 ? ` cho ${quantity} sản phẩm` : ""}).
+						</span>
+					) : (
+						valid && <span className="text-body-sm text-on-surface-variant">{formatPrice(parsed)}</span>
 					)}
 				</div>
 

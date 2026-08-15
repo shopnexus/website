@@ -90,6 +90,13 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	currency_mismatch: "Đơn vị tiền tệ không khớp với sản phẩm.",
 	variant_not_in_draft: "Phiên bản này không nằm trong phiên mua hàng.",
 	fixed_price_listing: "Sản phẩm này không hỗ trợ thương lượng giá.",
+	// Ba luật server giữ ở cả draft, giỏ hàng lẫn thương lượng. Trang tin đăng và hai
+	// ô nhập giá đều chặn trước, nên tới được đây là đã đi đường vòng — giỏ hàng cũ,
+	// một link mở thẳng, hay người bán đổi giá niêm yết trong lúc bên kia đang gõ.
+	// Đúng những lúc đó thì một câu chung chung là câu vô dụng nhất.
+	self_purchase: "Bạn không thể mua tin đăng của chính mình.",
+	seller_cannot_offer: "Người bán không thể tự đề nghị giá cho tin của mình.",
+	offer_above_asking: "Mức giá đề nghị không được cao hơn giá niêm yết.",
 	carrier_unknown: "Đơn vị vận chuyển không khả dụng.",
 	quote_source_invalid: "Không xác định được đơn cần tính phí vận chuyển.",
 	carrier_down: "Đơn vị vận chuyển không phản hồi. Vui lòng thử lại.",
