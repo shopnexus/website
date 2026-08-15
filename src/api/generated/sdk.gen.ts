@@ -985,7 +985,9 @@ export const postItemsByIdCancellation = <ThrowOnError extends boolean = false>(
  *
  * `q` makes it a search and moves the default sort to `relevance`. `lexical` matches the name by trigram and tolerates missing diacritics, `semantic` runs an approximate nearest-neighbour search over the dense embedding, and `hybrid` combines the dense vector with the sparse lexical one, which is what the embedding model is built for. Each hit then carries `score`, always so that higher is better. A listing whose embedding has not been computed yet can only be found lexically.
  *
- * `sort=recommended` is the personalised feed. A buyer is credited with up to four interests at once, derived from what they saved and refreshed as they save more; each one searches the catalogue on its own and the results are merged in proportion to how much of that buyer's behaviour it accounts for, so an occasional taste still reaches the page instead of being crowded out by the dominant one. Their own listings and anything already on their wishlist are left out, and a listing with no embedding yet cannot be ranked at all. It needs a token, and falls back to newest for an account with no interests computed yet.
+ * `sort=recommended` is the personalised feed. A buyer is credited with up to four interests at once, derived from what they saved and refreshed as they save more; each one searches the catalogue on its own, a further share of the page goes to whatever was posted most recently, and the results are merged in proportion to how much of that buyer's behaviour each source accounts for. So an occasional taste still reaches the page instead of being crowded out by the dominant one, and something outside every one of them still gets in — a feed that only ever answers its own past has no way to learn it was wrong. The page is *drawn* from a pool several pages deep rather than taken off the top, so two runs differ; `seed` is what holds one run still while it is paged through. Their own listings and anything already on their wishlist are left out. It needs a token, and falls back to newest for an account with no interests computed yet.
+ *
+ * `score` is the similarity to the interest that surfaced a card, and is `null` for one drawn for being new — nothing measured it against anything.
  *
  * `mine=true` restricts the result to the caller's own listings, and is the only case in which `status` is honoured — a seller has to see what is not public, and nobody else may.
  *
@@ -1054,7 +1056,7 @@ export const getListingsById = <ThrowOnError extends boolean = false>(options: O
  *
  * An edit to a draft applies immediately. An edit to a live listing that trips the prohibited-goods filter is held as a pending edit and applied only when a moderator approves it, so the version buyers see never changes into unreviewed content.
  *
- * The slug is fixed at creation. Renaming a listing leaves it alone: there is no redirect table, so a new slug would only turn every link already shared into a 404, and `GET /listings/{id}` takes the id as well.
+ * The slug's readable half is fixed at creation. Renaming a listing leaves it alone, so a link shared before the rename keeps saying what it said then — and it would resolve either way, since the id it carries is what addresses the listing.
  *
  */
 export const patchListingsById = <ThrowOnError extends boolean = false>(options: Options<PatchListingsByIdData, ThrowOnError>): RequestResult<PatchListingsByIdResponses, PatchListingsByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchListingsByIdResponses, PatchListingsByIdErrors, ThrowOnError>({
@@ -1472,6 +1474,8 @@ export const getOffers = <ThrowOnError extends boolean = false>(options?: Option
  *
  * The buyer opens it, from the listing page: a seller has nobody to propose to on their own listing, so they answer rather than start. One active negotiation per (buyer, variant); the terms are then revised in place rather than by stacking rows, and each revision posts a card into the pair's chat thread.
  *
+ * `total` may not exceed the variant's listed price for that `quantity`. Negotiation only moves the price down: the asking price is already an offer to sell at it, so terms above it are a proposal with no reason to exist — the buyer would simply buy.
+ *
  */
 export const postOffers = <ThrowOnError extends boolean = false>(options: Options<PostOffersData, ThrowOnError>): RequestResult<PostOffersResponses, PostOffersErrors, ThrowOnError> => (options.client ?? client).post<PostOffersResponses, PostOffersErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -1505,6 +1509,8 @@ export const getOffersById = <ThrowOnError extends boolean = false>(options: Opt
  * Counter-offer
  *
  * Revises the current terms in place, moves authorship to the caller and posts the new card into the thread. Only the party that does not own the standing proposal may counter, so the two sides alternate.
+ *
+ * A counter may go *up* — that is a seller holding out — but not above the variant's listed price for that `quantity`, the same ceiling opening one has. The price is read when the counter lands, so a seller who lowered their asking price mid-thread has lowered it here too.
  *
  */
 export const patchOffersById = <ThrowOnError extends boolean = false>(options: Options<PatchOffersByIdData, ThrowOnError>): RequestResult<PatchOffersByIdResponses, PatchOffersByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchOffersByIdResponses, PatchOffersByIdErrors, ThrowOnError>({

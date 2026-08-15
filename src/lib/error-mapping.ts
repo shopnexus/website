@@ -74,7 +74,6 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	variant_not_found: "Phiên bản sản phẩm không tồn tại.",
 	category_not_found: "Không tìm thấy danh mục.",
 	tag_not_found: "Không tìm thấy thẻ.",
-	slug_taken: "Đã có sản phẩm trùng tên này.",
 	insufficient_stock: "Số lượng trong kho không đủ.",
 	quantity_positive: "Số lượng phải lớn hơn 0.",
 	too_many_tags: "Một sản phẩm chỉ gắn được tối đa 10 thẻ.",

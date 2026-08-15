@@ -116,7 +116,7 @@ export default function ProductTable() {
                           )}
                         </div>
                         <div>
-                          <Link href={`/product/${product.id}`} className="font-headline font-bold text-on-surface hover:text-primary transition-colors line-clamp-1 max-w-[300px]">
+                          <Link href={`/product/${product.slug}`} className="font-headline font-bold text-on-surface hover:text-primary transition-colors line-clamp-1 max-w-[300px]">
                             {product.name}
                           </Link>
                           <div className="text-body-sm text-on-surface-variant mt-1">ID: {product.id.split('_')[1]?.substring(0,8) || product.id}</div>
@@ -156,7 +156,7 @@ export default function ProductTable() {
                    </div>
                 </div>
                 <div className="p-4 flex flex-col flex-1">
-                  <Link href={`/product/${product.id}`} className="font-headline font-bold text-on-surface hover:text-primary transition-colors line-clamp-2 mb-2">
+                  <Link href={`/product/${product.slug}`} className="font-headline font-bold text-on-surface hover:text-primary transition-colors line-clamp-2 mb-2">
                     {product.name}
                   </Link>
                   <div className="mt-auto pt-2 flex items-center justify-between border-t border-outline-variant/30">

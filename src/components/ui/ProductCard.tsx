@@ -19,6 +19,13 @@ const formatPrice = (price: number) =>
  */
 export interface ProductCardItem {
   id: string;
+  /**
+   * The public slug, which is what the card links to: it carries the listing's id on the
+   * end, so it resolves, and it puts the product's name in the URL. Optional because a
+   * caller holding only an id — an order line, a fixture — can still render a card, and
+   * the link then falls back to the id the route also accepts.
+   */
+  slug?: string;
   name: string;
   price: number;
   price_mode?: "fixed" | "negotiable";
@@ -83,7 +90,7 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
 
   return (
     <Link
-      href={`/product/${product.id}`}
+      href={`/product/${product.slug ?? product.id}`}
       className={`bg-surface rounded-xl overflow-hidden border border-outline-variant/30 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow duration-300 flex flex-col group cursor-pointer ${className}`}
     >
       <div className="relative aspect-[4/3] bg-surface-container overflow-hidden shrink-0">

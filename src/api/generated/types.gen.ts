@@ -801,10 +801,7 @@ export type Listing = {
     review_count: number;
     score: SimilarityScore | null;
     seller: AccountSummary;
-    /**
-     * URL-friendly, globally unique and fixed at creation.
-     */
-    slug: string;
+    slug: ListingRef;
     /**
      * Completed sales across the variants. An open checkout does not count and a cancelled one never did, so the number only goes up. Read from `cached_sold` on the listing rather than summed per request: a feed page would otherwise aggregate the stock rows of every card on it.
      *
@@ -871,7 +868,7 @@ export type ListingDetail = {
      */
     review_count: number;
     seller: AccountSummary;
-    slug: string;
+    slug: ListingRef;
     /**
      * Completed sales across the variants — see Listing.sold.
      */
@@ -928,6 +925,14 @@ export type ListingPage = {
     data: Array<Listing>;
     meta: PageMeta;
 };
+
+/**
+ * The slug a link carries: the listing's name, slugified and frozen at creation, with the listing's id on the end. The text in front is for the person reading the link and is not matched — renaming a listing does not rewrite links already shared, and a stale one still resolves because the id behind the last hyphen is what addresses the listing.
+ *
+ * It never contains an underscore, which is how `GET /listings/{id}` tells it from a `ListingID` and accepts either. A name that slugifies to nothing leaves the id alone.
+ *
+ */
+export type ListingRef = string;
 
 /**
  * Lifecycle and moderation in one column. `hidden` is a live listing the seller took down for now; deletion is a separate flag entirely.
@@ -4282,6 +4287,10 @@ export type PostCartItemsErrors = {
      */
     401: Error;
     /**
+     * The caller is the seller: nobody buys their own listing
+     */
+    403: Error;
+    /**
      * Resource not found
      */
     404: Error;
@@ -5085,6 +5094,10 @@ export type PostDraftsErrors = {
      */
     401: Error;
     /**
+     * The caller is the seller: nobody buys their own listing
+     */
+    403: Error;
+    /**
      * Listing not found, deleted, or not active
      */
     404: Error;
@@ -5587,6 +5600,11 @@ export type GetListingsData = {
          */
         sort?: 'newest' | 'rating' | 'price-asc' | 'price-desc' | 'best-selling' | 'relevance' | 'recommended' | 'distance';
         /**
+         * Which shuffle of a personalised feed this is; read only by `sort=recommended`, ignored everywhere else. That feed is drawn from a pool several pages deep rather than taken off the top of it, so the ordering is a function of this value: send one seed for a whole run of pages, or the second page will be drawn from a different feed than the first and repeat cards it has already shown. Send a new one to get a new feed. Any string does — it is hashed, never interpreted. Left out, the server rotates it every fifteen minutes.
+         *
+         */
+        seed?: string;
+        /**
          * 1-based page number.
          */
         page?: number;
@@ -5638,10 +5656,6 @@ export type PostListingsErrors = {
      * Category or tag or image not found
      */
     404: Error;
-    /**
-     * Slug already taken
-     */
-    409: Error;
     /**
      * Identity verification is required before selling
      */
@@ -5707,10 +5721,10 @@ export type GetListingsByIdData = {
     body?: never;
     path: {
         /**
-         * The listing's opaque id or its slug. A slug is lowercase, hyphen-separated and never contains an underscore, so it cannot be mistaken for an id — but only the id is accepted today; resolving a slug needs a lookup this route does not have yet.
+         * The listing's opaque id or the slug a link carries. A slug is lowercase, hyphen-separated and never contains an underscore, so it cannot be mistaken for an id; it resolves without a lookup, because it carries the id on the end.
          *
          */
-        id: ListingId;
+        id: ListingId | ListingRef;
     };
     query?: never;
     url: '/listings/{id}';
@@ -6857,6 +6871,10 @@ export type PostOffersErrors = {
      * An active negotiation already exists for this (buyer, SKU)
      */
     409: Error;
+    /**
+     * `total` is above the listed price for that `quantity`, or the listing is not negotiable
+     */
+    422: Error;
 };
 
 export type PostOffersError = PostOffersErrors[keyof PostOffersErrors];
@@ -6978,6 +6996,10 @@ export type PatchOffersByIdErrors = {
      * Negotiation is no longer active
      */
     409: Error;
+    /**
+     * `total` is above the listed price for that `quantity`
+     */
+    422: Error;
 };
 
 export type PatchOffersByIdError = PatchOffersByIdErrors[keyof PatchOffersByIdErrors];

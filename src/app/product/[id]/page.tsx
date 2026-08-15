@@ -1,19 +1,21 @@
 import Link from "next/link";
 import { getListingsById } from "@/api/generated/sdk.gen";
-import type { ListingId } from "@/api/generated/types.gen";
 import { notFound } from "next/navigation";
 import ListingRail from "./_components/ListingRail";
 import ProductInteractiveViewer from "./_components/ProductInteractiveViewer";
 import ProductReviews from "./_components/ProductReviews";
 import { fetchSellerListings, fetchSimilarListings } from "./_lib/related";
 
+// The segment is either handle the route accepts: the public slug every link on this site
+// builds, or the bare opaque id — which is what an order item or a ticket has to link by,
+// having no slug to build one from. The API resolves both, so neither needs a redirect here.
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   // A Server Component calling the generated SDK directly: no hook, no query client. The
   // runtime config reads the access token from next/headers on this side, so an
   // authenticated view (a seller's own hidden listing) still resolves.
-  const { data, error } = await getListingsById({ path: { id: id as ListingId } });
+  const { data, error } = await getListingsById({ path: { id } });
   if (error || !data) notFound();
 
   const product = data.data;

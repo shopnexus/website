@@ -55,7 +55,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
           </h1>
           <p className="text-on-surface-variant font-body-sm">
             Đã bán {listing.sold} · {listing.review_count} đánh giá ·{" "}
-            <Link href={`/product/${listing.id}`} className="text-primary hover:underline">
+            <Link href={`/product/${listing.slug}`} className="text-primary hover:underline">
               Xem như người mua
             </Link>
           </p>

@@ -28,7 +28,7 @@ export default function ThreadInfoPanel({
 
 				{listing ? (
 					<Link
-						href={`/product/${listing.id}`}
+						href={`/product/${listing.slug}`}
 						className="rounded-xl overflow-hidden bg-surface-container-low mb-5 group block border border-outline-variant/20 shadow-sm transition-all hover:shadow-md hover:border-primary/30"
 					>
 						<div className="aspect-[4/3] overflow-hidden relative bg-surface-container flex items-center justify-center">

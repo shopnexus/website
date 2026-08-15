@@ -130,7 +130,7 @@ export default function CartPage() {
                         </div>
 
                         <div className="flex-1 flex flex-col gap-2 min-w-0">
-                          <Link href={`/product/${listing.id}`} className="font-body-md text-on-surface hover:text-primary transition-colors line-clamp-2">
+                          <Link href={`/product/${listing.slug}`} className="font-body-md text-on-surface hover:text-primary transition-colors line-clamp-2">
                             {listing.name}
                           </Link>
                           {variant && Object.keys(variant.attributes).length > 0 && (

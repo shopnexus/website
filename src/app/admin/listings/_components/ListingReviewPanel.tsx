@@ -63,7 +63,7 @@ export default function ListingReviewPanel({ listingId }: { listingId: ListingId
 					</div>
 				</div>
 				<Link
-					href={`/product/${detail.id}`}
+					href={`/product/${detail.slug}`}
 					target="_blank"
 					className="inline-flex items-center gap-1 font-label-md text-primary hover:underline shrink-0"
 				>
