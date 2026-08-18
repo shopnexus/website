@@ -8,14 +8,19 @@ const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Lấy token từ cookies
-  const accessToken = request.cookies.get("access_token")?.value;
+
+  // `access_token` sống đúng 15 phút — cookie của nó tự hết hạn theo đúng thiết kế, độc lập
+  // với việc phiên đăng nhập còn sống hay không. `refresh_token` mới là bằng chứng của phiên
+  // (30 ngày, cùng TTL với session phía server): gác cổng bằng access token nghĩa là bất kỳ ai
+  // ngồi yên quá 15 phút rồi điều hướng sang trang khác đều bị đá về login ở đây — trước khi
+  // `apiFetch` (src/api/runtime-config.ts) có cơ hội gọi `/token/refresh`, vì middleware này
+  // chạy trước mọi request, kể cả điều hướng phía client trong App Router.
+  const hasSession = Boolean(request.cookies.get("refresh_token")?.value);
 
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  if (isProtectedRoute && !accessToken) {
+  if (isProtectedRoute && !hasSession) {
     // Nếu vào trang bảo vệ mà chưa đăng nhập -> chuyển về login
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -23,7 +28,7 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (isAuthRoute && accessToken) {
+  if (isAuthRoute && hasSession) {
     // Nếu vào trang login/register mà đã có token -> chuyển về trang chủ
     const url = request.nextUrl.clone();
     url.pathname = "/";
