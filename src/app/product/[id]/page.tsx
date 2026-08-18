@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ListingRail from "./_components/ListingRail";
 import ProductInteractiveViewer from "./_components/ProductInteractiveViewer";
 import ProductReviews from "./_components/ProductReviews";
+import ViewTracker from "./_components/ViewTracker";
 import { fetchSellerListings, fetchSimilarListings } from "./_lib/related";
 
 // The segment is either handle the route accepts: the public slug every link on this site
@@ -30,6 +31,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="bg-surface-container-lowest min-h-screen pb-24">
+      <ViewTracker listingId={product.id} />
       <div className="max-w-[1024px] mx-auto px-4 md:px-8 py-4">
         <nav className="flex items-center text-sm text-on-surface-variant font-label-md">
           <Link href="/" className="hover:text-primary transition-colors">Trang chủ</Link>

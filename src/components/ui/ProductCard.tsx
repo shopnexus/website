@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { useAddFavorite, useRemoveFavorite } from "@/hooks/api/useCatalog";
+import { useAddFavorite, useRemoveFavorite, recordInteraction } from "@/hooks/api/useCatalog";
 import { toast } from "react-hot-toast";
 
 const formatPrice = (price: number) =>
@@ -54,9 +54,17 @@ export interface ProductCardItem {
 interface ProductCardProps {
   product: ProductCardItem;
   className?: string;
+  /**
+   * Which surface this card is drawn on, if it is one of the three the contract can tell
+   * apart. Omitted where a click means neither — a shop's own listing page, the "similar
+   * products" rail — those are not a search result, the recommended feed or a category
+   * browse, and sending a wrong source would tell personalisation an account clicked from
+   * search when it did not.
+   */
+  source?: "search" | "recommended" | "category";
 }
 
-export default function ProductCard({ product, className = "" }: ProductCardProps) {
+export default function ProductCard({ product, className = "", source }: ProductCardProps) {
   // No placeholder service. A picsum fallback fetched a random stranger's photo from a
   // third party and rendered it where the product goes — a listing with no photo then
   // looked like a listing with the wrong one, which is worse than looking empty.
@@ -65,6 +73,10 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
   const { mutate: addFavorite, isPending: isAdding } = useAddFavorite();
   const { mutate: removeFavorite, isPending: isRemoving } = useRemoveFavorite();
   const isPending = isAdding || isRemoving;
+
+  const handleCardClick = () => {
+    if (source) recordInteraction(product.id, `click-from-${source}`);
+  };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent Link navigation
@@ -91,6 +103,7 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
   return (
     <Link
       href={`/product/${product.slug ?? product.id}`}
+      onClick={handleCardClick}
       className={`bg-surface rounded-xl overflow-hidden border border-outline-variant/30 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow duration-300 flex flex-col group cursor-pointer ${className}`}
     >
       <div className="relative aspect-[4/3] bg-surface-container overflow-hidden shrink-0">

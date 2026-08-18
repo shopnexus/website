@@ -15,6 +15,10 @@ const GRID = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-
  */
 export default function SearchResults({ search }: { search: SearchState }) {
   const { listings, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = search.feed;
+  // A typed query is a search; a category picked with nothing typed is a category browse.
+  // Neither when the page opened to neither (the whole catalogue, unfiltered) — that click
+  // is not one of the three the contract can tell apart.
+  const source = search.query ? "search" : search.selectedCategory ? "category" : undefined;
 
   if (isLoading) {
     return (
@@ -66,7 +70,7 @@ export default function SearchResults({ search }: { search: SearchState }) {
     <>
       <div className={GRID}>
         {listings.map((listing) => (
-          <ProductCard key={listing.id} product={listing} />
+          <ProductCard key={listing.id} product={listing} source={source} />
         ))}
       </div>
 

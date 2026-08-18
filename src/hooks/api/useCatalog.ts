@@ -11,6 +11,7 @@ import {
 import {
 	postListings,
 	postListingsByIdPublication,
+	postListingsInteractions,
 	postListingsSuggestions,
 	postListingsUploads,
 	postListingsUploadsByIdConfirmation,
@@ -22,6 +23,7 @@ import type {
 	CreateUploadRequest,
 	GetListingsData,
 	ListingId,
+	PostListingsInteractionsData,
 	PublishListingRequest,
 	ResourceId,
 	SuggestListingRequest,
@@ -180,4 +182,19 @@ export function useRemoveFavorite() {
 		},
 		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
 	})
+}
+
+/** The client-observed kinds — everything the route accepts except "purchase", which order
+ *  derives server-side and no client ever sends. */
+export type InteractionType = PostListingsInteractionsData["body"]["interactions"][number]["type"]
+
+/**
+ * Records a shopper action against a listing. Fire-and-forget, matching the route's own
+ * contract: nothing on the page waits on this, and a failure is swallowed rather than
+ * surfaced — a lost view costs the feed a slightly stale signal, not a broken page.
+ */
+export function recordInteraction(listingId: ListingId, type: InteractionType): void {
+	void postListingsInteractions({
+		body: { interactions: [{ listing_id: listingId, type }] },
+	}).catch(() => {})
 }

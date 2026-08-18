@@ -6029,6 +6029,36 @@ export type PostListingsByListingIdReviewsResponses = {
 
 export type PostListingsByListingIdReviewsResponse = PostListingsByListingIdReviewsResponses[keyof PostListingsByListingIdReviewsResponses];
 
+export type PostListingsInteractionsData = {
+    body: {
+        interactions: Array<{
+            listing_id: ListingId;
+            type: 'view' | 'click-from-search' | 'click-from-recommended' | 'click-from-category' | 'not-interested' | 'hidden';
+        }>;
+    };
+    path?: never;
+    query?: never;
+    url: '/listings/interactions';
+};
+
+export type PostListingsInteractionsErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+};
+
+export type PostListingsInteractionsError = PostListingsInteractionsErrors[keyof PostListingsInteractionsErrors];
+
+export type PostListingsInteractionsResponses = {
+    /**
+     * Queued
+     */
+    204: void;
+};
+
+export type PostListingsInteractionsResponse = PostListingsInteractionsResponses[keyof PostListingsInteractionsResponses];
+
 export type PostListingsSuggestionsData = {
     body: SuggestListingRequest;
     path?: never;
