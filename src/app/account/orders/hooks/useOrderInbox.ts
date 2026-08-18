@@ -24,7 +24,14 @@ export function useOrderInbox(role: "buyer" | "seller", activeTab: OrderTab) {
 	const shouldFetchPending = role === "buyer" && (activeTab === "all" || activeTab === "pending-payment")
 	const { data: pendingItems = [], isLoading: isLoadingPending } = usePendingItems(shouldFetchPending)
 
-	const pendingCheckouts = useMemo(() => groupCheckouts(pendingItems), [pendingItems])
+	// `enabled: false` không xoá `data` của react-query — nó giữ nguyên kết quả lần fetch gần
+	// nhất trong cache. Gộp nhóm ngay trên `shouldFetchPending` thay vì trên `pendingItems` một
+	// mình: mở tab "Tất cả" một lần là cache có dữ liệu, và nếu chỉ lọc theo mảng thì thẻ vẫn
+	// hiện ở mọi tab sau đó dù `enabled` đã tắt.
+	const pendingCheckouts = useMemo(
+		() => (shouldFetchPending ? groupCheckouts(pendingItems) : []),
+		[shouldFetchPending, pendingItems],
+	)
 
 	// Cùng lý do khối chờ thanh toán phải tự đọc lấy: một lượt đặt hàng bị hủy trước khi trả
 	// tiền không bao giờ thành `Order`, nên `state=cancelled` của `/orders` không bao giờ
@@ -33,7 +40,13 @@ export function useOrderInbox(role: "buyer" | "seller", activeTab: OrderTab) {
 	const { data: cancelledItems = [], isLoading: isLoadingCancelled } =
 		useCancelledItems(shouldFetchCancelled)
 
-	const cancelledCheckouts = useMemo(() => groupCheckouts(cancelledItems), [cancelledItems])
+	// Cùng lý do ở trên: chốt theo `shouldFetchCancelled`, không chỉ theo mảng, để dữ liệu
+	// cache của tab "Đã hủy" không rò sang "Chờ thanh toán", "Chờ xác nhận", "Đang xử lý" hay
+	// "Hoàn tiền" sau khi người dùng đã ghé tab "Tất cả" hoặc "Đã hủy" một lần.
+	const cancelledCheckouts = useMemo(
+		() => (shouldFetchCancelled ? groupCheckouts(cancelledItems) : []),
+		[shouldFetchCancelled, cancelledItems],
+	)
 
 	const listingIds = useMemo(() => {
 		const ids = new Set<ListingId>()
