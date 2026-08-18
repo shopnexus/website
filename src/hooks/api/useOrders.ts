@@ -131,6 +131,27 @@ export function usePendingItems(enabled = true, limit = 50) {
 	})
 }
 
+/**
+ * Checkout lines that ended without ever becoming an order — the buyer's cancel history.
+ *
+ * An order is written by the payment webhook, so a checkout dropped before the money
+ * landed never becomes one: cancelling it writes `cancelled_at` on the lines and nothing
+ * else. They then fall out of `usePendingItems` by the same filter that defines it —
+ * `pending=true` means "no order **and** nobody cancelled" — while `GET /orders` never had
+ * them. Without this read they are gone from the screen the moment they are cancelled, and
+ * the "Đã hủy" tab is empty for a buyer who just cancelled something.
+ *
+ * The unfiltered read, narrowed here: "cancelled" is a value of `cancelled_at`, not a
+ * parameter the route has.
+ */
+export function useCancelledItems(enabled = true, limit = 50) {
+	return useQuery({
+		...getItemsOptions({ query: { role: "buyer", limit } }),
+		select: (res) => res.data.filter((item) => item.order_id === null && item.cancelled_at !== null),
+		enabled,
+	})
+}
+
 // ── Checkout ─────────────────────────────────────────────────────────────────
 
 /**

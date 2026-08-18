@@ -5,6 +5,7 @@ import Link from "next/link"
 import Button from "@/components/ui/Button"
 import Skeleton from "@/components/ui/Skeleton"
 import OrderCard from "./OrderCard"
+import CancelledCheckoutCard from "./CancelledCheckoutCard"
 import PendingCheckoutCard from "./PendingCheckoutCard"
 import { useOrderInbox, type OrderTab } from "../hooks/useOrderInbox"
 import { waitingSideOf } from "@/lib/order-waiting"
@@ -19,6 +20,7 @@ export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
 		me,
 		orders,
 		pendingCheckouts,
+		cancelledCheckouts,
 		listingsById,
 		isLoading,
 		isEmpty,
@@ -77,6 +79,18 @@ export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
 						<section className="flex flex-col gap-3">
 							{pendingCheckouts.map((checkout) => (
 								<PendingCheckoutCard
+									key={checkout.sessionId}
+									checkout={checkout}
+									listingsById={listingsById}
+								/>
+							))}
+						</section>
+					)}
+
+					{cancelledCheckouts.length > 0 && (
+						<section className="flex flex-col gap-3">
+							{cancelledCheckouts.map((checkout) => (
+								<CancelledCheckoutCard
 									key={checkout.sessionId}
 									checkout={checkout}
 									listingsById={listingsById}

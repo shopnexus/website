@@ -6,7 +6,7 @@ import Link from "next/link"
 import Button from "@/components/ui/Button"
 import CancelCheckoutDialog from "@/components/orders/CancelCheckoutDialog"
 import { usePaymentSession } from "@/hooks/api/useFinance"
-import type { PendingCheckout } from "@/lib/pending-checkout"
+import type { CheckoutGroup } from "@/lib/pending-checkout"
 import type { Listing, ListingId } from "@/api/generated/types.gen"
 
 const formatPrice = (price: number, currency: string) =>
@@ -27,7 +27,7 @@ export default function PendingCheckoutCard({
 	checkout,
 	listingsById,
 }: {
-	checkout: PendingCheckout
+	checkout: CheckoutGroup
 	listingsById: Map<ListingId, Listing>
 }) {
 	const [cancelling, setCancelling] = useState(false)
