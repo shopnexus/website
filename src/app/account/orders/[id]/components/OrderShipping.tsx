@@ -1,5 +1,6 @@
 import { TRANSPORT_STATUS_VI } from "@/lib/dictionaries"
 import { resolveAddressLines } from "@/lib/order-address"
+import { buyerNote } from "@/lib/order-state"
 import type { Order } from "@/api/generated/types.gen"
 
 /**
@@ -12,6 +13,7 @@ export default async function OrderShipping({ order }: { order: Order }) {
 	const lines = await resolveAddressLines(order.address)
 	const transport = order.transport
 	const cancelled = order.state === "cancelled"
+	const note = buyerNote(order)
 
 	return (
 		<div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
@@ -25,6 +27,18 @@ export default async function OrderShipping({ order }: { order: Order }) {
 					<div className="text-on-surface-variant italic">Không có địa chỉ chi tiết.</div>
 				)}
 			</div>
+
+			{/* Cạnh địa chỉ, không ở cuối trang: người bán đọc khối này lúc gói hàng, và câu
+			    dặn của người mua ("giao giờ hành chính", "gọi trước") là một phần của việc ấy.
+			    Trước đây nó được ghi vào đơn rồi không hiện ở đâu cả. */}
+			{note && (
+				<div className="mb-6">
+					<h3 className="font-headline-sm font-bold mb-2">Ghi chú của người mua</h3>
+					<p className="text-body-sm text-on-surface whitespace-pre-line rounded-lg bg-surface-container p-3 border border-outline-variant/60">
+						{note}
+					</p>
+				</div>
+			)}
 
 			<h3 className="font-headline-sm font-bold mb-4">Thông tin vận chuyển</h3>
 			{transport ? (

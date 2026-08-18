@@ -214,3 +214,21 @@ export function sideOf(order: Order, me: AccountId | undefined) {
 		isSeller: me !== undefined && order.seller.id === me,
 	}
 }
+
+/**
+ * Câu người mua dặn lúc thanh toán, hoặc "" nếu họ không dặn gì.
+ *
+ * Ghi chú nằm trên *dòng* chứ không trên đơn: một lượt thanh toán chép cùng một câu lên
+ * mọi dòng nó tạo ra (`Note: req.Note` cho từng line), nên dòng nào cũng mang nó. Vẫn gộp
+ * theo distinct thay vì lấy `items[0]`: nếu về sau một đơn gom nhiều lượt thanh toán, hai
+ * câu dặn khác nhau đều phải tới tay người bán — bỏ mất câu thứ hai còn tệ hơn không hiện
+ * câu nào, vì người bán không biết là mình đang thiếu.
+ */
+export function buyerNote(order: Order): string {
+	const notes = new Set<string>()
+	for (const item of order.items ?? []) {
+		const note = item.note?.trim()
+		if (note) notes.add(note)
+	}
+	return [...notes].join("\n")
+}

@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import OrderActions from "@/components/orders/OrderActions"
-import { orderStatusLine, remainingLabel } from "@/lib/order-state"
+import { buyerNote, orderStatusLine, remainingLabel } from "@/lib/order-state"
 import { waitingDeadlineAt, type WaitingSide } from "@/lib/order-waiting"
 import { useNow } from "@/hooks/useNow"
 import type { AccountId, Listing, ListingId, Order } from "@/api/generated/types.gen"
@@ -46,6 +46,10 @@ export default function OrderCard({
 	const firstItem = order.items?.[0]
 	const firstListing = firstItem ? listingsById.get(firstItem.listing_id) : undefined
 	const otherCount = (order.items?.length ?? 0) - 1
+
+	// Chỉ người bán đọc câu này trên thẻ: người mua tự viết nó, còn người bán thì phải gói
+	// hàng theo nó — và trước khi có dòng này, chỗ duy nhất đọc được là không có chỗ nào.
+	const note = selling ? buyerNote(order) : ""
 
 	const deadline = waitingDeadlineAt(order)
 	const left = side === "you" ? remainingLabel(deadline, now) : null
@@ -110,6 +114,13 @@ export default function OrderCard({
 					<span className="text-outline"> · </span>
 					<span className="tabular-nums">{order.id}</span>
 				</p>
+
+				{note && (
+					<p className="text-body-sm text-on-surface-variant line-clamp-2 flex items-start gap-1">
+						<span className="material-symbols-outlined text-[16px] leading-5 shrink-0">sticky_note_2</span>
+						<span className="min-w-0">Ghi chú: {note}</span>
+					</p>
+				)}
 
 				<div className="flex flex-wrap items-center justify-between gap-2 mt-1">
 					{left ? (
