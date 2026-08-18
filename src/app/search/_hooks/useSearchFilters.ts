@@ -79,6 +79,11 @@ export function useSearchFilters() {
   const [wardCode, setWardCode] = useState("");
   const [position, setPosition] = useState<Position | null>(null);
   const [radiusKm, setRadiusKm] = useState(25);
+  // Left out, `sort=recommended` rotates on the server's own fifteen-minute clock — reopening
+  // or reloading the page inside that window would answer the exact page it just answered. A
+  // seed drawn once per mount is a new run every time the page is: unmoved by re-renders, so
+  // paging through it stays one consistent feed.
+  const [recommendedSeed] = useState(() => Math.random().toString(36).substring(7));
 
   const { data: categories = [] } = useCategories();
   const { data: provinces = [] } = useProvinces();
@@ -108,6 +113,7 @@ export function useSearchFilters() {
     ...locationFilter(provinceCode, wardCode),
     ...positionFilter(position, radiusKm),
     sort: activeSort,
+    seed: activeSort === "recommended" ? recommendedSeed : undefined,
   };
 
   const feed = useListingsFeed(filters);
