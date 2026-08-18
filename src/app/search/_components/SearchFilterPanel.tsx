@@ -270,7 +270,7 @@ export default function SearchFilterPanel({ search }: { search: SearchState }) {
                     className="peer sr-only"
                   />
                   <div className="w-5 h-5 rounded-full border-2 border-outline-variant peer-checked:border-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary transition-colors flex items-center justify-center">
-                    <div className="w-2.5 h-2.5 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity" />
+                    <div className={`w-2.5 h-2.5 rounded-full bg-primary transition-opacity ${search.condition === value ? 'opacity-100' : 'opacity-0'}`} />
                   </div>
                 </div>
                 <span className="text-body-sm text-on-surface group-hover:text-primary transition-colors">

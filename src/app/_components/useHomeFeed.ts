@@ -40,12 +40,18 @@ export function useHomeFeed(limit = 12) {
   const { isAuthenticated } = useAuthStore();
   const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
 
+  const [seed] = useState(() => Math.random().toString(36).substring(7));
+
   // `sort=recommended` is 401 without a token, so a visitor — and anyone who signs out while
   // it is selected — falls back rather than sending a request that can only fail.
   const tabs = FEED_TABS.filter((tab) => !tab.needsAccount || isAuthenticated);
   const active: Sort = tabs.some((tab) => tab.id === sort) ? sort : "newest";
 
-  const feed = useListingsFeed({ limit, sort: active });
+  const feed = useListingsFeed({ 
+    limit, 
+    sort: active,
+    seed: active === "recommended" ? seed : undefined
+  });
 
   return { tabs, active, setSort, feed };
 }
