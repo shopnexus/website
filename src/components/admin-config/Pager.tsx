@@ -55,7 +55,7 @@ function PagerButton({
       disabled={disabled}
       onClick={onClick}
       aria-label={label}
-      className="w-9 h-9 rounded-full border border-outline-variant text-on-surface-variant flex items-center justify-center transition-colors hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+      className="w-10 h-10 rounded-full border border-outline-variant text-on-surface-variant flex items-center justify-center transition-colors hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
     >
       <span className="material-symbols-outlined text-[18px]">{icon}</span>
     </button>

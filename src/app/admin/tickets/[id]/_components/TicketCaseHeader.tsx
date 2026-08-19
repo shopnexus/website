@@ -8,8 +8,9 @@ import {
 	TICKET_STATUS_VI,
 } from "@/lib/dictionaries"
 import type { AdminTicket } from "@/api/generated/types.gen"
-import { TICKET_STATUS_STYLES, waitSince } from "../../_lib/queue.logic"
-import WaitGutter from "../../_components/WaitGutter"
+import { waitSince } from "@/lib/wait"
+import { TICKET_STATUS_STYLES } from "../../_lib/queue.logic"
+import WaitGutter from "@/components/admin-config/WaitGutter"
 
 /** The case at a glance: who raised it, how long ago, and how it ended if it has. */
 export default function TicketCaseHeader({ entry, now }: { entry: AdminTicket; now: number }) {

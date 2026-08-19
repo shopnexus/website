@@ -33,7 +33,7 @@ export default function WithdrawalRow({
       <div className="flex-1 min-w-0 p-5 flex flex-wrap items-start gap-x-6 gap-y-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-3 flex-wrap">
-            <span className="font-headline font-extrabold text-2xl text-on-surface tabular-nums tracking-tight">
+            <span className="font-headline-md text-on-surface tabular-nums">
               {formatMoney(withdrawal.amount, withdrawal.currency)}
             </span>
             <span

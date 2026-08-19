@@ -77,27 +77,31 @@ export default function AccountsBrowser() {
           />
         ) : (
           <>
-            <table className="w-full text-left">
-              <thead>
-                <tr className="font-label-sm uppercase tracking-[0.08em] text-on-surface-variant bg-surface-container-low">
-                  <th className="px-5 py-3 font-medium">Tài khoản</th>
-                  <th className="px-5 py-3 font-medium">Vai trò</th>
-                  <th className="px-5 py-3 font-medium">Tình trạng</th>
-                  <th className="px-5 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {search.accounts.map((account) => (
-                  <AccountRow
-                    key={account.id}
-                    account={account}
-                    isBusy={reinstate.isPending}
-                    onSuspend={() => setSuspending(account)}
-                    onReinstate={() => setReinstating(account)}
-                  />
-                ))}
-              </tbody>
-            </table>
+            {/* Four columns and a button do not fit a tablet, and a table that overflows its
+                panel takes the whole page sideways with it. */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[640px]">
+                <thead>
+                  <tr className="font-label-sm uppercase tracking-[0.08em] text-on-surface-variant bg-surface-container-low">
+                    <th className="px-5 py-3 font-medium">Tài khoản</th>
+                    <th className="px-5 py-3 font-medium">Vai trò</th>
+                    <th className="px-5 py-3 font-medium">Tình trạng</th>
+                    <th className="px-5 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {search.accounts.map((account) => (
+                    <AccountRow
+                      key={account.id}
+                      account={account}
+                      isBusy={reinstate.isPending}
+                      onSuspend={() => setSuspending(account)}
+                      onReinstate={() => setReinstating(account)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
             {search.meta && (
               <Pager meta={search.meta} loadedCount={search.accounts.length} onChange={search.setPage} />
             )}

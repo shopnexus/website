@@ -46,7 +46,7 @@ export default function ResolveWithdrawalDialog({
     <Modal open title="Quyết định yêu cầu rút tiền" onClose={onClose}>
       <div className="space-y-5">
         <div className="rounded-xl bg-surface-container-low p-4">
-          <div className="font-headline font-extrabold text-2xl text-on-surface tabular-nums">
+          <div className="font-headline-md text-on-surface tabular-nums">
             {formatMoney(target.amount, target.currency)}
           </div>
           <div className="font-body-sm text-on-surface-variant mt-1">

@@ -4,8 +4,9 @@ import Link from "next/link"
 import Badge from "@/components/ui/Badge"
 import { TICKET_KIND_VI, TICKET_REASON_VI, TICKET_STATUS_VI } from "@/lib/dictionaries"
 import type { AdminTicket } from "@/api/generated/types.gen"
-import { TICKET_STATUS_STYLES, readTarget, waitSince } from "../_lib/queue.logic"
-import WaitGutter from "./WaitGutter"
+import WaitGutter from "@/components/admin-config/WaitGutter"
+import { waitSince } from "@/lib/wait"
+import { TICKET_STATUS_STYLES, readTarget } from "../_lib/queue.logic"
 
 /**
  * One case in the queue. Pure render — the age it shows comes from the caller's clock, so

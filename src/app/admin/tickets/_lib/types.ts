@@ -7,13 +7,6 @@ import type { TicketStatus } from "@/api/generated/types.gen"
  */
 export type TicketQueueTab = "queue" | TicketStatus
 
-/** How long a case has been waiting, and how loudly to say so. */
-export type WaitTone = "fresh" | "aging" | "stale"
-
-export interface Wait {
-	label: string
-	tone: WaitTone
-}
 
 /** What a ticket is about, as much of it as the owning module handed back. */
 export interface TargetView {

@@ -30,7 +30,7 @@ export default function IdentityCard({
       <div className="flex-1 min-w-0 p-5 flex flex-wrap items-start gap-x-6 gap-y-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-headline font-bold text-lg text-on-surface">{account.name}</span>
+            <span className="font-headline-sm text-on-surface">{account.name}</span>
             <span
               className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${STATUS_CHIP[document.status]}`}
             >

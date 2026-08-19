@@ -17,8 +17,8 @@ export default function TaxVerificationForm({ accountId }: { accountId: AccountI
   const { draft, setDraft, problem, submit, isPending } = useTaxVerdictForm(accountId);
 
   return (
-    <section className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-      <h3 className="font-headline font-bold text-base text-on-surface">Xác minh đăng ký thuế</h3>
+    <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5">
+      <h3 className="font-headline-sm text-on-surface">Xác minh đăng ký thuế</h3>
       <p className="font-body-sm text-on-surface-variant mt-1 leading-relaxed">
         Người dùng phải đã khai mã số thuế thì mới có hồ sơ để kết luận. Hệ thống không mở
         hồ sơ thuế của người khác cho nhân viên xem, nên hãy tra ở nguồn chính thức rồi ghi lại

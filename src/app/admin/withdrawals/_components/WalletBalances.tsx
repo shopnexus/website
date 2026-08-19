@@ -37,7 +37,7 @@ export default function WalletBalances({
       {rows.map((wallet) => (
         <div
           key={wallet.currency}
-          className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5"
+          className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5"
         >
           <div className="font-label-sm uppercase tracking-wider text-on-surface-variant">
             {wallet.currency}
@@ -45,13 +45,13 @@ export default function WalletBalances({
           <div className="grid grid-cols-2 gap-4 mt-3">
             <div>
               <div className="font-body-sm text-on-surface-variant">Khả dụng</div>
-              <div className="font-headline font-extrabold text-2xl text-primary tabular-nums mt-0.5">
+              <div className="font-headline-md text-primary tabular-nums mt-0.5">
                 {formatMoney(wallet.available_balance, wallet.currency)}
               </div>
             </div>
             <div>
               <div className="font-body-sm text-on-surface-variant">Tạm giữ</div>
-              <div className="font-headline font-extrabold text-2xl text-on-surface tabular-nums mt-0.5">
+              <div className="font-headline-md text-on-surface tabular-nums mt-0.5">
                 {formatMoney(wallet.held_balance, wallet.currency)}
               </div>
             </div>

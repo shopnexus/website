@@ -66,7 +66,7 @@ export default function AdminTicketPage({ params }: { params: Promise<{ id: stri
 
 			<div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-5 items-start">
 				<div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden flex flex-col h-[560px]">
-					<div className="px-5 py-3 border-b border-outline-variant/40 flex items-center gap-2 shrink-0">
+					<div className="px-5 py-3 border-b border-outline-variant flex items-center gap-2 shrink-0">
 						<span className="material-symbols-outlined text-primary text-[20px]">forum</span>
 						<h2 className="font-label-md text-on-surface">Trao đổi với {requester.name}</h2>
 					</div>

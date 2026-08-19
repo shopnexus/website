@@ -51,7 +51,7 @@ export default function AccountPicker({
         </p>
       )}
 
-      <ul className="divide-y divide-outline-variant/30 rounded-xl border border-outline-variant/60 overflow-hidden">
+      <ul className="divide-y divide-outline-variant rounded-xl border border-outline-variant overflow-hidden">
         {accounts.map((account) => (
           <li key={account.id}>
             <button

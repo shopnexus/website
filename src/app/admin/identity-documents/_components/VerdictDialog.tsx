@@ -43,7 +43,7 @@ export default function VerdictDialog({
     <Modal open title="Kết luận hồ sơ định danh" onClose={onClose}>
       <div className="space-y-5">
         <div className="rounded-xl bg-surface-container-low p-4">
-          <div className="font-headline font-bold text-lg text-on-surface">
+          <div className="font-headline-sm text-on-surface">
             {target.account.name}
           </div>
           <div className="font-body-sm text-on-surface-variant mt-1">

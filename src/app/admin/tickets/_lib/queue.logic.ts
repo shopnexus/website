@@ -1,45 +1,12 @@
 import type { AdminTicket, Ticket, TicketRefType, TicketStatus } from "@/api/generated/types.gen"
 import { TICKET_STATUS_VI } from "@/lib/dictionaries"
-import type { TargetView, TicketQueueTab, Wait } from "./types"
+import type { TargetView, TicketQueueTab } from "./types"
 
 /**
  * Pure reading of a queue row. Nothing here touches React or the network: a moderator's
  * screen is mostly derived facts — how long this has waited, what it points at — and
  * those are the parts worth being able to reason about on their own.
  */
-
-const MINUTE = 60_000
-const HOUR = 60 * MINUTE
-const DAY = 24 * HOUR
-
-/**
- * How long the case has been open, in the units a person answers in.
- *
- * The queue is oldest-first by contract, so the wait is the row's leading fact rather
- * than a detail at the end of it — and the tone is what turns a sorted list into a
- * worklist. A day is when a requester starts asking again; three is when they stop.
- */
-export function waitSince(createdAt: string, now: number): Wait {
-	const elapsed = Math.max(0, now - new Date(createdAt).getTime())
-	const days = Math.floor(elapsed / DAY)
-	const hours = Math.floor((elapsed % DAY) / HOUR)
-
-	let label: string
-	if (days > 0) label = hours > 0 ? `${days}n ${hours}g` : `${days}n`
-	else if (hours > 0) label = `${hours}g`
-	else label = `${Math.max(1, Math.floor(elapsed / MINUTE))}p`
-
-	if (days >= 3) return { label, tone: "stale" }
-	if (days >= 1) return { label, tone: "aging" }
-	return { label, tone: "fresh" }
-}
-
-/** The wait gutter's colour, keyed on the tone rather than recomputed per component. */
-export const WAIT_TONE_STYLES: Record<Wait["tone"], string> = {
-	fresh: "bg-surface-container-high text-on-surface-variant",
-	aging: "bg-tertiary-container text-on-tertiary-container",
-	stale: "bg-error-container text-on-error-container",
-}
 
 export const TICKET_STATUS_STYLES: Record<TicketStatus, string> = {
 	open: "bg-primary/10 text-primary border border-primary/20",

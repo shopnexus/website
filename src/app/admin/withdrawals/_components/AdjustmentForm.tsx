@@ -25,8 +25,8 @@ export default function AdjustmentForm({
   const { draft, setDraft, problem, submit, isPending } = useAdjustmentForm(accountId, currency);
 
   return (
-    <section className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-      <h3 className="font-headline font-bold text-base text-on-surface">Điều chỉnh số dư</h3>
+    <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5">
+      <h3 className="font-headline-sm text-on-surface">Điều chỉnh số dư</h3>
       <p className="font-body-sm text-on-surface-variant mt-1 leading-relaxed">
         Thao tác này ghi thẳng một bút toán vào sổ ví của người dùng, không có đơn hàng hay
         phiên thanh toán nào phía sau. Số âm là trừ tiền. Lý do bên dưới là toàn bộ giải trình

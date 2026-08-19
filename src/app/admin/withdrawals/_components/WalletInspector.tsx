@@ -74,7 +74,7 @@ export default function WalletInspector({
             <>
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="font-headline font-bold text-lg text-on-surface truncate">
+                  <div className="font-headline-sm text-on-surface truncate">
                     {selected.name}
                   </div>
                   <div className="font-body-sm text-on-surface-variant truncate">
