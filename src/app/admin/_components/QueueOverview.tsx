@@ -34,8 +34,11 @@ export default function QueueOverview() {
   const listings = useAdminListings(undefined, PEEK);
   const withdrawals = useAdminWithdrawals("pending", PEEK);
 
+  // Stretching rather than `items-start`: the cards hold different numbers of preview rows,
+  // and letting them size to content puts the four "Mở hàng đợi" links at four different
+  // heights — and that link is the one control on each card.
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
       <QueueCard
         href="/admin/tickets"
         icon="support_agent"
