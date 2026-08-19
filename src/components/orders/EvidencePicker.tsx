@@ -26,15 +26,23 @@ export default function EvidencePicker({
 	evidence,
 	onChange,
 	disabled = false,
+	max = MAX_EVIDENCE,
 }: {
 	evidence: Evidence[]
 	onChange: (next: Evidence[]) => void
 	disabled?: boolean
+	/**
+	 * How many this picker may still take, where that is less than the request's own cap:
+	 * a refund's ten is counted over the whole case, so a top-up to a case already holding
+	 * eight has room for two. Held here rather than left to the server's refusal, which
+	 * would come after the user had picked and uploaded the files.
+	 */
+	max?: number
 }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const upload = useUploadOrderEvidence()
 
-	const room = MAX_EVIDENCE - evidence.length
+	const room = max - evidence.length
 
 	const handlePick = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = [...(event.target.files ?? [])].slice(0, room)

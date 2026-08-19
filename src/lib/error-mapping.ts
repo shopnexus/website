@@ -153,6 +153,10 @@ export const ERROR_MESSAGES: Record<string, string> = {
 	// ── Hoàn tiền ──────────────────────────────────────────────────────────────
 	refund_not_found: "Không tìm thấy yêu cầu hoàn tiền.",
 	refund_settled: "Yêu cầu hoàn tiền này đã kết thúc.",
+	// Mức mười ảnh tính trên cả vụ việc chứ không phải trên từng lần gửi, nên câu này phải
+	// nói ra con số — người mua vừa chọn đủ mười ảnh cho một vụ việc đã có tám thì không tự
+	// suy ra được là mình vượt ở đâu.
+	too_much_evidence: "Một vụ việc chỉ nhận tối đa 10 ảnh bằng chứng.",
 	refund_already_open: "Đơn hàng này đã có một yêu cầu hoàn tiền đang mở.",
 	refund_not_escalatable: "Yêu cầu hoàn tiền này chưa thể chuyển cho bộ phận hỗ trợ.",
 	refund_not_due: "Chưa đến lúc thực hiện bước này của yêu cầu hoàn tiền.",

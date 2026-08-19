@@ -37,6 +37,11 @@ export type AccountSummaryPage = {
 };
 
 export type AddAttachmentsRequest = {
+    /**
+     * A resource already on the case is ignored rather than refused, and so is one named twice here. A client topping up has not necessarily re-read the case, so resubmitting is not an error — it just leaves the case as it was.
+     * The ten is counted over the whole case, not over this batch: a top-up is not a way around the limit a submission is held to. A batch that would take the case past ten is refused whole, and one that only repeats what is already there is accepted however full the case is, because it adds nothing.
+     *
+     */
     attachments: Array<ResourceId>;
 };
 
@@ -458,7 +463,8 @@ export type CreateOfferRequest = {
  */
 export type CreateRefundRequest = {
     /**
-     * Evidence, and it can be topped up until the case closes.
+     * Evidence, and it can be topped up until the case closes, to ten photos on the case in total. A resource named more than once is stored once: the same photo twice is one piece of evidence.
+     *
      */
     attachments?: Array<ResourceId>;
     reason: string;
@@ -1699,6 +1705,7 @@ export type RefreshRequest = {
 export type Refund = {
     /**
      * The buyer's evidence, topped up until the case closes. Theirs alone: this is the claim being made, not a shared file — the seller's answer lives on the `refund-dispute` ticket they open, so the two sides stay legible apart.
+     * Each resource appears once, in the order it was first submitted. Evidence is a set rather than a log of submissions, so a client may key a list on the resource id — and a photo count read off this array is the number of photos the case actually carries.
      *
      */
     attachments: Array<Resource>;
@@ -8266,6 +8273,10 @@ export type PostRefundsByIdAttachmentsErrors = {
      * The case is closed
      */
     409: Error;
+    /**
+     * The batch would take the case past ten photos of evidence
+     */
+    422: Error;
 };
 
 export type PostRefundsByIdAttachmentsError = PostRefundsByIdAttachmentsErrors[keyof PostRefundsByIdAttachmentsErrors];
