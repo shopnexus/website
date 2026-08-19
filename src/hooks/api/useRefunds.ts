@@ -13,6 +13,7 @@ import {
 	getRefundsInfiniteOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import type {
+	Refund,
 	RefundId,
 	RefundStatus,
 	ResourceId,
@@ -41,10 +42,33 @@ export function useRefunds(status?: RefundStatus, limit = 20) {
 	return { ...query, refunds }
 }
 
+/**
+ * The case's evidence, with each resource appearing once.
+ *
+ * `attachments` is an append-only list server-side and nothing there enforces uniqueness
+ * — neither the request schema nor the domain's append — so a resource submitted again
+ * while the case is open is stored a second time and comes back twice. Dropped here
+ * rather than at the render because two copies of one photo are not two pieces of
+ * evidence: a case that looks like it carries four photos when it carries three misreads
+ * the record a verdict gets reached on, and every reader of this query would otherwise
+ * have to know that.
+ */
+function unwrapRefund(envelope: { data: Refund }): Refund {
+	const refund = unwrapData(envelope)
+	const seen = new Set<ResourceId>()
+	const attachments = refund.attachments.filter((attachment) => {
+		if (seen.has(attachment.id)) return false
+		seen.add(attachment.id)
+		return true
+	})
+	if (attachments.length === refund.attachments.length) return refund
+	return { ...refund, attachments }
+}
+
 export function useRefund(id: string | undefined) {
 	return useQuery({
 		...getRefundsByIdOptions({ path: { id: id! } }),
-		select: unwrapData,
+		select: unwrapRefund,
 		enabled: Boolean(id),
 	})
 }
