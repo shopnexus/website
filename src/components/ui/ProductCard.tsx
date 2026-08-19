@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/use-auth-store";
@@ -62,9 +63,27 @@ interface ProductCardProps {
    * search when it did not.
    */
   source?: "search" | "recommended" | "category";
+  /**
+   * Offers "Không quan tâm" / "Ẩn tin này". Only truthful on the recommended feed: that is
+   * the one list a hidden card actually leaves, since the server excludes a listing from
+   * `sort=recommended` alone. A search result or a category browse would show the same menu
+   * and then not remove the card — a promise the UI cannot keep — so callers on those
+   * surfaces leave this off rather than pass it conditionally on `source`.
+   */
+  dismissible?: boolean;
+  /** True while this card is inside its undo window — still on screen, fading out. */
+  isDismissing?: boolean;
+  onDismiss?: (type: "not-interested" | "hidden") => void;
 }
 
-export default function ProductCard({ product, className = "", source }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  className = "",
+  source,
+  dismissible = false,
+  isDismissing = false,
+  onDismiss,
+}: ProductCardProps) {
   // No placeholder service. A picsum fallback fetched a random stranger's photo from a
   // third party and rendered it where the product goes — a listing with no photo then
   // looked like a listing with the wrong one, which is worse than looking empty.
@@ -74,8 +93,40 @@ export default function ProductCard({ product, className = "", source }: Product
   const { mutate: removeFavorite, isPending: isRemoving } = useRemoveFavorite();
   const isPending = isAdding || isRemoving;
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOnOutsideClick = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuOpen]);
+
   const handleCardClick = () => {
     if (source) recordInteraction(product.id, `click-from-${source}`);
+  };
+
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpen((open) => !open);
+  };
+
+  const handleDismiss = (e: React.MouseEvent, type: "not-interested" | "hidden") => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpen(false);
+    onDismiss?.(type);
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
@@ -101,9 +152,16 @@ export default function ProductCard({ product, className = "", source }: Product
   };
 
   return (
+    <div
+      className={`transition-all duration-300 ease-out ${
+        isDismissing ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
+      }`}
+    >
     <Link
       href={`/product/${product.slug ?? product.id}`}
       onClick={handleCardClick}
+      aria-hidden={isDismissing}
+      tabIndex={isDismissing ? -1 : undefined}
       className={`bg-surface rounded-xl overflow-hidden border border-outline-variant/30 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow duration-300 flex flex-col group cursor-pointer ${className}`}
     >
       <div className="relative aspect-[4/3] bg-surface-container overflow-hidden shrink-0">
@@ -127,21 +185,75 @@ export default function ProductCard({ product, className = "", source }: Product
             </span>
           </div>
         )}
-        <button
-          onClick={handleFavoriteClick}
-          disabled={isPending}
-          className="absolute top-2 right-2 p-1.5 h-9.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors z-10 disabled:opacity-50"
-          aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-        >
-          <span
-            className={`material-symbols-outlined text-[20px] transition-colors ${
-              product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+          {dismissible && (
+            <div ref={menuRef} className="relative">
+              <button
+                onClick={handleMenuToggle}
+                className="p-1.5 h-9.5 aspect-square flex items-center justify-center rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors"
+                aria-label="Tuỳ chọn gợi ý"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+              >
+                <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+                  more_vert
+                </span>
+              </button>
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full mt-1.5 w-56 bg-surface rounded-lg border border-outline-variant/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] overflow-hidden py-1 animate-page-fade-in"
+                >
+                  <button
+                    role="menuitem"
+                    onClick={(e) => handleDismiss(e, "not-interested")}
+                    className="w-full flex items-start gap-2.5 px-3.5 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
+                      thumb_down
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-body-sm font-medium text-on-surface">Không quan tâm</span>
+                      <span className="block text-[11px] text-on-surface-variant mt-0.5">
+                        Ít gợi ý sản phẩm như thế này hơn
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={(e) => handleDismiss(e, "hidden")}
+                    className="w-full flex items-start gap-2.5 px-3.5 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
+                      visibility_off
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-body-sm font-medium text-on-surface">Ẩn tin này</span>
+                      <span className="block text-[11px] text-on-surface-variant mt-0.5">
+                        Không hiện tin này trong Gợi ý cho bạn nữa
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          <button
+            onClick={handleFavoriteClick}
+            disabled={isPending}
+            className="p-1.5 h-9.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors disabled:opacity-50"
+            aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
           >
-            favorite
-          </span>
-        </button>
+            <span
+              className={`material-symbols-outlined text-[20px] transition-colors ${
+                product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+                }`}
+              style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+            >
+              favorite
+            </span>
+          </button>
+        </div>
       </div>
 
       <div className="p-3 flex flex-col flex-1 gap-2">
@@ -209,5 +321,6 @@ export default function ProductCard({ product, className = "", source }: Product
         </div>
       </div>
     </Link>
+    </div>
   );
 }

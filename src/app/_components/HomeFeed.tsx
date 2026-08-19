@@ -4,10 +4,15 @@ import React from "react";
 import ProductCard from "@/components/ui/ProductCard";
 import ProductCardSkeleton from "@/components/ui/ProductCardSkeleton";
 import { useHomeFeed } from "./useHomeFeed";
+import { useDismissedListings } from "@/hooks/useDismissedListings";
 
 export default function HomeFeed(): React.ReactElement {
   const { tabs, active, setSort, feed } = useHomeFeed();
-  const { listings, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = feed;
+  const { listings: allListings, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = feed;
+  const { isDismissing, isHidden, dismiss } = useDismissedListings();
+  // A confirmed dismissal (the undo window closed) drops the card for good; one still
+  // mid-window stays in the list so ProductCard can animate it out in place.
+  const listings = allListings.filter((listing) => !isHidden(listing.id));
 
   return (
     <section>
@@ -46,6 +51,9 @@ export default function HomeFeed(): React.ReactElement {
                 key={listing.id}
                 product={listing}
                 source={active === "recommended" ? "recommended" : undefined}
+                dismissible={active === "recommended"}
+                isDismissing={isDismissing(listing.id)}
+                onDismiss={(type) => dismiss(listing.id, type)}
               />
             ))}
           </div>

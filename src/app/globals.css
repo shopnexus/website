@@ -246,6 +246,18 @@ body {
   animation: page-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Undo toast's countdown bar — the width drain IS the undo window, felt rather than read off
+   a number. Runs once, forwards: react-hot-toast keeps the node mounted for its exit
+   transition, and a bar that restarted or looped there would lie about how much time is left. */
+@keyframes toast-drain {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.animate-toast-drain {
+  animation: toast-drain 4s linear forwards;
+}
+
 /* Skeleton shimmer */
 @keyframes shimmer {
   0%   { transform: translateX(-100%); }
