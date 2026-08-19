@@ -86,11 +86,17 @@ export function useListingsFeed(filters: ListingFilters = {}, enabled = true) {
 	})
 
 	const listings = useMemo(() => flattenPages(query.data), [query.data])
+	// `understood` and `probes` describe the query, not any one page of it, so every page
+	// repeats them and the first is enough. Both read as empty before the first page lands,
+	// same as an unset query — there is nothing yet to explain either way.
+	const firstPage = query.data?.pages[0]
 
 	return {
 		...query,
 		listings,
 		totalCount: totalCountOf(query.data),
+		understood: firstPage?.understood ?? "",
+		probes: firstPage?.probes ?? [],
 	}
 }
 

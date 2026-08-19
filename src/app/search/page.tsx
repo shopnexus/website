@@ -5,6 +5,7 @@ import ActiveFilterChips from "./_components/ActiveFilterChips";
 import SearchFilterPanel from "./_components/SearchFilterPanel";
 import SearchResults from "./_components/SearchResults";
 import SearchToolbar from "./_components/SearchToolbar";
+import SearchUnderstanding from "./_components/SearchUnderstanding";
 import { useSearchFilters } from "./_hooks/useSearchFilters";
 
 function SearchPageContent(): React.ReactElement {
@@ -17,6 +18,7 @@ function SearchPageContent(): React.ReactElement {
 
         <section className="md:col-span-9">
           <SearchToolbar search={search} />
+          <SearchUnderstanding search={search} />
           <ActiveFilterChips search={search} />
           <SearchResults search={search} />
         </section>

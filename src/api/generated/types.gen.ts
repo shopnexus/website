@@ -935,6 +935,15 @@ export type ListingPage = {
 };
 
 /**
+ * The moderation queue's page: the same cards, without the two search fields. That worklist takes no query, so there is nothing it could have understood, and a key that is always empty reads as a search a moderator could have run.
+ *
+ */
+export type ListingQueuePage = {
+    data: Array<Listing>;
+    meta: PageMeta;
+};
+
+/**
  * The slug a link carries: the listing's name, slugified and frozen at creation, with the listing's id on the end. The text in front is for the person reading the link and is not matched — renaming a listing does not rewrite links already shared, and a stale one still resolves because the id behind the last hyphen is what addresses the listing.
  *
  * It never contains an underscore, which is how `GET /listings/{id}` tells it from a `ListingID` and accepts either. A name that slugifies to nothing leaves the id alone.
@@ -3217,7 +3226,7 @@ export type GetAdminListingsResponses = {
     /**
      * OK
      */
-    200: ListingPage;
+    200: ListingQueuePage;
 };
 
 export type GetAdminListingsResponse = GetAdminListingsResponses[keyof GetAdminListingsResponses];
