@@ -1,5 +1,6 @@
 "use client";
 
+import Skeleton from "@/components/ui/Skeleton";
 import { formatMoney } from "@/lib/money";
 import type { SessionTotals as Totals } from "../types";
 
@@ -18,16 +19,16 @@ export default function SessionTotals({
   loading: boolean;
 }) {
   if (loading) {
-    return <div className="h-28 rounded-2xl bg-surface-container-high animate-pulse" aria-hidden />;
+    return <Skeleton className="h-28 w-full rounded-2xl" />;
   }
 
   if (totals.length === 0) {
     return (
-      <div className="rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6">
+      <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-6">
         <div className="font-label-sm uppercase tracking-wider text-on-surface-variant">
           Tổng trên trang này
         </div>
-        <div className="font-headline font-extrabold text-3xl text-on-surface tabular-nums mt-2">
+        <div className="font-headline-md text-on-surface tabular-nums mt-2">
           0
         </div>
         <p className="font-body-sm text-on-surface-variant mt-1">
@@ -42,7 +43,7 @@ export default function SessionTotals({
       {totals.map((row) => (
         <div
           key={row.currency}
-          className="rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6"
+          className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-6"
         >
           <div className="flex items-baseline justify-between">
             <span className="font-label-sm uppercase tracking-wider text-on-surface-variant">
@@ -53,7 +54,7 @@ export default function SessionTotals({
             </span>
           </div>
 
-          <div className="font-headline font-extrabold text-3xl text-on-surface tabular-nums mt-2 tracking-tight">
+          <div className="font-headline-md text-on-surface tabular-nums mt-2">
             {formatMoney(row.total, row.currency)}
           </div>
 

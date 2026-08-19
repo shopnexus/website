@@ -23,8 +23,16 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const router = useRouter();
   const { data: me, isLoading } = useMe();
-  const [navOpen, setNavOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // The drawer's open state is which route it was opened over, not a boolean, so a
+  // navigation closes it by making the two disagree during the render that follows. An
+  // effect watching `pathname` would have to setState from inside itself — a cascading
+  // render, and one that misses browser back and forward, which change the route without
+  // going through a link in the panel.
+  const [openedOver, setOpenedOver] = useState<string | null>(null);
+  const navOpen = openedOver === pathname;
+  const closeNav = () => setOpenedOver(null);
 
   const allowed = isStaff(me?.role);
 
@@ -35,15 +43,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     if (!isLoading && !allowed) router.replace("/account");
   }, [isLoading, allowed, router]);
 
-  // A drawer that survived the navigation it caused would cover the page it just opened.
-  useEffect(() => {
-    setNavOpen(false);
-  }, [pathname]);
-
   useEffect(() => {
     if (!navOpen) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setNavOpen(false);
+      if (event.key === "Escape") setOpenedOver(null);
     };
     window.addEventListener("keydown", onKey);
     const previous = document.body.style.overflow;
@@ -73,7 +76,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <AdminTopbar role={me?.role} onOpenNav={() => setNavOpen(true)} />
+        <AdminTopbar role={me?.role} onOpenNav={() => setOpenedOver(pathname)} />
         <main className="flex-1 min-w-0">{children}</main>
       </div>
 
@@ -81,7 +84,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="absolute inset-0 bg-black/50"
-            onClick={() => setNavOpen(false)}
+            onClick={closeNav}
             aria-hidden="true"
           />
           <div
@@ -96,14 +99,14 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               <Wordmark />
               <button
                 type="button"
-                onClick={() => setNavOpen(false)}
+                onClick={closeNav}
                 aria-label="Đóng điều hướng"
                 className="m-3 w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer shrink-0"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
-            <AdminNav onNavigate={() => setNavOpen(false)} />
+            <AdminNav onNavigate={closeNav} />
           </div>
         </div>
       )}

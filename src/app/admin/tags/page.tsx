@@ -1,4 +1,4 @@
-import PageHeader from "@/components/admin-config/PageHeader";
+import AdminPage from "@/components/admin-config/AdminPage";
 import TagCatalogue from "./_components/TagCatalogue";
 
 export const metadata = {
@@ -7,13 +7,13 @@ export const metadata = {
 
 export default function AdminTagsPage() {
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
-      <PageHeader
-        eyebrow="Cấu hình"
-        title="Thẻ"
-        consequence="Slug của thẻ chính là danh tính của nó: ghi vào một slug khác là tạo thẻ mới, không phải đổi tên. Chỉ mô tả là sửa được."
-      />
+    <AdminPage
+      width="md"
+      eyebrow="Cấu hình"
+      title="Thẻ"
+      consequence="Slug của thẻ chính là danh tính của nó: ghi vào một slug khác là tạo thẻ mới, không phải đổi tên. Chỉ mô tả là sửa được."
+    >
       <TagCatalogue />
-    </div>
+    </AdminPage>
   );
 }

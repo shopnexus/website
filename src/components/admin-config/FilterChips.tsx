@@ -39,7 +39,15 @@ export default function FilterChips<T extends string>({
   );
 }
 
-function Chip({
+/**
+ * One filter pill.
+ *
+ * Exported because a required choice — how many rows to read, say — is the same control
+ * without the clear option, and the ledger page had grown its own copy that differed only
+ * in the active colours: `bg-primary` against this one's `bg-primary-container`, so the
+ * same "this is selected" spoke in two voices on neighbouring screens.
+ */
+export function Chip({
   active,
   onClick,
   children,

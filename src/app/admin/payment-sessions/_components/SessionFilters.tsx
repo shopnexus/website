@@ -1,16 +1,9 @@
 "use client";
 
 import type { PaymentSessionKind, PaymentSessionStatus } from "@/api/generated/types.gen";
+import FilterChips, { Chip } from "@/components/admin-config/FilterChips";
+import Panel from "@/components/admin-config/Panel";
 import { KIND_FILTERS, LIMIT_CHOICES, STATUS_FILTERS } from "../_lib/sessions.logic";
-
-function chipClass(active: boolean): string {
-  return [
-    "px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all cursor-pointer",
-    active
-      ? "bg-primary text-on-primary border-primary"
-      : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
-  ].join(" ");
-}
 
 /**
  * The two filters the route actually applies, and how deep to read.
@@ -18,6 +11,10 @@ function chipClass(active: boolean): string {
  * `account_id`, `from` and `to` are in the published spec and the handler behind it reads
  * none of them, so they are not offered: a date range that silently returns everything is
  * worse than no date range at all on the one screen whose job is reconciliation.
+ *
+ * Both `*_FILTERS` lists carry `undefined` as their "Tất cả" entry, which `FilterChips`
+ * draws itself from `value === undefined` — so the entry is dropped here rather than
+ * rendered twice.
  */
 export default function SessionFilters({
   kind,
@@ -35,63 +32,39 @@ export default function SessionFilters({
   onLimitChange: (limit: number) => void;
 }) {
   return (
-    <div className="rounded-2xl border border-outline-variant/40 bg-surface-container-low p-5 space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-label-sm uppercase tracking-wider text-on-surface-variant w-24 shrink-0">
-          Loại
-        </span>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Lọc theo loại">
-          {KIND_FILTERS.map((filter) => (
-            <button
-              key={filter.label}
-              type="button"
-              aria-pressed={filter.kind === kind}
-              onClick={() => onKindChange(filter.kind)}
-              className={chipClass(filter.kind === kind)}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <Panel className="p-4 sm:p-5 flex flex-col gap-3">
+      <FilterChips
+        label="Loại"
+        value={kind}
+        options={KIND_FILTERS.filter((filter) => filter.kind !== undefined).map((filter) => ({
+          value: filter.kind as PaymentSessionKind,
+          label: filter.label,
+        }))}
+        onChange={onKindChange}
+      />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-label-sm uppercase tracking-wider text-on-surface-variant w-24 shrink-0">
-          Trạng thái
-        </span>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Lọc theo trạng thái">
-          {STATUS_FILTERS.map((filter) => (
-            <button
-              key={filter.label}
-              type="button"
-              aria-pressed={filter.status === status}
-              onClick={() => onStatusChange(filter.status)}
-              className={chipClass(filter.status === status)}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <FilterChips
+        label="Trạng thái"
+        value={status}
+        options={STATUS_FILTERS.filter((filter) => filter.status !== undefined).map((filter) => ({
+          value: filter.status as PaymentSessionStatus,
+          label: filter.label,
+        }))}
+        onChange={onStatusChange}
+      />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-label-sm uppercase tracking-wider text-on-surface-variant w-24 shrink-0">
+      {/* Not a FilterChips: there is no "all" depth to clear back to — one of the three is
+          always in force. */}
+      <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Số dòng mỗi lần đọc">
+        <span className="font-label-sm uppercase tracking-[0.08em] text-on-surface-variant">
           Số dòng
         </span>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Số dòng mỗi lần đọc">
-          {LIMIT_CHOICES.map((choice) => (
-            <button
-              key={choice}
-              type="button"
-              aria-pressed={choice === limit}
-              onClick={() => onLimitChange(choice)}
-              className={chipClass(choice === limit)}
-            >
-              {choice}
-            </button>
-          ))}
-        </div>
+        {LIMIT_CHOICES.map((choice) => (
+          <Chip key={choice} active={choice === limit} onClick={() => onLimitChange(choice)}>
+            {choice}
+          </Chip>
+        ))}
       </div>
-    </div>
+    </Panel>
   );
 }

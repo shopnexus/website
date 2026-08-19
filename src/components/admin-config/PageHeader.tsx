@@ -20,7 +20,7 @@ export default function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <header className="flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         <p className="font-label-sm uppercase tracking-[0.14em] text-on-surface-variant mb-1.5">
           {eyebrow}

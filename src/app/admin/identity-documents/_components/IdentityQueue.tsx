@@ -1,9 +1,22 @@
 "use client";
 
 import type { AdminIdentityDocument, IdentityStatus } from "@/api/generated/types.gen";
-import Button from "@/components/ui/Button";
+import QueuePanel from "@/components/admin-config/QueuePanel";
+import QueueTabs from "@/components/admin-config/QueueTabs";
 import { QUEUE_FILTERS } from "../_lib/identity.logic";
 import IdentityCard from "./IdentityCard";
+
+/** "Tất cả" is a reset rather than a fourth status, so it leads the strip. */
+const ALL = "all" as const;
+type Tab = IdentityStatus | typeof ALL;
+
+const TABS: ReadonlyArray<{ id: Tab; label: string }> = [
+  { id: ALL, label: "Tất cả" },
+  ...QUEUE_FILTERS.filter((filter) => filter.status !== undefined).map((filter) => ({
+    id: filter.status as IdentityStatus,
+    label: filter.label,
+  })),
+];
 
 export default function IdentityQueue({
   entries,
@@ -27,66 +40,30 @@ export default function IdentityQueue({
   onDecide: (entry: AdminIdentityDocument) => void;
 }) {
   return (
-    <section className="bg-surface-container-low rounded-2xl border border-outline-variant/40 overflow-hidden">
-      <div className="p-5 border-b border-outline-variant/40 flex flex-wrap items-center gap-2">
-        <div className="mr-auto flex items-baseline gap-3">
-          <h2 className="font-headline font-bold text-lg text-primary">Hàng đợi</h2>
-          {totalCount !== null && (
-            <span className="font-body-sm text-on-surface-variant tabular-nums">
-              {totalCount} hồ sơ
-            </span>
-          )}
-        </div>
+    <>
+      <QueueTabs
+        tabs={TABS}
+        active={status ?? ALL}
+        onChange={(id) => onStatusChange(id === ALL ? undefined : id)}
+      />
 
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Lọc theo trạng thái">
-          {QUEUE_FILTERS.map((filter) => {
-            const active = filter.status === status;
-            return (
-              <button
-                key={filter.label}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onStatusChange(filter.status)}
-                className={[
-                  "px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all cursor-pointer",
-                  active
-                    ? "bg-primary text-on-primary border-primary"
-                    : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
-                ].join(" ")}
-              >
-                {filter.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="p-12 flex justify-center">
-          <span className="material-symbols-outlined animate-spin text-primary text-3xl">
-            progress_activity
-          </span>
-        </div>
-      ) : entries.length === 0 ? (
-        <div className="p-14 text-center text-on-surface-variant">
-          <span className="material-symbols-outlined text-4xl opacity-40 mb-3 block">badge</span>
-          <p className="font-body-md text-on-surface">Không có hồ sơ nào ở trạng thái này.</p>
-        </div>
-      ) : (
-        <ul className="divide-y divide-outline-variant/30">
-          {entries.map((entry) => (
-            <IdentityCard key={entry.document.id} entry={entry} onDecide={onDecide} />
-          ))}
-        </ul>
-      )}
-
-      {hasNextPage && (
-        <div className="p-4 border-t border-outline-variant/40 flex justify-center">
-          <Button variant="outline" size="sm" onClick={onLoadMore} disabled={isFetchingNextPage}>
-            {isFetchingNextPage ? "Đang tải…" : "Tải thêm"}
-          </Button>
-        </div>
-      )}
-    </section>
+      <QueuePanel
+        heading="Hàng đợi"
+        count={totalCount}
+        countNoun="hồ sơ"
+        isLoading={isLoading}
+        isEmpty={entries.length === 0}
+        emptyIcon="badge"
+        emptyTitle="Không có hồ sơ nào ở trạng thái này."
+        emptyHint="Hàng đợi trống nghĩa là không người bán nào đang chờ được mở cổng chi tiền."
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={onLoadMore}
+      >
+        {entries.map((entry) => (
+          <IdentityCard key={entry.document.id} entry={entry} onDecide={onDecide} />
+        ))}
+      </QueuePanel>
+    </>
   );
 }

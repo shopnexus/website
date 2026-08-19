@@ -1,6 +1,9 @@
 "use client";
 
 import type { PaymentSession } from "@/api/generated/types.gen";
+import EmptyState from "@/components/admin-config/EmptyState";
+import Panel from "@/components/admin-config/Panel";
+import Skeleton from "@/components/ui/Skeleton";
 import { PAYMENT_SESSION_STATUS_VI } from "@/lib/dictionaries";
 import { formatMoney } from "@/lib/money";
 import { STATUS_CHIP, STATUS_RAIL, isOverdue } from "../_lib/sessions.logic";
@@ -30,27 +33,24 @@ export default function SessionTable({
   totalCount: number | null;
 }) {
   return (
-    <section className="bg-surface-container-low rounded-2xl border border-outline-variant/40 overflow-hidden">
+    <Panel>
       {isLoading ? (
-        <div className="p-12 flex justify-center">
-          <span className="material-symbols-outlined animate-spin text-primary text-3xl">
-            progress_activity
-          </span>
+        <div className="p-4 sm:p-5 flex flex-col gap-3" aria-busy="true">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-xl" />
+          ))}
         </div>
       ) : sessions.length === 0 ? (
-        <div className="p-14 text-center text-on-surface-variant">
-          <span className="material-symbols-outlined text-4xl opacity-40 mb-3 block">
-            receipt_long
-          </span>
-          <p className="font-body-md text-on-surface">
-            Không có phiên thanh toán nào khớp bộ lọc.
-          </p>
-        </div>
+        <EmptyState
+          icon="receipt_long"
+          title="Không có phiên thanh toán nào khớp bộ lọc."
+          hint="Nới một trong ba bộ lọc phía trên, hoặc tăng số dòng mỗi lần đọc."
+        />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-outline-variant/40">
+              <tr className="border-b border-outline-variant">
                 <th className="w-1 p-0" aria-hidden />
                 <th className="px-4 py-3 font-label-sm uppercase tracking-wider text-on-surface-variant">
                   Phiên
@@ -72,7 +72,7 @@ export default function SessionTable({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/30">
+            <tbody className="divide-y divide-outline-variant">
               {sessions.map((session) => {
                 const overdue = isOverdue(session);
                 return (
@@ -135,11 +135,11 @@ export default function SessionTable({
       {/* Says what is not on screen instead of implying the list is everything: the route
           answers one page and the client has no way to ask for a second. */}
       {totalCount !== null && totalCount > shown && (
-        <div className="p-4 border-t border-outline-variant/40 text-center font-body-sm text-on-surface-variant">
+        <div className="p-4 border-t border-outline-variant text-center font-body-sm text-on-surface-variant">
           Đang hiển thị {shown} phiên gần nhất trong tổng số {totalCount}. Tăng số dòng hoặc thu hẹp
           bộ lọc để xem phần còn lại.
         </div>
       )}
-    </section>
+    </Panel>
   );
 }

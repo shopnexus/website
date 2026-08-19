@@ -2,6 +2,7 @@
 
 import { use } from "react"
 import Link from "next/link"
+import { AdminCanvas } from "@/components/admin-config/AdminPage"
 import ChatThread from "@/components/chat/ChatThread"
 import Skeleton from "@/components/ui/Skeleton"
 import { useNow } from "@/hooks/useNow"
@@ -28,21 +29,23 @@ export default function AdminTicketPage({ params }: { params: Promise<{ id: stri
 
 	if (isLoading) {
 		return (
-			<div className="p-6 lg:p-8 flex flex-col gap-4 max-w-[1200px] mx-auto">
+			<AdminCanvas>
 				<Skeleton className="h-32 w-full rounded-2xl" />
 				<Skeleton className="h-[420px] w-full rounded-2xl" />
-			</div>
+			</AdminCanvas>
 		)
 	}
 
 	if (isError || !entry) {
 		return (
-			<div className="p-6 lg:p-8 flex flex-col items-start gap-3">
-				<p className="font-body-sm text-on-surface-variant">Không tìm thấy yêu cầu này.</p>
-				<Link href="/admin/tickets" className="font-label-md text-primary hover:underline">
-					Quay lại hàng đợi
-				</Link>
-			</div>
+			<AdminCanvas>
+				<div className="flex flex-col items-start gap-3">
+					<p className="font-body-sm text-on-surface-variant">Không tìm thấy yêu cầu này.</p>
+					<Link href="/admin/tickets" className="font-label-md text-primary hover:underline">
+						Quay lại hàng đợi
+					</Link>
+				</div>
+			</AdminCanvas>
 		)
 	}
 
@@ -50,7 +53,7 @@ export default function AdminTicketPage({ params }: { params: Promise<{ id: stri
 	const resolved = ticket.status === "resolved"
 
 	return (
-		<div className="p-6 lg:p-8 flex flex-col gap-5 max-w-[1200px] mx-auto">
+		<AdminCanvas>
 			<Link
 				href="/admin/tickets"
 				className="inline-flex items-center gap-2 font-label-md text-on-surface-variant hover:text-primary transition-colors w-fit"
@@ -104,6 +107,6 @@ export default function AdminTicketPage({ params }: { params: Promise<{ id: stri
 						))}
 				</div>
 			</div>
-		</div>
+		</AdminCanvas>
 	)
 }

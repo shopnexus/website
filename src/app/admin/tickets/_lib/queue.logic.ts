@@ -1,5 +1,6 @@
 import type { AdminTicket, Ticket, TicketRefType, TicketStatus } from "@/api/generated/types.gen"
-import type { TargetView, Wait } from "./types"
+import { TICKET_STATUS_VI } from "@/lib/dictionaries"
+import type { TargetView, TicketQueueTab, Wait } from "./types"
 
 /**
  * Pure reading of a queue row. Nothing here touches React or the network: a moderator's
@@ -161,3 +162,16 @@ export function readTarget(entry: AdminTicket): TargetView | null {
 
 	return view
 }
+
+/**
+ * The slices of the queue, as the strip above it draws them.
+ *
+ * Data rather than JSX so the overview page can name the same tab a card links into
+ * without importing the strip that renders them.
+ */
+export const QUEUE_TABS: ReadonlyArray<{ id: TicketQueueTab; label: string }> = [
+	{ id: "queue", label: "Đang chờ xử lý" },
+	{ id: "open", label: TICKET_STATUS_VI.open },
+	{ id: "reviewing", label: TICKET_STATUS_VI.reviewing },
+	{ id: "resolved", label: TICKET_STATUS_VI.resolved },
+]
