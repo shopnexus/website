@@ -6,28 +6,39 @@ import { useCancelledItems, useListingMap, useOrdersFeed, usePendingItems } from
 import { groupCheckouts } from "@/lib/pending-checkout"
 import type { ListingId, Order, OrderState } from "@/api/generated/types.gen"
 
-export type OrderTab = "all" | "pending-payment" | "awaiting-confirmation" | "open" | "completed" | "cancelled"
+/**
+ * Một tab của hộp đơn.
+ *
+ * "Chờ thanh toán" là tab duy nhất không phải một `OrderState`: đơn hàng chỉ được ghi khi
+ * webhook thanh toán chạy, nên thứ đang chờ trả tiền vẫn còn là dòng checkout và `/orders`
+ * không bao giờ nhắc tới nó. Bốn tab còn lại *chính là* bốn giá trị của `OrderState`, nên
+ * kiểu này viết thẳng như vậy thay vì liệt kê lại từng cái.
+ */
+export type OrderTab = "pending-payment" | OrderState
 
 export function useOrderInbox(role: "buyer" | "seller", activeTab: OrderTab) {
 	const { data: me } = useMe()
 
-	const state: OrderState | undefined =
-		activeTab === "awaiting-confirmation" ||
-		activeTab === "open" ||
-		activeTab === "completed" ||
-		activeTab === "cancelled"
-			? activeTab
-			: undefined
+	// Từ khi bỏ tab "Tất cả", không tab nào còn hỏi `/orders` một danh sách không lọc — bỏ
+	// trống `state` nghĩa là "lấy mọi đơn", tức là trộn cả "Hoàn thành" lẫn "Đã hủy" vào tab
+	// đang mở. `undefined` giờ chỉ còn đúng một nghĩa: tab này không đọc `/orders` chút nào.
+	const state: OrderState | undefined = activeTab === "pending-payment" ? undefined : activeTab
+	const shouldFetchOrders = state !== undefined
+	const feed = useOrdersFeed(role, state, undefined, shouldFetchOrders)
 
-	const { orders, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useOrdersFeed(role, state)
+	// Cùng lý do như hai khối dưới: `enabled: false` giữ nguyên kết quả lần fetch gần nhất
+	// trong cache, nên phải chốt theo `shouldFetchOrders` chứ không chỉ dựa vào query.
+	const orders = useMemo(() => (shouldFetchOrders ? feed.orders : []), [shouldFetchOrders, feed.orders])
+	const hasNextPage = shouldFetchOrders && feed.hasNextPage
+	const { isLoading, fetchNextPage, isFetchingNextPage } = feed
 
-	const shouldFetchPending = role === "buyer" && (activeTab === "all" || activeTab === "pending-payment")
+	const shouldFetchPending = role === "buyer" && activeTab === "pending-payment"
 	const { data: pendingItems = [], isLoading: isLoadingPending } = usePendingItems(shouldFetchPending)
 
 	// `enabled: false` không xoá `data` của react-query — nó giữ nguyên kết quả lần fetch gần
 	// nhất trong cache. Gộp nhóm ngay trên `shouldFetchPending` thay vì trên `pendingItems` một
-	// mình: mở tab "Tất cả" một lần là cache có dữ liệu, và nếu chỉ lọc theo mảng thì thẻ vẫn
-	// hiện ở mọi tab sau đó dù `enabled` đã tắt.
+	// mình: ghé tab "Chờ thanh toán" một lần là cache có dữ liệu, và nếu chỉ lọc theo mảng thì
+	// thẻ vẫn hiện ở mọi tab sau đó dù `enabled` đã tắt.
 	const pendingCheckouts = useMemo(
 		() => (shouldFetchPending ? groupCheckouts(pendingItems) : []),
 		[shouldFetchPending, pendingItems],
@@ -36,13 +47,13 @@ export function useOrderInbox(role: "buyer" | "seller", activeTab: OrderTab) {
 	// Cùng lý do khối chờ thanh toán phải tự đọc lấy: một lượt đặt hàng bị hủy trước khi trả
 	// tiền không bao giờ thành `Order`, nên `state=cancelled` của `/orders` không bao giờ
 	// nhắc tới nó. Người mua hủy xong mở "Đã hủy" ra thì phải thấy nó ở đấy.
-	const shouldFetchCancelled = role === "buyer" && (activeTab === "all" || activeTab === "cancelled")
+	const shouldFetchCancelled = role === "buyer" && activeTab === "cancelled"
 	const { data: cancelledItems = [], isLoading: isLoadingCancelled } =
 		useCancelledItems(shouldFetchCancelled)
 
 	// Cùng lý do ở trên: chốt theo `shouldFetchCancelled`, không chỉ theo mảng, để dữ liệu
 	// cache của tab "Đã hủy" không rò sang "Chờ thanh toán", "Chờ xác nhận", "Đang xử lý" hay
-	// "Hoàn tiền" sau khi người dùng đã ghé tab "Tất cả" hoặc "Đã hủy" một lần.
+	// "Hoàn thành" sau khi người dùng đã ghé tab "Đã hủy" một lần.
 	const cancelledCheckouts = useMemo(
 		() => (shouldFetchCancelled ? groupCheckouts(cancelledItems) : []),
 		[shouldFetchCancelled, cancelledItems],

@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import OrderContactButton from "@/components/orders/OrderContactButton";
-import OrderRefundNotice from "@/components/orders/OrderRefundNotice";
 import OrderProgress from "./components/OrderProgress";
 import OrderShipping from "./components/OrderShipping";
 import OrderPayment from "./components/OrderPayment";
@@ -41,8 +40,6 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
           <div className="flex-1 flex flex-col gap-6">
 
             <OrderProgress order={order} />
-
-            <OrderRefundNotice order={order} />
 
             <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-sm">
               <div className="flex justify-between items-center mb-4 pb-4 border-b border-outline-variant">

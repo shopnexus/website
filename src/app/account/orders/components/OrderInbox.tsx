@@ -14,7 +14,10 @@ import { waitingSideOf } from "@/lib/order-waiting"
  * The unified order inbox that switches tabs by state.
  */
 export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
-	const [activeTab, setActiveTab] = useState<OrderTab>("all")
+	// "Đang xử lý" là mặc định vì nó là giai đoạn dài nhất trong đời một đơn — đã trả tiền,
+	// đang vận chuyển, đã nhận và đang chờ đối soát. "Chờ xác nhận" chỉ kéo dài vài giờ, nên
+	// mở trang lên mà đứng ở đó thì phần lớn lượt truy cập sẽ thấy một danh sách rỗng.
+	const [activeTab, setActiveTab] = useState<OrderTab>("open")
 
 	const {
 		me,
@@ -29,7 +32,9 @@ export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
 		fetchNextPage,
 	} = useOrderInbox(role, activeTab)
 
-	const tabs: { id: OrderTab; label: string }[] = [{ id: "all", label: "Tất cả" }]
+	// Xếp theo vòng đời của một đơn hàng. Không có tab "Tất cả": mỗi tab là một trạng thái,
+	// nên không tab nào trộn đơn đã xong với đơn đang chạy.
+	const tabs: { id: OrderTab; label: string }[] = []
 	if (role === "buyer") {
 		tabs.push({ id: "pending-payment", label: "Chờ thanh toán" })
 	}

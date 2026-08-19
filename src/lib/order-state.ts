@@ -40,6 +40,19 @@ export function isAwaitingConfirmation(order: Order): boolean {
 }
 
 /**
+ * `Đã nhận hàng — chờ đối chiếu` (UC-014): the buyer confirmed receipt and the 72-hour escrow
+ * window is running. Still `open`, because the sale is not over until the money moves —
+ * that is what the window is for, and the server completes the order at the end of it.
+ *
+ * It needs a name here because the buyer's confirmation was otherwise invisible: the label
+ * came off `transport.status`, which still says `delivered`, so an order the buyer had just
+ * confirmed read exactly like one they had not — same tab, same words, only the button gone.
+ */
+export function isAwaitingSettlement(order: Order): boolean {
+	return order.state === "open" && order.received_at !== null
+}
+
+/**
  * The parcel has not left, so the escrow — carriage included — goes back whole.
  *
  * True for **both** parties: the route lets anyone on the order cancel and then refuses
@@ -92,6 +105,9 @@ export function orderStatusLabel(order: Order): string {
 	if (order.state === "completed") return "Hoàn thành"
 	// Worded for neither side — who waits on whom is said by orderStatusLine.
 	if (order.state === "awaiting-confirmation") return "Chờ xác nhận"
+	// Above the transport switch for the same reason the outcomes are: the carrier still
+	// reports `delivered`, and that is no longer the newest thing that happened.
+	if (isAwaitingSettlement(order)) return "Đã nhận hàng"
 	switch (order.transport?.status) {
 		case undefined:
 		case null:
@@ -131,6 +147,9 @@ export function orderStatusTone(order: Order): OrderStatusTone {
 	if (order.state === "cancelled") return "neutral"
 	if (order.state === "completed") return "success"
 	if (order.state === "awaiting-confirmation") return "waiting"
+	// `waiting`, not `moving`: the parcel has arrived and nobody has to act — a clock is
+	// running. Same colour as the other two states that wait on time rather than on a courier.
+	if (isAwaitingSettlement(order)) return "waiting"
 
 	switch (order.transport?.status) {
 		case undefined:
@@ -178,7 +197,17 @@ export function orderStatusLine(
 	if (canConfirmReceipt(order)) {
 		return selling
 			? "Đã giao · chờ người mua xác nhận"
-			: "Hàng đã tới — xác nhận để hoàn tất đơn"
+			// Not "để hoàn tất đơn", which the button does not do: confirming starts the
+			// 72-hour window, and the order completes at the end of it.
+			: "Hàng đã tới — xác nhận đã nhận hàng"
+	}
+
+	// The one window that means something different to each side: it is the buyer's time to
+	// raise a refund, and the seller's wait to be paid.
+	if (isAwaitingSettlement(order)) {
+		const left = remainingLabel(order.payout_deadline_at, now)
+		if (selling) return left ? `Người mua đã nhận · giải ngân sau ${left}` : "Người mua đã nhận hàng"
+		return left ? `Đã nhận hàng · còn ${left} để yêu cầu hoàn tiền` : "Đã nhận hàng"
 	}
 
 	return orderStatusLabel(order)
