@@ -1,0 +1,122 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useMe } from "@/hooks/api/useAccount";
+import Skeleton from "@/components/ui/Skeleton";
+import { isStaff } from "@/lib/staff";
+import AdminNav from "./AdminNav";
+import AdminTopbar from "./AdminTopbar";
+
+/**
+ * The staff shell: navigation, the topbar, and the role gate around both.
+ *
+ * The sidebar is `sticky h-screen` rather than a plain column so a queue five hundred rows
+ * long scrolls under a navigation that stays put — this surface is worked by jumping
+ * between queues, and having to scroll back up to switch was the cost of the old layout.
+ *
+ * Below `lg` the same navigation becomes a drawer. It used to be `hidden lg:flex` with
+ * nothing in its place, which left a tablet with eleven pages and no way to reach any of
+ * them but the address bar.
+ */
+export default function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: me, isLoading } = useMe();
+  const [navOpen, setNavOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const allowed = isStaff(me?.role);
+
+  // The gate that matters is the server's — every /admin route checks the caller's role
+  // row itself. This only keeps a non-staff visitor from staring at a shell of empty
+  // tables and 403 toasts.
+  useEffect(() => {
+    if (!isLoading && !allowed) router.replace("/account");
+  }, [isLoading, allowed, router]);
+
+  // A drawer that survived the navigation it caused would cover the page it just opened.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [navOpen]);
+
+  if (isLoading) {
+    return (
+      <div className="p-8 flex flex-col gap-3">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+  if (!allowed) return null;
+
+  return (
+    <div className="flex min-h-screen bg-surface-container-lowest">
+      <aside className="w-64 shrink-0 hidden lg:flex flex-col sticky top-0 h-screen bg-surface border-r border-outline-variant">
+        <Wordmark />
+        <AdminNav />
+      </aside>
+
+      <div className="flex-1 min-w-0 flex flex-col">
+        <AdminTopbar role={me?.role} onOpenNav={() => setNavOpen(true)} />
+        <main className="flex-1 min-w-0">{children}</main>
+      </div>
+
+      {navOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setNavOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Điều hướng vận hành"
+            tabIndex={-1}
+            className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-surface border-r border-outline-variant flex flex-col outline-none"
+          >
+            <div className="flex items-start justify-between">
+              <Wordmark />
+              <button
+                type="button"
+                onClick={() => setNavOpen(false)}
+                aria-label="Đóng điều hướng"
+                className="m-3 w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer shrink-0"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <AdminNav onNavigate={() => setNavOpen(false)} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The one thing telling you which of the two consoles you are in. */
+function Wordmark() {
+  return (
+    <div className="px-6 py-4 min-w-0">
+      <div className="font-headline-sm font-bold text-on-surface">Vận hành</div>
+      <div className="font-label-sm text-on-surface-variant mt-0.5">ShopNexus</div>
+    </div>
+  );
+}

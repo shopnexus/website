@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
-import { isStaff } from "@/components/layout/AdminSidebar";
+import { isStaff } from "@/lib/staff";
 
 interface NavItem {
   name: string;
