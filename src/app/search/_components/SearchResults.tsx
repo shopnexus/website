@@ -9,9 +9,11 @@ const GRID = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-
 /**
  * The result grid, its empty state and the way to the next page.
  *
- * The empty state offers the specific step back rather than one button: a query that
- * matched nothing under a narrow "từ khoá" match is a different problem from a filter
- * stack that excluded everything, and telling them apart is what saves the search.
+ * A retrieval miss on the query itself has no button to offer — there is one retrieval
+ * path and the understanding stage already reads past a typo or a vague phrase, so
+ * nothing is left for the shopper to retry by hand. A filter stack that excluded
+ * everything is the one case with a real way back, which is why "Xóa bộ lọc" only
+ * shows up then.
  */
 export default function SearchResults({ search }: { search: SearchState }) {
   const { listings, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = search.feed;
@@ -43,15 +45,6 @@ export default function SearchResults({ search }: { search: SearchState }) {
         </p>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          {search.query && search.mode !== "semantic" && (
-            <button
-              type="button"
-              onClick={() => search.setMode("semantic")}
-              className="px-6 py-2 rounded-full border-2 border-primary text-primary font-bold text-label-md hover:bg-primary hover:text-on-primary transition-colors cursor-pointer"
-            >
-              Tìm theo ý nghĩa thay vì đúng chữ
-            </button>
-          )}
           {search.hasAnyFilter && (
             <button
               type="button"

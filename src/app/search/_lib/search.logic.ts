@@ -1,6 +1,6 @@
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
 import type { ListingCondition } from "@/api/generated/types.gen";
-import type { ConditionFilter, Position, SearchMode, SortOption } from "../_types";
+import type { ConditionFilter, Position, SortOption } from "../_types";
 
 /** What the sort selector offers, in the order a shopper scans it — the default first. */
 export const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
@@ -12,18 +12,6 @@ export const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: "best-selling", label: "Bán chạy" },
   { value: "recommended", label: "Gợi ý cho bạn" },
   { value: "distance", label: "Gần tôi nhất" },
-];
-
-/**
- * How a query is matched.
- *
- * `lexical` is the words as typed, `semantic` is the meaning, `hybrid` is both. The
- * server ignores the parameter without a query, so the control is only offered with one.
- */
-export const SEARCH_MODES: Array<{ value: SearchMode; label: string; hint: string }> = [
-  { value: "hybrid", label: "Kết hợp", hint: "Khớp cả từ khoá lẫn ý nghĩa" },
-  { value: "lexical", label: "Từ khoá", hint: "Đúng chữ đã gõ" },
-  { value: "semantic", label: "Ý nghĩa", hint: "Món tương tự, dù gọi tên khác" },
 ];
 
 /** The condition filter's choices, "Tất cả" first. */

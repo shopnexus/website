@@ -5,17 +5,14 @@ import type { Listing, ListingDetail } from "@/api/generated/types.gen";
 const RAIL_SIZE = 4;
 
 /**
- * There is no `/listings/{id}/similar`. What the API has instead is a search with a
- * `mode`, so "similar" is spelled as a hybrid query — lexical plus vector — seeded by the
- * listing's own name and bounded to its category. `hybrid` rather than `semantic` on
- * purpose: an embedding is written by a worker that a deployment is allowed not to run,
- * and a rail that empties out when it is behind would be a rail nobody trusts.
+ * There is no `/listings/{id}/similar`. What the API has instead is a search, so
+ * "similar" is spelled as a query seeded by the listing's own name and bounded to its
+ * category — the same dense-plus-sparse retrieval every search gets.
  */
 export async function fetchSimilarListings(product: ListingDetail): Promise<Listing[]> {
 	const { data } = await getListings({
 		query: {
 			q: product.name,
-			mode: "hybrid",
 			category_id: product.category.id,
 			limit: RAIL_SIZE + 1,
 		},

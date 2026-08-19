@@ -924,6 +924,14 @@ export type ListingLocation = {
 export type ListingPage = {
     data: Array<Listing>;
     meta: PageMeta;
+    /**
+     * The phrases actually searched — the shopper's own words plus whatever the understanding stage added. Empty for a browse with no query.
+     */
+    probes: Array<string>;
+    /**
+     * What the search took the query to mean, in the shopper's language. Empty for a browse with no query.
+     */
+    understood: string;
 };
 
 /**
@@ -5546,13 +5554,9 @@ export type GetListingsData = {
          */
         ids?: Array<ListingId>;
         /**
-         * Free-text query. Turns the request into a search.
+         * Free-text query. Turns the request into a search. Read by an understanding stage rather than matched literally, so a misspelling or a vague phrase is expected, not required to be exact.
          */
         q?: string;
-        /**
-         * Search mode. Ignored without a query.
-         */
-        mode?: 'lexical' | 'semantic' | 'hybrid';
         /**
          * The caller's own listings, in every state.
          */
@@ -5595,12 +5599,12 @@ export type GetListingsData = {
          */
         radius_km?: number;
         /**
-         * Defaults to `relevance` when a query is given and `newest` otherwise. `distance` needs a position, like `radius_km` does.
+         * Defaults to `relevance` when a query is given and `newest` otherwise. `distance` needs a position, like `radius_km` does. `trending` refuses every other narrowing parameter — see above.
          *
          */
-        sort?: 'newest' | 'rating' | 'price-asc' | 'price-desc' | 'best-selling' | 'relevance' | 'recommended' | 'distance';
+        sort?: 'newest' | 'rating' | 'price-asc' | 'price-desc' | 'best-selling' | 'relevance' | 'recommended' | 'distance' | 'trending';
         /**
-         * Which shuffle of a personalised feed this is; read only by `sort=recommended`, ignored everywhere else. That feed is drawn from a pool several pages deep rather than taken off the top of it, so the ordering is a function of this value: send one seed for a whole run of pages, or the second page will be drawn from a different feed than the first and repeat cards it has already shown. Send a new one to get a new feed. Any string does — it is hashed, never interpreted. Left out, the server rotates it every fifteen minutes.
+         * Which shuffle of a personalised feed this is; read only by `sort=recommended`, ignored everywhere else. That feed is drawn from a pool several pages deep rather than taken off the top of it, so the ordering is a function of this value: send one seed for a whole run of pages, or the second page will be drawn from a different feed than the first and repeat cards it has already shown. Send a new one to get a new feed. Any string does — it is hashed, never interpreted. Left out, the server rotates it every minute.
          *
          */
         seed?: string;
@@ -5615,7 +5619,7 @@ export type GetListingsData = {
 
 export type GetListingsErrors = {
     /**
-     * A combination that has no answer: `sort=relevance` without a query, `status` without `mine`, or `sort=recommended` together with `favorited` or `mine` — a personalised ranking of a set the caller already chose is not a ranking of anything. Combinations are refused rather than silently resolved by precedence, so a client never gets a different list than it asked for.
+     * A combination that has no answer: `sort=relevance` without a query, `status` without `mine`, `sort=recommended` together with `favorited` or `mine` — a personalised ranking of a set the caller already chose is not a ranking of anything — or `sort=trending` together with any narrowing parameter, since it ranks the whole catalogue and has nothing to join that ranking against. Combinations are refused rather than silently resolved by precedence, so a client never gets a different list than it asked for.
      *
      */
     400: Error;

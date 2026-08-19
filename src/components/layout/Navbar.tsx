@@ -91,7 +91,7 @@ export default function Navbar(): React.ReactElement {
               </span>
               <input
                 type="text"
-                placeholder="Tìm kiếm đồ cũ, thủ công, quà tặng..."
+                placeholder="Tìm kiếm đồ cũ, thủ công, quà tặng... gõ sai chính tả vẫn tìm được"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="bg-transparent border-none focus:ring-0 w-full text-body-sm text-on-surface placeholder:text-outline-variant outline-none min-w-0"

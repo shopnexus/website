@@ -7,7 +7,7 @@ import { useCategories, useListingsFeed, type ListingFilters } from "@/hooks/api
 import { useProvinces, useWards } from "@/hooks/useAdminAreas";
 import { useAuthStore } from "@/stores/use-auth-store";
 import type { CategoryId, TagSlug } from "@/api/generated/types.gen";
-import type { ConditionFilter, Position, SearchMode, SortOption } from "../_types";
+import type { ConditionFilter, Position, SortOption } from "../_types";
 import {
   effectiveSort,
   locationFilter,
@@ -71,7 +71,6 @@ export function useSearchFilters() {
   // depends on whether something was typed, and storing one here would freeze the answer
   // from the moment the page mounted.
   const [sortBy, setSortBy] = useState<SortOption | null>(null);
-  const [mode, setMode] = useState<SearchMode>("hybrid");
   // An administrative code, from the search box on the home page.
   const [provinceCode, setProvinceCode] = useState<string>(
     () => searchParams.get("province") || "",
@@ -79,7 +78,7 @@ export function useSearchFilters() {
   const [wardCode, setWardCode] = useState("");
   const [position, setPosition] = useState<Position | null>(null);
   const [radiusKm, setRadiusKm] = useState(25);
-  // Left out, `sort=recommended` rotates on the server's own fifteen-minute clock — reopening
+  // Left out, `sort=recommended` rotates on the server's own one-minute clock — reopening
   // or reloading the page inside that window would answer the exact page it just answered. A
   // seed drawn once per mount is a new run every time the page is: unmoved by re-renders, so
   // paging through it stays one consistent feed.
@@ -103,8 +102,6 @@ export function useSearchFilters() {
   const filters: ListingFilters = {
     limit: PAGE_SIZE,
     q: query || undefined,
-    // Ignored by the server without a query, so it is only sent with one.
-    mode: query ? mode : undefined,
     category_id: (selectedCategory as CategoryId) || undefined,
     tag: tag || undefined,
     condition: condition || undefined,
@@ -200,8 +197,6 @@ export function useSearchFilters() {
     },
     sortBy: activeSort,
     setSortBy,
-    mode,
-    setMode,
     provinceCode,
     setProvinceCode,
     wardCode,

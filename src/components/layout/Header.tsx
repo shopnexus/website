@@ -37,7 +37,7 @@ export default function Header(): React.ReactElement | null {
             id="global-search-input"
             aria-label="Tìm kiếm sản phẩm"
             className="bg-transparent border-none focus:ring-0 w-full text-body-md placeholder:text-outline-variant outline-none text-on-surface"
-            placeholder="Tìm kiếm đồ cũ, đồ thủ công, quà tặng..."
+            placeholder="Tìm kiếm đồ cũ, đồ thủ công, quà tặng... gõ sai chính tả vẫn tìm được"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

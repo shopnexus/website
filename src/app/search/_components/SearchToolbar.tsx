@@ -2,11 +2,11 @@
 
 import Skeleton from "@/components/ui/Skeleton";
 import type { SearchState } from "../_hooks/useSearchFilters";
-import { SEARCH_MODES, SORT_OPTIONS } from "../_lib/search.logic";
-import type { SearchMode, SortOption } from "../_types";
+import { SORT_OPTIONS } from "../_lib/search.logic";
+import type { SortOption } from "../_types";
 
 /**
- * What was found, how it was matched, and how it is ordered.
+ * What was found, and how it is ordered.
  *
  * `total_count` is explicitly null for a ranked query — an approximate nearest-neighbour
  * search never visits the rows it did not return — so the headline says "hơn N" rather
@@ -65,32 +65,6 @@ export default function SearchToolbar({ search }: { search: SearchState }) {
           </select>
         </div>
       </div>
-
-      {/* Only with a query: the server ignores `mode` without one. */}
-      {search.query && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-label-sm text-on-surface-variant">Cách khớp:</span>
-          {SEARCH_MODES.map((option) => {
-            const isSelected = search.mode === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                title={option.hint}
-                aria-pressed={isSelected}
-                onClick={() => search.setMode(option.value as SearchMode)}
-                className={`rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors cursor-pointer ${
-                  isSelected
-                    ? "border-transparent bg-primary-container text-on-primary-container"
-                    : "border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary"
-                }`}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
