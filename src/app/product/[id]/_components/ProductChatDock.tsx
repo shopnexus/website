@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import ChatThread from "@/components/chat/ChatThread";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useChatSuggestions } from "@/hooks/api/useCatalog";
 import { useAuthStore } from "@/stores/use-auth-store";
 import type { ListingDetail, Variant } from "@/api/generated/types.gen";
 import { chatPrompts } from "../_lib/chat-prompts";
 import { useProductChat } from "../_hooks/useProductChat";
-import ChatDockIntro from "./ChatDockIntro";
-import ChatDockListingRef from "./ChatDockListingRef";
+import ChatDockPanel from "./ChatDockPanel";
 
 /**
  * Ask the seller a question without leaving the listing.
@@ -29,6 +26,8 @@ import ChatDockListingRef from "./ChatDockListingRef";
  * traded with before and has no idea which of their listings is meant.
  *
  * Nothing is created until the first send. See `useProductChat`.
+ *
+ * This file is where the dock *is*; `ChatDockPanel` is what it contains.
  */
 export default function ProductChatDock({
   product,
@@ -48,6 +47,7 @@ export default function ProductChatDock({
   const me = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const panel = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
   const { conversationId, conversation, isSending, sendFirst } = useProductChat(product);
 
   const isOwn = me?.id === product.seller.id;
@@ -87,152 +87,95 @@ export default function ProductChatDock({
   // Nobody chats with themselves, and the server refuses the conversation anyway.
   if (isOwn) return null;
 
-  const bottom = liftedForBottomBar ? "bottom-[84px] xl:bottom-6" : "bottom-4 xl:bottom-6";
+  // Above the mobile buy bar while it is showing. Past `xl` there is no bar — the buy card is a
+  // sticky column instead — so the offset is the same either way.
+  const buttonBottom = liftedForBottomBar ? "bottom-[84px] xl:bottom-6" : "bottom-4 xl:bottom-6";
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => onOpenChange(true)}
-        className={[
-          "fixed right-4 z-50 flex items-center gap-2 rounded-full bg-primary py-3 pl-4 pr-5 text-on-primary shadow-lg sm:right-6",
-          "transition-[bottom,transform] duration-300 hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100",
-          bottom,
-        ].join(" ")}
-        aria-label={`Chat với ${product.seller.name}`}
-      >
-        <span
-          className="material-symbols-outlined text-[22px]"
-          style={{ fontVariationSettings: "'FILL' 1" }}
-          aria-hidden="true"
-        >
-          chat
-        </span>
-        <span className="hidden font-label-md sm:inline">Chat với người bán</span>
-        {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-error px-1 font-label-xs text-on-error">
-            {unread > 99 ? "99+" : unread}
-          </span>
-        )}
-      </button>
-    );
-  }
+  /**
+   * Both states grow out of and shrink back into the bottom-right corner, so the panel reads
+   * as the button opening rather than as a dialog arriving over the page. A spring rather than
+   * a duration: the panel is a physical object being pulled open, and the overshoot is what
+   * makes it feel like one.
+   *
+   * Skipped for a reader who asked their system for less movement — there, a chat window that
+   * is simply there is the correct behaviour, not a degraded one.
+   */
+  const grow = {
+    initial: { opacity: 0, scale: 0.9, y: 16 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.94, y: 10 },
+    transition: reducedMotion
+      ? { duration: 0 }
+      : { type: "spring" as const, stiffness: 420, damping: 34, mass: 0.7 },
+    style: { transformOrigin: "bottom right" },
+  };
 
   return (
-    <div
-      ref={panel}
-      tabIndex={-1}
-      role="dialog"
-      aria-label={`Trò chuyện với ${product.seller.name}`}
-      className={[
-        "fixed z-50 flex flex-col overflow-hidden bg-surface shadow-2xl outline-none",
-        // A sheet off the bottom edge on a phone, a panel in the corner on a desktop. Same
-        // element: two of them would be two DOM copies of a live thread.
-        "inset-x-0 bottom-0 h-[85vh] rounded-t-2xl border-t border-outline-variant",
-        "sm:inset-x-auto sm:right-6 sm:h-[min(560px,72vh)] sm:w-[380px] sm:rounded-t-2xl sm:border sm:border-outline-variant",
-        liftedForBottomBar ? "sm:bottom-[84px] xl:bottom-0" : "sm:bottom-0",
-      ].join(" ")}
-    >
-      <header className="flex shrink-0 items-center gap-2.5 border-b border-outline-variant bg-surface px-3 py-2.5">
-        <Link
-          href={`/shop/${product.seller.id}`}
-          className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-secondary-container"
+    // `mode="wait"` so the button has left before the panel arrives: they occupy the same
+    // corner, and cross-fading them puts two chat controls on screen at once.
+    <AnimatePresence mode="wait" initial={false}>
+      {open ? (
+        <motion.div
+          key="panel"
+          ref={panel}
+          tabIndex={-1}
+          role="dialog"
+          aria-label={`Trò chuyện với ${product.seller.name}`}
+          {...grow}
+          className={[
+            "fixed z-50 flex flex-col overflow-hidden bg-surface shadow-2xl outline-none",
+            // A sheet off the bottom edge on a phone, a panel in the corner on a desktop. Same
+            // element: two of them would be two DOM copies of a live thread.
+            "inset-x-0 bottom-0 h-[85vh] rounded-t-2xl border-t border-outline-variant",
+            "sm:inset-x-auto sm:right-6 sm:h-[min(560px,72vh)] sm:w-[380px] sm:border sm:border-outline-variant",
+            // Clears the buy bar between `sm` and `xl`, where the panel is a corner box and the
+            // bar is still on screen. Below `sm` it is a sheet that covers the bar anyway.
+            liftedForBottomBar ? "sm:bottom-[80px] xl:bottom-0" : "sm:bottom-0",
+          ].join(" ")}
         >
-          {product.seller.avatar?.url ? (
-            <Image
-              src={product.seller.avatar.url}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="32px"
-            />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center font-label-md text-on-secondary-container">
-              {product.seller.name.charAt(0)}
+          <ChatDockPanel
+            product={product}
+            variant={variant}
+            conversation={conversation}
+            conversationId={conversationId}
+            isAuthenticated={isAuthenticated}
+            prompts={prompts}
+            isLoadingPrompts={suggestions.isLoading}
+            isSending={isSending}
+            onSendFirst={sendFirst}
+            onClose={() => onOpenChange(false)}
+          />
+        </motion.div>
+      ) : (
+        <motion.button
+          key="button"
+          type="button"
+          onClick={() => onOpenChange(true)}
+          {...grow}
+          whileHover={reducedMotion ? undefined : { scale: 1.05 }}
+          whileTap={reducedMotion ? undefined : { scale: 0.95 }}
+          aria-label={`Chat với ${product.seller.name}`}
+          className={[
+            "fixed right-4 z-50 flex items-center gap-2 rounded-full bg-primary py-3 pl-4 pr-5 text-on-primary shadow-lg sm:right-6",
+            "transition-[bottom] duration-300 motion-reduce:transition-none",
+            buttonBottom,
+          ].join(" ")}
+        >
+          <span
+            className="material-symbols-outlined text-[22px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+            aria-hidden="true"
+          >
+            chat
+          </span>
+          <span className="hidden font-label-md sm:inline">Chat với người bán</span>
+          {unread > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-error px-1 font-label-xs text-on-error">
+              {unread > 99 ? "99+" : unread}
             </span>
           )}
-        </Link>
-
-        <Link
-          href={`/shop/${product.seller.id}`}
-          className="min-w-0 flex-1 truncate font-label-md text-on-surface transition-colors hover:text-primary"
-        >
-          {product.seller.name}
-        </Link>
-
-        {conversationId && (
-          <Link
-            href={`/inbox?c=${conversationId}&listing_id=${product.id}`}
-            title="Mở trong hộp thư"
-            aria-label="Mở trong hộp thư"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
-          >
-            <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
-              open_in_full
-            </span>
-          </Link>
-        )}
-        <button
-          type="button"
-          onClick={() => onOpenChange(false)}
-          aria-label="Đóng khung chat"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high"
-        >
-          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-            close
-          </span>
-        </button>
-      </header>
-
-      <ChatDockListingRef product={product} variant={variant} />
-
-      {!isAuthenticated ? (
-        <SignInPrompt listingId={product.id} sellerName={product.seller.name} />
-      ) : conversationId ? (
-        <ChatThread
-          conversationId={conversationId}
-          counterparty={{
-            name: product.seller.name,
-            avatarUrl: product.seller.avatar?.url ?? null,
-          }}
-          refs={{ listing_id: product.id }}
-          unread={unread}
-          counterpartyReadAt={conversation?.counterparty_read_at}
-          readAt={conversation?.read_at}
-          placeholder={`Viết tin nhắn cho ${product.seller.name}...`}
-        />
-      ) : (
-        <ChatDockIntro
-          sellerName={product.seller.name}
-          prompts={prompts}
-          isLoadingPrompts={suggestions.isLoading}
-          isSending={isSending}
-          onSend={sendFirst}
-        />
+        </motion.button>
       )}
-    </div>
-  );
-}
-
-/**
- * The panel opens signed out rather than bouncing straight to the login form: a reader who
- * pressed a chat button wants to know what is behind it before they hand over an account.
- */
-function SignInPrompt({ listingId, sellerName }: { listingId: string; sellerName: string }) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-      <span className="material-symbols-outlined text-[32px] text-outline" aria-hidden="true">
-        lock
-      </span>
-      <p className="font-body-sm text-on-surface-variant">
-        Đăng nhập để nhắn cho {sellerName}. Tin nhắn sẽ kèm sẵn sản phẩm này.
-      </p>
-      <Link
-        href={`/login?callbackUrl=${encodeURIComponent(`/product/${listingId}`)}`}
-        className="rounded-full bg-primary px-5 py-2 font-label-md text-on-primary transition-opacity hover:opacity-90"
-      >
-        Đăng nhập
-      </Link>
-    </div>
+    </AnimatePresence>
   );
 }
