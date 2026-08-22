@@ -188,7 +188,7 @@ export default function CartPage() {
                 
                 <div className="flex justify-between items-end mb-6">
                   <span className="font-label-md text-on-surface">Tạm tính</span>
-                  <span className="font-display-lg text-[28px] text-primary font-bold leading-none">
+                      <span className="font-display-lg text-primary leading-none">
                     {formatPrice(total)}
                   </span>
                 </div>

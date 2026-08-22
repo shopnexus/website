@@ -109,7 +109,7 @@ export default function TermsPage() {
           có thời hạn hoặc vĩnh viễn — sau khi được kiểm duyệt viên xem xét.
         </p>
         <p>
-          Mọi khiếu nại đều đi qua <Link href="/support">Trung tâm hỗ trợ</Link>. Đừng chuyển
+          Mọi khiếu nại đều đi qua <Link href="/inbox?tab=support">Trung tâm hỗ trợ</Link>. Đừng chuyển
           khoản trực tiếp cho người bán: xem{" "}
           <Link href="/help/safety">hướng dẫn giao dịch an toàn</Link>.
         </p>
@@ -118,7 +118,7 @@ export default function TermsPage() {
       <Section id="lien-he" title="7. Liên hệ">
         <p>
           Mọi câu hỏi về các điều khoản này, hãy gửi qua{" "}
-          <Link href="/support">Trung tâm hỗ trợ</Link>.
+          <Link href="/inbox?tab=support">Trung tâm hỗ trợ</Link>.
         </p>
       </Section>
     </ContentPage>

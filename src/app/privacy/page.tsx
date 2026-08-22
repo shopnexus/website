@@ -114,7 +114,7 @@ export default function PrivacyPage() {
         <p>
           Bạn xem và sửa hồ sơ, địa chỉ, phương thức đăng nhập trong{" "}
           <Link href="/account/profile">trang quản lý tài khoản</Link>. Với yêu cầu xoá dữ
-          liệu, hãy mở một yêu cầu qua <Link href="/support">Trung tâm hỗ trợ</Link>.
+          liệu, hãy mở một yêu cầu qua <Link href="/inbox?tab=support">Trung tâm hỗ trợ</Link>.
         </p>
         <p>
           Một số dữ liệu phải được giữ lại sau khi bạn rời đi: hồ sơ giao dịch và sổ cái tiền,

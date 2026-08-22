@@ -149,7 +149,8 @@ function CheckoutContent() {
   useEffect(() => {
     if (session?.status === "success") {
       toast.success("Thanh toán thành công! Đơn hàng đã được tạo.");
-      router.push("/account/orders");
+      // The order exists but the seller has not accepted yet, which is exactly this tab.
+      router.push("/account/orders?tab=awaiting-confirmation");
     }
   }, [session?.status, router]);
 
@@ -454,7 +455,7 @@ function CheckoutContent() {
               
               <div className="flex justify-between items-center mb-6">
                 <span className="font-label-md text-on-surface">Tổng thanh toán</span>
-                <span className="font-headline-md text-[22px] text-primary font-bold leading-none">
+                          <span className="font-headline-md text-primary leading-none">
                   {formatPrice(total)}
                 </span>
               </div>

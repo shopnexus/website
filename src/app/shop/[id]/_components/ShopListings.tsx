@@ -32,7 +32,7 @@ export default function ShopListings({ listings: state }: { listings: ShopListin
             id="shop-sort"
             value={sort}
             onChange={(event) => setSort(event.target.value as ShopSort)}
-            className="rounded-lg border border-outline-variant/30 bg-surface-container-lowest py-1.5 pl-3 pr-8 font-body-sm text-on-surface outline-none focus:border-primary"
+            className="rounded-lg border border-outline-variant bg-surface-container-lowest py-1.5 pl-3 pr-8 font-body-sm text-on-surface outline-none focus:border-primary"
           >
             {SHOP_SORTS.map((option) => (
               <option key={option.value} value={option.value}>

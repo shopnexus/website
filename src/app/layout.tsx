@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
-import { Manrope, Inter } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 import StorefrontChrome from "@/components/layout/StorefrontChrome";
 import { Toaster } from "react-hot-toast";
 import QueryProvider from "@/api/QueryProvider";
+import AuthSync from "@/components/auth/AuthSync";
 import RealtimeProvider from "@/realtime/RealtimeProvider";
 
-const manrope = Manrope({
+// One family for the whole app, drawn for Vietnamese. Not a variable font, so the weights
+// are listed: only those the type scale actually uses, or every extra is a file to download.
+const sansVN = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  variable: "--font-manrope",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin", "vietnamese"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans-vn",
   display: "swap",
 });
 
@@ -41,7 +39,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${manrope.variable} ${inter.variable} h-full antialiased`}
+      className={`${sansVN.variable} h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -60,7 +58,7 @@ export default function RootLayout({
           position="top-right" 
           toastOptions={{
             duration: 4000,
-            className: "!font-body !text-[14px] !font-medium",
+            className: "!font-body !text-label-md",
             style: {
               background: '#ffffff',
               color: '#1a1c1b',
@@ -92,6 +90,7 @@ export default function RootLayout({
           }}
         />
         <QueryProvider>
+          <AuthSync />
           <RealtimeProvider>
             <StorefrontChrome>{children}</StorefrontChrome>
           </RealtimeProvider>

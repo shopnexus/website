@@ -43,7 +43,7 @@ export default function CookiesPage() {
         <p>
           Bạn có thể chặn hoặc xoá cookie trong cài đặt trình duyệt. Chặn cookie phiên đăng
           nhập sẽ khiến bạn không đăng nhập được — đó là cookie bắt buộc để trang hoạt động.
-          Mọi thắc mắc, hãy gửi qua <Link href="/support">Trung tâm hỗ trợ</Link>.
+          Mọi thắc mắc, hãy gửi qua <Link href="/inbox?tab=support">Trung tâm hỗ trợ</Link>.
         </p>
       </Section>
     </ContentPage>

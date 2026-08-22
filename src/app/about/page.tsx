@@ -37,7 +37,7 @@ export default function AboutPage() {
       <Section id="lien-he" title="Liên hệ">
         <p>
           Mọi câu hỏi, góp ý hay báo lỗi, hãy gửi qua{" "}
-          <Link href="/support">Trung tâm hỗ trợ</Link> — đó là kênh duy nhất chúng tôi theo
+          <Link href="/inbox?tab=support">Trung tâm hỗ trợ</Link> — đó là kênh duy nhất chúng tôi theo
           dõi, nên nó cũng là kênh trả lời nhanh nhất.
         </p>
       </Section>

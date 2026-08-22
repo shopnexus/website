@@ -30,7 +30,7 @@ export default function IdentityKey({
       onClick={() => void copy(value)}
       title={title ?? "Nhấn để sao chép"}
       className={[
-        "group inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-mono text-[12px] leading-5",
+"group inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-mono text-body-xs leading-5",
         "border transition-colors cursor-pointer max-w-full",
         weight === "settled"
           ? "bg-tertiary-container/15 border-tertiary-container/50 text-on-surface"

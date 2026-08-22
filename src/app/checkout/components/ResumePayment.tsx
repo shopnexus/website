@@ -103,7 +103,7 @@ export default function ResumePayment({
         <div className="p-6 flex flex-col gap-6">
           <div className="flex items-baseline justify-between gap-4">
             <span className="font-label-md text-on-surface-variant">Số tiền còn phải trả</span>
-            <span className="font-headline-md text-[22px] text-primary font-bold leading-none">
+            <span className="font-headline-md text-primary leading-none">
               {formatPrice(due, session.currency)}
             </span>
           </div>

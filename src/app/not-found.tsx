@@ -31,7 +31,7 @@ export default function NotFound() {
             </h1>
             {/* Character Visual */}
             <div className="relative z-10 animate-float">
-              <div className="relative p-8 bg-surface-container-lowest rounded-full shadow-2xl border border-outline-variant/30">
+              <div className="relative p-8 bg-surface-container-lowest rounded-full shadow-2xl border border-outline-variant">
                 <Image 
                   alt="Nexus lost character logo" 
                   className="w-48 md:w-64 grayscale opacity-90 transition-transform duration-500 hover:scale-110" 
@@ -48,7 +48,7 @@ export default function NotFound() {
           
           {/* Messaging */}
           <div className="space-y-4 mb-12">
-            <h2 className="font-headline font-bold text-3xl md:text-5xl text-on-surface tracking-tight">
+            <h2 className="text-display-sm md:text-display-lg text-on-surface">
               Rất tiếc! Trang bạn tìm không tồn tại.
             </h2>
             <p className="font-body text-body-lg text-on-surface-variant max-w-xl mx-auto">
@@ -76,17 +76,17 @@ export default function NotFound() {
           
           {/* Bento Hint Grid */}
           <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 text-left opacity-80">
-            <div className="p-6 bg-surface-container rounded-xl border border-outline-variant/50 hover:bg-surface-container-high transition-colors">
+            <div className="p-6 bg-surface-container rounded-xl border border-outline-variant hover:bg-surface-container-high transition-colors">
               <span className="material-symbols-outlined text-primary mb-3">inventory_2</span>
               <h3 className="font-headline font-bold text-label-md mb-2">Xem kho lưu trữ</h3>
               <p className="text-body-sm text-on-surface-variant">Bạn đang tìm kiếm sản phẩm mùa cũ? Nó có thể được cất giữ trong kho lưu trữ của chúng tôi.</p>
             </div>
-            <div className="p-6 bg-surface-container rounded-xl border border-outline-variant/50 hover:bg-surface-container-high transition-colors">
+            <div className="p-6 bg-surface-container rounded-xl border border-outline-variant hover:bg-surface-container-high transition-colors">
               <span className="material-symbols-outlined text-primary mb-3">explore</span>
               <h3 className="font-headline font-bold text-label-md mb-2">Khám phá bộ sưu tập</h3>
               <p className="text-body-sm text-on-surface-variant">Sản phẩm mới vừa cập bến sáng nay. Khám phá những xu hướng mới nhất tại ShopNexus.</p>
             </div>
-            <div className="p-6 bg-surface-container rounded-xl border border-outline-variant/50 hover:bg-surface-container-high transition-colors">
+            <div className="p-6 bg-surface-container rounded-xl border border-outline-variant hover:bg-surface-container-high transition-colors">
               <span className="material-symbols-outlined text-primary mb-3">support_agent</span>
               <h3 className="font-headline font-bold text-label-md mb-2">Sự cố kỹ thuật?</h3>
               <p className="text-body-sm text-on-surface-variant">Nếu bạn cho rằng đây là lỗi hệ thống, đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ.</p>

@@ -40,7 +40,7 @@ export default function HelpPage() {
           đó. Nếu vấn đề thuộc về một đơn hàng cụ thể, hãy mở từ chính trang đơn — yêu cầu sẽ
           mang sẵn mã đơn.
         </p>
-        <Link href="/support" className="inline-flex w-fit items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-md font-semibold hover:brightness-110 transition-all">
+        <Link href="/inbox?kind=other" className="inline-flex w-fit items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-md font-semibold hover:brightness-110 transition-all">
           <span className="material-symbols-outlined text-[18px]">support_agent</span>
           Mở yêu cầu hỗ trợ
         </Link>

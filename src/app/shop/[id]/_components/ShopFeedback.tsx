@@ -79,7 +79,7 @@ export default function ShopFeedback({ accountId }: { accountId: AccountId }) {
                         className="object-cover"
                       />
                     ) : (
-                      <span className="flex h-full w-full items-center justify-center text-[12px] font-bold text-on-surface">
+                      <span className="flex h-full w-full items-center justify-center text-label-sm text-on-surface">
                         {entry.rater.name.charAt(0)}
                       </span>
                     )}

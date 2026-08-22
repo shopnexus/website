@@ -65,7 +65,7 @@ export default function SafetyPage() {
         <p>
           Vị trí kiện hàng do đơn vị vận chuyển báo, không phải do bạn tự cập nhật — vì đó là
           thứ quyết định người mua còn huỷ đơn được hay không. Thấy sai thì{" "}
-          <Link href="/support?kind=order-issue">báo để ShopNexus kiểm tra</Link>.
+          <Link href="/inbox?kind=order-issue">báo để ShopNexus kiểm tra</Link>.
         </p>
       </Section>
 
@@ -77,7 +77,7 @@ export default function SafetyPage() {
           <li>Link lạ dẫn tới trang &ldquo;thanh toán&rdquo; không thuộc ShopNexus.</li>
         </ul>
         <p>
-          Gặp bất kỳ dấu hiệu nào, hãy <Link href="/support">báo cho chúng tôi</Link>.
+          Gặp bất kỳ dấu hiệu nào, hãy <Link href="/inbox?kind=other">báo cho chúng tôi</Link>.
         </p>
       </Section>
     </ContentPage>

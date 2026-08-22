@@ -21,8 +21,8 @@ export default function WaitGutter({ wait }: { wait: Wait }) {
       ].join(" ")}
       title="Thời gian chờ xử lý"
     >
-      <span className="text-[15px] font-bold leading-none">{wait.label}</span>
-      <span className="text-[9px] uppercase tracking-[0.1em] mt-1 opacity-70">chờ</span>
+      <span className="text-title-md leading-none">{wait.label}</span>
+      <span className="text-label-xs uppercase tracking-[0.1em] mt-1 opacity-70">chờ</span>
     </div>
   );
 }
