@@ -36,7 +36,9 @@ export default function ConfirmReceiptDialog({
 			{ orderId, attachments: evidence.map((item) => item.id) },
 			{
 				onSuccess: () => {
-					toast.success("Đã xác nhận nhận hàng")
+					toast.success(
+						"Đã xác nhận. Đơn hoàn tất sau 72 giờ, rồi bạn đánh giá được người bán.",
+					)
 					setEvidence([])
 					onClose()
 				},

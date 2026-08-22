@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import AccountPage from "@/components/account/AccountPage";
 import OrderContactButton from "@/components/orders/OrderContactButton";
+import RateInviteGate from "@/components/orders/RateInviteGate";
 import OrderProgress from "./components/OrderProgress";
 import OrderShipping from "./components/OrderShipping";
 import OrderPayment from "./components/OrderPayment";
@@ -74,6 +75,14 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
       }
     >
       <div className="flex flex-col gap-6">
+        {/* Renders nothing: it is a moment, not a section — see RateInviteGate. */}
+        <RateInviteGate
+          orderId={order.id}
+          sellerName={order.seller.name}
+          isBuyer={!isSeller}
+          isCompleted={order.state === "completed"}
+        />
+
         <OrderProgress order={order} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">

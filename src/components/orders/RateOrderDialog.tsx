@@ -23,12 +23,19 @@ export default function RateOrderDialog({
 	orderId,
 	open,
 	onClose,
+	initialRating = 0,
 }: {
 	orderId: OrderId
 	open: boolean
 	onClose: () => void
+	/**
+	 * The star already clicked on the invitation, so the form does not ask twice. Read once,
+	 * as the initial state: a caller that needs to change it remounts with a new `key`, which
+	 * is what RateInviteGate does.
+	 */
+	initialRating?: number
 }) {
-	const [rating, setRating] = useState(0)
+	const [rating, setRating] = useState(initialRating)
 	const [comment, setComment] = useState("")
 	const { data: feedback, isLoading } = useOrderFeedback(open ? orderId : undefined)
 	const submitFeedback = useSubmitFeedback()
