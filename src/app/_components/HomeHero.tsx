@@ -23,7 +23,7 @@ export default function HomeHero(): React.ReactElement {
           <span className="inline-block bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-label-sm mb-4 uppercase tracking-widest border border-white/20">
             Kết nối thực - Giá trị thực
           </span>
-          <h1 className="font-display font-extrabold text-3xl md:text-5xl mb-4 leading-tight">
+          <h1 className="text-display-sm md:text-display-lg mb-4">
             Cùng Viết Tiếp Câu Chuyện Của Những Món Đồ.
           </h1>
           <p className="text-body-lg text-white/90 max-w-xl mb-8">

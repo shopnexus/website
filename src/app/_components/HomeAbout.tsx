@@ -1,6 +1,6 @@
 export default function HomeAbout() {
   return (
-    <section className="mt-24 pt-16 border-t border-outline-variant/30">
+    <section className="mt-24 pt-16 border-t border-outline-variant">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
         <div className="space-y-4">
           <div className="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center mx-auto md:mx-0">
