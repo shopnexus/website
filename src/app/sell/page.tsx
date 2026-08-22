@@ -120,7 +120,11 @@ export default function SellPage() {
 						<span className="material-symbols-outlined text-5xl leading-none">verified_user</span>
 					</div>
 					<h1 className="mt-6 text-2xl font-bold text-on-surface">Xác minh danh tính để bắt đầu bán</h1>
-					<p className="mx-auto mt-3 max-w-md text-sm leading-6 text-on-surface-variant">Server dùng cùng trạng thái xác minh cho quyền đăng bán và nhận tiền. Hoàn tất bước này trước để không bị chặn sau khi có đơn đầu tiên.</p>
+					{/* What this costs the seller, not what the server checks. The old wording —
+					    "Server dùng cùng trạng thái xác minh cho quyền đăng bán và nhận tiền" —
+					    describes the implementation to somebody who wants to sell a phone. */}
+					<p className="mx-auto mt-3 max-w-md text-sm leading-6 text-on-surface-variant">Cùng một lần xác minh mở khoá cả việc đăng tin và việc nhận tiền về ví. Làm ngay bây giờ để đơn đầu tiên không phải chờ.</p>
+					<p className="mx-auto mt-2 max-w-md text-xs leading-5 text-on-surface-variant">Mất khoảng 2 phút: ảnh giấy tờ tuỳ thân và một ảnh chân dung.</p>
 					<Link href="/account/verification" className="mt-7 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-on-primary shadow-sm transition hover:brightness-110"><span className="material-symbols-outlined">badge</span>Xác minh ngay</Link>
 				</div>
 			</div>

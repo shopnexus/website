@@ -5,8 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import EmptyState from "@/components/ui/EmptyState";
 import QuantitySelector from "@/components/ui/QuantitySelector";
+import Skeleton from "@/components/ui/Skeleton";
+import ListingCarousel from "@/components/listings/ListingCarousel";
 import { useCart, type ResolvedCartItem } from "@/hooks/api/useCart";
+import { useListings } from "@/hooks/api/useCatalog";
 import { useCreateDraft } from "@/hooks/api/useOrders";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { toast } from "react-hot-toast";
@@ -21,6 +25,9 @@ export default function CartPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { items, subtotal, isLoading, updateQuantity, removeItem } = useCart();
+  // Only asked for when there is a hole to fill. An empty cart is a dead end otherwise: a
+  // card telling the reader there is nothing here, and half a screen of white under it.
+  const suggestions = useListings({ sort: "trending" }, 1, !isLoading && items.length === 0);
   const createDraft = useCreateDraft();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
@@ -67,10 +74,21 @@ export default function CartPage() {
   const selectedItems = items.filter((item) => item.listing.id === selectedListingId);
   const total = selectedItems.reduce((acc, item) => acc + (item.variant?.price ?? 0) * item.quantity, 0);
 
+  // The shape of the page rather than a sentence about waiting: a line of centred text on an
+  // otherwise blank screen is indistinguishable from a page that failed.
   if (isLoading && items.length === 0) {
     return (
-      <div className="bg-surface-container-lowest min-h-screen py-8 flex justify-center">
-        Đang tải giỏ hàng...
+      <div className="min-h-screen bg-surface-container-lowest py-8">
+        <div className="mx-auto max-w-[1200px] px-4 md:px-8">
+          <Skeleton className="h-8 w-56 rounded-lg" />
+          <div className="mt-6 flex flex-col gap-6 lg:flex-row">
+            <div className="flex flex-1 flex-col gap-4">
+              <Skeleton className="h-40 w-full rounded-2xl" />
+              <Skeleton className="h-40 w-full rounded-2xl" />
+            </div>
+            <Skeleton className="h-64 w-full rounded-2xl lg:w-80" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -78,17 +96,47 @@ export default function CartPage() {
   return (
     <div className="bg-surface-container-lowest min-h-screen py-8">
       <div className="max-w-[1200px] mx-auto px-4 md:px-8">
-        <h1 className="font-headline-md font-bold mb-6">Giỏ hàng của bạn</h1>
+        <h1 className="mb-5 font-headline-sm font-bold text-on-surface">Giỏ hàng của bạn</h1>
 
         {items.length === 0 ? (
-          <div className="text-center py-12 text-on-surface-variant">
-            Giỏ hàng của bạn đang trống. 
-            <div className="mt-4">
-              <Link href="/">
-                <Button variant="primary">Tiếp tục mua sắm</Button>
-              </Link>
-            </div>
-          </div>
+          <>
+            {/* An empty screen is an invitation, so it names both ways on: find something
+                new, or go back to what was already worth saving. */}
+            <EmptyState
+              icon="shopping_cart"
+              title="Giỏ hàng đang trống"
+              description="Thêm những món bạn đang cân nhắc vào đây. Mỗi lần thanh toán là một người bán, nên giỏ hàng chỉ giữ chỗ cho tới lúc bạn chọn."
+              action={
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link href="/search">
+                    <Button variant="primary" className="h-11 px-6">
+                      Khám phá sản phẩm
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/account/favorites"
+                    className="font-label-md font-bold text-primary hover:underline"
+                  >
+                    Xem sản phẩm đã lưu
+                  </Link>
+                </div>
+              }
+            />
+
+            {/* Under the invitation, something to accept it with. Without this the page is a
+                card saying "nothing here" over half a screen of white — which is the state a
+                shopper is most likely to leave from, and the one where the platform has the
+                most to say. */}
+            {(suggestions.data?.length ?? 0) > 0 && (
+              <ListingCarousel
+                className="mt-10"
+                title="Đang được quan tâm"
+                listings={suggestions.data ?? []}
+                moreHref="/search"
+                moreLabel="Xem tất cả"
+              />
+            )}
+          </>
         ) : (
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1 flex flex-col gap-6">
