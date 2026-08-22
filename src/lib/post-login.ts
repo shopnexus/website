@@ -14,7 +14,21 @@ export function postLoginDestination(
 	role: string | undefined,
 	callbackUrl: string | null | undefined,
 ): string {
-	return safeInternalPath(callbackUrl) ?? (isStaff(role) ? "/admin" : "/")
+	const wanted = safeInternalPath(callbackUrl)
+	if (!isStaff(role)) return wanted ?? "/"
+
+	// Staff go to the console, and a `callbackUrl` does not change that. It used to win
+	// outright, which meant signing in almost always landed a moderator on a storefront page:
+	// `callbackUrl` is written by proxy.ts whenever it turns anyone away from any protected
+	// route, so a stale /cart or /account link in a bookmark was enough to put them on the
+	// wrong side of the product. A callback *into* the console is still honoured — somebody
+	// who clicked a link to one case should land on that case, not on the overview.
+	return wanted && isConsolePath(wanted) ? wanted : "/admin"
+}
+
+/** Inside the staff console. Exact, so a future `/adminfoo` route cannot pass for one. */
+function isConsolePath(path: string): boolean {
+	return path === "/admin" || path.startsWith("/admin/") || path.startsWith("/admin?")
 }
 
 /** The `callbackUrl` this navigation carries, if any. Read at submit time, so the page

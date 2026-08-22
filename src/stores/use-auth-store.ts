@@ -17,6 +17,7 @@ import type {
   PasswordResetConfirmRequest,
   RegisterRequest,
 } from "@/api/generated/types.gen";
+import { ApiError } from "@/api/api-error";
 import { clearTokens, setTokens } from "@/api/tokens";
 import { getBrowserQueryClient } from "@/api/query-client";
 import { useCartStore } from "./use-cart-store";
@@ -146,9 +147,20 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data } = await getMe({ throwOnError: true });
           set({ user: data.data, isAuthenticated: true, isLoading: false });
-        } catch {
-          // Reaching here means the token was rejected and the refresh in the API layer
-          // could not save it, so the persisted user is stale.
+        } catch (error) {
+          // Only an actual rejection means the persisted user is stale. This used to clear
+          // the session on *any* failure, on the stated assumption that the only way to
+          // reach here was a rejected token — which is not true: apiFetch throws for a 500,
+          // for a dropped connection, and for a request the router aborted mid-navigation
+          // (status 0). None of those say anything about whether this account is signed in,
+          // and clearing on them signs a live session out of the UI. What the user sees is
+          // being bounced back out of a page they have every right to, and then getting in
+          // on the second or third try — because the try that worked was the one where the
+          // request happened to survive.
+          if (error instanceof ApiError && !error.isAuthFailure && error.status !== 403) {
+            set({ isLoading: false });
+            return;
+          }
           set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
