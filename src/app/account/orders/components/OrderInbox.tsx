@@ -11,6 +11,7 @@ import PendingCheckoutCard from "./PendingCheckoutCard"
 import RefundList from "../../refunds/components/RefundList"
 import { useOrderInbox, type OrderTab } from "../hooks/useOrderInbox"
 import { waitingSideOf } from "@/lib/order-waiting"
+import type { Order } from "@/api/generated/types.gen"
 
 /** The order tabs plus the refund cases raised on this side of the sale. */
 type InboxTab = OrderTab | "refunds"
@@ -23,6 +24,16 @@ const TABS: InboxTab[] = [
 	"cancelled",
 	"refunds",
 ]
+
+/** One name per tab, so the empty state can point at one by name rather than "phía trên". */
+const TAB_LABEL: Record<InboxTab, string> = {
+	"pending-payment": "Chờ thanh toán",
+	"awaiting-confirmation": "Chờ xác nhận",
+	open: "Đang xử lý",
+	completed: "Hoàn thành",
+	cancelled: "Đã hủy",
+	refunds: "Hoàn tiền",
+}
 
 /** "Đang xử lý" is the default: it is the longest stretch of an order's life. */
 const DEFAULT_TAB: InboxTab = "open"
@@ -59,6 +70,7 @@ export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
 
 	const {
 		me,
+		latestOrder,
 		orders,
 		pendingCheckouts,
 		cancelledCheckouts,
@@ -72,32 +84,25 @@ export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
 
 	// Xếp theo vòng đời của một đơn hàng. Không có tab "Tất cả": mỗi tab là một trạng thái,
 	// nên không tab nào trộn đơn đã xong với đơn đang chạy.
-	const tabs: { id: InboxTab; label: string }[] = []
-	if (role === "buyer") {
-		tabs.push({ id: "pending-payment", label: "Chờ thanh toán" })
-	}
-	tabs.push(
-		{ id: "awaiting-confirmation", label: "Chờ xác nhận" },
-		{ id: "open", label: "Đang xử lý" },
-		{ id: "completed", label: "Hoàn thành" },
-		{ id: "cancelled", label: "Đã hủy" },
-		{ id: "refunds", label: "Hoàn tiền" }
-	)
+	//
+	// "Chờ thanh toán" is the buyer's alone: a seller never sees a checkout that has not been
+	// paid for, because no order exists until the payment webhook writes one.
+	const tabs: InboxTab[] = TABS.filter((tab) => role === "buyer" || tab !== "pending-payment")
 
 	return (
 		<div>
 			<div className="flex overflow-x-auto border-b border-outline-variant mb-6 gap-6">
 				{tabs.map((tab) => (
 					<button
-						key={tab.id}
-						onClick={() => setActiveTab(tab.id)}
+						key={tab}
+						onClick={() => setActiveTab(tab)}
 						className={`pb-3 text-label-md transition-colors border-b-2 whitespace-nowrap ${
-							activeTab === tab.id
+							activeTab === tab
 								? "border-primary text-primary"
 								: "border-transparent text-on-surface-variant hover:text-on-surface"
 						}`}
 					>
-						{tab.label}
+						{TAB_LABEL[tab]}
 					</button>
 				))}
 			</div>
@@ -107,7 +112,12 @@ export default function OrderInbox({ role }: { role: "buyer" | "seller" }) {
 			) : isLoading ? (
 				<OrdersSkeleton />
 			) : isEmpty ? (
-				<InboxEmpty role={role} />
+				<InboxEmpty
+					role={role}
+					tab={activeTab}
+					latestOrder={latestOrder}
+					onGoToTab={setActiveTab}
+				/>
 			) : (
 				<div className="flex flex-col gap-3">
 					{pendingCheckouts.length > 0 && (
@@ -178,13 +188,63 @@ function OrdersSkeleton() {
 	)
 }
 
+/** What each tab is missing, in its own words. */
+const NOTHING_IN_TAB: Record<InboxTab, string> = {
+	"pending-payment": "Không có đơn nào chờ thanh toán",
+	"awaiting-confirmation": "Không có đơn nào chờ xác nhận",
+	open: "Không có đơn nào đang xử lý",
+	completed: "Chưa có đơn nào hoàn thành",
+	cancelled: "Không có đơn nào đã huỷ",
+	refunds: "Không có yêu cầu hoàn tiền nào",
+}
+
 /**
- * The tab has nothing in it.
+ * The tab has nothing in it — which is two different things, and it used to say only one.
  *
- * Says which side is empty and where the next order comes from — a buyer's inbox fills
- * from the catalogue, a seller's from a listing someone can find.
+ * "Đang xử lý" is the tab this page opens on, and an account with eleven orders in other
+ * states opened it to be told "Chưa có đơn mua nào. Tìm một món bạn cần để mở đơn đầu tiên."
+ * The page was telling somebody who buys here regularly that they have never bought anything,
+ * and pointing them at the catalogue to fix it.
+ *
+ * So: the tab's own sentence when there are orders elsewhere, and the "you have not started
+ * yet" invitation only when that is true. And rather than "look in one of the other tabs" —
+ * which is advice, not an answer — the newest order names the tab it is in and offers to go
+ * there. That costs nothing: it is the same single row the question was answered with.
+ *
+ * `latestOrder` is undefined while in flight, and neither sentence is asserted until it lands.
  */
-function InboxEmpty({ role }: { role: "buyer" | "seller" }) {
+function InboxEmpty({
+	role,
+	tab,
+	latestOrder,
+	onGoToTab,
+}: {
+	role: "buyer" | "seller"
+	tab: InboxTab
+	latestOrder: Order | null | undefined
+	onGoToTab: (tab: InboxTab) => void
+}) {
+	if (latestOrder) {
+		// The newest order's state *is* a tab id — see OrderTab — and it cannot be the tab being
+		// looked at, or that tab would not be empty.
+		const where = latestOrder.state as InboxTab
+		return (
+			<EmptyState
+				icon="filter_list_off"
+				title={NOTHING_IN_TAB[tab]}
+				description={`Đơn gần đây nhất của bạn đang ở mục “${TAB_LABEL[where]}”.`}
+				action={
+					<Button variant="outline" onClick={() => onGoToTab(where)}>
+						Xem mục {TAB_LABEL[where]}
+					</Button>
+				}
+			/>
+		)
+	}
+
+	// Nothing anywhere, or not known yet. The invitation is the same either way, and while the
+	// answer is in flight it is the safer of the two to show: a brand new account is the only
+	// one that reaches this screen with nothing loaded.
 	return role === "buyer" ? (
 		<EmptyState
 			icon="receipt_long"

@@ -1,10 +1,16 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useMe } from "@/hooks/api/useAccount"
-import { useCancelledItems, useListingMap, useOrdersFeed, usePendingItems } from "@/hooks/api/useOrders"
+import {
+	useCancelledItems,
+	useLatestOrder,
+	useListingMap,
+	useOrdersFeed,
+	usePendingItems,
+} from "@/hooks/api/useOrders"
 import { groupCheckouts } from "@/lib/pending-checkout"
-import type { ListingId, Order, OrderState } from "@/api/generated/types.gen"
+import type { ListingId, OrderState } from "@/api/generated/types.gen"
 
 /**
  * Một tab của hộp đơn.
@@ -69,8 +75,15 @@ export function useOrderInbox(role: "buyer" | "seller", activeTab: OrderTab) {
 	
 	const listingsById = useListingMap(listingIds)
 
+	// Asked once for the whole inbox, not per tab. An empty tab has to say which empty it is —
+	// no single-state read can tell "you have never ordered" from "nothing of yours is in this
+	// state" — and the newest order's own state names a tab that does have something in it.
+	// Shared across every tab by its own query key, so switching tabs is free.
+	const latestOrder = useLatestOrder(role)
+
 	return {
 		me: me?.id,
+		latestOrder,
 		orders,
 		pendingCheckouts,
 		cancelledCheckouts,

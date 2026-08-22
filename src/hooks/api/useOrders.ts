@@ -22,6 +22,7 @@ import {
 	getOrdersByIdOptions,
 	getOrdersByOrderIdFeedbackOptions,
 	getOrdersInfiniteOptions,
+	getOrdersOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import type {
 	CheckoutRequest,
@@ -61,6 +62,29 @@ export function useOrdersFeed(role?: OrderRole, state?: OrderState, limit = 20, 
 	const orders = useMemo(() => flattenPages(query.data), [query.data])
 
 	return { ...query, orders }
+}
+
+/**
+ * The newest order on this side, whatever state it is in — or null when there are none.
+ *
+ * One row, and it answers two questions an inbox tab cannot answer for itself. Each tab
+ * reads a single state, so an empty one cannot tell "you have never ordered anything" from
+ * "nothing of yours is in *this* state" — and it certainly cannot say where the orders
+ * actually are. The newest order's own state names a tab that is not empty.
+ *
+ * `/orders` is a cursor stream and carries no total, so a count per tab is not something a
+ * client can work out. The newest row is what one request can honestly give.
+ *
+ * `undefined` while it is in flight; `null` once it is known there is nothing.
+ */
+export function useLatestOrder(role: OrderRole, enabled = true) {
+	const query = useQuery({
+		...getOrdersOptions({ query: { role, limit: 1 } }),
+		select: (response): Order | null => response.data?.[0] ?? null,
+		enabled,
+		staleTime: 60_000,
+	})
+	return query.data
 }
 
 export function useOrder(id: string | undefined) {
