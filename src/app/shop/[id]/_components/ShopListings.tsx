@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import MenuSelect from "@/components/ui/MenuSelect";
 import ProductCard from "@/components/ui/ProductCard";
 import ProductCardSkeleton from "@/components/ui/ProductCardSkeleton";
 import { SHOP_SORTS, type ShopListingsState, type ShopSort } from "../_hooks/useShopListings";
@@ -20,27 +21,16 @@ export default function ShopListings({ listings: state }: { listings: ShopListin
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h2 className="font-headline-sm font-bold text-on-surface">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-title-lg font-bold text-on-surface">
           Tất cả sản phẩm{totalCount !== null ? ` (${totalCount})` : ""}
         </h2>
-        <div className="flex items-center gap-2">
-          <label htmlFor="shop-sort" className="font-label-sm text-on-surface-variant">
-            Sắp xếp:
-          </label>
-          <select
-            id="shop-sort"
-            value={sort}
-            onChange={(event) => setSort(event.target.value as ShopSort)}
-            className="rounded-lg border border-outline-variant bg-surface-container-lowest py-1.5 pl-3 pr-8 font-body-sm text-on-surface outline-none focus:border-primary"
-          >
-            {SHOP_SORTS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <MenuSelect
+          label="Sắp xếp sản phẩm"
+          value={sort}
+          onChange={(value) => setSort(value as ShopSort)}
+          options={SHOP_SORTS.map((option) => ({ value: option.value, label: option.label }))}
+        />
       </div>
 
       {isLoading ? (

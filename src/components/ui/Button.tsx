@@ -44,7 +44,11 @@ export default function Button({
   return (
     <button
       className={[
-        "inline-flex items-center justify-center font-semibold rounded-full transition-all duration-200 cursor-pointer",
+        // `whitespace-nowrap`: a button's label is a name, and a name that breaks across two
+        // lines reads as two controls. "Theo dõi" was doing exactly that in the shop header's
+        // 130px column. A label too long for its container is a copy problem or a layout
+        // problem; wrapping hides both.
+        "inline-flex items-center justify-center whitespace-nowrap font-semibold rounded-full transition-all duration-200 cursor-pointer",
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
         variantStyles[variant],
         sizeStyles[size],

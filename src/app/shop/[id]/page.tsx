@@ -52,31 +52,35 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
   return (
     <div className="bg-surface-container-lowest min-h-screen">
       {/* A banner drawn from the palette rather than a stock photo: the previous cover was
-          a random picsum image, which is a picture of somebody else's shop. */}
-      <div className="h-48 md:h-64 w-full relative overflow-hidden bg-primary">
+          a random picsum image, which is a picture of somebody else's shop.
+
+          Slimmer than it was. At 192–256px it was the largest thing on the page and it says
+          nothing — a shop with no cover image should not open with a quarter-screen of
+          gradient before the reader learns whose shop it is. */}
+      <div className="h-28 md:h-36 w-full relative overflow-hidden bg-primary">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,var(--color-primary-container),transparent_60%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent" />
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-8">
-        <div className="flex flex-col lg:flex-row gap-8 relative -top-12">
-          <aside className="w-full lg:w-80 shrink-0">
-            <div className="bg-surface rounded-2xl border border-outline-variant p-6 shadow-md text-center">
-              <div className="relative w-28 h-28 mx-auto rounded-full border-4 border-surface overflow-hidden mb-4 shadow-sm -mt-16 bg-surface">
+        <div className="relative -top-10 flex flex-col gap-6 lg:flex-row lg:gap-8">
+          <aside className="w-full shrink-0 lg:w-72">
+            <div className="rounded-2xl border border-outline-variant bg-surface p-5 text-center shadow-sm">
+              <div className="relative -mt-14 mx-auto mb-3 h-24 w-24 overflow-hidden rounded-full border-4 border-surface bg-surface shadow-sm">
                 {seller.avatar?.url ? (
                   <Image src={seller.avatar.url} alt={seller.name} fill className="object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-secondary-container flex items-center justify-center text-on-surface font-bold text-2xl">
+                  <div className="flex h-full w-full items-center justify-center bg-secondary-container font-headline-sm font-bold text-on-secondary-container">
                     {seller.name.charAt(0)}
                   </div>
                 )}
               </div>
 
-              <h1 className="font-headline-md font-bold text-on-surface flex items-center justify-center gap-1 mb-1">
+              <h1 className="flex items-center justify-center gap-1 font-title-lg font-bold text-on-surface">
                 {seller.name}
                 {seller.identity_verified && (
                   <span
-                    className="material-symbols-outlined text-primary text-[22px]"
+                    className="material-symbols-outlined text-primary text-[19px]"
                     style={{ fontVariationSettings: "'FILL' 1" }}
                     title="Đã xác minh danh tính"
                   >
@@ -85,13 +89,13 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
                 )}
               </h1>
 
-              <div className="flex gap-3 mb-6 mt-4">
-                <FollowButton accountId={seller.id} className="flex-1" />
+              <div className="mb-4 mt-3 flex gap-2">
+                <FollowButton accountId={seller.id} className="h-10 flex-1" />
                 <StartChatButton
                   sellerId={seller.id}
                   currentPath={`/shop/${seller.id}`}
                   label="Nhắn tin"
-                  className="flex-1"
+                  className="h-10 flex-1"
                 />
               </div>
 
@@ -102,8 +106,10 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
               />
 
               {seller.description && (
-                <div className="mt-6 text-left">
-                  <div className="font-label-md text-on-surface mb-2">Giới thiệu</div>
+                <div className="mt-4 text-left">
+                  <div className="mb-1.5 font-label-sm uppercase tracking-wider text-on-surface-variant">
+                    Giới thiệu
+                  </div>
                   <p className="font-body-sm text-on-surface-variant leading-relaxed">
                     {seller.description}
                   </p>
@@ -112,8 +118,8 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
             </div>
           </aside>
 
-          <div className="flex-1 mt-12 lg:mt-0">
-            <div className="mb-6">
+          <div className="mt-10 flex-1 lg:mt-0">
+            <div className="mb-5">
               <Tabs tabs={tabs} activeTabId={activeTab} onChange={setActiveTab} />
             </div>
 
