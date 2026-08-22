@@ -5,10 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { useAddFavorite, useRemoveFavorite, recordInteraction } from "@/hooks/api/useCatalog";
+import { formatMoney } from "@/lib/money";
+import { timeAgoShort } from "@/lib/day";
+import { shortProvince } from "@/lib/place";
 import { toast } from "react-hot-toast";
-
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 
 /**
  * What a card needs, rather than a whole Listing.
@@ -29,10 +29,15 @@ export interface ProductCardItem {
   slug?: string;
   name: string;
   price: number;
+  /**
+   * The currency the price is in. Optional and defaulted, because a caller with only an id
+   * and a number can still draw a card — but when the row has one it is read, so a listing
+   * priced in anything else is not rendered as đồng.
+   */
+  currency?: string;
   price_mode?: "fixed" | "negotiable";
   created_at: string;
   cover?: { url?: string | null } | null;
-  seller?: { name: string; avatar?: { url?: string | null } | null };
   /**
    * Where the goods are. Null on a listing that was never published, and `distance_km` is
    * null unless the browse sent a position — the server always sends the key, so this
@@ -76,6 +81,24 @@ interface ProductCardProps {
   onDismiss?: (type: "not-interested" | "hidden") => void;
 }
 
+/**
+ * One listing, at the size a page of them is scanned at.
+ *
+ * The order is the change worth naming. It used to open with the seller — a 20px avatar and
+ * a name across the top — then the title, then whatever social proof existed, then the price,
+ * then a ruled-off footer holding `21/8/2026` and a province. Which is close to the reverse of
+ * how somebody reads a page of small ads: the photo, then what it is, then what it costs, then
+ * whether it is near and recent enough to bother with.
+ *
+ * So the seller is gone from the card entirely. On a C2C marketplace a stranger's name is the
+ * weakest signal on it — it is not a brand, and nobody recognises it — and it was the most
+ * expensive thing on it: a full row of height and an avatar request per card, twenty-four times
+ * per screen. The rating is the seller signal that survives, because it is earned. The name is
+ * one tap away on the listing itself, which is where a buyer actually weighs it.
+ *
+ * Everything below the title is pushed to the bottom of the card, so price sits above price and
+ * place above place across a row however long the titles run.
+ */
 export default function ProductCard({
   product,
   className = "",
@@ -151,6 +174,18 @@ export default function ProductCard({
     }
   };
 
+  // Distance when the browse sent a position, the province otherwise — the same rule the
+  // listing's own facts use, because "cách 2,4 km" answers the question a province only
+  // narrows.
+  const place = product.location
+    ? product.location.distance_km != null
+      ? `Cách ${product.location.distance_km.toFixed(1)} km`
+      : shortProvince(product.location.province_name)
+    : null;
+
+  const reviews = product.review_count ?? 0;
+  const sold = product.sold ?? 0;
+
   return (
     <div
       // h-full both here and on the link: the grid stretches this wrapper to the tallest card
@@ -160,174 +195,168 @@ export default function ProductCard({
         isDismissing ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
-    <Link
-      href={`/product/${product.slug ?? product.id}`}
-      onClick={handleCardClick}
-      aria-hidden={isDismissing}
-      tabIndex={isDismissing ? -1 : undefined}
-      className={`h-full bg-surface rounded-xl overflow-hidden border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow duration-300 flex flex-col group cursor-pointer ${className}`}
-    >
-      <div className="relative aspect-[4/3] bg-surface-container overflow-hidden shrink-0">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-          />
-        ) : (
-          <span className="absolute inset-0 flex items-center justify-center text-on-surface-variant material-symbols-outlined text-[32px]">
-            inventory_2
-          </span>
-        )}
-        {product.price_mode === "negotiable" && (
-          <div className="absolute top-2 left-2 z-10">
-            <span className="text-label-xs px-2 py-1 bg-tertiary-container/90 backdrop-blur-sm text-on-tertiary-container rounded shadow-sm whitespace-nowrap">
-              Thương lượng
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="p-3 flex flex-col flex-1 gap-2">
-        <div className="flex items-center gap-1.5">
-          {product.seller?.avatar?.url ? (
+      <Link
+        href={`/product/${product.slug ?? product.id}`}
+        onClick={handleCardClick}
+        aria-hidden={isDismissing}
+        tabIndex={isDismissing ? -1 : undefined}
+        className={`group flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface transition-shadow duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] ${className}`}
+      >
+        <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-surface-container">
+          {imageUrl ? (
             <Image
-              src={product.seller.avatar.url}
-              alt={product.seller?.name || "Seller"}
-              width={20}
-              height={20}
-              className="w-5 h-5 rounded-full object-cover shrink-0"
+              src={imageUrl}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 20vw"
             />
           ) : (
-      <div className="w-5 h-5 rounded-full bg-secondary-container flex items-center justify-center text-label-xs text-on-surface shrink-0">
-              {(product.seller?.name || "S").charAt(0)}
-            </div>
+            <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center text-[32px] text-on-surface-variant">
+              inventory_2
+            </span>
           )}
-          <span className="font-body-sm text-on-surface-variant truncate">
-            {product.seller?.name || "Người bán"}
-          </span>
+          {product.price_mode === "negotiable" && (
+            <span className="absolute left-2 top-2 rounded bg-tertiary-container/90 px-1.5 py-0.5 font-label-xs text-on-tertiary-container shadow-sm backdrop-blur-sm">
+              Thương lượng
+            </span>
+          )}
         </div>
 
-        <h3 className="font-headline text-title-md leading-snug text-on-surface line-clamp-2 mt-0.5">
-          {product.name}
-        </h3>
+        <div className="flex flex-1 flex-col p-2.5">
+          {/* Two lines, and the height of two lines whether it uses them or not: the block
+              below is pinned to the bottom, and a reserved title keeps short and long names
+              from shifting the price up and down the row. */}
+          <h3 className="line-clamp-2 min-h-[44px] font-body-sm font-medium leading-snug text-on-surface">
+            {product.name}
+          </h3>
 
-        {/* Social proof, and only when there is any: "0.0 (0)" beside a price reads as a
-            verdict on the goods rather than as a listing nobody has bought yet. */}
-        {(product.review_count ?? 0) > 0 && (
-      <div className="flex items-center gap-1 text-label-xs text-on-surface-variant">
-            <span
-              className="material-symbols-outlined text-[13px] text-primary"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-              aria-hidden="true"
-            >
-              star
+          <div className="mt-auto pt-1.5">
+            <p className="font-price-lg text-primary">
+              {formatMoney(product.price, product.currency ?? "VND")}
+            </p>
+
+            {/* Only when there is any: "0.0 (0)" beside a price reads as a verdict on the
+                goods rather than as a listing nobody has bought yet. */}
+            {(reviews > 0 || sold > 0) && (
+              <p className="mt-1 flex items-center gap-1 truncate font-label-xs text-on-surface-variant">
+                {reviews > 0 && (
+                  <>
+                    <span
+                      className="material-symbols-outlined text-[13px] text-primary"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                      aria-hidden="true"
+                    >
+                      star
+                    </span>
+                    <span className="font-bold text-on-surface">
+                      {(product.rating ?? 0).toFixed(1)}
+                    </span>
+                    <span>({reviews})</span>
+                  </>
+                )}
+                {reviews > 0 && sold > 0 && <span aria-hidden="true">·</span>}
+                {sold > 0 && <span className="truncate">Đã bán {sold}</span>}
+              </p>
+            )}
+
+            {/* Where and how fresh, on one line. It was a ruled-off footer holding an absolute
+                date — `21/8/2026` tells a browsing reader nothing, while "3 ngày trước" is
+                half of what makes a small ad worth answering. */}
+            <p className="mt-1 flex items-center gap-1 font-label-xs text-on-surface-variant">
+              {place && (
+                <>
+                  <span
+                    className="material-symbols-outlined shrink-0 text-[13px]"
+                    aria-hidden="true"
+                  >
+                    location_on
+                  </span>
+                  <span className="truncate">{place}</span>
+                  <span aria-hidden="true">·</span>
+                </>
+              )}
+              <span className="shrink-0">{timeAgoShort(product.created_at)}</span>
+            </p>
+          </div>
+        </div>
+      </Link>
+
+      {/* The action cluster sits outside the <Link>, not in the image box: both the card and
+          the image clip with overflow-hidden, which cut the dropdown off at the photo's edge.
+          Out here it also stops nesting buttons inside an anchor. */}
+      <div ref={menuRef} className="absolute right-2 top-2 z-10 flex items-center gap-1.5">
+        {dismissible && (
+          <button
+            onClick={handleMenuToggle}
+            className="grid h-8 w-8 place-items-center rounded-full bg-surface/85 shadow-sm backdrop-blur-sm transition-colors hover:bg-surface"
+            aria-label="Tuỳ chọn gợi ý"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+          >
+            <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
+              more_vert
             </span>
-            <span className="font-bold text-on-surface">{(product.rating ?? 0).toFixed(1)}</span>
-            <span>({product.review_count})</span>
-            {(product.sold ?? 0) > 0 && <span className="truncate">· Đã bán {product.sold}</span>}
-          </div>
+          </button>
         )}
-        {(product.review_count ?? 0) === 0 && (product.sold ?? 0) > 0 && (
-          <div className="text-label-xs text-on-surface-variant">Đã bán {product.sold}</div>
-        )}
-
-        <div className="mt-auto pt-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-price-lg text-primary shrink-0">{formatPrice(product.price)}</span>
-          </div>
-
-      <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-outline-variant text-label-xs text-on-surface-variant">
-            <span className="shrink-0">{new Date(product.created_at).toLocaleDateString("vi-VN")}</span>
-            {product.location && (
-              <span className="flex items-center gap-0.5 min-w-0">
-                <span className="material-symbols-outlined text-[13px] shrink-0">location_on</span>
-                <span className="truncate">
-                  {product.location.distance_km != null
-                    ? `${product.location.distance_km.toFixed(1)} km`
-                    : product.location.province_name}
+        {menuOpen && (
+          // Anchored to the whole cluster, not to the ⋮ button, which sits left of the heart:
+          // anchoring to the button pushed the panel a heart's width further left, off the page
+          // edge in the grid's left column. The width caps at one grid cell for the same reason.
+          <div
+            role="menu"
+            className="absolute right-0 top-full mt-1.5 w-[min(14rem,calc(50vw-2rem))] overflow-hidden rounded-lg border border-outline-variant bg-surface py-1 shadow-[0_4px_16px_rgba(0,0,0,0.12)] animate-page-fade-in"
+          >
+            <button
+              role="menuitem"
+              onClick={(e) => handleDismiss(e, "not-interested")}
+              className="flex w-full cursor-pointer items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-surface-container"
+            >
+              <span className="material-symbols-outlined mt-0.5 text-[18px] text-on-surface-variant">
+                thumb_down
+              </span>
+              <span className="min-w-0">
+                <span className="block font-body-sm font-medium text-on-surface">
+                  Không quan tâm
+                </span>
+                <span className="mt-0.5 block font-label-xs text-on-surface-variant">
+                  Ít gợi ý sản phẩm như thế này hơn
                 </span>
               </span>
-            )}
+            </button>
+            <button
+              role="menuitem"
+              onClick={(e) => handleDismiss(e, "hidden")}
+              className="flex w-full cursor-pointer items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-surface-container"
+            >
+              <span className="material-symbols-outlined mt-0.5 text-[18px] text-on-surface-variant">
+                visibility_off
+              </span>
+              <span className="min-w-0">
+                <span className="block font-body-sm font-medium text-on-surface">Ẩn tin này</span>
+                <span className="mt-0.5 block font-label-xs text-on-surface-variant">
+                  Không hiện tin này trong Gợi ý cho bạn nữa
+                </span>
+              </span>
+            </button>
           </div>
-        </div>
-      </div>
-    </Link>
-    {/* The action cluster sits outside the <Link>, not in the image box: both the card and
-        the image clip with overflow-hidden, which cut the dropdown off at the photo's edge.
-        Out here it also stops nesting buttons inside an anchor. */}
-    <div ref={menuRef} className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
-      {dismissible && (
+        )}
         <button
-          onClick={handleMenuToggle}
-          className="p-1.5 h-9.5 aspect-square flex items-center justify-center rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant shadow-sm hover:bg-surface transition-colors"
-          aria-label="Tuỳ chọn gợi ý"
-          aria-haspopup="menu"
-          aria-expanded={menuOpen}
+          onClick={handleFavoriteClick}
+          disabled={isPending}
+          className="grid h-8 w-8 place-items-center rounded-full bg-surface/85 shadow-sm backdrop-blur-sm transition-colors hover:bg-surface disabled:opacity-50"
+          aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
         >
-          <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
-            more_vert
+          <span
+            className={`material-symbols-outlined text-[18px] transition-colors ${
+              product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+            }`}
+            style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            favorite
           </span>
         </button>
-      )}
-      {menuOpen && (
-        // Anchored to the whole cluster, not to the ⋮ button, which sits left of the heart:
-        // anchoring to the button pushed the panel a heart's width further left, off the page
-        // edge in the grid's left column. The width caps at one grid cell for the same reason.
-        <div
-          role="menu"
-          className="absolute right-0 top-full mt-1.5 w-[min(14rem,calc(50vw-2rem))] bg-surface rounded-lg border border-outline-variant shadow-[0_4px_16px_rgba(0,0,0,0.12)] overflow-hidden py-1 animate-page-fade-in"
-        >
-          <button
-            role="menuitem"
-            onClick={(e) => handleDismiss(e, "not-interested")}
-            className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
-              thumb_down
-            </span>
-            <span className="min-w-0">
-              <span className="block text-body-sm font-medium text-on-surface">Không quan tâm</span>
-              <span className="block text-label-xs text-on-surface-variant mt-0.5">
-                Ít gợi ý sản phẩm như thế này hơn
-              </span>
-            </span>
-          </button>
-          <button
-            role="menuitem"
-            onClick={(e) => handleDismiss(e, "hidden")}
-            className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
-              visibility_off
-            </span>
-            <span className="min-w-0">
-              <span className="block text-body-sm font-medium text-on-surface">Ẩn tin này</span>
-              <span className="block text-label-xs text-on-surface-variant mt-0.5">
-                Không hiện tin này trong Gợi ý cho bạn nữa
-              </span>
-            </span>
-          </button>
-        </div>
-      )}
-      <button
-        onClick={handleFavoriteClick}
-        disabled={isPending}
-        className="p-1.5 h-9.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant shadow-sm hover:bg-surface transition-colors disabled:opacity-50"
-        aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-      >
-        <span
-          className={`material-symbols-outlined text-[20px] transition-colors ${
-            product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
-            }`}
-          style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
-        >
-          favorite
-        </span>
-      </button>
-    </div>
+      </div>
     </div>
   );
 }

@@ -1,22 +1,18 @@
 import Skeleton from "./Skeleton";
 
+/** The shape of a card, in the same order the card fills in: photo, name, price, place. */
 export default function ProductCardSkeleton() {
   return (
-    <div className="bg-surface rounded-xl overflow-hidden border border-outline-variant flex flex-col shadow-sm">
-      <Skeleton className="w-full aspect-[4/3] rounded-none" />
-      <div className="p-3 flex flex-col flex-1 gap-2">
-        <div className="flex items-center gap-1.5">
-          <Skeleton shape="circle" className="w-5 h-5 shrink-0" />
-          <Skeleton className="h-3 w-20" />
+    <div className="flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface">
+      <Skeleton className="aspect-[4/3] w-full rounded-none" />
+      <div className="flex flex-1 flex-col p-2.5">
+        <div className="min-h-[44px]">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="mt-1.5 h-4 w-2/3" />
         </div>
-        <Skeleton className="h-4 w-full mt-1" />
-        <Skeleton className="h-4 w-2/3" />
-        <div className="mt-auto pt-2">
-          <Skeleton className="h-6 w-24 mb-2" />
-          <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-outline-variant">
-            <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-3 w-16" />
-          </div>
+        <div className="mt-auto pt-1.5">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="mt-1.5 h-3 w-28" />
         </div>
       </div>
     </div>

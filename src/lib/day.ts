@@ -87,6 +87,30 @@ export function timeAgo(iso: string, now: number = Date.now()): string {
 	})
 }
 
+/**
+ * The same age, at the width a card has for it.
+ *
+ * "3 ngày trước" is right in a sentence and wrong in a 160px column beside a place name,
+ * where the two together are what a browsing reader is weighing and the pair has to fit on
+ * one line. The unit carries the meaning; "trước" is the part that can go.
+ */
+export function timeAgoShort(iso: string, now: number = Date.now()): string {
+	const elapsed = now - new Date(iso).getTime()
+	if (elapsed < 0 || elapsed < 60_000) return "vừa xong"
+
+	const minutes = Math.floor(elapsed / 60_000)
+	if (minutes < 60) return `${minutes} phút`
+
+	const hours = Math.floor(minutes / 60)
+	if (hours < 24) return `${hours} giờ`
+
+	const days = Math.floor(hours / 24)
+	if (days < 7) return `${days} ngày`
+
+	// Past a week the age stops being the point and the date is shorter than "5 tuần" anyway.
+	return new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })
+}
+
 /** The month and year an account joined: "tháng 3/2023". */
 export function monthYear(iso: string): string {
 	const date = new Date(iso)

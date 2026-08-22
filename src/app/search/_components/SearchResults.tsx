@@ -4,7 +4,16 @@ import ProductCard from "@/components/ui/ProductCard";
 import ProductCardSkeleton from "@/components/ui/ProductCardSkeleton";
 import type { SearchState } from "../_hooks/useSearchFilters";
 
-const GRID = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12";
+/**
+ * Two across on a phone, five on a wide screen.
+ *
+ * It was one across below `sm` — a single card per row on the screen most of this traffic
+ * arrives on, which turns a page of results into a page of scrolling — and it stopped at four
+ * columns however wide the window got, so a 1440px screen showed eight results above the fold
+ * where it had room for fifteen. Browsing small ads is a scanning task; density is the feature.
+ */
+const GRID =
+  "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 mb-10";
 
 /**
  * The result grid, its empty state and the way to the next page.
