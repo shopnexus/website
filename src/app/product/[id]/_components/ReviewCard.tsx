@@ -16,9 +16,13 @@ import ReviewVoteButtons from "./ReviewVoteButtons";
 /**
  * One review: who wrote it, what they gave it, what they showed, and the thread under it.
  *
- * The photos are the reason a card is worth its space on a secondhand marketplace — a
+ * The photos are the reason a review is worth its space on a secondhand marketplace — a
  * buyer is rating goods somebody else described — so they get a real grid and open full
  * size, rather than a strip of thumbnails nothing happens to.
+ *
+ * A row in a divided list, not a card of its own. Ten bordered, shadowed cards stacked down a
+ * page is ten boxes to look at before any of them is read, and the border was drawing the same
+ * line the row below it already drew.
  */
 export default function ReviewCard({ review }: { review: Review }) {
   const { user } = useAuthStore();
@@ -37,11 +41,11 @@ export default function ReviewCard({ review }: { review: Review }) {
   };
 
   return (
-    <article className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+    <article className="p-4 sm:p-5">
       <header className="flex items-start gap-3">
         <Link
           href={`/shop/${review.author.id}`}
-          className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-secondary-container"
+          className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-secondary-container"
         >
           {review.author.avatar?.url ? (
             <Image
@@ -92,20 +96,20 @@ export default function ReviewCard({ review }: { review: Review }) {
       </header>
 
       {review.body && (
-        <p className="mt-3 whitespace-pre-wrap font-body-md leading-relaxed text-on-surface">
+        <p className="mt-2.5 max-w-[70ch] whitespace-pre-wrap font-body-sm leading-relaxed text-on-surface">
           {review.body}
         </p>
       )}
 
       {review.attachments.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {review.attachments.map((attachment) => (
             <button
               key={attachment.id}
               type="button"
               onClick={() => setViewing(photoUrls.indexOf(attachment.url!))}
               disabled={!attachment.url}
-              className="relative h-20 w-20 overflow-hidden rounded-xl border border-outline-variant transition-colors hover:border-primary disabled:opacity-50"
+              className="relative h-16 w-16 overflow-hidden rounded-lg border border-outline-variant transition-colors hover:border-primary disabled:opacity-50"
               aria-label="Xem ảnh đánh giá"
             >
               {attachment.url ? (
@@ -122,7 +126,7 @@ export default function ReviewCard({ review }: { review: Review }) {
         </div>
       )}
 
-      <div className="mt-4 flex items-center justify-between gap-4">
+      <div className="mt-3 flex items-center justify-between gap-4">
         <ReviewVoteButtons review={review} />
         {review.reply_count > 0 && (
           <span className="font-label-sm text-on-surface-variant">

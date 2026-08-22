@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * What the seller wrote, at full width and without a scroll trap.
+ * What the seller wrote, at a width it can be read at and without a scroll trap.
  *
  * A used-goods description is where the honest sellers put the scratches, so it is not
  * truncated by default — it is measured, and only a description tall enough to bury the rest
@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
  * count, because a listing whose description is one long paragraph and one whose description
  * is forty short lines have nothing in common at the same length.
  */
-const COLLAPSED_HEIGHT = 320;
+const COLLAPSED_HEIGHT = 260;
 
 export default function DescriptionPanel({ description }: { description: string }) {
   const body = useRef<HTMLDivElement>(null);
@@ -34,11 +34,11 @@ export default function DescriptionPanel({ description }: { description: string 
   return (
     <section id="description" className="scroll-mt-32">
       <h2 className="font-headline-sm font-bold text-on-surface">Mô tả từ người bán</h2>
-      <div className="relative mt-4 rounded-3xl border border-outline-variant bg-surface p-5 sm:p-6">
+      <div className="relative mt-3 max-w-[980px] rounded-2xl border border-outline-variant bg-surface p-4 sm:p-5">
         <div
           ref={body}
           style={clipped ? { maxHeight: COLLAPSED_HEIGHT, overflow: "hidden" } : undefined}
-          className="whitespace-pre-wrap font-body-md leading-relaxed text-on-surface"
+          className="max-w-[70ch] whitespace-pre-wrap font-body-md leading-relaxed text-on-surface"
         >
           {description.trim() === "" ? (
             <span className="text-on-surface-variant">Người bán chưa viết mô tả cho tin này.</span>
@@ -49,7 +49,7 @@ export default function DescriptionPanel({ description }: { description: string 
 
         {clipped && (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 rounded-b-3xl bg-gradient-to-t from-surface to-transparent"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-gradient-to-t from-surface to-transparent"
             aria-hidden="true"
           />
         )}

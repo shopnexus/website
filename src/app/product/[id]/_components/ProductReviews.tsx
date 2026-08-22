@@ -55,8 +55,8 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
 
   return (
     <section id="reviews" className="scroll-mt-32">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h2 className="font-headline-md font-bold text-on-surface">Đánh giá sản phẩm</h2>
+      <div className="mb-5 flex max-w-[980px] flex-wrap items-center justify-between gap-4">
+        <h2 className="font-headline-sm font-bold text-on-surface">Đánh giá sản phẩm</h2>
         {canReview && (
           <button
             type="button"
@@ -72,17 +72,19 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
       </div>
 
       {(summary?.review_count ?? product.review_count) > 0 && (
-        <ReviewSummaryPanel
-          summary={summary}
-          sold={product.sold}
-          favoriteCount={product.favorite_count}
-          activeRating={rating}
-          onPickRating={setRating}
-        />
+        <div className="max-w-[980px]">
+          <ReviewSummaryPanel
+            summary={summary}
+            sold={product.sold}
+            favoriteCount={product.favorite_count}
+            activeRating={rating}
+            onPickRating={setRating}
+          />
+        </div>
       )}
 
       {(summary?.review_count ?? product.review_count) > 0 && (
-        <div className="mt-6 flex flex-wrap items-center gap-2">
+        <div className="mt-5 flex max-w-[980px] flex-wrap items-center gap-2">
           <Chip
             selected={rating === null && !mediaOnly}
             onClick={() => {
@@ -132,10 +134,10 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
         </div>
       )}
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="mt-5 max-w-[980px] divide-y divide-outline-variant overflow-hidden rounded-2xl border border-outline-variant bg-surface">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-2xl border border-outline-variant bg-surface p-5">
+            <div key={index} className="p-4 sm:p-5">
               <div className="flex items-center gap-3">
                 <Skeleton shape="circle" className="h-10 w-10 shrink-0" />
                 <div className="flex-1">
@@ -148,11 +150,11 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
             </div>
           ))
         ) : reviews.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-outline-variant bg-surface-container-low px-6 py-12 text-center">
+          <div className="bg-surface-container-low px-6 py-12 text-center">
             <span className="material-symbols-outlined mb-2 text-4xl text-outline" aria-hidden="true">
               reviews
             </span>
-            <p className="font-body-lg text-on-surface-variant">
+            <p className="font-body-md text-on-surface-variant">
               {rating !== null
                 ? `Chưa có đánh giá ${rating} sao cho sản phẩm này.`
                 : mediaOnly
@@ -184,7 +186,7 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
       </div>
 
       {hasNextPage && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-5 flex max-w-[980px] justify-center">
           <button
             type="button"
             onClick={() => fetchNextPage()}
