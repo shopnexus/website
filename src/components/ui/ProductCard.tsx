@@ -76,6 +76,12 @@ interface ProductCardProps {
    * surfaces leave this off rather than pass it conditionally on `source`.
    */
   dismissible?: boolean;
+  /**
+   * Whether to name the place. Off on a shop's own page, where every card carries the same
+   * seller's pickup address: the same province printed a hundred and sixty times is not
+   * information, it is a column of noise where the posting date could be read instead.
+   */
+  showPlace?: boolean;
   /** True while this card is inside its undo window — still on screen, fading out. */
   isDismissing?: boolean;
   onDismiss?: (type: "not-interested" | "hidden") => void;
@@ -104,6 +110,7 @@ export default function ProductCard({
   className = "",
   source,
   dismissible = false,
+  showPlace = true,
   isDismissing = false,
   onDismiss,
 }: ProductCardProps) {
@@ -177,7 +184,7 @@ export default function ProductCard({
   // Distance when the browse sent a position, the province otherwise — the same rule the
   // listing's own facts use, because "cách 2,4 km" answers the question a province only
   // narrows.
-  const place = product.location
+  const place = showPlace && product.location
     ? product.location.distance_km != null
       ? `Cách ${product.location.distance_km.toFixed(1)} km`
       : shortProvince(product.location.province_name)

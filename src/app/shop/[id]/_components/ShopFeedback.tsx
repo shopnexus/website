@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import EmptyState from "@/components/ui/EmptyState";
+import Skeleton from "@/components/ui/Skeleton";
 import StarRating from "@/components/ui/StarRating";
 import { useAccountFeedback } from "@/hooks/api/useShop";
 import type { AccountId, ReputationRole } from "@/api/generated/types.gen";
@@ -46,27 +48,37 @@ export default function ShopFeedback({ accountId }: { accountId: AccountId }) {
       </div>
 
       {isLoading ? (
-        <div className="py-12 text-center text-on-surface-variant">Đang tải đánh giá...</div>
+        // The shape of the list, not a sentence about waiting: centred text on a blank panel
+        // is indistinguishable from a panel that failed to load.
+        <div className="max-w-[80ch] divide-y divide-outline-variant overflow-hidden rounded-2xl border border-outline-variant bg-surface">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="p-4">
+              <div className="flex items-center gap-3">
+                <Skeleton shape="circle" className="h-8 w-8 shrink-0" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <Skeleton className="mt-3 h-4 w-3/4" />
+            </div>
+          ))}
+        </div>
       ) : feedback.length === 0 ? (
-        <div className="py-12 text-center text-on-surface-variant">
-          <span className="material-symbols-outlined text-6xl text-outline mb-4" aria-hidden="true">
-            rate_review
-          </span>
-          <p className="font-body-lg">
-            {role === "seller"
-              ? "Chưa có đánh giá nào từ người mua."
-              : "Chưa có đánh giá nào từ người bán."}
-          </p>
+        <div className="max-w-[80ch]">
+        <EmptyState
+          icon="rate_review"
+          title={
+            role === "seller"
+              ? "Chưa có đánh giá nào từ người mua"
+              : "Chưa có đánh giá nào từ người bán"
+          }
+          description="Đánh giá chỉ đến từ những đơn đã hoàn thành, nên mỗi dòng ở đây đều là một giao dịch thật."
+        />
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-4">
+          <div className="max-w-[80ch] divide-y divide-outline-variant overflow-hidden rounded-2xl border border-outline-variant bg-surface">
             {feedback.map((entry) => (
-              <article
-                key={entry.id}
-                className="bg-surface rounded-2xl border border-outline-variant p-6"
-              >
-                <div className="flex items-center gap-3 mb-2">
+              <article key={entry.id} className="p-4">
+                <div className="mb-2 flex items-center gap-3">
                   <Link
                     href={`/shop/${entry.rater.id}`}
                     className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-secondary-container"
@@ -96,14 +108,14 @@ export default function ShopFeedback({ accountId }: { accountId: AccountId }) {
                   </span>
                 </div>
                 {entry.comment && (
-                  <p className="font-body-md leading-relaxed text-on-surface">{entry.comment}</p>
+                  <p className="font-body-sm leading-relaxed text-on-surface">{entry.comment}</p>
                 )}
               </article>
             ))}
           </div>
 
           {hasNextPage && (
-            <div className="mt-6 flex justify-center">
+            <div className="mt-5 flex max-w-[80ch] justify-center">
               <button
                 type="button"
                 onClick={() => fetchNextPage()}

@@ -10,7 +10,6 @@ import { SHOP_SORTS, type ShopListingsState, type ShopSort } from "../_hooks/use
 export default function ShopListings({ listings: state }: { listings: ShopListingsState }) {
   const {
     listings,
-    totalCount,
     isLoading,
     hasNextPage,
     fetchNextPage,
@@ -21,10 +20,11 @@ export default function ShopListings({ listings: state }: { listings: ShopListin
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-title-lg font-bold text-on-surface">
-          Tất cả sản phẩm{totalCount !== null ? ` (${totalCount})` : ""}
-        </h2>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
+        {/* The tab above already reads "Cửa hàng 164". A visible heading here says the same
+            number a second time; the region still needs a name for anyone not reading the tabs
+            visually, so it keeps one they can hear. */}
+        <h2 className="sr-only">Tất cả sản phẩm</h2>
         <MenuSelect
           label="Sắp xếp sản phẩm"
           value={sort}
@@ -47,7 +47,7 @@ export default function ShopListings({ listings: state }: { listings: ShopListin
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
             {listings.map((listing) => (
-              <ProductCard key={listing.id} product={listing} />
+              <ProductCard key={listing.id} product={listing} showPlace={false} />
             ))}
           </div>
 

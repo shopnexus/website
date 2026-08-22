@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import EmptyState from "@/components/ui/EmptyState";
 import Skeleton from "@/components/ui/Skeleton";
 import { useFollowers } from "@/hooks/api/useShop";
 import type { AccountId } from "@/api/generated/types.gen";
@@ -23,11 +24,12 @@ export default function ShopFollowers({ accountId }: { accountId: AccountId }) {
 
   if (followers.length === 0) {
     return (
-      <div className="py-12 text-center text-on-surface-variant">
-        <span className="material-symbols-outlined text-6xl text-outline mb-4" aria-hidden="true">
-          group
-        </span>
-        <p className="font-body-lg">Chưa có ai theo dõi gian hàng này.</p>
+      <div className="max-w-[80ch]">
+        <EmptyState
+          icon="group"
+          title="Chưa có ai theo dõi gian hàng này"
+          description="Theo dõi để nhận thông báo khi người bán đăng tin mới."
+        />
       </div>
     );
   }

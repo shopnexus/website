@@ -56,31 +56,41 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
 
           Slimmer than it was. At 192–256px it was the largest thing on the page and it says
           nothing — a shop with no cover image should not open with a quarter-screen of
-          gradient before the reader learns whose shop it is. */}
-      <div className="h-28 md:h-36 w-full relative overflow-hidden bg-primary">
+          gradient before the reader learns whose shop it is. The identity card overlaps its
+          bottom, so what actually shows is about seventy pixels. */}
+      <div className="relative h-24 w-full overflow-hidden bg-primary md:h-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,var(--color-primary-container),transparent_60%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent" />
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 md:px-8">
-        <div className="relative -top-10 flex flex-col gap-6 lg:flex-row lg:gap-8">
-          <aside className="w-full shrink-0 lg:w-72">
-            <div className="rounded-2xl border border-outline-variant bg-surface p-5 text-center shadow-sm">
-              <div className="relative -mt-14 mx-auto mb-3 h-24 w-24 overflow-hidden rounded-full border-4 border-surface bg-surface shadow-sm">
-                {seller.avatar?.url ? (
-                  <Image src={seller.avatar.url} alt={seller.name} fill className="object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-secondary-container font-headline-sm font-bold text-on-secondary-container">
-                    {seller.name.charAt(0)}
-                  </div>
-                )}
-              </div>
+      <div className="mx-auto max-w-[1440px] px-4 md:px-8">
+        {/* One band across the page rather than a column down the side.
+            The sidebar held an avatar, a name, two buttons and a joining date — about 300px of
+            content — and it stood beside a grid of a hundred and sixty products, so from the
+            second row down the left quarter of every screen was empty. Read once at the top, it
+            costs one band; kept in a column, it costs a quarter of the page for as long as the
+            reader scrolls. */}
+        {/* `relative`: the banner above is positioned, so without a stacking context of its own
+            this card was painted *under* it and lost its top forty-eight pixels — the shop's
+            name and half of both buttons. */}
+        <section className="relative -mt-12 rounded-2xl border border-outline-variant bg-surface p-4 shadow-sm sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-outline-variant bg-surface">
+              {seller.avatar?.url ? (
+                <Image src={seller.avatar.url} alt={seller.name} fill className="object-cover" sizes="80px" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-secondary-container font-headline-sm font-bold text-on-secondary-container">
+                  {seller.name.charAt(0)}
+                </div>
+              )}
+            </div>
 
-              <h1 className="flex items-center justify-center gap-1 font-title-lg font-bold text-on-surface">
-                {seller.name}
+            <div className="min-w-0 flex-1">
+              <h1 className="flex items-center gap-1.5 font-title-lg font-bold text-on-surface">
+                <span className="truncate">{seller.name}</span>
                 {seller.identity_verified && (
                   <span
-                    className="material-symbols-outlined text-primary text-[19px]"
+                    className="material-symbols-outlined shrink-0 text-[19px] text-primary"
                     style={{ fontVariationSettings: "'FILL' 1" }}
                     title="Đã xác minh danh tính"
                   >
@@ -89,54 +99,50 @@ export default function ShopProfilePage({ params }: { params: Promise<{ id: stri
                 )}
               </h1>
 
-              <div className="mb-4 mt-3 flex gap-2">
-                <FollowButton accountId={seller.id} className="h-10 flex-1" />
-                <StartChatButton
-                  sellerId={seller.id}
-                  currentPath={`/shop/${seller.id}`}
-                  label="Nhắn tin"
-                  className="h-10 flex-1"
+              <div className="mt-1.5">
+                <ShopStats
+                  followerCount={seller.follower_count}
+                  joinedAt={seller.created_at}
+                  reputation={reputation}
                 />
               </div>
 
-              <ShopStats
-                followerCount={seller.follower_count}
-                joinedAt={seller.created_at}
-                reputation={reputation}
-              />
-
+              {/* Two lines here; the whole thing is what the "Giới thiệu" tab is for. */}
               {seller.description && (
-                <div className="mt-4 text-left">
-                  <div className="mb-1.5 font-label-sm uppercase tracking-wider text-on-surface-variant">
-                    Giới thiệu
-                  </div>
-                  <p className="font-body-sm text-on-surface-variant leading-relaxed">
-                    {seller.description}
-                  </p>
-                </div>
+                <p className="mt-2 line-clamp-2 max-w-[80ch] font-body-sm leading-relaxed text-on-surface-variant">
+                  {seller.description}
+                </p>
               )}
             </div>
-          </aside>
 
-          <div className="mt-10 flex-1 lg:mt-0">
-            <div className="mb-5">
-              <Tabs tabs={tabs} activeTabId={activeTab} onChange={setActiveTab} />
+            <div className="flex gap-2 sm:shrink-0">
+              <FollowButton accountId={seller.id} className="h-10 flex-1 sm:flex-none sm:px-6" />
+              <StartChatButton
+                sellerId={seller.id}
+                currentPath={`/shop/${seller.id}`}
+                label="Nhắn tin"
+                className="h-10 flex-1 sm:flex-none sm:px-6"
+              />
             </div>
-
-            {activeTab === "store" && <ShopListings listings={listings} />}
-            {activeTab === "reviews" && <ShopFeedback accountId={seller.id} />}
-            {activeTab === "followers" && <ShopFollowers accountId={seller.id} />}
-            {activeTab === "about" && (
-              <div className="bg-surface rounded-2xl border border-outline-variant p-6 md:p-8">
-                <h2 className="font-headline-sm font-bold text-on-surface mb-4">
-                  Về {seller.name}
-                </h2>
-                <p className="font-body-md text-on-surface-variant leading-relaxed">
-                  {seller.description || "Người bán chưa viết giới thiệu."}
-                </p>
-              </div>
-            )}
           </div>
+        </section>
+
+        <div className="mt-6">
+          <div className="mb-5">
+            <Tabs tabs={tabs} activeTabId={activeTab} onChange={setActiveTab} />
+          </div>
+
+          {activeTab === "store" && <ShopListings listings={listings} />}
+          {activeTab === "reviews" && <ShopFeedback accountId={seller.id} />}
+          {activeTab === "followers" && <ShopFollowers accountId={seller.id} />}
+          {activeTab === "about" && (
+            <div className="max-w-[80ch] rounded-2xl border border-outline-variant bg-surface p-5">
+              <h2 className="font-title-lg font-bold text-on-surface">Về {seller.name}</h2>
+              <p className="mt-3 whitespace-pre-wrap font-body-md leading-relaxed text-on-surface-variant">
+                {seller.description || "Người bán chưa viết giới thiệu."}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
