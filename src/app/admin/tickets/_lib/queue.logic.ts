@@ -9,9 +9,10 @@ import type { TargetView, TicketQueueTab } from "./types"
  */
 
 export const TICKET_STATUS_STYLES: Record<TicketStatus, string> = {
-	open: "bg-primary/10 text-primary border border-primary/20",
-	reviewing: "bg-secondary-container text-on-secondary-container",
-	resolved: "bg-surface-container-high text-on-surface-variant",
+	// Who it is waiting on: nobody has it, somebody has it, nobody needs to.
+	open: "bg-status-warn text-on-status-warn",
+	reviewing: "bg-status-info text-on-status-info",
+	resolved: "bg-status-ok text-on-status-ok",
 }
 
 const REF_TYPE_VI: Record<TicketRefType, string> = {

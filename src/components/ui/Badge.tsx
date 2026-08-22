@@ -21,10 +21,12 @@ const variantStyles: Record<BadgeVariant, string> = {
   primary: "bg-primary text-on-primary",
   secondary: "bg-secondary-container text-on-secondary-container",
   error: "bg-error text-on-error",
-  success: "bg-[#10b981] text-white",
-  // Waiting on somebody. The same pair the order countdown chip already uses, so a
-  // "Chờ lấy hàng" badge and the "còn 4 giờ" beside it read as one thought.
-  warning: "bg-tertiary-container text-on-tertiary-container",
+  // Both of these read off the status scale now. `success` was `bg-[#10b981]`, an emerald
+  // that exists in no token and in no other component, while every other "this landed"
+  // state on the site was mint; and `warning` was `tertiary-container`, which is #924628 —
+  // so every "Chờ thanh toán", "Chờ xác nhận" and "Chờ lấy hàng" badge was dark brown.
+  success: "bg-status-ok text-on-status-ok",
+  warning: "bg-status-warn text-on-status-warn",
   outline: "bg-transparent text-on-surface border border-outline-variant",
   surface: "bg-surface-container-high text-on-surface",
   glass: "bg-black/50 text-white backdrop-blur-md", 

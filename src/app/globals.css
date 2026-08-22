@@ -65,6 +65,41 @@
   --color-tertiary-container: #924628;
   --color-on-tertiary-container: #ffc9b6;
 
+  /* ── Status ──
+     One scale for "what state is this row in", separate from the brand on purpose.
+
+     Status was being coloured out of the brand tokens, and two of those pairs are inverted
+     relative to the other two: `primary-container` (38% L) and `tertiary-container`
+     (#924628) hold dark values, while `secondary-container` (#a8ece4) and `error-container`
+     (#ffdad6) hold light ones. So `bg-X-container text-on-X-container` renders a soft tint
+     for two tokens and a heavy dark block for the other two, and which one a chip got
+     depended only on which token its author reached for. "Waiting" ended up rendered three
+     different ways: dark brown for a `Badge variant="warning"` and for the queue's wait
+     gutter, peach for a payment session's `pending` chip (out of the `*-fixed` family that
+     nothing else uses), and dark teal for a withdrawal `awaiting-review`. Same word, three
+     colours, three screens.
+
+     Five tones, one form: a light tint with dark text, no exceptions. A saturated block is
+     reserved for things that are not status — a button, a brand mark — so that when a row
+     carries colour it is because of what the row *is*.
+
+     What each one means, so a new status has somewhere to go rather than a new hex:
+       neutral — nothing is owed. Done, cancelled, archived.
+       info    — in hand. Somebody has it, it is moving.
+       warn    — owed to us. Nobody has it yet, or it is waiting on a person.
+       danger  — it went wrong, or it was refused.
+       ok      — it landed. Approved, published, paid. */
+  --color-status-neutral: oklch(94.5% 0.004 240);
+  --color-on-status-neutral: oklch(40% 0.010 240);
+  --color-status-info: oklch(93.5% 0.042 245);
+  --color-on-status-info: oklch(40% 0.110 252);
+  --color-status-warn: oklch(93.5% 0.072 85);
+  --color-on-status-warn: oklch(42% 0.100 66);
+  --color-status-danger: oklch(93.5% 0.055 25);
+  --color-on-status-danger: oklch(42% 0.150 27);
+  --color-status-ok: oklch(93.5% 0.055 165);
+  --color-on-status-ok: oklch(38% 0.080 168);
+
   /* ── Error / Feedback ── */
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;

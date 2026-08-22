@@ -3,10 +3,10 @@ import { LISTING_CONDITION_VI, PRICE_MODE_VI } from "@/lib/dictionaries"
 import type { EditDiffRow } from "./types"
 
 export const LISTING_STATUS_STYLES: Record<ListingStatus, string> = {
-	draft: "bg-surface-container-high text-on-surface-variant",
-	pending: "bg-primary/10 text-primary border border-primary/20",
-	active: "bg-secondary-container text-on-secondary-container",
-	hidden: "bg-error-container text-on-error-container",
+	draft: "bg-status-neutral text-on-status-neutral",
+	pending: "bg-status-warn text-on-status-warn",
+	active: "bg-status-ok text-on-status-ok",
+	hidden: "bg-status-danger text-on-status-danger",
 }
 
 /**

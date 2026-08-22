@@ -29,20 +29,30 @@ export const STATUS_FILTERS: ReadonlyArray<{
 /** How many rows one read brings back. The route has no second page — see the hook. */
 export const LIMIT_CHOICES: ReadonlyArray<number> = [25, 50, 100]
 
+/**
+ * The 4px rail down the left of a row, and the chip that names the same state.
+ *
+ * They were coloured out of the brand: `bg-tertiary` for waiting, `bg-primary` for success.
+ * The chip was worse — `tertiary-fixed`, a token family nothing else in the app touches — so
+ * "Chờ thanh toán" was a peach chip here and a dark brown one wherever `Badge
+ * variant="warning"` drew the same words. Both now read off the status scale, so the rail
+ * and the chip in one row are the same colour, and that colour means the same thing on
+ * every other screen.
+ */
 export const STATUS_RAIL: Record<PaymentSessionStatus, string> = {
-	pending: "bg-tertiary",
-	processing: "bg-tertiary",
-	success: "bg-primary",
-	cancelled: "bg-outline",
-	failed: "bg-error",
+	pending: "bg-on-status-warn",
+	processing: "bg-on-status-info",
+	success: "bg-on-status-ok",
+	cancelled: "bg-on-status-neutral",
+	failed: "bg-on-status-danger",
 }
 
 export const STATUS_CHIP: Record<PaymentSessionStatus, string> = {
-	pending: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
-	processing: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
-	success: "bg-secondary-container text-on-secondary-container",
-	cancelled: "bg-surface-container-high text-on-surface-variant",
-	failed: "bg-error-container text-on-error-container",
+	pending: "bg-status-warn text-on-status-warn",
+	processing: "bg-status-info text-on-status-info",
+	success: "bg-status-ok text-on-status-ok",
+	cancelled: "bg-status-neutral text-on-status-neutral",
+	failed: "bg-status-danger text-on-status-danger",
 }
 
 /**

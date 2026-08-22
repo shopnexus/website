@@ -36,10 +36,10 @@ export const KIND_ICONS: Record<WalletTransactionKind, string> = {
 
 /** Chip styling per outcome, so the four states are told apart without reading them. */
 export const OUTCOME_STYLES: Record<WithdrawalOutcome, string> = {
-	"awaiting-review": "bg-primary-container text-on-primary-container",
-	approved: "bg-secondary-container text-on-secondary-container",
-	rejected: "bg-error/10 text-error",
-	cancelled: "bg-surface-container-high text-on-surface-variant",
+	"awaiting-review": "bg-status-warn text-on-status-warn",
+	approved: "bg-status-ok text-on-status-ok",
+	rejected: "bg-status-danger text-on-status-danger",
+	cancelled: "bg-status-neutral text-on-status-neutral",
 }
 
 /**

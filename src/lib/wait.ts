@@ -39,11 +39,18 @@ export function waitSince(createdAt: string, now: number): Wait {
   return { label, tone: "fresh" };
 }
 
-/** The gutter's colour, keyed on the tone rather than recomputed per component. */
+/**
+ * The gutter's colour, keyed on the tone rather than recomputed per component.
+ *
+ * `aging` was `tertiary-container`, which in this palette is #924628 — a dark brown block,
+ * and the heaviest object in a queue row. Nobody chose brown for "a day old": it is what
+ * that token happens to hold, because two of the four accent pairs are inverted (see the
+ * status scale in globals.css). Amber is what the state actually means.
+ */
 export const WAIT_TONE_STYLES: Record<WaitTone, string> = {
-  fresh: "bg-surface-container-high text-on-surface-variant",
-  aging: "bg-tertiary-container text-on-tertiary-container",
-  stale: "bg-error-container text-on-error-container",
+  fresh: "bg-status-neutral text-on-status-neutral",
+  aging: "bg-status-warn text-on-status-warn",
+  stale: "bg-status-danger text-on-status-danger",
 };
 
 /** The oldest of a set of rows, which is the one number an overview card leads with. */
