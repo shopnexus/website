@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
 	getCategoriesOptions,
+	getListingsByIdChatSuggestionsOptions,
 	getListingsByIdOptions,
 	getListingsInfiniteOptions,
 	getListingsOptions,
@@ -60,6 +61,28 @@ export function useListing(id: string | undefined) {
 		...getListingsByIdOptions({ path: { id: id! } }),
 		select: unwrapData,
 		enabled: Boolean(id),
+	})
+}
+
+/**
+ * Openers a buyer can tap to start a chat about a listing.
+ *
+ * Drawn from the listing by a model on the server, which is why it is a request rather than a
+ * list in the client: what makes them worth anything is that they skip what the page has already
+ * answered, and only the server has the whole listing to check against.
+ *
+ * `silent`, and it stays fresh for the session: a failure here is not the reader's problem — the
+ * caller falls back to a fixed list and the chat opens either way — and a second set of questions
+ * for a listing that has not changed is a model call for nothing.
+ */
+export function useChatSuggestions(listingId: string | undefined, enabled = true) {
+	return useQuery({
+		...getListingsByIdChatSuggestionsOptions({ path: { id: listingId! } }),
+		select: unwrapData,
+		enabled: enabled && Boolean(listingId),
+		staleTime: Infinity,
+		retry: false,
+		meta: { silent: true },
 	})
 }
 

@@ -3,6 +3,11 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { useCoarsePointer } from "@/hooks/useMediaQuery";
 
+const MAX_HEIGHT_PX = 120;
+
+/** Chip-shaped and uneven, so the wait looks like questions rather than like a loading bar. */
+const PLACEHOLDER_WIDTHS = ["9rem", "12rem", "7rem"];
+
 /**
  * The dock before there is anything to read: a few questions worth asking, and a box.
  *
@@ -18,16 +23,21 @@ import { useCoarsePointer } from "@/hooks/useMediaQuery";
  * message into a stranger's inbox is a question. Once the thread exists the real composer
  * takes over, pictures and all.
  */
-const MAX_HEIGHT_PX = 120;
-
 export default function ChatDockIntro({
   sellerName,
   prompts,
+  isLoadingPrompts,
   isSending,
   onSend,
 }: {
   sellerName: string;
   prompts: readonly string[];
+  /**
+   * Whether the server is still writing them. Placeholders rather than the fallback list while
+   * it works: chips that are replaced under the reader's finger are worse than chips that
+   * arrive a second late.
+   */
+  isLoadingPrompts: boolean;
   isSending: boolean;
   /** Resolves false when the send failed, and the text stays where it was typed. */
   onSend: (body: string) => Promise<boolean>;
@@ -64,16 +74,25 @@ export default function ChatDockIntro({
         </p>
 
         <div className="flex flex-wrap gap-1.5">
-          {prompts.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={() => pick(prompt)}
-              className="rounded-full border border-outline-variant bg-surface px-3 py-1.5 text-left font-label-sm text-on-surface transition-colors hover:border-primary hover:text-primary"
-            >
-              {prompt}
-            </button>
-          ))}
+          {isLoadingPrompts
+            ? PLACEHOLDER_WIDTHS.map((width) => (
+                <span
+                  key={width}
+                  className="skeleton-shimmer h-8 rounded-full"
+                  style={{ width }}
+                  aria-hidden="true"
+                />
+              ))
+            : prompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => pick(prompt)}
+                  className="rounded-full border border-outline-variant bg-surface px-3 py-1.5 text-left font-label-sm text-on-surface transition-colors hover:border-primary hover:text-primary"
+                >
+                  {prompt}
+                </button>
+              ))}
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ChatThread from "@/components/chat/ChatThread";
+import { useChatSuggestions } from "@/hooks/api/useCatalog";
 import { useAuthStore } from "@/stores/use-auth-store";
 import type { ListingDetail, Variant } from "@/api/generated/types.gen";
 import { chatPrompts } from "../_lib/chat-prompts";
@@ -51,6 +52,21 @@ export default function ProductChatDock({
 
   const isOwn = me?.id === product.seller.id;
   const unread = conversation?.unread ?? 0;
+
+  /**
+   * The openers, written for this listing by the server.
+   *
+   * Asked for only when they will be shown — the panel is open, the reader is signed in, and
+   * there is no thread yet — because each call costs a model call. `chatPrompts` is the fallback
+   * when that request fails or the deployment has no model behind it: a chat that opens without
+   * chips still opens, and the fixed list is better than an empty row.
+   */
+  const wantsPrompts = open && isAuthenticated && !isOwn && !conversationId;
+  const suggestions = useChatSuggestions(product.id, wantsPrompts);
+  const prompts =
+    suggestions.data && suggestions.data.questions.length > 0
+      ? suggestions.data.questions
+      : chatPrompts(product);
 
   // Escape closes it, from anywhere inside. A panel that can only be dismissed by finding its
   // × is a panel that covers the corner of the page until the reader navigates away.
@@ -188,7 +204,8 @@ export default function ProductChatDock({
       ) : (
         <ChatDockIntro
           sellerName={product.seller.name}
-          prompts={chatPrompts(product)}
+          prompts={prompts}
+          isLoadingPrompts={suggestions.isLoading}
           isSending={isSending}
           onSend={sendFirst}
         />

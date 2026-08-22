@@ -3,13 +3,17 @@ import type { ListingDetail } from "@/api/generated/types.gen"
 import { shortLocation } from "./facts"
 
 /**
- * The questions somebody actually opens a chat to ask, written out so the first one costs a
- * tap instead of a paragraph.
+ * The fallback openers: what the dock offers when the server's own are not coming.
  *
- * They are drawn from the listing rather than a fixed list, because a suggestion that does
- * not apply is worse than no suggestion: offering "thương lượng" on a fixed price teaches the
- * reader that these chips are decoration, and asking about warranty on a listing with no
- * warranty field puts a question to the seller that the page already answered.
+ * `GET /listings/{id}/chat-suggestions` is where the real ones come from — a model reads the
+ * whole listing and asks about what it does *not* already answer, which is the difference
+ * between a chip worth tapping and a chip that asks about warranty on a listing whose warranty
+ * is printed above it. This is the same idea with only the checks a client can make for itself:
+ * skip haggling on a fixed price, skip warranty when the listing states one.
+ *
+ * It exists because a chat that opens without chips still opens. A model gateway that is down,
+ * out of quota, or simply not configured in this deployment must not turn "ask the seller" into
+ * an empty box.
  *
  * Four at most. Past that the chips are a menu to read, which is the thing they exist to
  * save the reader from.

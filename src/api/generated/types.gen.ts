@@ -197,6 +197,14 @@ export type ChangePasswordRequest = {
     new_password: string;
 };
 
+/**
+ * Opening messages for a buyer, written in their voice — no greeting, no emoji, one sentence each. Suggestions and nothing more: the client drops the tapped one into the composer, and the buyer edits or ignores it.
+ *
+ */
+export type ChatQuestions = {
+    questions: Array<string>;
+};
+
 export type ChatUnreadCount = {
     /**
      * How many threads have anything unread.
@@ -6111,6 +6119,50 @@ export type PatchListingsByIdResponses = {
 };
 
 export type PatchListingsByIdResponse = PatchListingsByIdResponses[keyof PatchListingsByIdResponses];
+
+export type GetListingsByIdChatSuggestionsData = {
+    body?: never;
+    path: {
+        /**
+         * The opaque id or the public slug — a buyer arrives from a shared link.
+         */
+        id: ListingRef;
+    };
+    query?: never;
+    url: '/listings/{id}/chat-suggestions';
+};
+
+export type GetListingsByIdChatSuggestionsErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+    /**
+     * The listing is the caller's own, so there is nobody to ask
+     */
+    422: Error;
+    /**
+     * The model did not return usable questions
+     */
+    502: Error;
+};
+
+export type GetListingsByIdChatSuggestionsError = GetListingsByIdChatSuggestionsErrors[keyof GetListingsByIdChatSuggestionsErrors];
+
+export type GetListingsByIdChatSuggestionsResponses = {
+    /**
+     * Questions to offer, never fewer than one
+     */
+    200: {
+        data: ChatQuestions;
+    };
+};
+
+export type GetListingsByIdChatSuggestionsResponse = GetListingsByIdChatSuggestionsResponses[keyof GetListingsByIdChatSuggestionsResponses];
 
 export type GetListingsByIdHistoryData = {
     body?: never;

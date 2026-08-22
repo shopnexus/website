@@ -12,6 +12,7 @@ import { usePurchaseActions } from "../_hooks/usePurchaseActions";
 import { useScrolledPast } from "../_hooks/useScrolledPast";
 import BuyPanel from "./BuyPanel";
 import DescriptionPanel from "./DescriptionPanel";
+import DescriptionPreview from "./DescriptionPreview";
 import ProductChatDock from "./ProductChatDock";
 import ProductHeadline from "./ProductHeadline";
 import QuickFacts from "./QuickFacts";
@@ -137,8 +138,9 @@ export default function ProductInteractiveViewer({
           </div>
 
           <div className="lg:col-start-2 lg:row-start-3 xl:col-start-2 xl:row-start-2">
-            <div className="rounded-2xl border border-outline-variant bg-surface p-4">
+            <div className="flex flex-col gap-4 rounded-2xl border border-outline-variant bg-surface p-4">
               <QuickFacts facts={listingFacts(product)} />
+              <DescriptionPreview description={product.description} />
             </div>
 
             {/* One surface for every complaint: the ticket carries the kind and the id of what
