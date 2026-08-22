@@ -1,5 +1,7 @@
 "use client"
 
+import Button from "@/components/ui/Button"
+
 import NotificationFeed from "./_components/NotificationFeed"
 import NotificationSidebar from "./_components/NotificationSidebar"
 import { useNotificationInbox } from "./_hooks/useNotificationInbox"
@@ -16,23 +18,28 @@ export default function NotificationsPage() {
 					unreadOnly={inbox.unreadOnly}
 					onUnreadOnlyChange={inbox.setUnreadOnly}
 					unreadCount={inbox.unreadCount}
+					unreadByCategory={inbox.unreadByCategory}
 				/>
 
 				<section className="md:col-span-8 lg:col-span-9 space-y-6">
-					<div className="flex justify-between items-center gap-3 px-2 pb-2 border-b border-outline-variant/20">
-						<span className="text-label-sm font-bold uppercase tracking-widest text-outline">
+					<div className="flex justify-between items-center gap-3 px-2 pb-2 border-b border-outline-variant">
+						<span className="text-label-sm uppercase tracking-widest text-outline">
 							{inbox.unreadOnly ? "Chưa đọc" : "Hoạt động gần đây"} ({inbox.notifications.length})
 						</span>
 						{inbox.unreadCount > 0 && (
-							<button
-								type="button"
+							<Button
+								variant="ghost"
+								size="sm"
 								onClick={inbox.markAllRead}
 								disabled={inbox.isMarking}
-								className="text-label-sm text-primary font-bold hover:opacity-75 transition-opacity cursor-pointer flex items-center gap-1 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full disabled:opacity-50"
+								icon={
+									<span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+										done_all
+									</span>
+								}
 							>
-								<span className="material-symbols-outlined text-[16px]">done_all</span>
-								<span>Đánh dấu đã đọc tất cả</span>
-							</button>
+								Đánh dấu đã đọc tất cả
+							</Button>
 						)}
 					</div>
 
@@ -43,7 +50,7 @@ export default function NotificationsPage() {
 						hasNextPage={inbox.hasNextPage}
 						isFetchingNextPage={inbox.isFetchingNextPage}
 						onLoadMore={() => inbox.fetchNextPage()}
-						onMarkReadUpTo={inbox.markReadUpTo}
+						onMarkRowRead={inbox.markRowRead}
 						isMarking={inbox.isMarking}
 					/>
 				</section>

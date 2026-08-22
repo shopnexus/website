@@ -1,10 +1,11 @@
 "use client"
 
 import type { Notification } from "@/api/generated/types.gen"
+import NotificationRow from "@/components/notifications/NotificationRow"
+import Button from "@/components/ui/Button"
+import EmptyState from "@/components/ui/EmptyState"
+import Skeleton from "@/components/ui/Skeleton"
 import type { DayGroup } from "@/lib/day"
-
-import { notificationKey } from "../_lib/notifications.logic"
-import NotificationCard from "./NotificationCard"
 
 export default function NotificationFeed({
 	days,
@@ -13,7 +14,7 @@ export default function NotificationFeed({
 	hasNextPage,
 	isFetchingNextPage,
 	onLoadMore,
-	onMarkReadUpTo,
+	onMarkRowRead,
 	isMarking,
 }: {
 	days: ReadonlyArray<DayGroup<Notification>>
@@ -22,34 +23,42 @@ export default function NotificationFeed({
 	hasNextPage: boolean
 	isFetchingNextPage: boolean
 	onLoadMore: () => void
-	onMarkReadUpTo: (createdAt: string) => void
+	onMarkRowRead: (id: string) => void
 	isMarking: boolean
 }) {
+	// Skeleton rows rather than a spinner: the feed's shape is known before its contents are,
+	// so the page does not jump once they land.
 	if (isLoading) {
 		return (
-			<div className="flex justify-center py-20">
-				<span className="material-symbols-outlined animate-spin text-primary text-4xl">
-					progress_activity
-				</span>
+			<div className="space-y-3">
+				{[0, 1, 2, 3].map((i) => (
+					<div key={i} className="flex gap-3 p-5 rounded-2xl border border-outline-variant">
+						<Skeleton shape="circle" className="w-12 h-12 shrink-0" />
+						<div className="flex-grow space-y-2">
+							<Skeleton className="h-4 w-2/5" />
+							<Skeleton className="h-3 w-4/5" />
+							<Skeleton className="h-3 w-1/4" />
+						</div>
+					</div>
+				))}
 			</div>
 		)
 	}
 
 	if (days.length === 0) {
-		return (
-			<div className="text-center py-20 bg-surface-container-lowest rounded-3xl border border-outline-variant/20 space-y-3">
-				<span className="material-symbols-outlined text-[48px] text-outline/50">
-					notifications_off
-				</span>
-				<p className="text-body-lg font-bold text-on-surface">
-					{unreadOnly ? "Bạn đã đọc hết rồi" : "Không có thông báo nào"}
-				</p>
-				<p className="text-body-sm text-on-surface-variant">
-					{unreadOnly
-						? "Tắt bộ lọc để xem lại các thông báo đã đọc."
-						: "Thông báo về đơn hàng, tin nhắn và khuyến mãi sẽ xuất hiện ở đây."}
-				</p>
-			</div>
+		return unreadOnly ? (
+			<EmptyState
+				icon="mark_email_read"
+				title="Bạn đã đọc hết rồi"
+				description="Tắt bộ lọc để xem lại các thông báo đã đọc."
+			/>
+		) : (
+			<EmptyState
+				icon="notifications_off"
+				title="Không có thông báo nào"
+				description="Thông báo về đơn hàng, tin nhắn và khuyến mãi sẽ xuất hiện ở đây."
+				action={{ label: "Khám phá sản phẩm", href: "/search" }}
+			/>
 		)
 	}
 
@@ -57,17 +66,20 @@ export default function NotificationFeed({
 		<div className="space-y-8">
 			{days.map((day) => (
 				<div key={day.key} className="space-y-3">
-					<div className="flex items-center gap-2 px-2 text-label-xs font-bold uppercase tracking-widest text-outline">
+					<div className="flex items-center gap-2 px-2 text-label-xs uppercase tracking-widest text-outline">
 						<span className="w-2 h-2 rounded-full bg-outline-variant inline-block" />
 						<span>{day.label}</span>
 					</div>
 					<div className="space-y-3">
 						{day.items.map((notification) => (
-							<NotificationCard
-								key={notificationKey(notification)}
+							// The row's own id. It used to be `created_at`, which is also what the
+							// read bound was expressed against — two jobs for one value, and two
+							// rows landing in the same instant collided as one key.
+							<NotificationRow
+								key={notification.id}
 								notification={notification}
 								isMarking={isMarking}
-								onMarkRead={() => onMarkReadUpTo(notification.created_at)}
+								onMarkRead={() => onMarkRowRead(notification.id)}
 							/>
 						))}
 					</div>
@@ -76,14 +88,9 @@ export default function NotificationFeed({
 
 			{hasNextPage && (
 				<div className="flex justify-center pt-4">
-					<button
-						type="button"
-						onClick={onLoadMore}
-						disabled={isFetchingNextPage}
-						className="px-6 py-2 rounded-full border border-outline-variant text-on-surface-variant text-label-sm font-bold hover:bg-surface-container transition-colors disabled:opacity-50 cursor-pointer"
-					>
+					<Button variant="outline" onClick={onLoadMore} disabled={isFetchingNextPage}>
 						{isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
-					</button>
+					</Button>
 				</div>
 			)}
 		</div>
