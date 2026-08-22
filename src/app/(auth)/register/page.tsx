@@ -21,7 +21,7 @@ export default function RegisterPage() {
 
         {/* Hero Text */}
         <div className="relative z-10 max-w-lg mt-auto mb-24">
-          <h1 className="font-headline text-[3.5rem] leading-[1.1] font-extrabold text-white mb-6 tracking-tight">
+          <h1 className="text-display-lg text-white mb-6 tracking-tight">
             Nền tảng của<br/>thương mại<br/>thế hệ mới.
           </h1>
           <p className="font-body text-primary-fixed text-lg font-medium">
@@ -52,14 +52,14 @@ export default function RegisterPage() {
       <div className="w-full md:w-1/2 flex flex-col min-h-screen overflow-y-auto">
         <div className="flex-1 flex flex-col justify-center px-8 py-12 lg:px-24">
           <div className="w-full max-w-md mx-auto">
-            <h2 className="font-headline text-[2.5rem] leading-tight font-extrabold text-on-surface mb-8">Tạo tài khoản</h2>
+            <h2 className="text-display-md text-on-surface mb-8">Tạo tài khoản</h2>
             <RegisterForm />
           </div>
           
           {/* Footer */}
-          <div className="mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-outline-variant/30">
-            <p className="text-[11px] text-outline font-medium">© 2024 ShopNexus. Thương mại vì con người.</p>
-            <div className="flex gap-6 text-[11px] text-outline font-medium">
+          <div className="mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-outline-variant">
+            <p className="text-label-xs text-outline">© 2024 ShopNexus. Thương mại vì con người.</p>
+    <div className="flex gap-6 text-label-xs text-outline">
               <Link href="/privacy" className="hover:text-on-surface transition-colors">Bảo mật</Link>
               <Link href="/terms" className="hover:text-on-surface transition-colors">Điều khoản</Link>
               <Link href="/cookies" className="hover:text-on-surface transition-colors">Cookies</Link>

@@ -37,12 +37,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             className={[
-              "w-full rounded-2xl border bg-surface-container-lowest text-[16px] text-on-surface outline-none transition-all duration-300 shadow-sm",
+"w-full rounded-2xl border bg-surface-container-lowest text-body-md text-on-surface outline-none transition-all duration-300 shadow-sm",
               "focus:bg-surface focus:border-primary focus:ring-4 focus:ring-primary/15 focus:shadow-md",
               "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-container",
               error
                 ? "border-error focus:border-error focus:ring-error/20 text-error"
-                : "border-outline-variant hover:border-primary/50",
+                : "border-outline hover:border-primary",
               leftIcon ? "pl-11" : "pl-4",
               rightElement ? "pr-12" : "pr-4",
               "py-3",
@@ -59,7 +59,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <span className="text-error text-[12px] mt-1 ml-1">{error}</span>
+          <span className="text-error text-body-xs mt-1 ml-1">{error}</span>
         )}
       </div>
     );

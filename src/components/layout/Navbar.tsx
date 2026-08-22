@@ -37,11 +37,11 @@ export default function Navbar(): React.ReactElement {
       <nav
         className={`sticky top-0 w-full z-50 transition-all duration-300 ${
           isScrolledPastHero
-            ? "bg-background/95 backdrop-blur-md border-b border-outline-variant/30 shadow-md"
-            : "bg-background/80 backdrop-blur-md border-b border-outline-variant/20 shadow-sm"
+            ? "bg-background/95 backdrop-blur-md border-b border-outline-variant shadow-md"
+            : "bg-background/80 backdrop-blur-md border-b border-outline-variant shadow-sm"
         }`}
       >
-        <div className="px-4 md:px-6 py-3.5 max-w-[1440px] mx-auto flex justify-between items-center gap-3 md:gap-4">
+        <div className="px-4 md:px-6 py-3.5 max-w-[1440px] mx-auto flex flex-wrap md:flex-nowrap justify-between items-center gap-y-2 gap-x-3 md:gap-4">
           <div className="flex items-center gap-6 md:gap-8 shrink-0">
             <Link href="/" className="flex items-center gap-2.5 font-headline font-extrabold text-xl tracking-tighter text-primary shrink-0 group">
               <img
@@ -49,7 +49,7 @@ export default function Navbar(): React.ReactElement {
                 alt="ShopNexus Logo"
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
               />
-              <span>ShopNexus</span>
+              <span className="hidden sm:inline">ShopNexus</span>
             </Link>
             <div className={`${shouldShowSearchBar ? "hidden xl:flex" : "hidden md:flex"} items-center gap-6 transition-all duration-300`}>
               <Link
@@ -76,7 +76,7 @@ export default function Navbar(): React.ReactElement {
           </div>
 
           <div
-            className={`flex-1 transition-all duration-500 ease-out flex justify-center ${
+            className={`order-last md:order-none basis-full md:basis-0 flex-1 min-w-0 transition-all duration-500 ease-out flex justify-center ${
               shouldShowSearchBar
                 ? "max-w-lg opacity-100 scale-100 translate-y-0 mx-2 md:mx-4 pointer-events-auto"
                 : "max-w-0 opacity-0 scale-95 -translate-y-3 mx-0 pointer-events-none overflow-hidden"
@@ -84,7 +84,7 @@ export default function Navbar(): React.ReactElement {
           >
             <form
               onSubmit={handleSearch}
-              className="flex items-center gap-2 bg-surface-container rounded-full px-3.5 md:px-4 py-1.5 w-full border border-outline-variant/30 focus-within:border-primary/50 focus-within:bg-surface-container-lowest focus-within:shadow-md transition-all shadow-sm"
+              className="flex items-center gap-2 bg-surface-container rounded-full px-3.5 md:px-4 py-1.5 w-full border border-outline-variant focus-within:border-primary/50 focus-within:bg-surface-container-lowest focus-within:shadow-md transition-all shadow-sm"
             >
               <span className="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0" aria-hidden="true">
                 search
@@ -109,7 +109,7 @@ export default function Navbar(): React.ReactElement {
             </form>
           </div>
 
-          <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 md:gap-3 min-w-0">
             {!mounted ? (
               <div className="w-32 h-10 bg-surface-variant/30 animate-pulse rounded-full"></div>
             ) : isAuthenticated ? (
@@ -131,7 +131,7 @@ export default function Navbar(): React.ReactElement {
                     shopping_bag
                   </span>
                   {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-label-xs px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
                       {cartItemsCount}
                     </span>
                   )}
@@ -152,7 +152,7 @@ export default function Navbar(): React.ReactElement {
                     chat_bubble
                   </span>
                   {unreadMessagesCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-label-xs px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
                       {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
                     </span>
                   )}
@@ -200,15 +200,15 @@ export default function Navbar(): React.ReactElement {
                     shopping_bag
                   </span>
                   {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-label-xs px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
                       {cartItemsCount}
                     </span>
                   )}
                 </Link>
-                <Link href="/login" className="font-headline font-bold text-label-md text-on-surface hover:text-primary px-4 py-2 transition-colors">
+                <Link href="/login" className="font-headline font-bold text-label-sm sm:text-label-md text-on-surface hover:text-primary px-1.5 sm:px-4 py-2 transition-colors whitespace-nowrap">
                   Đăng nhập
                 </Link>
-                <Link href="/register" className="font-headline font-bold text-label-md bg-primary text-on-primary px-5 py-2 rounded-full shadow-sm hover:opacity-90 transition-all">
+                <Link href="/register" className="font-headline font-bold text-label-sm sm:text-label-md bg-primary text-on-primary px-2.5 sm:px-5 py-2 rounded-full shadow-sm hover:opacity-90 transition-all whitespace-nowrap">
                   Đăng ký
                 </Link>
               </div>
@@ -218,7 +218,7 @@ export default function Navbar(): React.ReactElement {
       </nav>
 
       {!pathname?.startsWith("/product") && !pathname?.startsWith("/checkout") && !pathname?.startsWith("/sell") && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center px-4 py-3 bg-surface shadow-xl md:hidden rounded-t-xl border-t border-outline-variant/20">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center px-4 py-3 bg-surface shadow-xl md:hidden rounded-t-xl border-t border-outline-variant">
         <Link
           href="/"
           className={`flex flex-col items-center justify-center px-4 py-1 active:scale-95 duration-150 border-b-2 transition-all ${
@@ -263,7 +263,7 @@ export default function Navbar(): React.ReactElement {
           </span>
           <span className="font-label text-label-sm">Tin nhắn</span>
           {unreadMessagesCount > 0 && (
-            <span className="absolute top-0 right-2 bg-primary text-on-primary text-[10px] font-bold px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
+                    <span className="absolute top-0 right-2 bg-primary text-on-primary text-label-xs px-1.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center">
               {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
             </span>
           )}

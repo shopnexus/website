@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { callbackUrlFromLocation, postLoginDestination } from "@/lib/post-login";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -46,7 +47,9 @@ export default function RegisterForm() {
         ...(isEmail ? { email: identifier } : { phone: identifier }),
       };
       await register(payload);
-      router.push("/");
+      // A new account is never staff, but it can still have been sent here from a
+      // protected route — the register link on the sign-in form carries the callback.
+      router.replace(postLoginDestination(useAuthStore.getState().user?.role, callbackUrlFromLocation()));
     } catch (err) {
       toast.error("Đăng ký thất bại. Vui lòng thử lại.");
     }
@@ -119,7 +122,7 @@ export default function RegisterForm() {
               </span>
             </button>
           </div>
-          <p className="text-[11px] text-outline mt-2 font-medium">Ít nhất 8 ký tự bao gồm chữ cái và chữ số.</p>
+          <p className="text-label-xs text-outline mt-2">Ít nhất 8 ký tự bao gồm chữ cái và chữ số.</p>
         </div>
 
         {/* Terms Checkbox */}
@@ -152,13 +155,13 @@ export default function RegisterForm() {
       {/* Divider */}
       <div className="my-8 flex items-center gap-4">
         <div className="h-px bg-outline-variant/50 flex-1"></div>
-        <span className="text-[11px] font-bold tracking-widest text-outline uppercase">HOẶC TIẾP TỤC VỚI</span>
+        <span className="text-label-xs tracking-widest text-outline uppercase">HOẶC TIẾP TỤC VỚI</span>
         <div className="h-px bg-outline-variant/50 flex-1"></div>
       </div>
 
       {/* Social Buttons */}
       <div className="mb-8">
-        <GoogleLoginButton text="Đăng nhập bằng Google" loadingText="Đang kết nối..." />
+        <GoogleLoginButton text="Đăng ký bằng Google" loadingText="Đang kết nối..." />
       </div>
     </>
   );

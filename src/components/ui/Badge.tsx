@@ -39,7 +39,7 @@ export default function Badge({
   return (
     <span
       className={[
-        "inline-flex items-center justify-center rounded-sm px-1.5 py-0.5 text-[11px] font-semibold transition-colors",
+"inline-flex items-center justify-center rounded-sm px-1.5 py-0.5 text-label-xs transition-colors",
         variantStyles[variant],
         className,
       ]

@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
         <div className="absolute top-1/2 -right-48 w-[500px] h-[500px] bg-secondary-container/10 rounded-full blur-[100px] opacity-60" />
       </div>
 
-      <section className="w-full max-w-[480px] space-y-8 bg-surface-container-lowest p-8 md:p-12 rounded-xl shadow-xl shadow-black/5 border border-outline-variant/30">
+      <section className="w-full max-w-[480px] space-y-8 bg-surface-container-lowest p-8 md:p-12 rounded-xl shadow-xl shadow-black/5 border border-outline-variant">
         
         {/* Brand & Heading */}
         <div className="text-center space-y-3">

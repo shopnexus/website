@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMe } from "@/hooks/api/useAccount";
+import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import { isStaff } from "@/lib/staff";
 import AdminNav from "./AdminNav";
@@ -22,7 +24,7 @@ import AdminTopbar from "./AdminTopbar";
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: me, isLoading } = useMe();
+  const { data: me, isError, isFetching, refetch } = useMe();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // The drawer's open state is which route it was opened over, not a boolean, so a
@@ -34,14 +36,24 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const navOpen = openedOver === pathname;
   const closeNav = () => setOpenedOver(null);
 
+  // Three states, not two: staff, not staff, and *no answer yet*. `me` alone cannot tell
+  // the last two apart, which is the whole bug this shape exists to avoid.
+  const answered = me !== undefined;
   const allowed = isStaff(me?.role);
 
   // The gate that matters is the server's — every /admin route checks the caller's role
   // row itself. This only keeps a non-staff visitor from staring at a shell of empty
   // tables and 403 toasts.
+  //
+  // It fires on a *positive* answer only. Keyed on `!isLoading` it also fired whenever the
+  // `/me` query merely failed to produce one — a request aborted by a fast navigation, a
+  // 401 on an access token that was about to be refreshed, one blip on the wire — because
+  // a query that has errored is no longer loading and still has no data. That is how an
+  // admin opening /admin landed on /account/profile and got in on the third try: nothing
+  // was wrong with their role, the answer just had not arrived yet.
   useEffect(() => {
-    if (!isLoading && !allowed) router.replace("/account");
-  }, [isLoading, allowed, router]);
+    if (answered && !allowed) router.replace("/account");
+  }, [answered, allowed, router]);
 
   useEffect(() => {
     if (!navOpen) return;
@@ -58,7 +70,30 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     };
   }, [navOpen]);
 
-  if (isLoading) {
+  // Asking again is the answer here, not signing out: `me` is the only thing missing, and
+  // it is one request. Bouncing to /account instead threw away a URL the user typed.
+  if (!answered && isError) {
+    return (
+      <div className="p-8 flex flex-col items-start gap-3">
+        <h1 className="font-headline-sm font-bold text-on-surface">
+          Không kiểm tra được quyền truy cập
+        </h1>
+        <p className="text-body-sm text-on-surface-variant max-w-md">
+          Không đọc được tài khoản của bạn, nên trang vận hành chưa mở. Đây thường là sự cố
+          kết nối chứ không phải quyền của bạn.
+        </p>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" onClick={() => void refetch()} disabled={isFetching}>
+            {isFetching ? "Đang thử lại..." : "Thử lại"}
+          </Button>
+          <Link href="/account">
+            <Button variant="ghost">Về tài khoản</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  if (!answered) {
     return (
       <div className="p-8 flex flex-col gap-3">
         <Skeleton className="h-8 w-56" />

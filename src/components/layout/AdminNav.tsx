@@ -87,7 +87,7 @@ export default function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
     <nav className="flex-1 px-4 pb-4 flex flex-col gap-1 overflow-y-auto">
       {NAV_GROUPS.map((group) => (
         <div key={group.label} className="flex flex-col gap-1">
-          <h2 className="px-4 pt-4 pb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-on-surface-variant">
+          <h2 className="px-4 pt-4 pb-1 text-label-xs uppercase tracking-[0.08em] text-on-surface-variant">
             {group.label}
           </h2>
           {group.items.map((item) => {

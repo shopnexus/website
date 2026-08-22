@@ -1,14 +1,21 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { useEffect } from "react"
+import * as Dialog from "@radix-ui/react-dialog"
 
 /**
  * A centred dialog with a scrim.
  *
+ * Built on Radix's dialog rather than a hand-rolled portal, because the parts that were
+ * missing are the parts that are hard: focus was never trapped, so Tab walked out of an
+ * open dialog into the page behind it, and it was never restored to whatever opened the
+ * dialog on close. The Escape handler and the body scroll lock were ours in three separate
+ * components, each slightly different.
+ *
  * `onClose` is not wired to the scrim by default: a dialog that submits — a receipt, a
  * refund, a rating — must not lose what was typed to a stray click beside it. The pages
- * that want it pass `closeOnScrim`.
+ * that want it pass `closeOnScrim`. Escape always closes, which is what a keyboard user
+ * expects and is recoverable in a way a misplaced click is not.
  */
 export default function Modal({
 	open,
@@ -23,48 +30,34 @@ export default function Modal({
 	closeOnScrim?: boolean
 	children: ReactNode
 }) {
-	useEffect(() => {
-		if (!open) return
-		const onKey = (event: KeyboardEvent) => {
-			if (event.key === "Escape") onClose()
-		}
-		window.addEventListener("keydown", onKey)
-		// The page behind must not scroll under an open dialog.
-		const previous = document.body.style.overflow
-		document.body.style.overflow = "hidden"
-		return () => {
-			window.removeEventListener("keydown", onKey)
-			document.body.style.overflow = previous
-		}
-	}, [open, onClose])
-
-	if (!open) return null
-
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-			onClick={closeOnScrim ? onClose : undefined}
+		<Dialog.Root
+			open={open}
+			onOpenChange={(next) => {
+				if (!next) onClose()
+			}}
 		>
-			<div
-				role="dialog"
-				aria-modal="true"
-				aria-label={title}
-				className="bg-surface rounded-2xl shadow-lg w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col"
-				onClick={(event) => event.stopPropagation()}
-			>
-				<div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between shrink-0">
-					<h2 className="font-headline-sm font-bold text-on-surface">{title}</h2>
-					<button
-						type="button"
-						onClick={onClose}
-						aria-label="Đóng"
-						className="text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
-					>
-						<span className="material-symbols-outlined">close</span>
-					</button>
-				</div>
-				<div className="px-6 py-5 overflow-y-auto">{children}</div>
-			</div>
-		</div>
+			<Dialog.Portal>
+				<Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
+				<Dialog.Content
+					aria-describedby={undefined}
+					onInteractOutside={(event) => {
+						if (!closeOnScrim) event.preventDefault()
+					}}
+					className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-md flex-col overflow-hidden rounded-2xl bg-surface shadow-lg"
+				>
+					<div className="flex shrink-0 items-center justify-between border-b border-outline-variant px-6 py-4">
+						<Dialog.Title className="text-title-lg text-on-surface">{title}</Dialog.Title>
+						<Dialog.Close
+							aria-label="Đóng"
+							className="cursor-pointer text-on-surface-variant transition-colors hover:text-on-surface"
+						>
+							<span className="material-symbols-outlined">close</span>
+						</Dialog.Close>
+					</div>
+					<div className="overflow-y-auto px-6 py-5">{children}</div>
+				</Dialog.Content>
+			</Dialog.Portal>
+		</Dialog.Root>
 	)
 }

@@ -7,6 +7,7 @@ import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/api/api-error";
+import { callbackUrlFromLocation, postLoginDestination } from "@/lib/post-login";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,8 +15,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, user, isAuthenticated } = useAuthStore();
   const router = useRouter();
+
+  // Đã đăng nhập mà vẫn mở được trang này là có chủ đích: middleware không còn đá đi, vì
+  // cookie phiên sống lâu hơn phiên thật và người dùng còn cần đổi tài khoản. Nói rõ đang là
+  // ai, cho một lối đi tiếp, và để nguyên cái form bên dưới cho người muốn đăng nhập tài khoản
+  // khác.
+  const continueAsCurrentUser = () => {
+    router.replace(postLoginDestination(user?.role, callbackUrlFromLocation()));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +38,10 @@ export default function LoginPage() {
 
     try {
       await login({ identifier, password });
-      router.push("/");
+      // The store has the account by the time login resolves, so the role is known here
+      // without a second round trip to /me.
+      const role = useAuthStore.getState().user?.role;
+      router.replace(postLoginDestination(role, callbackUrlFromLocation()));
     } catch (err) {
       if (err instanceof ApiError && err.code === "invalid_credentials") {
         toast.error("Thông tin đăng nhập không chính xác.");
@@ -42,7 +54,7 @@ export default function LoginPage() {
   return (
     <div className="flex-grow flex items-center justify-center p-4 md:p-8 py-12 relative z-10">
       {/* Split-Screen Auth Container */}
-      <div className="flex flex-col md:flex-row w-full max-w-6xl bg-surface-container-lowest rounded-xl overflow-hidden shadow-lg shadow-black/5 border border-outline-variant/50">
+      <div className="flex flex-col md:flex-row w-full max-w-6xl bg-surface-container-lowest rounded-xl overflow-hidden shadow-lg shadow-black/5 border border-outline-variant">
         
         {/* Branding/Image Side (Hidden on mobile) */}
         <div className="hidden md:flex flex-1 relative items-center justify-center bg-primary overflow-hidden min-h-[600px]">
@@ -74,6 +86,22 @@ export default function LoginPage() {
               <h2 className="text-headline-md font-extrabold text-on-surface mb-2">Chào Mừng Trở Lại</h2>
               <p className="text-on-surface-variant text-body-md">Đăng nhập vào tài khoản của bạn để khám phá ShopNexus.</p>
             </header>
+
+            {isAuthenticated && user && (
+              <div className="mb-8 rounded-xl border border-outline-variant bg-surface p-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-body-sm text-on-surface-variant">
+                  Đang đăng nhập bằng{" "}
+                  <span className="font-bold text-on-surface">{user.profile.name || user.username}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={continueAsCurrentUser}
+                  className="text-label-md font-bold text-primary hover:underline"
+                >
+                  Tiếp tục với tài khoản này
+                </button>
+              </div>
+            )}
 
             {/* Social Login Cluster */}
             <div className="mb-8">

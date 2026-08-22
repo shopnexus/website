@@ -32,7 +32,7 @@ export default function StorefrontChrome({ children }: { children: React.ReactNo
     <>
       <Suspense
         fallback={
-          <div className="h-[68px] sticky top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant/20 shadow-sm" />
+          <div className="h-[68px] sticky top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant shadow-sm" />
         }
       >
         <Navbar />

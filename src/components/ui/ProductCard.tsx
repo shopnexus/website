@@ -153,7 +153,10 @@ export default function ProductCard({
 
   return (
     <div
-      className={`transition-all duration-300 ease-out ${
+      // h-full both here and on the link: the grid stretches this wrapper to the tallest card
+      // in the row, and without it the card inside ended wherever its own text did — which is
+      // what made a grid of cards look ragged even though every cell was the same size.
+      className={`relative h-full transition-all duration-300 ease-out ${
         isDismissing ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
@@ -162,7 +165,7 @@ export default function ProductCard({
       onClick={handleCardClick}
       aria-hidden={isDismissing}
       tabIndex={isDismissing ? -1 : undefined}
-      className={`bg-surface rounded-xl overflow-hidden border border-outline-variant/30 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow duration-300 flex flex-col group cursor-pointer ${className}`}
+      className={`h-full bg-surface rounded-xl overflow-hidden border border-outline-variant shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-shadow duration-300 flex flex-col group cursor-pointer ${className}`}
     >
       <div className="relative aspect-[4/3] bg-surface-container overflow-hidden shrink-0">
         {imageUrl ? (
@@ -180,80 +183,11 @@ export default function ProductCard({
         )}
         {product.price_mode === "negotiable" && (
           <div className="absolute top-2 left-2 z-10">
-            <span className="text-[10px] font-bold px-2 py-1 bg-tertiary-container/90 backdrop-blur-sm text-on-tertiary-container rounded shadow-sm whitespace-nowrap">
+            <span className="text-label-xs px-2 py-1 bg-tertiary-container/90 backdrop-blur-sm text-on-tertiary-container rounded shadow-sm whitespace-nowrap">
               Thương lượng
             </span>
           </div>
         )}
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
-          {dismissible && (
-            <div ref={menuRef} className="relative">
-              <button
-                onClick={handleMenuToggle}
-                className="p-1.5 h-9.5 aspect-square flex items-center justify-center rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors"
-                aria-label="Tuỳ chọn gợi ý"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-              >
-                <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
-                  more_vert
-                </span>
-              </button>
-              {menuOpen && (
-                <div
-                  role="menu"
-                  className="absolute right-0 top-full mt-1.5 w-56 bg-surface rounded-lg border border-outline-variant/60 shadow-[0_4px_16px_rgba(0,0,0,0.12)] overflow-hidden py-1 animate-page-fade-in"
-                >
-                  <button
-                    role="menuitem"
-                    onClick={(e) => handleDismiss(e, "not-interested")}
-                    className="w-full flex items-start gap-2.5 px-3.5 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
-                      thumb_down
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-body-sm font-medium text-on-surface">Không quan tâm</span>
-                      <span className="block text-[11px] text-on-surface-variant mt-0.5">
-                        Ít gợi ý sản phẩm như thế này hơn
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    onClick={(e) => handleDismiss(e, "hidden")}
-                    className="w-full flex items-start gap-2.5 px-3.5 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
-                      visibility_off
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-body-sm font-medium text-on-surface">Ẩn tin này</span>
-                      <span className="block text-[11px] text-on-surface-variant mt-0.5">
-                        Không hiện tin này trong Gợi ý cho bạn nữa
-                      </span>
-                    </span>
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          <button
-            onClick={handleFavoriteClick}
-            disabled={isPending}
-            className="p-1.5 h-9.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant/20 shadow-sm hover:bg-surface transition-colors disabled:opacity-50"
-            aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-          >
-            <span
-              className={`material-symbols-outlined text-[20px] transition-colors ${
-                product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
-                }`}
-              style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
-            >
-              favorite
-            </span>
-          </button>
-        </div>
       </div>
 
       <div className="p-3 flex flex-col flex-1 gap-2">
@@ -267,23 +201,23 @@ export default function ProductCard({
               className="w-5 h-5 rounded-full object-cover shrink-0"
             />
           ) : (
-            <div className="w-5 h-5 rounded-full bg-secondary-container flex items-center justify-center text-[10px] font-bold text-on-surface shrink-0">
+      <div className="w-5 h-5 rounded-full bg-secondary-container flex items-center justify-center text-label-xs text-on-surface shrink-0">
               {(product.seller?.name || "S").charAt(0)}
             </div>
           )}
-          <span className="font-body-sm text-[11px] text-on-surface-variant truncate">
+          <span className="font-body-sm text-on-surface-variant truncate">
             {product.seller?.name || "Người bán"}
           </span>
         </div>
 
-        <h3 className="font-headline text-[15px] leading-snug text-on-surface line-clamp-2 mt-0.5 font-bold">
+        <h3 className="font-headline text-title-md leading-snug text-on-surface line-clamp-2 mt-0.5">
           {product.name}
         </h3>
 
         {/* Social proof, and only when there is any: "0.0 (0)" beside a price reads as a
             verdict on the goods rather than as a listing nobody has bought yet. */}
         {(product.review_count ?? 0) > 0 && (
-          <div className="flex items-center gap-1 text-[11px] text-on-surface-variant">
+      <div className="flex items-center gap-1 text-label-xs text-on-surface-variant">
             <span
               className="material-symbols-outlined text-[13px] text-primary"
               style={{ fontVariationSettings: "'FILL' 1" }}
@@ -297,15 +231,15 @@ export default function ProductCard({
           </div>
         )}
         {(product.review_count ?? 0) === 0 && (product.sold ?? 0) > 0 && (
-          <div className="text-[11px] text-on-surface-variant">Đã bán {product.sold}</div>
+          <div className="text-label-xs text-on-surface-variant">Đã bán {product.sold}</div>
         )}
 
         <div className="mt-auto pt-2">
           <div className="flex items-center justify-between gap-2">
-            <span className="font-bold text-[1.25rem] text-primary shrink-0">{formatPrice(product.price)}</span>
+            <span className="text-price-lg text-primary shrink-0">{formatPrice(product.price)}</span>
           </div>
 
-          <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-outline-variant/30 text-[11px] text-on-surface-variant font-medium">
+      <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-outline-variant text-label-xs text-on-surface-variant">
             <span className="shrink-0">{new Date(product.created_at).toLocaleDateString("vi-VN")}</span>
             {product.location && (
               <span className="flex items-center gap-0.5 min-w-0">
@@ -321,6 +255,79 @@ export default function ProductCard({
         </div>
       </div>
     </Link>
+    {/* The action cluster sits outside the <Link>, not in the image box: both the card and
+        the image clip with overflow-hidden, which cut the dropdown off at the photo's edge.
+        Out here it also stops nesting buttons inside an anchor. */}
+    <div ref={menuRef} className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+      {dismissible && (
+        <button
+          onClick={handleMenuToggle}
+          className="p-1.5 h-9.5 aspect-square flex items-center justify-center rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant shadow-sm hover:bg-surface transition-colors"
+          aria-label="Tuỳ chọn gợi ý"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+        >
+          <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
+            more_vert
+          </span>
+        </button>
+      )}
+      {menuOpen && (
+        // Anchored to the whole cluster, not to the ⋮ button, which sits left of the heart:
+        // anchoring to the button pushed the panel a heart's width further left, off the page
+        // edge in the grid's left column. The width caps at one grid cell for the same reason.
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-1.5 w-[min(14rem,calc(50vw-2rem))] bg-surface rounded-lg border border-outline-variant shadow-[0_4px_16px_rgba(0,0,0,0.12)] overflow-hidden py-1 animate-page-fade-in"
+        >
+          <button
+            role="menuitem"
+            onClick={(e) => handleDismiss(e, "not-interested")}
+            className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
+              thumb_down
+            </span>
+            <span className="min-w-0">
+              <span className="block text-body-sm font-medium text-on-surface">Không quan tâm</span>
+              <span className="block text-label-xs text-on-surface-variant mt-0.5">
+                Ít gợi ý sản phẩm như thế này hơn
+              </span>
+            </span>
+          </button>
+          <button
+            role="menuitem"
+            onClick={(e) => handleDismiss(e, "hidden")}
+            className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-surface-container transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px] text-on-surface-variant mt-0.5">
+              visibility_off
+            </span>
+            <span className="min-w-0">
+              <span className="block text-body-sm font-medium text-on-surface">Ẩn tin này</span>
+              <span className="block text-label-xs text-on-surface-variant mt-0.5">
+                Không hiện tin này trong Gợi ý cho bạn nữa
+              </span>
+            </span>
+          </button>
+        </div>
+      )}
+      <button
+        onClick={handleFavoriteClick}
+        disabled={isPending}
+        className="p-1.5 h-9.5 rounded-full bg-surface/80 backdrop-blur-sm border border-outline-variant shadow-sm hover:bg-surface transition-colors disabled:opacity-50"
+        aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
+      >
+        <span
+          className={`material-symbols-outlined text-[20px] transition-colors ${
+            product.favorited ? "text-primary" : "text-on-surface-variant hover:text-on-surface"
+            }`}
+          style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+        >
+          favorite
+        </span>
+      </button>
+    </div>
     </div>
   );
 }

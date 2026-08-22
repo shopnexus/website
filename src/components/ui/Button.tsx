@@ -19,7 +19,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   secondary:
     "bg-secondary-container text-on-secondary-container hover:bg-secondary-container/80 hover:shadow-sm active:scale-95",
   outline:
-    "bg-transparent border border-outline-variant text-on-surface hover:border-primary hover:text-primary hover:bg-primary/5 active:scale-95",
+    "bg-transparent border border-outline text-on-surface hover:border-primary hover:text-primary hover:bg-primary/5 active:scale-95",
   ghost:
     "bg-transparent text-on-surface-variant hover:text-primary hover:bg-primary/5 active:scale-95",
   error:

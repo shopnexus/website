@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
 
       <div className="w-full max-w-[440px]">
         {/* Central Card */}
-        <div className="bg-surface-container-lowest rounded-xl p-8 md:p-10 shadow-[0_8px_32px_rgba(0,78,71,0.04)] border border-outline-variant/30">
+        <div className="bg-surface-container-lowest rounded-xl p-8 md:p-10 shadow-[0_8px_32px_rgba(0,78,71,0.04)] border border-outline-variant">
           
           {/* Back Action */}
           <Link 
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
           )}
           
           {/* Security Assurance */}
-          <div className="mt-10 flex items-start gap-3 p-4 bg-surface-container rounded-lg border border-outline-variant/20">
+          <div className="mt-10 flex items-start gap-3 p-4 bg-surface-container rounded-lg border border-outline-variant">
             <span className="material-symbols-outlined text-primary-container mt-0.5">verified_user</span>
             <div className="space-y-1">
               <p className="text-label-sm font-bold text-on-surface">Human-Centric Security</p>
@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
         {/* Footer Meta */}
         <footer className="mt-8 text-center">
           <p className="text-on-surface-variant text-body-sm">
-            Having trouble? <Link href="/support" className="text-primary font-semibold hover:underline decoration-2 underline-offset-4">Contact Support</Link>
+            Having trouble? <Link href="/inbox?tab=support" className="text-primary font-semibold hover:underline decoration-2 underline-offset-4">Contact Support</Link>
           </p>
         </footer>
       </div>

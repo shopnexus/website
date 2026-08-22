@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
@@ -22,28 +22,32 @@ export default function VerifyEmail() {
   const token = useSearchParams().get("token");
   const verifyEmail = useVerifyEmail();
 
-  // Strict mode mounts effects twice in development, and the token is single-use — the
-  // second run would report "expired" over a verification that had just succeeded.
+  // The outcome is held here rather than read off the mutation. Strict mode unmounts and
+  // remounts, and query-core's MutationObserver drops itself from an in-flight mutation on
+  // unsubscribe without ever re-attaching, so the result never reaches the hook and the
+  // screen stays on "verifying" over a request that already returned.
+  const [outcome, setOutcome] = useState<"pending" | "done" | "failed">("pending");
+  const [error, setError] = useState<unknown>(null);
+
+  // The token is single-use, so the remount must not spend it a second time and report
+  // "expired" over a verification that had just succeeded.
   const fired = useRef(false);
   useEffect(() => {
     if (!token || fired.current) return;
     fired.current = true;
-    verifyEmail.mutate(token);
+    verifyEmail.mutateAsync(token).then(
+      () => setOutcome("done"),
+      (cause: unknown) => {
+        setError(cause);
+        setOutcome("failed");
+      },
+    );
   }, [token, verifyEmail]);
 
-  const state = !token
-    ? "missing"
-    : verifyEmail.isPending
-      ? "pending"
-      : verifyEmail.isSuccess
-        ? "done"
-        : verifyEmail.isError
-          ? "failed"
-          : "pending";
+  const state = !token ? "missing" : outcome;
 
   // 401 is the only failure the route reports, and it covers three different situations.
-  const spent =
-    verifyEmail.error instanceof ApiError && verifyEmail.error.status === 401;
+  const spent = error instanceof ApiError && error.status === 401;
 
   return (
     <div className="w-full max-w-md bg-surface rounded-3xl border border-outline-variant p-8 md:p-10 shadow-sm text-center flex flex-col items-center gap-4">

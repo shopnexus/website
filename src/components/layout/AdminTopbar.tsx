@@ -45,7 +45,7 @@ export default function AdminTopbar({
       <h1 className="font-label-md text-on-surface truncate min-w-0">{currentPageName(pathname)}</h1>
 
       <div className="ml-auto flex items-center gap-2 shrink-0">
-        <span className="hidden sm:inline text-[10px] bg-tertiary-container text-on-tertiary-container px-2 py-1 rounded uppercase tracking-wider font-bold">
+        <span className="hidden sm:inline text-label-xs bg-tertiary-container text-on-tertiary-container px-2 py-1 rounded uppercase tracking-wider font-bold">
           {staffRoleLabel(role)}
         </span>
         <Link

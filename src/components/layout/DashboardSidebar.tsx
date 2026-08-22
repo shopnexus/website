@@ -10,6 +10,8 @@ interface NavItem {
   name: string;
   path: string;
   icon: string;
+  /** Extra routes this entry owns, for one item that fronts a tabbed group of pages. */
+  match?: string[];
 }
 
 export default function DashboardSidebar({ children }: { children: React.ReactNode }) {
@@ -32,18 +34,22 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
     {
       label: "Tài khoản",
       items: [
-        { name: "Hồ sơ cá nhân", path: "/account/profile", icon: "person" },
+        // Profile, security and notifications are one destination with three tabs: five
+        // near-identical settings entries made the rail hard to scan.
+        {
+          name: "Tài khoản",
+          path: "/account/profile",
+          icon: "manage_accounts",
+          match: ["/account/security", "/account/notifications"],
+        },
         { name: "Thông tin liên lạc", path: "/account/contacts", icon: "contacts" },
-        { name: "Bảo mật", path: "/account/security", icon: "shield" },
         { name: "Xác minh danh tính", path: "/account/verification", icon: "verified_user" },
-        { name: "Thông báo", path: "/account/notifications", icon: "notifications" },
       ],
     },
     {
       label: "Mua hàng",
       items: [
         { name: "Đơn mua", path: "/account/orders", icon: "receipt_long" },
-        { name: "Hoàn tiền", path: "/account/refunds", icon: "assignment_return" },
         { name: "Ví của tôi", path: "/account/wallet", icon: "account_balance_wallet" },
       ],
     },
@@ -70,7 +76,7 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
         { name: "Đang theo dõi", path: "/account/following", icon: "group" },
       ],
     },
-    { label: null, items: [{ name: "Trung tâm hỗ trợ", path: "/support", icon: "support_agent" }] }
+    { label: null, items: [{ name: "Hỗ trợ", path: "/inbox?tab=support", icon: "support_agent" }] }
   );
 
   // The staff surface had eleven working pages and nothing anywhere linking to them, so the
@@ -97,7 +103,7 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
             </div>
             <div>
               <div className="font-label-md font-bold text-on-surface line-clamp-1">{user?.username || "Người dùng"}</div>
-              <div className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded w-fit mt-0.5">
+              <div className="text-label-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded w-fit mt-0.5">
                 {user?.identity_verified ? "Đã xác minh" : "Người dùng mới"}
               </div>
             </div>
@@ -108,12 +114,14 @@ export default function DashboardSidebar({ children }: { children: React.ReactNo
           {groups.map((group, index) => (
             <div key={group.label ?? `plain-${index}`} className="flex flex-col gap-1">
               {group.label && (
-                <h2 className={`px-4 pb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-on-surface-variant ${index === 0 ? "pt-0" : "pt-4"}`}>
+                <h2 className={`px-4 pb-1 text-label-xs uppercase tracking-[0.08em] text-on-surface-variant ${index === 0 ?"pt-0" :"pt-4"}`}>
                   {group.label}
                 </h2>
               )}
               {group.items.map((item) => {
-                const isActive = pathname === item.path;
+                // A path may carry the tab it opens; the router never puts a query in `pathname`.
+                const base = item.path.split("?")[0];
+                const isActive = pathname === base || (item.match?.includes(pathname ?? "") ?? false);
                 return (
                   <Link
                     key={item.path}
