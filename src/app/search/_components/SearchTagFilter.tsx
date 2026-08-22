@@ -2,6 +2,7 @@
 
 import { useTags } from "@/hooks/api/useTags";
 import type { CategoryId, TagSlug } from "@/api/generated/types.gen";
+import { HEADING, SECTION } from "./filter-styles";
 
 /**
  * Browse by tag.
@@ -33,10 +34,8 @@ export default function SearchTagFilter({
   if (isLoading || shown.length === 0) return null;
 
   return (
-    <div className="pt-4 border-t border-outline-variant">
-      <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4">
-        Thẻ {categoryId ? "liên quan" : "phổ biến"}
-      </h3>
+    <div className={SECTION}>
+      <h3 className={HEADING}>Thẻ {categoryId ? "liên quan" : "phổ biến"}</h3>
       <div className="flex flex-wrap gap-1.5">
         {shown.map((tag) => {
           const isSelected = selected === tag.slug;
@@ -44,10 +43,14 @@ export default function SearchTagFilter({
             <button
               key={tag.slug}
               type="button"
-              title={tag.description ?? undefined}
+              title={tag.description ?? `#${tag.slug}`}
               onClick={() => onSelect(isSelected ? "" : tag.slug)}
               aria-pressed={isSelected}
-              className={`rounded-full border px-2.5 py-1 text-label-sm transition-colors cursor-pointer ${
+              // Tags are seller-written, so one of them is eventually forty characters of
+              // scraped slug. Truncated rather than wrapped: a chip that runs to three lines
+              // is a paragraph pretending to be a control, and the title attribute already
+              // carries the whole thing.
+              className={`max-w-full cursor-pointer truncate rounded-full border px-2.5 py-1 font-label-sm transition-colors ${
                 isSelected
                   ? "border-transparent bg-primary-container text-on-primary-container"
                   : "border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary"

@@ -6,11 +6,7 @@ import type { SearchState } from "../_hooks/useSearchFilters";
 import { CONDITION_OPTIONS } from "../_lib/search.logic";
 import AreaFilterSection from "./AreaFilterSection";
 import SearchTagFilter from "./SearchTagFilter";
-
-const SECTION = "pt-4 border-t border-outline-variant";
-const HEADING ="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-label-xs";
-const FIELD =
-  "w-full bg-surface-container rounded-lg px-3 py-2 text-body-sm outline-none focus:ring-1 focus:ring-primary border-none text-on-surface";
+import { FIELD, HEADING, SECTION } from "./filter-styles";
 
 // ---------------------------------------------------------------------------
 // CategoryDropdown – button trigger + floating panel
@@ -141,7 +137,7 @@ function CategoryDropdown({ search }: { search: SearchState }) {
  */
 export function FilterControls({ search }: { search: SearchState }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <CategoryDropdown search={search} />
 
       {/* A C2C buyer's first filter, so it sits above price, condition and the tag rail. */}
@@ -173,7 +169,7 @@ export function FilterControls({ search }: { search: SearchState }) {
         <button
           type="button"
           onClick={search.applyPrice}
-          className="w-full mt-4 bg-primary text-on-primary py-2 rounded-full text-label-md font-bold hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+          className="mt-3 w-full cursor-pointer rounded-full bg-primary py-2 font-label-md font-bold text-on-primary transition-opacity hover:opacity-90"
         >
           Áp dụng
         </button>
@@ -181,7 +177,7 @@ export function FilterControls({ search }: { search: SearchState }) {
 
       <div className={SECTION}>
         <h3 className={HEADING}>Tình trạng</h3>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {CONDITION_OPTIONS.map(({ value, label }) => (
             <label key={value || "all"} className="flex items-center gap-3 cursor-pointer group">
               <div className="relative flex items-center justify-center">
@@ -219,12 +215,19 @@ export function FilterControls({ search }: { search: SearchState }) {
   );
 }
 
-/** The controls as the rail beside the results, on a screen wide enough to hold both. */
+/**
+ * The controls as the rail beside the results, on a screen wide enough to hold both.
+ *
+ * From `lg` rather than `md`: at 768px the rail took a quarter of the window and left the
+ * results three cramped columns beside it, which is a worse trade than the sheet the phone
+ * already uses. The heading is a label now instead of a 20px headline — the rail is one panel
+ * on the page, not a chapter of it.
+ */
 export default function SearchFilterPanel({ search }: { search: SearchState }) {
   return (
-    <aside className="hidden md:block md:col-span-3 sticky top-24">
-      <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant space-y-6">
-        <h2 className="font-headline font-bold text-headline-sm text-on-surface">Bộ lọc</h2>
+    <aside className="sticky top-24 hidden lg:col-span-3 lg:block">
+      <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+        <h2 className="mb-3 font-label-lg font-bold text-on-surface">Bộ lọc</h2>
         <FilterControls search={search} />
       </div>
     </aside>

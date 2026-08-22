@@ -38,10 +38,10 @@ export default function SearchFilterSheet({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 md:hidden" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 lg:hidden" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-x-0 bottom-0 top-16 z-50 flex flex-col rounded-t-2xl bg-surface md:hidden"
+          className="fixed inset-x-0 bottom-0 top-16 z-50 flex flex-col rounded-t-2xl bg-surface lg:hidden"
         >
           <div className="flex shrink-0 items-center justify-between border-b border-outline-variant px-4 py-3">
             <Dialog.Title className="font-headline font-bold text-headline-sm text-on-surface">

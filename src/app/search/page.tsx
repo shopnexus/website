@@ -29,17 +29,17 @@ function SearchPageContent(): React.ReactElement {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 w-full">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <SearchFilterPanel search={search} />
 
-        <section className="md:col-span-9">
+        <section className="lg:col-span-9">
           <SearchToolbar search={search} />
 
-          {/* Hidden from `md` up, where the rail is already on screen. */}
+          {/* Hidden from `lg` up, where the rail is already on screen. */}
           <button
             type="button"
             onClick={() => setFiltersOpen(true)}
-            className="md:hidden mb-4 w-full flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface py-2.5 rounded-full font-bold text-label-md cursor-pointer hover:bg-surface-container transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="lg:hidden mb-4 w-full flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface py-2.5 rounded-full font-bold text-label-md cursor-pointer hover:bg-surface-container transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
               tune
