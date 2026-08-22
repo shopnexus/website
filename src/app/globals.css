@@ -16,6 +16,13 @@
   --font-family-label: var(--font-sans-vn), sans-serif;
   --font-family-sans: var(--font-sans-vn), sans-serif;
 
+  /* Ids and keys. `font-mono` was already in use on IdentityKey and was resolving to
+     Tailwind's default stack — which is a default, not a choice. An opaque id
+     (`acc_3r61q6fbvt9b8`) is read character by character, so it needs fixed advance widths
+     and a font that distinguishes 0/O and 1/l/I. */
+  --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, "Cascadia Mono",
+    "Liberation Mono", Menlo, Consolas, monospace;
+
   /* ── Tailwind's own text steps, aligned to the scale above ──
      The sizes already matched (xs 12, sm 14, base 16, lg 18, xl 20, 2xl 24); the
      line-heights did not, and xs/sm/base were too tight for stacked Vietnamese diacritics.
@@ -106,6 +113,44 @@
   --radius-xl: 1.5rem;
   --radius-full: 9999px;
 
+}
+
+/* ================================================================
+   THE STAFF CONSOLE
+   One override block, applied on the /admin shell. Tailwind utilities read these
+   variables, so re-skinning a hundred files is this and nothing else.
+
+   Two things change and both are deliberate. The ground goes cool and grey where the
+   storefront's is warm and near-white: staff pages are white cards, and on the old ground
+   a card and the page it sat on were the same colour, separated by a hairline. And the
+   outlines come up a step, because half of this surface is tables and a table is only
+   readable if its rules are.
+
+   Nothing here touches primary, error or the container colours that carry status. That is
+   the point: on the storefront teal is the brand, and here it has to mean "this is the
+   action" and nothing else, so everything that was teal for decoration — nav pills, card
+   icons, role chips — gets a neutral out of this palette instead.
+   ================================================================ */
+.admin-console {
+  /* The page under the cards. */
+  --color-background: oklch(96.4% 0.0035 240);
+  --color-on-background: oklch(22% 0.008 240);
+
+  /* Cards, the sidebar and the topbar. */
+  --color-surface: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: oklch(98% 0.003 240);
+  --color-surface-container: oklch(95.2% 0.004 240);
+  --color-surface-container-high: oklch(92.4% 0.005 240);
+  --color-surface-container-highest: oklch(89.5% 0.006 240);
+  --color-surface-variant: oklch(93.5% 0.005 240);
+
+  /* Up a step from the storefront's, and cooler. Table rules have to be visible. */
+  --color-outline-variant: oklch(86% 0.007 240);
+  --color-outline: oklch(58% 0.011 240);
+
+  --color-on-surface: oklch(22% 0.008 240);
+  --color-on-surface-variant: oklch(44% 0.011 240);
 }
 
 /* ── Base Styles ── */

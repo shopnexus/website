@@ -104,8 +104,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   if (!allowed) return null;
 
   return (
-    <div className="flex min-h-screen bg-surface-container-lowest">
-      <aside className="w-64 shrink-0 hidden lg:flex flex-col sticky top-0 h-screen bg-surface border-r border-outline-variant">
+    // `admin-console` is where the palette changes — see globals.css. `bg-background` rather
+    // than `bg-surface-container-lowest`: the ground and the cards were the same white, so a
+    // panel was distinguishable from the page only by its hairline border.
+    <div className="admin-console flex min-h-screen bg-background">
+      <aside className="w-60 shrink-0 hidden lg:flex flex-col sticky top-0 h-screen bg-surface border-r border-outline-variant">
         <Wordmark />
         <AdminNav />
       </aside>
@@ -152,9 +155,18 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 /** The one thing telling you which of the two consoles you are in. */
 function Wordmark() {
   return (
-    <div className="px-6 py-4 min-w-0">
-      <div className="font-headline-sm font-bold text-on-surface">Vận hành</div>
-      <div className="font-label-sm text-on-surface-variant mt-0.5">ShopNexus</div>
+    <div className="flex min-w-0 items-center gap-2 px-4 py-3.5">
+      <span
+        className="material-symbols-outlined text-[20px] text-primary"
+        style={{ fontVariationSettings: "'FILL' 1" }}
+        aria-hidden="true"
+      >
+        deployed_code
+      </span>
+      <span className="min-w-0 truncate font-title-md font-bold text-on-surface">Vận hành</span>
+      <span className="ml-auto shrink-0 rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">
+        ShopNexus
+      </span>
     </div>
   );
 }
