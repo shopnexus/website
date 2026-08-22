@@ -3,22 +3,23 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
-import StarRating from "@/components/ui/StarRating";
 import OfferModal from "@/components/offers/OfferModal";
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
-import { formatRating } from "@/lib/reviews";
 import type { ListingDetail, Variant } from "@/api/generated/types.gen";
 import type { SellerStanding } from "../_lib/context";
 import { listingFacts, packageEntries, specificationEntries } from "../_lib/facts";
 import { usePurchaseActions } from "../_hooks/usePurchaseActions";
+import { useScrolledPast } from "../_hooks/useScrolledPast";
 import BuyPanel from "./BuyPanel";
 import DescriptionPanel from "./DescriptionPanel";
+import ProductChatDock from "./ProductChatDock";
+import ProductHeadline from "./ProductHeadline";
 import QuickFacts from "./QuickFacts";
 import ProductBottomBar from "./ProductBottomBar";
 import ProductGallery from "./ProductGallery";
 import ProductReviews from "./ProductReviews";
 import SectionNav from "./SectionNav";
-import SellerPanel from "./SellerPanel";
+import SellerCard from "./SellerCard";
 import SpecTable from "./SpecTable";
 import { attributesOf } from "./VariantPicker";
 
@@ -29,11 +30,17 @@ import { attributesOf } from "./VariantPicker";
  * are all functions of that choice, so it is held once here and read everywhere rather than
  * mirrored into each panel.
  *
- * The layout is the change worth naming. Everything that decides a purchase — the price, the
- * classification picker, how many are left, the buttons — is now the first block beside the
- * photos, with the facts a buyer weighs directly under it; the description, the specifications
- * and the reviews are full-width sections below, reachable from a sticky nav. Before this the
- * price was the *last* card in a very long right-hand column.
+ * The layout is three columns on a wide screen: photos, what the thing is, and the offer.
+ * It was two, and the second was 640px of a 1200px page holding a card whose content was
+ * about 350px wide — so the buy buttons stretched to a quarter of the screen each, the seller
+ * band under it ran the full width to say "Người bán mới", and the whole page came to 6,400px
+ * tall. Splitting the right half in two gives the controls the width controls should have and
+ * lets the offer stick while the reader scrolls the description.
+ *
+ * The four blocks are placed by hand rather than nested in column wrappers, because their
+ * reading order on a phone interleaves the columns: name, then price, then the details. Three
+ * wrappers would have forced either the price above the name or the specifications above the
+ * price. Source order is the phone order; `col-start`/`row-start` is the desktop arrangement.
  */
 export default function ProductInteractiveViewer({
   product,
@@ -52,6 +59,9 @@ export default function ProductInteractiveViewer({
 
   const actions = usePurchaseActions(product, selectedVariant);
   const buyPanel = useRef<HTMLDivElement>(null);
+  const buyPanelGone = useScrolledPast(buyPanel);
+  /** Opened by the dock's own button, and by "Chat" on the seller card. */
+  const [chatOpen, setChatOpen] = useState(false);
 
   const handleSelectAttribute = (key: string, value: string) => {
     const wanted = { ...selectedAttributes, [key]: value };
@@ -86,12 +96,15 @@ export default function ProductInteractiveViewer({
 
   return (
     <>
-      <div className="mx-auto max-w-[1200px] px-4 pb-16 md:px-8">
-        {/* Photos left, everything that decides a purchase right, and one surface around the
-            right half rather than three stacked cards. Three bordered boxes in a column is what
-            the first version of this page had, and it made a listing look like a form. */}
-        <div className="flex flex-col gap-8 lg:flex-row">
-          <div className="w-full lg:w-[46%] lg:max-w-[520px] lg:shrink-0">
+      <div className="mx-auto max-w-[1320px] px-4 pb-14 md:px-8">
+        <div
+          className={[
+            "flex flex-col gap-5",
+            "lg:grid lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-x-7 lg:gap-y-6",
+            "xl:grid-cols-[424px_minmax(0,1fr)_336px] xl:gap-x-8",
+          ].join(" ")}
+        >
+          <div className="lg:col-start-1 lg:row-start-1 lg:row-span-3">
             <ProductGallery
               images={images}
               alt={product.name}
@@ -99,80 +112,33 @@ export default function ProductInteractiveViewer({
             />
           </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm sm:p-6">
-              <header>
-                <div className="flex items-start justify-between gap-4">
-                  <h1 className="font-headline-sm font-bold leading-snug text-on-surface sm:font-headline-md">
-                    {product.name}
-                  </h1>
-                  <button
-                    type="button"
-                    onClick={actions.toggleFavorite}
-                    disabled={actions.favoriteBusy}
-                    aria-pressed={product.favorited}
-                    aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-outline-variant transition-colors hover:bg-surface-container-high disabled:opacity-50"
-                  >
-                    <span
-                      className={[
-                        "material-symbols-outlined text-[22px] transition-colors",
-                        product.favorited ? "text-primary" : "text-on-surface-variant",
-                      ].join(" ")}
-                      style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
-                    >
-                      favorite
-                    </span>
-                  </button>
-                </div>
+          <div className="lg:col-start-2 lg:row-start-1 xl:col-start-2">
+            <ProductHeadline product={product} actions={actions} />
+          </div>
 
-                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-body-sm text-on-surface-variant">
-                  {product.review_count > 0 ? (
-                    <a
-                      href="#reviews"
-                      className="flex items-center gap-1.5 transition-colors hover:text-primary"
-                    >
-                      <StarRating rating={product.rating} size={16} />
-                      <span className="font-bold text-on-surface">
-                        {formatRating(product.rating)}
-                      </span>
-                      <span className="underline decoration-dotted underline-offset-4">
-                        {product.review_count} đánh giá
-                      </span>
-                    </a>
-                  ) : (
-                    <a href="#reviews" className="transition-colors hover:text-primary">
-                      Chưa có đánh giá
-                    </a>
-                  )}
-                  {product.sold > 0 && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span>Đã bán {product.sold}</span>
-                    </>
-                  )}
-                  {product.favorite_count > 0 && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span>{product.favorite_count} lượt lưu</span>
-                    </>
-                  )}
-                </div>
-              </header>
+          {/* Sticky only where it has a column to itself. Below `xl` it is a card in the flow
+              and the bottom bar is what follows the reader down. */}
+          <div
+            ref={buyPanel}
+            className="flex flex-col gap-4 lg:col-start-2 lg:row-start-2 xl:col-start-3 xl:row-start-1 xl:row-span-3 xl:sticky xl:top-[84px]"
+          >
+            <BuyPanel
+              product={product}
+              selectedVariant={selectedVariant}
+              selectedAttributes={selectedAttributes}
+              onSelectAttribute={handleSelectAttribute}
+              actions={actions}
+            />
+            <SellerCard
+              product={product}
+              standing={standing}
+              onChat={() => setChatOpen(true)}
+            />
+          </div>
 
-              <div ref={buyPanel} className="mt-5 border-t border-outline-variant pt-5">
-                <BuyPanel
-                  product={product}
-                  selectedVariant={selectedVariant}
-                  selectedAttributes={selectedAttributes}
-                  onSelectAttribute={handleSelectAttribute}
-                  actions={actions}
-                />
-              </div>
-
-              <div className="mt-5 border-t border-outline-variant pt-5">
-                <QuickFacts facts={listingFacts(product)} />
-              </div>
+          <div className="lg:col-start-2 lg:row-start-3 xl:col-start-2 xl:row-start-2">
+            <div className="rounded-2xl border border-outline-variant bg-surface p-4">
+              <QuickFacts facts={listingFacts(product)} />
             </div>
 
             {/* One surface for every complaint: the ticket carries the kind and the id of what
@@ -181,7 +147,7 @@ export default function ProductInteractiveViewer({
               href={`/inbox?kind=report-listing&ref_id=${product.id}`}
               className="mt-3 inline-flex items-center gap-1.5 font-body-sm text-on-surface-variant transition-colors hover:text-error"
             >
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
                 flag
               </span>
               Báo cáo tin đăng này
@@ -189,11 +155,7 @@ export default function ProductInteractiveViewer({
           </div>
         </div>
 
-        <div className="mt-8">
-          <SellerPanel product={product} standing={standing} />
-        </div>
-
-        <div className="mt-12">
+        <div className="mt-10">
           <SectionNav
             sections={[
               { id: "description", label: "Mô tả" },
@@ -202,7 +164,7 @@ export default function ProductInteractiveViewer({
             ]}
           />
 
-          <div className="flex flex-col gap-12">
+          <div className="flex flex-col gap-10">
             <DescriptionPanel description={product.description} />
             {hasSpecs && (
               <SpecTable
@@ -220,7 +182,15 @@ export default function ProductInteractiveViewer({
         product={product}
         selectedVariant={selectedVariant}
         actions={actions}
-        anchor={buyPanel}
+        visible={buyPanelGone}
+      />
+
+      <ProductChatDock
+        product={product}
+        variant={selectedVariant}
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        liftedForBottomBar={buyPanelGone}
       />
 
       <OfferModal

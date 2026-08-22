@@ -74,20 +74,23 @@ export default function ProductPage({ id }: { id: string }) {
     : [{ id: product.category.id, name: product.category.name }];
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest pb-24">
+    <div className="min-h-screen bg-surface-container-lowest pb-20">
       {/* A view is a shopper looking at something for sale. Nothing here is. */}
       {live && <ViewTracker listingId={product.id} />}
       {!live && <ListingDownBanner listing={product} />}
 
+      {/* One line that scrolls sideways, not a paragraph that wraps. At 390px the old
+          breadcrumb ran to three lines and pushed the title of the listing off the first
+          screen — three lines of where-you-are above the thing you came to read. */}
       <nav
         aria-label="Đường dẫn"
-        className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-y-1 px-4 py-4 font-label-md text-on-surface-variant md:px-8"
+        className="hide-scrollbar mx-auto flex max-w-[1320px] items-center overflow-x-auto whitespace-nowrap px-4 py-3 font-label-sm text-on-surface-variant md:px-8 md:font-label-md"
       >
-        <Link href="/" className="transition-colors hover:text-primary">
+        <Link href="/" className="shrink-0 transition-colors hover:text-primary">
           Trang chủ
         </Link>
         {crumbs.map((crumb) => (
-          <span key={crumb.id} className="flex items-center">
+          <span key={crumb.id} className="flex shrink-0 items-center">
             <Crumbline />
             <Link
               href={`/search?category=${crumb.id}`}
@@ -97,9 +100,9 @@ export default function ProductPage({ id }: { id: string }) {
             </Link>
           </span>
         ))}
-        <span className="flex min-w-0 items-center">
+        <span className="flex shrink-0 items-center">
           <Crumbline />
-          <span className="truncate text-on-surface">{product.name}</span>
+          <span className="text-on-surface">{product.name}</span>
         </span>
       </nav>
 
@@ -108,7 +111,7 @@ export default function ProductPage({ id }: { id: string }) {
         standing={{ account: account ?? null, reputation: reputation ?? null }}
       />
 
-      <div className="mx-auto max-w-[1200px] px-4 md:px-8">
+      <div className="mx-auto max-w-[1320px] px-4 md:px-8">
         <ListingRail
           title="Sản phẩm tương tự"
           listings={excludeSelf(similar.data, product)}
@@ -137,45 +140,47 @@ function Crumbline() {
 /**
  * The shape of the page, before the page.
  *
- * Deliberately the same geometry as the real thing — a 46% gallery, a card beside it, a band
- * under both — so the layout does not jump when the listing lands. A spinner would say "wait";
- * this says "here is what is coming".
+ * Deliberately the same geometry as the real thing — a rail, a square photo, a title and an
+ * offer card — so the layout does not jump when the listing lands. A spinner would say
+ * "wait"; this says "here is what is coming".
  */
 function ProductSkeleton() {
   return (
-    <div className="min-h-screen bg-surface-container-lowest pb-24">
-      <div className="mx-auto max-w-[1200px] px-4 py-4 md:px-8">
+    <div className="min-h-screen bg-surface-container-lowest pb-20">
+      <div className="mx-auto max-w-[1320px] px-4 py-3 md:px-8">
         <Skeleton className="h-5 w-72 rounded-lg" />
       </div>
-      <div className="mx-auto max-w-[1200px] px-4 md:px-8">
-        <div className="flex flex-col gap-8 lg:flex-row">
-          <div className="w-full lg:w-[46%] lg:max-w-[520px] lg:shrink-0">
-            <Skeleton className="aspect-[4/5] w-full rounded-3xl" />
-            <div className="mt-4 flex gap-3">
+      <div className="mx-auto max-w-[1320px] px-4 md:px-8">
+        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-x-7 lg:gap-y-6 xl:grid-cols-[424px_minmax(0,1fr)_336px] xl:gap-x-8">
+          <div className="flex gap-3 lg:col-start-1 lg:row-start-1 lg:row-span-3">
+            <div className="hidden shrink-0 flex-col gap-2 lg:flex">
               {Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton key={index} className="h-[68px] w-[68px] rounded-xl" />
+                <Skeleton key={index} className="h-14 w-14 rounded-lg" />
+              ))}
+            </div>
+            <Skeleton className="aspect-square min-w-0 flex-1 rounded-2xl" />
+          </div>
+
+          <div className="lg:col-start-2 lg:row-start-1 xl:col-start-2">
+            <Skeleton className="h-6 w-4/5 rounded-lg" />
+            <Skeleton className="mt-2 h-4 w-52 rounded-lg" />
+          </div>
+
+          <div className="rounded-2xl border border-outline-variant bg-surface p-4 lg:col-start-2 lg:row-start-2 xl:col-start-3 xl:row-start-1 xl:row-span-3">
+            <Skeleton className="h-8 w-40 rounded-lg" />
+            <Skeleton className="mt-3 h-4 w-28 rounded-lg" />
+            <Skeleton className="mt-4 h-11 w-full rounded-xl" />
+            <Skeleton className="mt-2 h-11 w-full rounded-xl" />
+          </div>
+
+          <div className="rounded-2xl border border-outline-variant bg-surface p-4 lg:col-start-2 lg:row-start-3 xl:col-start-2 xl:row-start-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-10 rounded-lg" />
               ))}
             </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="rounded-2xl border border-outline-variant bg-surface p-5 sm:p-6">
-              <Skeleton className="h-7 w-4/5 rounded-lg" />
-              <Skeleton className="mt-3 h-4 w-52 rounded-lg" />
-              <Skeleton className="mt-6 h-10 w-48 rounded-lg" />
-              <Skeleton className="mt-4 h-4 w-40 rounded-lg" />
-              <div className="mt-6 flex gap-3">
-                <Skeleton className="h-12 flex-1 rounded-xl" />
-                <Skeleton className="h-12 flex-1 rounded-xl" />
-              </div>
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <Skeleton key={index} className="h-10 rounded-lg" />
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
-        <Skeleton className="mt-8 h-[120px] w-full rounded-2xl" />
       </div>
     </div>
   );

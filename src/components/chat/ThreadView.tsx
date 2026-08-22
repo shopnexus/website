@@ -13,9 +13,11 @@ import {
 	useSendMessage,
 } from "@/hooks/api/useChat"
 import { useAuthStore } from "@/stores/use-auth-store"
-import type { Message, MessageId, SendMessageRequest } from "@/api/generated/types.gen"
+import { useListingMap } from "@/hooks/api/useOrders"
+import type { ListingId, Message, MessageId, SendMessageRequest } from "@/api/generated/types.gen"
 
 import ChatComposer from "./ChatComposer"
+import ListingRefDivider from "./ListingRefDivider"
 import MessageRow from "./MessageRow"
 import PendingMessageRow from "./PendingMessageRow"
 import {
@@ -25,6 +27,7 @@ import {
 	isOwnMessage,
 	isSeenBy,
 	lastOwnMessageId,
+	listingRefMarks,
 	replyDraft,
 	type ReplyDraft,
 } from "./chat.logic"
@@ -138,6 +141,20 @@ export default function ThreadView({
 		listRef,
 	])
 
+	/**
+	 * Where the thread changes subject, and the listings those marks name.
+	 *
+	 * One batched read for the whole thread rather than one per mark — the same
+	 * `useListingMap` the inbox resolves its conversation rows with. It fetches nothing at all
+	 * on a thread where nobody pointed at a listing, which is most of them.
+	 */
+	const refMarks = useMemo(() => listingRefMarks(messages), [messages])
+	const refListingIds = useMemo(
+		() => [...new Set(refMarks.values())] as ListingId[],
+		[refMarks],
+	)
+	const refListings = useListingMap(refListingIds)
+
 	const days = useMemo(() => groupMessagesByDay(messages), [messages])
 	const receiptTargetId = useMemo(() => lastOwnMessageId(messages, me?.id), [messages, me?.id])
 	const newMessageMarkId = useMemo(
@@ -238,8 +255,15 @@ export default function ThreadView({
 
 							{day.items.map((message) => {
 								const mine = isOwnMessage(message, me?.id)
+								const refId = refMarks.get(message.id)
+								const refListing = refId
+									? refListings.get(refId as ListingId)
+									: undefined
 								return (
 									<div key={message.id} className="space-y-4">
+										{/* Only once the listing has resolved: a divider that said "Hỏi về:"
+										    and then nothing would be a gap with a label on it. */}
+										{refListing && <ListingRefDivider listing={refListing} />}
 										{message.id === newMessageMarkId && <NewMessageMark />}
 
 										<MessageRow

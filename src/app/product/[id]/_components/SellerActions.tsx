@@ -18,11 +18,14 @@ export default function SellerActions({
   sellerId,
   listingId,
   following,
+  onChat,
 }: {
   sellerId: AccountId;
   listingId: ListingId;
   /** Whether the reader already follows them — false for an anonymous read. */
   following: boolean;
+  /** Passed through to the chat button: open the caller's own thread instead of the inbox. */
+  onChat?: () => void;
 }) {
   const user = useAuthStore((s) => s.user);
   const isOwn = user?.id === sellerId;
@@ -36,21 +39,22 @@ export default function SellerActions({
             sellerId={sellerId}
             currentPath={`/product/${listingId}`}
             label="Chat"
-            className="flex-1 whitespace-nowrap"
+            className="h-10 flex-1 whitespace-nowrap"
+            onStart={onChat}
           />
           <FollowButton
             accountId={sellerId}
             initialIsFollowing={following}
             variant="outline"
-            className="flex-1 whitespace-nowrap"
+            className="h-10 flex-1 whitespace-nowrap"
           />
         </div>
       )}
       <Link href={shopHref}>
         <Button
-          variant={isOwn ? "primary" : "outline"}
-          className="w-full"
-          icon={<span className="material-symbols-outlined text-[20px]">storefront</span>}
+          variant={isOwn ? "primary" : "ghost"}
+          className="h-10 w-full"
+          icon={<span className="material-symbols-outlined text-[18px]">storefront</span>}
         >
           Xem gian hàng
         </Button>

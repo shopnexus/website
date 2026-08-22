@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState, type RefObject } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { formatMoney } from "@/lib/money";
@@ -18,29 +17,33 @@ import type { PurchaseActions } from "../_hooks/usePurchaseActions";
  * reminder, not a second interface, so it holds no state of its own and calls the same
  * actions the panel does.
  *
- * `anchor` is watched rather than the scroll position: a bar that flips on a pixel threshold
- * has to guess where the panel ended, and it guesses wrong at every viewport width.
+ * Below `xl` only. On a wide screen the buy card is a sticky column that never leaves, so a
+ * second set of the same buttons across the bottom would be two live copies of one control.
+ *
+ * `visible` comes from the page rather than being worked out here: the chat dock has to sit
+ * above this bar, so both need the same answer to "has the buy panel scrolled away", and two
+ * observers on one element is how they end up disagreeing for a frame.
  */
 export default function ProductBottomBar({
   product,
   selectedVariant,
   actions,
-  anchor,
+  visible,
 }: {
   product: ListingDetail;
   /** The variant the picker has chosen — what every action acts on. */
   selectedVariant: Variant;
   actions: PurchaseActions;
-  anchor: RefObject<HTMLElement | null>;
+  /** Whether the buy panel has scrolled away — decided once, by the page. */
+  visible: boolean;
 }) {
-  const visible = useScrolledPast(anchor);
   const live = listingIsLive(product);
 
   return (
     <div
       aria-hidden={!visible}
       className={[
-        "fixed inset-x-0 bottom-0 z-40 border-t border-outline-variant bg-surface p-3",
+        "fixed inset-x-0 bottom-0 z-40 border-t border-outline-variant bg-surface p-3 xl:hidden",
         "shadow-[0_-4px_16px_-4px_rgba(0,0,0,0.12)]",
         // MD3 emphasized-decelerate on the way in. `visibility` rides the same transition so
         // the bar stops taking keyboard focus while it is off screen, and still slides out
@@ -126,28 +129,4 @@ export default function ProductBottomBar({
       </div>
     </div>
   );
-}
-
-/**
- * Whether the anchor has left the viewport upwards.
- *
- * Upwards specifically: an anchor below the fold on first paint is also "not intersecting",
- * and a bar that appeared before the reader had ever seen the real controls would be back to
- * being the only interface.
- */
-function useScrolledPast(anchor: RefObject<HTMLElement | null>): boolean {
-  const [past, setPast] = useState(false);
-
-  useEffect(() => {
-    const element = anchor.current;
-    if (!element) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setPast(!entry.isIntersecting && entry.boundingClientRect.top < 0),
-      { threshold: 0 },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [anchor]);
-
-  return past;
 }

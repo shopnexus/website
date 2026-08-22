@@ -89,13 +89,47 @@ export function offerIdOf(message: Message): string | undefined {
 	return typeof value === "string" ? value : undefined
 }
 
+/** The listing a message points at, or undefined on one that points at nothing. */
+export function listingRefOf(message: Message): string | undefined {
+	const ref = message.refs.listing_id
+	return typeof ref === "string" && ref ? ref : undefined
+}
+
 /** The listing most recently pointed at in a thread — a conversation has none of its own. */
 export function lastReferencedListingId(messages: readonly Message[]): string | undefined {
 	for (let i = messages.length - 1; i >= 0; i--) {
-		const ref = messages[i].refs.listing_id
-		if (typeof ref === "string" && ref) return ref
+		const ref = listingRefOf(messages[i])
+		if (ref) return ref
 	}
 	return undefined
+}
+
+/**
+ * Where the subject of the thread changes: the messages that open a run about a listing
+ * different from the one before them, mapped to that listing.
+ *
+ * Chat has one thread per pair of accounts and reuses it for everything those two ever
+ * trade, so "what is this about" is a property of a stretch of messages rather than of the
+ * conversation. The banner at the top can only name the most recent one, which is right for
+ * answering the newest message and wrong for reading back through the thread: a buyer who
+ * asked about three listings leaves the seller three sets of questions with no way to tell
+ * which is which.
+ *
+ * A message carrying no ref does not end a run. Most messages carry none — only the ones
+ * sent from a product page do — and treating a bare "còn không?" as a change of subject
+ * would mark every second line.
+ */
+export function listingRefMarks(messages: readonly Message[]): Map<MessageId, string> {
+	const marks = new Map<MessageId, string>()
+	let current: string | undefined
+
+	for (const message of messages) {
+		const ref = listingRefOf(message)
+		if (!ref || ref === current) continue
+		marks.set(message.id, ref)
+		current = ref
+	}
+	return marks
 }
 
 /** The thread as days, oldest first — the order it is read in. */

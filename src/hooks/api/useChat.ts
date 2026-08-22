@@ -18,6 +18,7 @@ import {
 	getConversationsByIdOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import type {
+	AccountId,
 	ConversationId,
 	MessageId,
 	SendMessageRequest,
@@ -41,10 +42,17 @@ const CONVERSATION = "getConversationsById"
 const MESSAGES = "getConversationsByIdMessages"
 const UNREAD = "getConversationsUnreadCount"
 
-export function useConversations(limit = 30) {
+/**
+ * `enabled` is for a caller that is not the inbox: the product page's chat dock reads this
+ * list only to find out whether a thread with the seller already exists, and only once the
+ * reader has opened it. Every product page fetching every conversation on load would be a
+ * request per view for an answer nobody asked for — and it 401s for a signed-out reader.
+ */
+export function useConversations(limit = 30, enabled = true) {
 	const query = useInfiniteQuery({
 		...getConversationsInfiniteOptions({ query: { limit } }),
 		...cursorPagination,
+		enabled,
 	})
 
 	const conversations = useMemo(() => flattenPages(query.data), [query.data])
@@ -183,6 +191,43 @@ export function useMarkConversationRead() {
 				// so leaving it cached keeps a thread claiming unread after the mark landed.
 				queryClient.invalidateQueries({ queryKey: [{ _id: CONVERSATION }] }),
 				queryClient.invalidateQueries({ queryKey: [{ _id: UNREAD }] }),
+			]),
+	})
+}
+
+/**
+ * Open the thread with somebody and say the first thing in it, as one action.
+ *
+ * The two halves are separate routes and they have to stay that way — a thread outlives any
+ * one message — but a caller that has no thread yet has no id to send to, so it cannot use
+ * `useSendMessage`. This is the case where "start chatting" is one press: `POST /conversations`
+ * is idempotent per pair of accounts, so it answers with the existing thread when there is
+ * one and the message lands in it rather than in a duplicate.
+ */
+export function useStartConversationWithMessage() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({
+			accountId,
+			...message
+		}: SendMessageRequest & { accountId: AccountId }) => {
+			const { data: started } = await postConversations({
+				body: { account_id: accountId },
+				throwOnError: true,
+			})
+			const conversation = started.data
+			const { data: sent } = await postConversationsByIdMessages({
+				path: { id: conversation.id },
+				body: message,
+				throwOnError: true,
+			})
+			return { conversation, message: sent.data }
+		},
+		onSuccess: () =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: [{ _id: CONVERSATIONS }] }),
+				queryClient.invalidateQueries({ queryKey: [{ _id: MESSAGES }] }),
 			]),
 	})
 }

@@ -13,13 +13,17 @@ import { stockNote } from "../_lib/facts";
 import VariantPicker from "./VariantPicker";
 
 /**
- * The offer: what it costs, which one, how many are left, and the two buttons.
+ * The offer: what it costs, which one, how many are left, and the buttons.
  *
- * This is the change the page most needed. The price used to be the *last* card in the right
- * column — under the description, the details and the classification picker — so a shopper
- * scrolled past everything the listing says to find out what it costs, and the variant they
- * picked changed a number that was no longer on screen. Everything that decides a purchase is
- * now one block, and it is the first thing beside the photos.
+ * A column of its own on a wide screen, and it sticks. Before this it was the top of a 640px
+ * column that had nothing else in it, so the buttons stretched to a quarter of the page each
+ * and the whole card floated in white space; it also scrolled away, which is why the page
+ * needed a fixed bar at the bottom to put the same two buttons back. At 336px the controls
+ * are the size of controls, and the bar is only needed on a phone.
+ *
+ * "Mua ngay" is stacked above "Thêm vào giỏ" rather than beside it. Two buttons of equal
+ * width side by side are two equal choices, and they are not: one is the action this page
+ * exists for.
  */
 export default function BuyPanel({
   product,
@@ -40,22 +44,25 @@ export default function BuyPanel({
   const live = listingIsLive(product);
 
   return (
-    <section aria-label="Giá và đặt mua">
-      <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-        <span className="font-display-lg text-[36px] font-bold leading-none tracking-tight tabular-nums text-primary">
+    <section
+      aria-label="Giá và đặt mua"
+      className="rounded-2xl border border-outline-variant bg-surface p-4"
+    >
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <span className="text-[30px] font-extrabold leading-none tracking-tight tabular-nums text-primary">
           {formatMoney(selectedVariant.price, product.currency)}
         </span>
         {actions.isNegotiable && (
-          <Badge variant="surface" className="self-center border border-primary text-primary">
-            Có thể thương lượng
+          <Badge variant="surface" className="border border-primary text-primary">
+            Thương lượng được
           </Badge>
         )}
       </div>
 
-      <div className="mt-3 flex items-center gap-1.5 font-body-sm">
+      <div className="mt-2.5 flex items-center gap-1.5 font-body-sm">
         <span
           className={[
-            "material-symbols-outlined text-[18px]",
+            "material-symbols-outlined text-[17px]",
             stock.scarce ? "text-error" : "text-primary",
           ].join(" ")}
           style={{ fontVariationSettings: "'FILL' 1" }}
@@ -71,15 +78,13 @@ export default function BuyPanel({
             <span className="text-on-surface-variant" aria-hidden="true">
               ·
             </span>
-            <span className="text-on-surface-variant">
-              đã bán {selectedVariant.stock.sold} phân loại này
-            </span>
+            <span className="text-on-surface-variant">đã bán {selectedVariant.stock.sold}</span>
           </>
         )}
       </div>
 
       {product.variants.length > 1 && (
-        <div className="mt-5">
+        <div className="mt-4 border-t border-outline-variant pt-4">
           <VariantPicker
             variants={product.variants}
             selected={selectedVariant}
@@ -91,7 +96,7 @@ export default function BuyPanel({
 
       {live && !actions.isOwn && (
         <>
-          <div className="mt-5 flex items-center gap-4">
+          <div className="mt-4 flex items-center justify-between gap-3">
             <span className="font-label-sm uppercase tracking-wide text-on-surface-variant">
               Số lượng
             </span>
@@ -103,21 +108,10 @@ export default function BuyPanel({
             />
           </div>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="h-12 flex-1 rounded-xl"
-              onClick={() => actions.addToCart(quantity)}
-              disabled={actions.isOutOfStock}
-              icon={<span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>}
-            >
-              Thêm vào giỏ
-            </Button>
+          <div className="mt-4 flex flex-col gap-2">
             <Button
               variant="primary"
-              size="lg"
-              className="h-12 flex-1 rounded-xl"
+              className="h-11 w-full rounded-xl font-bold"
               onClick={actions.buyNow}
               disabled={actions.isBuying || actions.isOutOfStock}
             >
@@ -127,20 +121,31 @@ export default function BuyPanel({
                   ? "Đang xử lý..."
                   : "Mua ngay"}
             </Button>
-          </div>
-
-          {actions.isNegotiable && !actions.isOutOfStock && (
-            <button
-              type="button"
-              onClick={actions.negotiate}
-              className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-outline-variant py-2.5 font-label-md text-on-surface transition-colors hover:border-primary hover:text-primary"
+            <Button
+              variant="secondary"
+              className="h-11 w-full rounded-xl"
+              onClick={() => actions.addToCart(quantity)}
+              disabled={actions.isOutOfStock}
+              icon={
+                <span className="material-symbols-outlined text-[19px]">add_shopping_cart</span>
+              }
             >
-              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                handshake
-              </span>
-              Đề nghị mức giá của bạn
-            </button>
-          )}
+              Thêm vào giỏ
+            </Button>
+
+            {actions.isNegotiable && !actions.isOutOfStock && (
+              <button
+                type="button"
+                onClick={actions.negotiate}
+                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-outline-variant font-label-md text-on-surface transition-colors hover:border-primary hover:text-primary"
+              >
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  handshake
+                </span>
+                Đề nghị mức giá của bạn
+              </button>
+            )}
+          </div>
         </>
       )}
 
@@ -148,8 +153,8 @@ export default function BuyPanel({
         // Staff reading a listing that is down. There is nothing to buy — the server refuses a
         // cart line, a session and an offer alike — so the panel says so rather than laying out
         // three buttons that end in a 409.
-        <p className="mt-5 flex items-center gap-2 rounded-2xl bg-surface-container-low p-4 font-label-md text-on-surface-variant">
-          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+        <p className="mt-4 flex items-center gap-2 rounded-xl bg-surface-container-low p-3 font-label-md text-on-surface-variant">
+          <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
             visibility_off
           </span>
           Tin đăng này không còn hiển thị công khai — không thể mua.
@@ -159,31 +164,31 @@ export default function BuyPanel({
       {actions.isOwn && (
         // Nobody buys their own tin — the server refuses the draft, the cart line and the
         // offer alike — so this is the one thing a seller can do from their own product page.
-        <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-surface-container-low p-4">
+        <div className="mt-4 flex flex-col gap-2.5 rounded-xl bg-surface-container-low p-3">
           <span className="flex items-center gap-2 font-label-md text-on-surface-variant">
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
               storefront
             </span>
             Đây là tin đăng của bạn
           </span>
           <Link href={`/account/products/${product.id}`}>
-            <Button variant="primary" className="h-11 w-full rounded-xl">
+            <Button variant="primary" className="h-10 w-full rounded-xl">
               Chỉnh sửa tin
             </Button>
           </Link>
         </div>
       )}
 
-      <div className="mt-5 flex items-start gap-2 font-body-sm text-on-surface-variant">
+      <p className="mt-4 flex items-start gap-2 border-t border-outline-variant pt-3 font-body-sm text-on-surface-variant">
         <span
-          className="material-symbols-outlined shrink-0 text-[20px] text-primary"
+          className="material-symbols-outlined shrink-0 text-[18px] text-primary"
           style={{ fontVariationSettings: "'FILL' 1" }}
           aria-hidden="true"
         >
           shield
         </span>
-        Tiền được giữ cho tới khi bạn nhận hàng — hoàn 100% nếu hàng không đúng mô tả.
-      </div>
+        Tiền được giữ tới khi bạn nhận hàng — hoàn 100% nếu không đúng mô tả.
+      </p>
     </section>
   );
 }
