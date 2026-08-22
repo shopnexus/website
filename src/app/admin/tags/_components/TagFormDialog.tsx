@@ -25,7 +25,18 @@ import {
  * dialog says that where the slug is, because "why is the slug greyed out" is otherwise
  * answered by somebody creating a duplicate.
  */
-export default function TagFormDialog({ editing, onClose }: { editing?: Tag; onClose: () => void }) {
+export default function TagFormDialog({
+  editing,
+  canDelete = false,
+  onRequestDelete,
+  onClose,
+}: {
+  editing?: Tag
+  /** Admin only. The catalogue owns the confirm step, so this only asks for it. */
+  canDelete?: boolean
+  onRequestDelete?: () => void
+  onClose: () => void
+}) {
   const put = usePutTag();
   const [slug, setSlug] = useState(editing?.slug ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
@@ -48,17 +59,13 @@ export default function TagFormDialog({ editing, onClose }: { editing?: Tag; onC
     <Modal open title={editing ? "Sửa mô tả thẻ" : "Thêm thẻ"} onClose={onClose}>
       <div className="space-y-4">
         {editing ? (
-          <div className="rounded-2xl border border-tertiary-container/60 bg-tertiary-container/10 px-4 py-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="font-label-md text-on-surface">Slug</span>
-              <IdentityKey value={editing.slug} weight="settled" />
-            </div>
-            <p className="font-body-sm text-on-surface-variant">
-              Slug chính là danh tính của thẻ — nó là khoá chính, là thứ mọi tin đăng trỏ tới và là
-              giá trị nằm trên đường dẫn. Không có thao tác đổi tên: ghi vào một slug khác sẽ tạo ra
-              một thẻ khác. Muốn thay slug, hãy tạo thẻ mới, gắn lại cho các tin đăng rồi mới xoá thẻ
-              cũ.
-            </p>
+          // One line. The four that were here explained that a slug is a primary key, that
+          // there is no rename, and how to fake one — which the page header already says in a
+          // sentence, and which nobody re-reads on the fifth description they fix.
+          <div className="flex items-center gap-2">
+            <span className="font-label-md text-on-surface">Slug</span>
+            <IdentityKey value={editing.slug} weight="settled" />
+            <span className="font-label-sm text-on-surface-variant">không sửa được</span>
           </div>
         ) : (
           <Field
@@ -85,7 +92,20 @@ export default function TagFormDialog({ editing, onClose }: { editing?: Tag; onC
           />
         </Field>
 
-        <div className="flex justify-end gap-2 pt-1">
+        <div className="flex items-center justify-end gap-2 pt-1">
+          {/* The one destructive action on this surface, and it lives here rather than on
+              every chip in the grid: three hundred delete targets in a dense flow is three
+              hundred chances to hit one by accident. */}
+          {editing && canDelete && (
+            <Button
+              variant="ghost"
+              className="mr-auto text-error hover:bg-error/10 hover:text-error"
+              onClick={onRequestDelete}
+              disabled={put.isPending}
+            >
+              Xoá thẻ
+            </Button>
+          )}
           <Button variant="outline" onClick={onClose} disabled={put.isPending}>
             Huỷ
           </Button>

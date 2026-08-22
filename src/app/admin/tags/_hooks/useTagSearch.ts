@@ -5,7 +5,9 @@ import { useAdminTags } from "@/hooks/api/useAdminConfig";
 import { toTagSlug } from "../_lib/tag-slug";
 
 const DEBOUNCE_MS = 300;
-const PAGE_SIZE = 30;
+// Sixty rather than thirty: a row of chips holds several tags, so a page of thirty was
+// four lines of a screen that fits twenty. The dictionary is scanned, not read.
+const PAGE_SIZE = 60;
 
 /**
  * The tag dictionary's search box.
