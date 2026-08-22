@@ -102,7 +102,7 @@ export default function ResolveWithdrawalDialog({
                 ? "Ví dụ: đã chuyển lúc 14:20."
                 : "Ví dụ: tên chủ tài khoản không khớp với hồ sơ định danh."
             }
-            className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-[16px] text-on-surface outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+            className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
           />
         </label>
 

@@ -80,7 +80,7 @@ export default function SessionTable({
                     <td className={`w-1 p-0 ${STATUS_RAIL[session.status]}`} aria-hidden />
 
                     <td className="px-4 py-4">
-                      <div className="font-mono text-[12px] text-on-surface">{session.id}</div>
+                      <div className="font-mono text-body-xs text-on-surface">{session.id}</div>
                       {session.note && (
                         <div className="font-body-sm text-on-surface-variant mt-1 max-w-xs">
                           {session.note}
@@ -94,12 +94,12 @@ export default function SessionTable({
 
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${STATUS_CHIP[session.status]}`}
+                        className={`px-2 py-0.5 text-label-xs rounded-full ${STATUS_CHIP[session.status]}`}
                       >
                         {PAYMENT_SESSION_STATUS_VI[session.status]}
                       </span>
                       {overdue && (
-                        <div className="text-[11px] font-bold text-error mt-1">Quá hạn chưa huỷ</div>
+                        <div className="text-label-xs text-error mt-1">Quá hạn chưa huỷ</div>
                       )}
                     </td>
 

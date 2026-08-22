@@ -80,7 +80,7 @@ export default function WalletInspector({
                   <div className="font-body-sm text-on-surface-variant truncate">
                     {selected.email ?? selected.phone ?? selected.username ?? "—"}
                   </div>
-                  <div className="font-mono text-[11px] text-on-surface-variant mt-0.5">
+        <div className="font-mono text-label-xs text-on-surface-variant mt-0.5">
                     {selected.id}
                   </div>
                 </div>

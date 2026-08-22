@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { toast } from "react-hot-toast"
+import ListingHistory from "@/components/listings/ListingHistory"
 import Badge from "@/components/ui/Badge"
 import Button from "@/components/ui/Button"
 import Skeleton from "@/components/ui/Skeleton"
@@ -146,6 +147,12 @@ export default function ListingReviewPanel({ listingId }: { listingId: ListingId
 					</span>
 				)}
 			</div>
+
+			{/* Under the verdict rather than above it: the decision rests on the pictures and
+			    the words, and the trail is what a moderator checks when those alone do not
+			    settle it — a seller who edits back to what was refused, an approval somebody
+			    else already made. */}
+			<ListingHistory listingId={detail.id} />
 
 			<TakedownDialog
 				open={takingDown}

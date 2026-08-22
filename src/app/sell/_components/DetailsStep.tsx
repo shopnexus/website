@@ -63,14 +63,14 @@ export default function DetailsStep({
 			<div className="grid gap-5 sm:grid-cols-2">
 				<label className="space-y-2">
 					<span className="text-sm font-semibold text-on-surface">Danh mục <span className="text-error">*</span></span>
-					<select value={form.categoryId} onChange={(event) => onField("categoryId", event.target.value as CategoryId)} className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
+					<select value={form.categoryId} onChange={(event) => onField("categoryId", event.target.value as CategoryId)} className="w-full rounded-2xl border border-outline bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
 						<option value="">Chọn danh mục phù hợp</option>
 						{categories.map((category) => <option key={category.id} value={category.id}>{`${"— ".repeat(category.depth)}${category.label}`}</option>)}
 					</select>
 				</label>
 				<label className="space-y-2">
 					<span className="text-sm font-semibold text-on-surface">Tình trạng <span className="text-error">*</span></span>
-					<select value={form.condition} onChange={(event) => onField("condition", event.target.value as ListingCondition)} className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
+					<select value={form.condition} onChange={(event) => onField("condition", event.target.value as ListingCondition)} className="w-full rounded-2xl border border-outline bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
 						<option value="">Chọn tình trạng</option>
 						{(Object.keys(LISTING_CONDITION_VI) as ListingCondition[]).map((condition) => <option key={condition} value={condition}>{LISTING_CONDITION_VI[condition]}</option>)}
 					</select>
@@ -79,7 +79,7 @@ export default function DetailsStep({
 
 			<label className="block space-y-2">
 				<span className="text-sm font-semibold text-on-surface">Mô tả chi tiết</span>
-				<textarea value={form.description} maxLength={20_000} onChange={(event) => onField("description", event.target.value)} placeholder="Tình trạng thực tế, thời gian sử dụng, phụ kiện đi kèm, lỗi hoặc vết xước…" className="min-h-40 w-full resize-y rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15" />
+				<textarea value={form.description} maxLength={20_000} onChange={(event) => onField("description", event.target.value)} placeholder="Tình trạng thực tế, thời gian sử dụng, phụ kiện đi kèm, lỗi hoặc vết xước…" className="min-h-40 w-full resize-y rounded-2xl border border-outline bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15" />
 				<span className="block text-right text-xs text-on-surface-variant">{form.description.length.toLocaleString("vi-VN")}/20.000</span>
 			</label>
 

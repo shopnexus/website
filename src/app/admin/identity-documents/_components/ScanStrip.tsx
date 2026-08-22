@@ -24,7 +24,11 @@ const SLOTS = [
  * alike.
  */
 export default function ScanStrip({ scans }: { scans: IdentityScans }) {
-  const [viewing, setViewing] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
+  // Only the scans that resolved, in slot order: that is the set ← and → step through.
+  const urls = SLOTS.map(({ key }) => scans[key]?.url).filter((url): url is string =>
+    Boolean(url),
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -37,7 +41,7 @@ export default function ScanStrip({ scans }: { scans: IdentityScans }) {
               {scan?.url ? (
                 <button
                   type="button"
-                  onClick={() => setViewing(scan.url)}
+                  onClick={() => setViewing(urls.indexOf(scan.url!))}
                   aria-label={`Xem ${label} cỡ lớn`}
                   className="w-28 h-20 rounded-lg overflow-hidden border border-outline-variant bg-surface-container cursor-pointer hover:border-primary transition-colors"
                 >
@@ -58,9 +62,11 @@ export default function ScanStrip({ scans }: { scans: IdentityScans }) {
       </div>
 
       <ImageViewerModal
-        isOpen={viewing !== null}
-        imageUrl={viewing ?? ""}
+        images={urls}
+        index={viewing}
+        onIndexChange={setViewing}
         onClose={() => setViewing(null)}
+        altText="Ảnh giấy tờ tùy thân"
       />
     </div>
   );

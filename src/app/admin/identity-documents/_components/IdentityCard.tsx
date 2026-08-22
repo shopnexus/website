@@ -32,12 +32,12 @@ export default function IdentityCard({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-headline-sm text-on-surface">{account.name}</span>
             <span
-              className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${STATUS_CHIP[document.status]}`}
+              className={`px-2 py-0.5 text-label-xs rounded-full ${STATUS_CHIP[document.status]}`}
             >
               {IDENTITY_STATUS_VI[document.status]}
             </span>
             {expired && (
-              <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-error-container text-on-error-container">
+              <span className="px-2 py-0.5 text-label-xs rounded-full bg-error-container text-on-error-container">
                 Đã quá hạn
               </span>
             )}
@@ -48,7 +48,7 @@ export default function IdentityCard({
             <span className="mx-2 text-outline">·</span>
             {/* The vendor is the provenance of the verdict: a check FPT.AI answered and one a
                 moderator typed are different evidence, and only this field tells them apart. */}
-            Nhà cung cấp: <span className="font-mono text-[13px]">{document.provider}</span>
+            Nhà cung cấp: <span className="font-mono text-body-sm">{document.provider}</span>
           </div>
 
           <div className="font-body-sm text-on-surface-variant mt-1">
@@ -62,7 +62,7 @@ export default function IdentityCard({
                 : ""}
           </div>
 
-          <div className="font-mono text-[11px] text-on-surface-variant mt-1">
+      <div className="font-mono text-label-xs text-on-surface-variant mt-1">
             {account.id} · {document.id}
           </div>
 

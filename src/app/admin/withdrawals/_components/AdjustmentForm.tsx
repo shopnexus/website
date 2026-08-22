@@ -90,7 +90,7 @@ export default function AdjustmentForm({
           rows={2}
           maxLength={2000}
           placeholder="Ví dụ: hoàn phí thu nhầm của đơn ord_xxx theo yêu cầu hỗ trợ #123."
-          className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-[16px] text-on-surface outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+          className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
         />
       </label>
 

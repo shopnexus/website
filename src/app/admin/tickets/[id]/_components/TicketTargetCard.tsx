@@ -21,7 +21,7 @@ export default function TicketTargetCard({
 	return (
 		<section className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-5 flex flex-col gap-3">
 			<div className="flex items-center justify-between gap-3">
-				<h2 className="font-label-md text-on-surface-variant uppercase tracking-[0.06em] text-[11px]">
+				<h2 className="font-label-md text-on-surface-variant uppercase tracking-[0.06em]">
 					Đối tượng bị nêu
 				</h2>
 				{openAgainstTarget > 1 && (
@@ -53,7 +53,7 @@ export default function TicketTargetCard({
 
 			<div className="flex items-center gap-3 flex-wrap">
 				{target.refId && (
-					<code className="font-mono text-[12px] bg-surface-container px-2 py-1 rounded-md text-on-surface-variant">
+					<code className="font-mono text-body-xs bg-surface-container px-2 py-1 rounded-md text-on-surface-variant">
 						{target.refId}
 					</code>
 				)}

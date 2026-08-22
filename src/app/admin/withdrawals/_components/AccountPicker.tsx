@@ -63,7 +63,7 @@ export default function AccountPicker({
               <div className="font-body-sm text-on-surface-variant mt-0.5 truncate">
                 {account.email ?? account.phone ?? account.username ?? "Không có định danh công khai"}
               </div>
-              <div className="font-mono text-[11px] text-on-surface-variant mt-0.5">
+    <div className="font-mono text-label-xs text-on-surface-variant mt-0.5">
                 {account.id}
               </div>
             </button>

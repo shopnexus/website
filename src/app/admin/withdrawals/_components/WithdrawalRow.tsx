@@ -37,11 +37,11 @@ export default function WithdrawalRow({
               {formatMoney(withdrawal.amount, withdrawal.currency)}
             </span>
             <span
-              className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${OUTCOME_CHIP[withdrawal.outcome]}`}
+              className={`px-2 py-0.5 text-label-xs rounded-full ${OUTCOME_CHIP[withdrawal.outcome]}`}
             >
               {WITHDRAWAL_OUTCOME_VI[withdrawal.outcome]}
             </span>
-            <span className="text-[11px] text-on-surface-variant">
+            <span className="text-label-xs text-on-surface-variant">
               Giao dịch: {PAYMENT_SESSION_STATUS_VI[withdrawal.status]}
             </span>
           </div>
@@ -49,7 +49,7 @@ export default function WithdrawalRow({
           <div className="font-body-sm text-on-surface mt-2">
             <span className="font-semibold">{withdrawal.bank_account.account_holder}</span>
             <span className="mx-2 text-outline">·</span>
-            <span className="font-mono text-[13px]">{bankLabel(withdrawal.bank_account)}</span>
+            <span className="font-mono text-body-sm">{bankLabel(withdrawal.bank_account)}</span>
           </div>
 
           <div className="font-body-sm text-on-surface-variant mt-1">
@@ -57,7 +57,7 @@ export default function WithdrawalRow({
             {withdrawal.resolved_at &&
               ` · Xử lý ${new Date(withdrawal.resolved_at).toLocaleString("vi-VN")}`}
             <span className="mx-2 text-outline">·</span>
-            <span className="font-mono text-[11px]">{withdrawal.id}</span>
+            <span className="font-mono text-label-xs">{withdrawal.id}</span>
           </div>
 
           {withdrawal.resolution_note && (

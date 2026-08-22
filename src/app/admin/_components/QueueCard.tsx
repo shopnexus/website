@@ -78,8 +78,8 @@ export default function QueueCard({
             ].join(" ")}
             title="Đã chờ lâu nhất"
           >
-            <span className="text-[15px] font-bold leading-none block">{wait.label}</span>
-            <span className="text-[9px] uppercase tracking-[0.1em] opacity-70">chờ lâu nhất</span>
+            <span className="text-title-md leading-none block">{wait.label}</span>
+            <span className="text-label-xs uppercase tracking-[0.1em] opacity-70">chờ lâu nhất</span>
           </div>
         )}
       </div>

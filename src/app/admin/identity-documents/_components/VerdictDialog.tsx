@@ -99,7 +99,7 @@ export default function VerdictDialog({
               rows={3}
               maxLength={2000}
               placeholder="Ví dụ: ảnh chụp mờ, không đọc được ngày sinh."
-              className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-[16px] text-on-surface outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+              className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md text-on-surface outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
             />
           </label>
         )}

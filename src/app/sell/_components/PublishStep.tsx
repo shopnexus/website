@@ -23,7 +23,7 @@ export default function PublishStep({ contacts, activePickupId, onPickupChange }
 			{contacts.length > 0 ? (
 				<div className="space-y-3">
 					<label htmlFor="pickup-contact" className="text-sm font-semibold text-on-surface">Địa chỉ lấy hàng <span className="text-error">*</span></label>
-					<select id="pickup-contact" value={activePickupId} onChange={(event) => onPickupChange(event.target.value as ContactId)} className="w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
+					<select id="pickup-contact" value={activePickupId} onChange={(event) => onPickupChange(event.target.value as ContactId)} className="w-full rounded-2xl border border-outline bg-surface-container-lowest px-4 py-3 text-on-surface outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
 						{contacts.map((contact) => <option key={contact.id} value={contact.id}>{contact.full_name} — {contact.address}, {contact.ward_name}, {contact.province_name}</option>)}
 					</select>
 					{activePickup ? (
