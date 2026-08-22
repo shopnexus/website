@@ -134,8 +134,8 @@ body {
 .text-display-lg,
 .font-display-lg {
   font-family: var(--font-family-body);
-  font-size: 40px;
-  line-height: 48px;
+  font-size: 36px;
+  line-height: 44px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -166,8 +166,8 @@ body {
 .text-headline-md,
 .font-headline-md {
   font-family: var(--font-family-body);
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 22px;
+  line-height: 30px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -215,7 +215,7 @@ body {
 .font-body-md {
   font-family: var(--font-family-body);
   font-size: 16px;
-  line-height: 26px;
+  line-height: 24px;
   font-weight: 400;
   letter-spacing: normal;
 }
@@ -296,8 +296,8 @@ body {
 }
 .text-display-lg-mobile {
   font-family: var(--font-family-body);
-  font-size: 32px;
-  line-height: 40px;
+  font-size: 28px;
+  line-height: 36px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
