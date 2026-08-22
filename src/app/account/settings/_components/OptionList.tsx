@@ -31,7 +31,7 @@ export default function OptionList({
   }
 
   if (options.length === 0) {
-    return <p className="font-body-sm text-on-surface-variant">{emptyLabel}</p>;
+    return <p className="text-body-sm text-on-surface-variant">{emptyLabel}</p>;
   }
 
   return (
@@ -45,9 +45,9 @@ export default function OptionList({
             <span className="material-symbols-outlined">{icon}</span>
           </div>
           <div className="min-w-0">
-            <p className="font-label-md font-bold text-on-surface">{option.name}</p>
+            <p className="text-label-md text-on-surface">{option.name}</p>
             {option.description && (
-              <p className="font-body-sm text-on-surface-variant mt-0.5">{option.description}</p>
+              <p className="text-body-sm text-on-surface-variant mt-0.5">{option.description}</p>
             )}
           </div>
         </li>

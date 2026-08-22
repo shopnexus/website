@@ -43,47 +43,47 @@ export default function PasswordForm() {
   };
 
   return (
-    <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm h-fit">
-      <h2 className="font-headline-sm font-bold text-on-surface mb-6 flex items-center gap-2">
-        <span className="material-symbols-outlined">password</span>
+    <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6 h-fit">
+      <h2 className="text-title-md text-on-surface mb-5 flex items-center gap-2">
+        <span className="material-symbols-outlined text-[20px]" aria-hidden="true">password</span>
         Đổi mật khẩu
       </h2>
       
       {!user?.has_password ? (
-        <div className="p-4 bg-primary-container/20 rounded-lg border border-primary/20 text-on-surface-variant font-body-sm">
+        <div className="p-4 rounded-xl border border-primary/20 bg-primary-container/20 text-body-sm text-on-surface-variant">
           Tài khoản của bạn được đăng nhập bằng dịch vụ bên ngoài nên không có mật khẩu. Nếu muốn tạo mật khẩu, hãy đặt lại mật khẩu từ trang Đăng nhập.
         </div>
       ) : (
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
-            <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Mật khẩu hiện tại</label>
+            <label className="block text-label-md text-on-surface mb-1.5">Mật khẩu hiện tại</label>
             <input 
               type="password" 
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+              className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
               required
             />
           </div>
           
           <div>
-            <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Mật khẩu mới</label>
+            <label className="block text-label-md text-on-surface mb-1.5">Mật khẩu mới</label>
             <input 
               type="password" 
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+              className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
               required
             />
           </div>
           
           <div>
-            <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Xác nhận mật khẩu mới</label>
+            <label className="block text-label-md text-on-surface mb-1.5">Xác nhận mật khẩu mới</label>
             <input 
               type="password" 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+              className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
               required
             />
           </div>

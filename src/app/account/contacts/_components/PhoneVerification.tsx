@@ -23,7 +23,7 @@ export default function PhoneVerification({ contact }: { contact: Contact }) {
 
   if (contact.phone_verified) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
+      <span className="inline-flex items-center gap-1 text-label-sm text-primary">
         <span className="material-symbols-outlined text-[14px]">verified</span>
         Đã xác minh
       </span>
@@ -43,7 +43,7 @@ export default function PhoneVerification({ contact }: { contact: Contact }) {
             },
           })
         }
-        className="text-primary text-[11px] font-semibold hover:underline disabled:opacity-50 cursor-pointer"
+        className="text-primary text-label-sm hover:underline disabled:opacity-50 cursor-pointer"
       >
         {requestCode.isPending ? "Đang gửi..." : "Xác minh số điện thoại"}
       </button>
@@ -77,7 +77,7 @@ export default function PhoneVerification({ contact }: { contact: Contact }) {
         value={code}
         onChange={(event) => setCode(event.target.value)}
         placeholder="Mã SMS"
-        className="w-28 h-9 px-3 rounded-lg border border-outline focus:border-primary outline-none text-body-sm tabular-nums bg-surface-container-lowest"
+        className="w-28 h-9 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-sm tabular-nums outline-none transition-colors focus:border-primary"
       />
       <Button type="submit" size="sm" disabled={!code.trim() || verifyPhone.isPending}>
         {verifyPhone.isPending ? "..." : "Xác nhận"}
@@ -85,7 +85,7 @@ export default function PhoneVerification({ contact }: { contact: Contact }) {
       <button
         type="button"
         onClick={() => setSent(false)}
-        className="text-[11px] text-on-surface-variant hover:text-on-surface cursor-pointer"
+        className="text-label-sm text-on-surface-variant hover:text-on-surface cursor-pointer"
       >
         Hủy
       </button>

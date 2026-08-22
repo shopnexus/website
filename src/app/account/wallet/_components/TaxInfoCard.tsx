@@ -69,11 +69,11 @@ export default function TaxInfoCard() {
   const complete = form.legal_name.trim() && form.tax_code.trim();
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-outline-variant/40 flex items-start justify-between gap-4">
+    <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
+      <div className="p-5 md:p-6 border-b border-outline-variant flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-headline font-bold text-lg text-primary">Đăng ký thuế</h2>
-          <p className="font-body-sm text-on-surface-variant mt-1 max-w-lg">
+          <h2 className="text-title-md text-on-surface">Đăng ký thuế</h2>
+          <p className="text-body-sm text-on-surface-variant mt-1 max-w-lg">
             Mã số thuế dùng cho việc kê khai doanh thu bán hàng của bạn.
           </p>
         </div>
@@ -84,11 +84,11 @@ export default function TaxInfoCard() {
         )}
       </div>
 
-      <div className="p-6">
+      <div className="p-5 md:p-6">
         {isLoading ? (
           <div className="h-16 rounded-xl bg-surface-container-high animate-pulse" />
         ) : failed ? (
-          <p className="font-body-sm text-on-surface-variant">
+          <p className="text-body-sm text-on-surface-variant">
             Không tải được thông tin thuế. Vui lòng thử lại.
           </p>
         ) : editing ? (
@@ -96,7 +96,7 @@ export default function TaxInfoCard() {
             <div>
               <label
                 htmlFor="tax-type"
-                className="block font-label-sm font-semibold text-on-surface mb-1.5"
+                className="block text-label-md text-on-surface mb-1.5"
               >
                 Loại người nộp thuế
               </label>
@@ -119,7 +119,7 @@ export default function TaxInfoCard() {
             <div>
               <label
                 htmlFor="tax-name"
-                className="block font-label-sm font-semibold text-on-surface mb-1.5"
+                className="block text-label-md text-on-surface mb-1.5"
               >
                 Tên trên đăng ký thuế
               </label>
@@ -134,7 +134,7 @@ export default function TaxInfoCard() {
             <div>
               <label
                 htmlFor="tax-code"
-                className="block font-label-sm font-semibold text-on-surface mb-1.5"
+                className="block text-label-md text-on-surface mb-1.5"
               >
                 Mã số thuế
               </label>
@@ -158,40 +158,46 @@ export default function TaxInfoCard() {
             </div>
           </form>
         ) : !taxInfo ? (
-          <div className="text-center py-8 text-on-surface-variant">
-            <span className="material-symbols-outlined text-4xl opacity-40 mb-3 block">
+          <div className="text-center py-6">
+            <span
+              className="material-symbols-outlined text-[32px] text-on-surface-variant mb-3 block"
+              aria-hidden="true"
+            >
               receipt_long
             </span>
-            <p className="font-body-md">Bạn chưa đăng ký thông tin thuế.</p>
+            <p className="text-title-md text-on-surface">Chưa đăng ký thông tin thuế</p>
+            <p className="text-body-sm text-on-surface-variant mt-1.5 max-w-[46ch] mx-auto">
+              Khai mã số thuế một lần, rồi doanh thu bán hàng của bạn được kê khai đúng chỗ.
+            </p>
           </div>
         ) : (
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <dt className="font-label-sm text-on-surface-variant">Tên trên đăng ký</dt>
-              <dd className="font-label-md text-on-surface mt-1">{taxInfo.legal_name}</dd>
+              <dt className="text-label-sm text-on-surface-variant">Tên trên đăng ký</dt>
+              <dd className="text-label-md text-on-surface mt-1">{taxInfo.legal_name}</dd>
             </div>
             <div>
-              <dt className="font-label-sm text-on-surface-variant">Mã số thuế</dt>
-              <dd className="font-label-md text-on-surface mt-1 tabular-nums">
+              <dt className="text-label-sm text-on-surface-variant">Mã số thuế</dt>
+              <dd className="text-label-md text-on-surface mt-1 tabular-nums">
                 {taxInfo.tax_code}
               </dd>
             </div>
             <div>
-              <dt className="font-label-sm text-on-surface-variant">Loại</dt>
-              <dd className="font-label-md text-on-surface mt-1">
+              <dt className="text-label-sm text-on-surface-variant">Loại</dt>
+              <dd className="text-label-md text-on-surface mt-1">
                 {TAX_CODE_TYPE_VI[taxInfo.tax_code_type]}
               </dd>
             </div>
             <div>
-              <dt className="font-label-sm text-on-surface-variant">Tình trạng xác minh</dt>
+              <dt className="text-label-sm text-on-surface-variant">Tình trạng xác minh</dt>
               <dd className="mt-1">
                 <span
-                  className={`px-2 py-1 text-[11px] font-semibold rounded-full ${STATUS_STYLES[taxInfo.verification_status]}`}
+                  className={`px-2 py-1 text-label-sm rounded-full ${STATUS_STYLES[taxInfo.verification_status]}`}
                 >
                   {TAX_VERIFICATION_STATUS_VI[taxInfo.verification_status]}
                 </span>
                 {taxInfo.verified_at && (
-                  <span className="ml-2 text-[11px] text-on-surface-variant">
+                  <span className="ml-2 text-body-xs text-on-surface-variant">
                     {new Date(taxInfo.verified_at).toLocaleDateString("vi-VN")}
                   </span>
                 )}

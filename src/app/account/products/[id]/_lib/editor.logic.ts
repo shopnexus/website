@@ -4,6 +4,7 @@ import type {
 	UpdateListingRequest,
 	Variant,
 } from "@/api/generated/types.gen"
+import { attributePairs, attributesEqual, pairsToAttributes } from "@/lib/variant-attributes"
 import type { ListingDraft, VariantDraft } from "../types"
 
 /** The form's starting values, read off the listing as the server has it. */
@@ -65,6 +66,7 @@ export function variantDraftFrom(variant: Variant): VariantDraft {
 		price: variant.price,
 		quantity: variant.stock.quantity,
 		weightG: typeof weight === "number" ? weight : 0,
+		attributes: attributePairs(variant.attributes),
 	}
 }
 
@@ -85,6 +87,7 @@ export function variantChanged(draft: VariantDraft, variant: Variant): boolean {
 	return (
 		draft.price !== current.price ||
 		draft.quantity !== current.quantity ||
-		draft.weightG !== current.weightG
+		draft.weightG !== current.weightG ||
+		!attributesEqual(pairsToAttributes(draft.attributes), variant.attributes)
 	)
 }

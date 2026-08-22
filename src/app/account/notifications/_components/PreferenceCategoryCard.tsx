@@ -1,7 +1,7 @@
 "use client"
 
 import type { NotificationCategory, NotificationChannel } from "@/api/generated/types.gen"
-import { CATEGORY_LABELS } from "@/lib/notification-display"
+import { categoryStyle } from "@/lib/notification-display"
 
 import {
 	CATEGORY_HINTS,
@@ -40,10 +40,10 @@ export default function PreferenceCategoryCard({
 		<section className="p-5 md:p-6">
 			<header className="flex items-start justify-between gap-4 mb-4">
 				<div className="min-w-0">
-					<h2 className="font-headline-sm font-bold text-on-surface">
-						{CATEGORY_LABELS[category]}
+					<h2 className="text-title-md text-on-surface">
+						{categoryStyle(category).label}
 					</h2>
-					<p className="font-body-sm text-on-surface-variant mt-0.5">
+					<p className="text-body-sm text-on-surface-variant mt-0.5">
 						{CATEGORY_HINTS[category]}
 					</p>
 				</div>
@@ -51,7 +51,7 @@ export default function PreferenceCategoryCard({
 				<button
 					type="button"
 					onClick={() => onSetAll(category, !allOn)}
-					className="shrink-0 text-label-sm font-bold text-primary hover:bg-primary/5 px-3 py-1.5 rounded-full transition-colors cursor-pointer whitespace-nowrap"
+					className="shrink-0 text-label-md text-primary hover:bg-primary/5 px-3 py-1.5 rounded-full transition-colors cursor-pointer whitespace-nowrap"
 				>
 					{allOn ? "Tắt tất cả" : "Bật tất cả"}
 				</button>
@@ -71,7 +71,7 @@ export default function PreferenceCategoryCard({
 				))}
 			</div>
 
-			<p className="mt-3 text-[11px] text-on-surface-variant">
+			<p className="mt-3 text-body-xs text-on-surface-variant">
 				Đang bật {enabledCount}/{CHANNELS.length} kênh.
 			</p>
 		</section>

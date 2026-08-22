@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Category, ListingCondition, ListingDetail, PriceMode } from "@/api/generated/types.gen";
 import Button from "@/components/ui/Button";
 import { LISTING_CONDITION_VI, PRICE_MODE_VI } from "@/lib/dictionaries";
@@ -34,20 +35,34 @@ export default function ListingDetailsForm({
   categories: ReadonlyArray<Category>;
 }) {
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-outline-variant/40">
-        <h2 className="font-headline font-bold text-lg text-primary">Thông tin sản phẩm</h2>
+    <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
+      <div className="p-5 md:p-6 border-b border-outline-variant flex items-center gap-4">
+        <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-container relative shrink-0 border border-outline-variant">
+          {listing.images[0] ? (
+            <Image
+              src={listing.images[0].url || ""}
+              alt={listing.name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center text-on-surface-variant text-[20px]">
+              image
+            </span>
+          )}
+        </div>
+        <h2 className="text-title-md text-on-surface">Thông tin sản phẩm</h2>
       </div>
 
       <form
-        className="p-6 space-y-5"
+        className="p-5 md:p-6 space-y-5"
         onSubmit={(event) => {
           event.preventDefault();
           onSave();
         }}
       >
         <div>
-          <label htmlFor="listing-name" className="block font-label-sm font-semibold text-on-surface mb-1.5">
+          <label htmlFor="listing-name" className="block text-label-sm text-on-surface mb-1.5">
             Tên sản phẩm
           </label>
           <input
@@ -62,7 +77,7 @@ export default function ListingDetailsForm({
         <div>
           <label
             htmlFor="listing-description"
-            className="block font-label-sm font-semibold text-on-surface mb-1.5"
+            className="block text-label-sm text-on-surface mb-1.5"
           >
             Mô tả
           </label>
@@ -79,7 +94,7 @@ export default function ListingDetailsForm({
           <div>
             <label
               htmlFor="listing-category"
-              className="block font-label-sm font-semibold text-on-surface mb-1.5"
+              className="block text-label-sm text-on-surface mb-1.5"
             >
               Danh mục
             </label>
@@ -106,7 +121,7 @@ export default function ListingDetailsForm({
           <div>
             <label
               htmlFor="listing-condition"
-              className="block font-label-sm font-semibold text-on-surface mb-1.5"
+              className="block text-label-sm text-on-surface mb-1.5"
             >
               Tình trạng
             </label>
@@ -128,7 +143,7 @@ export default function ListingDetailsForm({
         </div>
 
         <div>
-          <span className="block font-label-sm font-semibold text-on-surface mb-2">Kiểu giá</span>
+          <span className="block text-label-sm text-on-surface mb-2">Kiểu giá</span>
           <div className="flex flex-wrap gap-2">
             {PRICE_MODES.map((mode) => (
               <button
@@ -137,7 +152,7 @@ export default function ListingDetailsForm({
                 aria-pressed={draft.price_mode === mode}
                 onClick={() => onChange({ ...draft, price_mode: mode })}
                 className={[
-                  "px-4 py-2 rounded-full border text-sm font-semibold transition-all cursor-pointer",
+                  "px-4 py-2 rounded-full border text-label-md transition-all cursor-pointer",
                   draft.price_mode === mode
                     ? "bg-primary text-on-primary border-primary"
                     : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
@@ -147,14 +162,14 @@ export default function ListingDetailsForm({
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-on-surface-variant mt-2">
+          <p className="text-body-xs text-on-surface-variant mt-2">
             Giá cố định vẫn bán bình thường; “có thể thương lượng” cho phép người mua mở một
             cuộc trả giá trong tin nhắn.
           </p>
         </div>
 
         <div>
-          <label htmlFor="listing-tags" className="block font-label-sm font-semibold text-on-surface mb-1.5">
+          <label htmlFor="listing-tags" className="block text-label-sm text-on-surface mb-1.5">
             Thẻ (cách nhau bằng dấu phẩy)
           </label>
           <input
@@ -164,7 +179,7 @@ export default function ListingDetailsForm({
             placeholder="vintage, gỗ, thủ công"
             className={field}
           />
-          <p className="text-[11px] text-on-surface-variant mt-2">Tối đa 10 thẻ.</p>
+          <p className="text-body-xs text-on-surface-variant mt-2">Tối đa 10 thẻ.</p>
         </div>
 
         <div className="pt-2">

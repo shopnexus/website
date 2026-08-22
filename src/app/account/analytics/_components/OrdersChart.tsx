@@ -24,7 +24,7 @@ export default function OrdersChart({ buckets, loading }: { buckets: DayBucket[]
 
   return (
     <div>
-      <div className="flex items-center gap-5 mb-6 text-[11px] font-medium text-on-surface-variant">
+      <div className="flex items-center gap-5 mb-6 text-label-xs text-on-surface-variant">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-sm border border-primary/50 bg-primary/15" /> Đã đặt
         </span>
@@ -52,7 +52,7 @@ export default function OrdersChart({ buckets, loading }: { buckets: DayBucket[]
             {/* A tooltip rather than an always-on value: ninety columns of numbers is
                 not a chart. Rendered on focus too, so it is reachable from a keyboard. */}
             <div
-              className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap rounded-lg bg-inverse-surface px-2.5 py-1.5 text-[11px] text-inverse-on-surface opacity-0 transition-opacity group-hover:opacity-100 z-10 shadow-md"
+              className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 whitespace-nowrap rounded-lg bg-inverse-surface px-2.5 py-1.5 text-label-xs text-inverse-on-surface opacity-0 transition-opacity group-hover:opacity-100 z-10 shadow-md"
               role="tooltip"
             >
               <strong>{shortDate(bucket.date)}</strong> · {bucket.placed} đặt · {bucket.completed} xong
@@ -67,7 +67,7 @@ export default function OrdersChart({ buckets, loading }: { buckets: DayBucket[]
         {buckets.map((bucket, index) => (
           <div key={bucket.date} className="flex-1 min-w-0 text-center">
             {index % labelEvery === 0 && (
-              <span className="text-[10px] text-on-surface-variant tabular-nums">
+              <span className="text-label-xs text-on-surface-variant tabular-nums">
                 {shortDate(bucket.date)}
               </span>
             )}

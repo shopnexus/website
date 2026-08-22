@@ -2,6 +2,7 @@
 
 import { toast } from "react-hot-toast";
 import Button from "@/components/ui/Button";
+import EmptyState from "@/components/ui/EmptyState";
 import { useOAuthIdentities, useUnlinkProvider } from "@/hooks/api/useAccount";
 
 export default function LinkedProviders() {
@@ -9,9 +10,9 @@ export default function LinkedProviders() {
   const unlink = useUnlinkProvider();
 
   return (
-    <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
-      <h2 className="font-headline-sm font-bold text-on-surface mb-6 flex items-center gap-2">
-        <span className="material-symbols-outlined">link</span>
+    <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
+      <h2 className="text-title-md text-on-surface mb-5 flex items-center gap-2">
+        <span className="material-symbols-outlined text-[20px]" aria-hidden="true">link</span>
         Tài khoản liên kết
       </h2>
 
@@ -20,13 +21,15 @@ export default function LinkedProviders() {
           <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
         </div>
       ) : providers.length === 0 ? (
-        <div className="text-center p-6 bg-surface-container-lowest rounded-lg border border-outline-variant border-dashed text-on-surface-variant font-body-sm">
-          Bạn chưa liên kết tài khoản mạng xã hội nào.
-        </div>
+        <EmptyState
+          icon="link_off"
+          title="Chưa liên kết tài khoản nào"
+          description="Đăng nhập một lần bằng Google để liên kết, sau đó bạn vào ShopNexus mà không cần nhập mật khẩu."
+        />
       ) : (
         <div className="space-y-4">
           {providers.map((identity) => (
-            <div key={identity.provider} className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg border border-outline-variant">
+            <div key={identity.provider} className="flex items-center justify-between gap-3 p-4 rounded-xl border border-outline-variant bg-surface-container-low">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
                   {identity.provider === "google" ? (
@@ -36,10 +39,10 @@ export default function LinkedProviders() {
                   )}
                 </div>
                 <div>
-                  <div className="font-label-md font-semibold text-on-surface capitalize">{identity.provider}</div>
+                  <div className="text-label-md text-on-surface capitalize">{identity.provider}</div>
                   {/* The provider's email is not returned — a linked identity is only
                       the provider and when it was linked. */}
-                  <div className="font-body-sm text-on-surface-variant">
+                  <div className="text-body-sm text-on-surface-variant">
                     Liên kết ngày {new Date(identity.created_at).toLocaleDateString("vi-VN")}
                   </div>
                 </div>

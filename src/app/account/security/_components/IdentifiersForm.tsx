@@ -73,37 +73,37 @@ export default function IdentifiersForm() {
   };
 
   return (
-    <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
-      <h2 className="font-headline-sm font-bold text-on-surface mb-6 flex items-center gap-2">
-        <span className="material-symbols-outlined">badge</span>
+    <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
+      <h2 className="text-title-md text-on-surface mb-5 flex items-center gap-2">
+        <span className="material-symbols-outlined text-[20px]" aria-hidden="true">badge</span>
         Thông tin định danh
       </h2>
       
       <form onSubmit={handleUpdateIdentifiers} className="space-y-4">
         <div>
-          <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Tên đăng nhập (Username)</label>
+          <label className="block text-label-md text-on-surface mb-1.5">Tên đăng nhập (Username)</label>
           <input 
             type="text" 
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+            className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
           />
         </div>
         
         <div>
-          <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Địa chỉ Email</label>
+          <label className="block text-label-md text-on-surface mb-1.5">Địa chỉ Email</label>
           <input 
             type="email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+            className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
           />
           {/* Only offered for the address the server already holds: the request takes no
               body and reads the account's own email, so a freshly typed address has to be
               saved first or the message goes to the previous one. */}
           {!user?.email_verified && user?.email && (
             <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-              <p className="text-error text-[11px] font-medium flex items-center gap-1">
+              <p className="text-error text-label-sm flex items-center gap-1">
                 <span className="material-symbols-outlined text-[14px]">error</span>
                 Email chưa được xác minh
               </p>
@@ -116,7 +116,7 @@ export default function IdentifiersForm() {
                       toast.success("Đã gửi email xác minh. Mở hộp thư và bấm vào liên kết."),
                   })
                 }
-                className="text-primary text-[11px] font-semibold hover:underline disabled:opacity-50 cursor-pointer"
+                className="text-primary text-label-sm hover:underline disabled:opacity-50 cursor-pointer"
               >
                 {requestEmailVerification.isPending ? "Đang gửi..." : "Gửi lại email xác minh"}
               </button>
@@ -125,12 +125,12 @@ export default function IdentifiersForm() {
         </div>
         
         <div>
-          <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Số điện thoại</label>
+          <label className="block text-label-md text-on-surface mb-1.5">Số điện thoại</label>
           <input 
             type="tel" 
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+            className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
           />
         </div>
 

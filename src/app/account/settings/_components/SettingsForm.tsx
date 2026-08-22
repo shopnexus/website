@@ -6,6 +6,9 @@ import PickupAddressPicker from "./PickupAddressPicker";
 import { useSettings } from "../_hooks/useSettings";
 import type { SettingsTab } from "../types";
 
+const CARD =
+  "rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6";
+
 const TABS: Array<{ id: SettingsTab; label: string; icon: string }> = [
   { id: "pickup", label: "Địa chỉ lấy hàng", icon: "local_shipping" },
   { id: "shipping", label: "Đơn vị vận chuyển", icon: "conveyor_belt" },
@@ -47,7 +50,7 @@ export default function SettingsForm() {
               ].join(" ")}
             >
               <span className="material-symbols-outlined">{item.icon}</span>
-              <span className="font-label-md whitespace-nowrap">{item.label}</span>
+              <span className="text-label-md whitespace-nowrap">{item.label}</span>
             </button>
           ))}
         </nav>
@@ -55,12 +58,12 @@ export default function SettingsForm() {
 
       <section className="flex-grow space-y-6">
         {tab === "pickup" && (
-          <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant shadow-sm">
-            <h2 className="font-headline font-bold text-xl mb-2 flex items-center gap-2">
+          <div className={CARD}>
+            <h2 className="text-title-md text-on-surface mb-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">local_shipping</span>
               Địa chỉ lấy hàng mặc định
             </h2>
-            <p className="font-body-sm text-on-surface-variant mb-6 max-w-xl">
+            <p className="text-body-sm text-on-surface-variant mb-6 max-w-xl">
               Nơi đơn vị vận chuyển đến lấy hàng, và cũng là vị trí người mua nhìn thấy trên tin
               đăng của bạn.
             </p>
@@ -74,12 +77,12 @@ export default function SettingsForm() {
         )}
 
         {tab === "shipping" && (
-          <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant shadow-sm">
-            <h2 className="font-headline font-bold text-xl mb-2 flex items-center gap-2">
+          <div className={CARD}>
+            <h2 className="text-title-md text-on-surface mb-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">conveyor_belt</span>
               Đơn vị vận chuyển đang hoạt động
             </h2>
-            <p className="font-body-sm text-on-surface-variant mb-6 max-w-xl">
+            <p className="text-body-sm text-on-surface-variant mb-6 max-w-xl">
               Người mua chọn một trong các đơn vị này khi thanh toán và trả phí giao hàng. Danh
               sách do nền tảng cấu hình — người bán không bật/tắt được từng đơn vị.
             </p>
@@ -94,12 +97,12 @@ export default function SettingsForm() {
 
         {tab === "payments" && (
           <div className="space-y-6">
-            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant shadow-sm">
-              <h2 className="font-headline font-bold text-xl mb-2 flex items-center gap-2">
+            <div className={CARD}>
+              <h2 className="text-title-md text-on-surface mb-2 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">payments</span>
                 Người mua thanh toán bằng
               </h2>
-              <p className="font-body-sm text-on-surface-variant mb-6 max-w-xl">
+              <p className="text-body-sm text-on-surface-variant mb-6 max-w-xl">
                 Tiền hàng được nền tảng giữ hộ tới khi đơn kết thúc, sau đó vào số dư khả dụng của
                 bạn.
               </p>
@@ -111,16 +114,16 @@ export default function SettingsForm() {
               />
             </div>
 
-            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div className={`${CARD} flex flex-wrap items-center justify-between gap-4`}>
               <div>
-                <h2 className="font-headline font-bold text-xl mb-1">Nhận tiền về ngân hàng</h2>
-                <p className="font-body-sm text-on-surface-variant">
+                <h2 className="text-title-md text-on-surface mb-1">Nhận tiền về ngân hàng</h2>
+                <p className="text-body-sm text-on-surface-variant">
                   Tài khoản ngân hàng, yêu cầu rút tiền và đăng ký thuế nằm trong ví của bạn.
                 </p>
               </div>
               <Link
                 href="/account/wallet"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-semibold text-sm hover:brightness-110 transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary text-label-md hover:brightness-110 transition-all"
               >
                 Mở ví
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>

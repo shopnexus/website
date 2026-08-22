@@ -6,6 +6,7 @@ import OrderActions from "@/components/orders/OrderActions"
 import { buyerNote, orderStatusLine, remainingLabel } from "@/lib/order-state"
 import { waitingDeadlineAt, type WaitingSide } from "@/lib/order-waiting"
 import { useNow } from "@/hooks/useNow"
+import { rowShell } from "./rowShell"
 import type { AccountId, Listing, ListingId, Order } from "@/api/generated/types.gen"
 
 const formatPrice = (price: number, currency: string) =>
@@ -60,17 +61,14 @@ export default function OrderCard({
 
 	return (
 		<article
-			className={[
-				"group relative flex gap-4 p-4 rounded-xl border transition-colors",
-				needsYou
-					? "bg-surface border-outline-variant border-l-4 border-l-primary shadow-sm"
-					: "bg-surface border-outline-variant/60 hover:border-outline-variant",
-				done ? "opacity-70 hover:opacity-100" : "",
-			].join(" ")}
+			className={`group relative flex gap-4 p-4 ${rowShell({
+				accent: needsYou ? "primary" : null,
+				dim: done,
+			})}`}
 		>
 			<Link
 				href={`/account/orders/${order.id}`}
-				className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-surface-container border border-outline-variant/60"
+				className="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-surface-container border border-outline-variant"
 			>
 				{/* No placeholder service: a picsum URL made every order row fetch a random
 				    photo from a third party, which reads as a product image and is not one. */}
@@ -87,21 +85,21 @@ export default function OrderCard({
 				<div className="flex items-start justify-between gap-3">
 					<Link
 						href={`/account/orders/${order.id}`}
-						className="font-label-md font-bold text-on-surface line-clamp-1 hover:text-primary transition-colors"
+						className="text-title-sm text-on-surface line-clamp-1 hover:text-primary transition-colors"
 					>
 						{firstListing?.name ?? "Đơn hàng"}
 						{otherCount > 0 && (
-							<span className="font-normal text-on-surface-variant"> và {otherCount} sản phẩm khác</span>
+							<span className="text-body-sm text-on-surface-variant"> và {otherCount} sản phẩm khác</span>
 						)}
 					</Link>
-					<span className="font-price-md font-bold text-on-surface shrink-0">
+					<span className="text-price-md text-on-surface shrink-0">
 						{formatPrice(order.total, order.currency)}
 					</span>
 				</div>
 
 				{/* The sentence, not a badge: it names the work and the other party at once. */}
 				<p
-					className={`text-body-sm line-clamp-2 ${needsYou ? "text-primary font-semibold" : "text-on-surface-variant"}`}
+					className={`line-clamp-2 ${needsYou ? "text-label-md text-primary" : "text-body-sm text-on-surface-variant"}`}
 				>
 					{orderStatusLine(order, { selling, now })}
 				</p>
@@ -125,7 +123,7 @@ export default function OrderCard({
 				<div className="flex flex-wrap items-center justify-between gap-2 mt-1">
 					{left ? (
 						<span
-							className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+							className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label-sm ${
 								urgent
 									? "bg-error-container text-on-error-container"
 									: "bg-tertiary-container text-on-tertiary-container"

@@ -6,6 +6,7 @@ import Link from "next/link"
 import Button from "@/components/ui/Button"
 import CancelCheckoutDialog from "@/components/orders/CancelCheckoutDialog"
 import { usePaymentSession } from "@/hooks/api/useFinance"
+import { rowShell } from "./rowShell"
 import type { CheckoutGroup } from "@/lib/pending-checkout"
 import type { Listing, ListingId } from "@/api/generated/types.gen"
 
@@ -44,8 +45,8 @@ export default function PendingCheckoutCard({
 	const otherCount = checkout.items.length - 1
 
 	return (
-		<article className="group relative flex gap-4 p-4 rounded-xl border bg-surface border-outline-variant border-l-4 border-l-tertiary shadow-sm">
-			<div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-surface-container border border-outline-variant/60">
+		<article className={`group relative flex gap-4 p-4 ${rowShell({ accent: "tertiary" })}`}>
+			<div className="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-surface-container border border-outline-variant">
 				{firstListing?.cover?.url ? (
 					<Image
 						src={firstListing.cover.url}
@@ -62,21 +63,21 @@ export default function PendingCheckoutCard({
 
 			<div className="flex-1 min-w-0 flex flex-col gap-1">
 				<div className="flex items-start justify-between gap-3">
-					<span className="font-label-md font-bold text-on-surface line-clamp-1">
+					<span className="text-title-sm text-on-surface line-clamp-1">
 						{firstListing?.name ?? "Đơn hàng"}
 						{otherCount > 0 && (
-							<span className="font-normal text-on-surface-variant">
+							<span className="text-body-sm text-on-surface-variant">
 								{" "}
 								và {otherCount} sản phẩm khác
 							</span>
 						)}
 					</span>
-					<span className="font-price-md font-bold text-on-surface shrink-0">
+					<span className="text-price-md text-on-surface shrink-0">
 						{formatPrice(checkout.total, checkout.currency)}
 					</span>
 				</div>
 
-				<p className="text-body-sm font-semibold text-on-tertiary-container">
+				<p className="text-label-md text-on-tertiary-container">
 					Chưa thanh toán — đơn hàng chỉ được tạo sau khi bạn trả tiền
 				</p>
 
@@ -88,7 +89,7 @@ export default function PendingCheckoutCard({
 					<button
 						type="button"
 						onClick={() => setCancelling(true)}
-						className="text-body-sm text-on-surface-variant hover:text-error transition-colors"
+						className="text-label-md text-on-surface-variant hover:text-error transition-colors"
 					>
 						Huỷ đơn
 					</button>

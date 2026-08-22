@@ -35,14 +35,14 @@ export default function ScanUploader({
       >
         {!previewUrl && (
           <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-on-surface-variant">
-            <span className="material-symbols-outlined text-3xl opacity-60">add_a_photo</span>
-            <span className="font-label-sm">{label}</span>
+            <span className="material-symbols-outlined text-[28px] opacity-60">add_a_photo</span>
+            <span className="text-label-sm">{label}</span>
           </span>
         )}
 
         {uploading && (
           <span className="absolute inset-0 flex items-center justify-center bg-black/50">
-            <span className="material-symbols-outlined animate-spin text-white text-3xl">
+            <span className="material-symbols-outlined animate-spin text-white text-[28px]">
               progress_activity
             </span>
           </span>
@@ -63,7 +63,7 @@ export default function ScanUploader({
         }}
       />
 
-      <p className="text-[11px] text-on-surface-variant mt-2 leading-snug">{hint}</p>
+      <p className="text-body-xs text-on-surface-variant mt-2">{hint}</p>
     </div>
   );
 }

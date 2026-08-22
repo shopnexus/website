@@ -94,7 +94,7 @@ export default function OverviewStats({
           <div className="flex items-start justify-between mb-4 gap-2">
             <div className="flex-1 min-w-0">
               <div className="font-label-sm text-on-surface-variant break-words">{tile.label}</div>
-              <div className="text-[10px] uppercase tracking-wider text-on-surface-variant/70 mt-0.5 truncate">
+    <div className="text-label-xs uppercase tracking-wider text-on-surface-variant/70 mt-0.5 truncate">
                 {tile.period}
               </div>
             </div>

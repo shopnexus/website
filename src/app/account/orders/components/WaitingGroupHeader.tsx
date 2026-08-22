@@ -22,7 +22,7 @@ export default function WaitingGroupHeader({
 	return (
 		<div className="flex items-center gap-3 pt-2">
 			<h2
-				className={`font-label-md text-xs font-bold uppercase tracking-[0.08em] ${text}`}
+				className={`text-label-sm uppercase ${text}`}
 			>
 				{title}
 			</h2>

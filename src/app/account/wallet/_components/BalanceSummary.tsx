@@ -25,16 +25,16 @@ export default function BalanceSummary({
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="rounded-2xl bg-primary text-on-primary p-7 shadow-sm flex flex-col">
-        <span className="font-label-sm uppercase tracking-wider opacity-80">Số dư khả dụng</span>
+      <div className="rounded-2xl border border-primary bg-primary text-on-primary p-5 md:p-6 flex flex-col">
+        <span className="text-label-sm uppercase tracking-wider opacity-80">Số dư khả dụng</span>
         {loading ? (
-          <div className="h-10 w-48 rounded-lg bg-on-primary/20 animate-pulse mt-3" />
+          <div className="h-7 w-44 rounded-lg bg-on-primary/20 animate-pulse mt-2" />
         ) : (
-          <span className="font-headline font-extrabold text-4xl tracking-tight mt-2 tabular-nums">
+          <span className="text-price-lg mt-2">
             {formatMoney(balance.available_balance, balance.currency)}
           </span>
         )}
-        <p className="text-[12px] opacity-80 mt-2">Có thể rút về tài khoản ngân hàng.</p>
+        <p className="text-body-xs opacity-80 mt-2">Có thể rút về tài khoản ngân hàng.</p>
         <div className="mt-6">
           <Button
             variant="secondary"
@@ -47,18 +47,18 @@ export default function BalanceSummary({
         </div>
       </div>
 
-      <div className="rounded-2xl bg-surface-container-lowest border border-outline-variant/40 p-7 shadow-sm flex flex-col">
-        <span className="font-label-sm uppercase tracking-wider text-on-surface-variant">
+      <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6 flex flex-col">
+        <span className="text-label-sm uppercase tracking-wider text-on-surface-variant">
           Đang tạm giữ
         </span>
         {loading ? (
-          <div className="h-10 w-48 rounded-lg bg-surface-container-high animate-pulse mt-3" />
+          <div className="h-7 w-44 rounded-lg bg-surface-container-high animate-pulse mt-2" />
         ) : (
-          <span className="font-headline font-extrabold text-4xl tracking-tight mt-2 text-on-surface tabular-nums">
+          <span className="text-price-lg text-on-surface mt-2">
             {formatMoney(balance.held_balance, balance.currency)}
           </span>
         )}
-        <p className="text-[12px] text-on-surface-variant mt-2 leading-relaxed">
+        <p className="text-body-xs text-on-surface-variant mt-2">
           Tiền của đơn hàng chưa kết thúc. Nền tảng giữ hộ tới khi người mua nhận hàng, sau đó
           khoản này chuyển sang số dư khả dụng.
         </p>

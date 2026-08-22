@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import EmptyState from "@/components/ui/EmptyState";
 import ListingRowActions from "./ListingRowActions";
 import { useProductsData, type ProductFilter } from "../_hooks/useProductsData";
 import { LISTING_STATUS_VI } from "@/lib/dictionaries";
@@ -17,6 +18,9 @@ const PRODUCT_FILTERS: Array<{ id: ProductFilter; label: string }> = [
   { id: "draft", label: LISTING_STATUS_VI.draft },
   { id: "hidden", label: LISTING_STATUS_VI.hidden },
 ];
+
+const CARD = "rounded-2xl border border-outline-variant bg-surface-container-lowest";
+const HEAD_CELL = "px-6 py-4 text-label-sm uppercase tracking-wider text-on-surface-variant";
 
 export default function ProductTable() {
   const {
@@ -33,15 +37,21 @@ export default function ProductTable() {
 
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
+  // A filtered-away list and an empty shop need different words: one is narrowed, the
+  // other has nothing to narrow.
+  const isNarrowed = searchQuery.trim() !== "" || activeFilter !== "all";
+
   return (
-    <div className="w-full">
-      <section className="bg-surface-container-lowest rounded-xl p-4 mb-8 shadow-sm border border-outline-variant/30 flex flex-col lg:flex-row gap-4 items-center">
+    <div className="w-full space-y-6">
+      <section
+        className={`${CARD} p-5 md:p-6 flex flex-col lg:flex-row gap-4 lg:items-center`}
+      >
         <div className="relative w-full lg:max-w-md">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-          <input 
+          <input
             type="text"
-            className="w-full bg-surface-container-low border-none rounded-lg py-3 pl-11 pr-4 focus:ring-2 focus:ring-primary/20 text-body-sm transition-all outline-none" 
-            placeholder="Tìm kiếm sản phẩm, SKU..." 
+            className="w-full bg-surface-container-low border-none rounded-lg py-3 pl-11 pr-4 focus:ring-2 focus:ring-primary/20 text-body-sm transition-all outline-none"
+            placeholder="Tìm kiếm sản phẩm, SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -55,9 +65,9 @@ export default function ProductTable() {
               key={filter.id}
               onClick={() => setActiveFilter(filter.id)}
               className={[
-                "px-4 py-2 rounded-full border text-label-md font-semibold transition-all",
-                activeFilter === filter.id 
-                  ? "bg-primary text-on-primary border-primary" 
+                "px-4 py-2 rounded-full border text-label-md transition-all",
+                activeFilter === filter.id
+                  ? "bg-primary text-on-primary border-primary"
                   : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high"
               ].join(" ")}
             >
@@ -67,14 +77,16 @@ export default function ProductTable() {
         </div>
 
         <div className="flex gap-1 bg-surface-container-high p-1 rounded-lg self-end lg:self-auto shrink-0">
-          <button 
+          <button
             onClick={() => setViewMode("list")}
+            aria-label="Xem dạng danh sách"
             className={`p-1.5 rounded-md shadow-sm ${viewMode === "list" ? "bg-white text-primary" : "text-on-surface-variant hover:bg-white/50"}`}
           >
             <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span>
           </button>
-          <button 
+          <button
             onClick={() => setViewMode("grid")}
+            aria-label="Xem dạng lưới"
             className={`p-1.5 rounded-md shadow-sm ${viewMode === "grid" ? "bg-white text-primary" : "text-on-surface-variant hover:bg-white/50"}`}
           >
             <span className="material-symbols-outlined text-[20px]">grid_view</span>
@@ -82,101 +94,113 @@ export default function ProductTable() {
         </div>
       </section>
 
-      <section className="bg-white rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-outline-variant/20 overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 text-center text-on-surface-variant">
-            <span className="material-symbols-outlined animate-spin text-primary text-3xl">progress_activity</span>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="p-12 text-center text-on-surface-variant">
-            <span className="material-symbols-outlined text-4xl mb-4 opacity-50">inventory_2</span>
-            <p className="font-body-md">Không tìm thấy sản phẩm nào phù hợp.</p>
-          </div>
-        ) : viewMode === "list" ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="bg-surface-container-low/50 border-b border-outline-variant/30">
-                  <th className="px-6 py-4 font-headline text-label-sm uppercase tracking-wider text-on-surface-variant">Sản phẩm</th>
-                  <th className="px-6 py-4 font-headline text-label-sm uppercase tracking-wider text-on-surface-variant">Trạng thái</th>
-                  <th className="px-6 py-4 font-headline text-label-sm uppercase tracking-wider text-on-surface-variant">Giá</th>
-                  <th className="px-6 py-4 font-headline text-label-sm uppercase tracking-wider text-on-surface-variant text-right">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/10">
-                {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-surface-container-low/30 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-surface-container flex-shrink-0 relative">
-                          {product.cover ? (
-                            <Image src={product.cover.url || ''} alt={product.name} fill className="object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-on-surface-variant">Img</div>
-                          )}
-                        </div>
-                        <div>
-                          <Link href={`/product/${product.slug}`} className="font-headline font-bold text-on-surface hover:text-primary transition-colors line-clamp-1 max-w-[300px]">
-                            {product.name}
-                          </Link>
-                          <div className="text-body-sm text-on-surface-variant mt-1">ID: {product.id.split('_')[1]?.substring(0,8) || product.id}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="surface" className={product.status === "active" ? "bg-secondary-container text-on-secondary-container border-transparent" : "bg-surface-container text-on-surface-variant border-transparent"}>
-                        {LISTING_STATUS_VI[product.status] || product.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-on-surface">
-                      {formatMoney(product.price, product.currency)}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <ListingRowActions listing={product} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {isLoading ? (
+        <div className={`${CARD} p-12 text-center text-on-surface-variant`}>
+          <span className="material-symbols-outlined animate-spin text-primary text-[28px]">progress_activity</span>
+        </div>
+      ) : products.length === 0 ? (
+        isNarrowed ? (
+          <EmptyState
+            icon="search_off"
+            title="Không có sản phẩm nào khớp"
+            description="Không có tin đăng nào ứng với từ khóa và trạng thái bạn đang chọn. Thử xóa từ khóa hoặc chuyển về “Tất cả sản phẩm”."
+          />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-            {products.map((product) => (
-              <div key={product.id} className="border border-outline-variant/30 rounded-xl overflow-hidden hover:shadow-md transition-shadow group flex flex-col">
-                <div className="aspect-[4/3] bg-surface-container relative">
-                   {product.cover ? (
-                     <Image src={product.cover.url || ''} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                   ) : (
-                     <div className="w-full h-full flex items-center justify-center text-xs text-on-surface-variant">No Image</div>
-                   )}
-                   <div className="absolute top-2 right-2">
-                     <Badge variant="surface" className={product.status === "active" ? "bg-secondary-container/90 text-on-secondary-container backdrop-blur-sm border-transparent" : "bg-surface-container/90 text-on-surface-variant backdrop-blur-sm border-transparent"}>
-                       {LISTING_STATUS_VI[product.status] || product.status}
-                     </Badge>
-                   </div>
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <Link href={`/product/${product.slug}`} className="font-headline font-bold text-on-surface hover:text-primary transition-colors line-clamp-2 mb-2">
-                    {product.name}
-                  </Link>
-                  <div className="mt-auto pt-2 flex items-center justify-between border-t border-outline-variant/30">
-                    <span className="font-bold text-primary">{formatMoney(product.price, product.currency)}</span>
-                    <ListingRowActions listing={product} compact />
+          <EmptyState
+            icon="storefront"
+            title="Bạn chưa có sản phẩm nào"
+            description="Kho hàng của bạn đang trống. Đăng tin đầu tiên để người mua tìm thấy và đặt hàng."
+            action={{ label: "Đăng sản phẩm mới", href: "/sell" }}
+          />
+        )
+      ) : (
+        <section className={`${CARD} overflow-hidden`}>
+          {viewMode === "list" ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="bg-surface-container-low/50 border-b border-outline-variant">
+                    <th className={HEAD_CELL}>Sản phẩm</th>
+                    <th className={HEAD_CELL}>Trạng thái</th>
+                    <th className={HEAD_CELL}>Giá</th>
+                    <th className={`${HEAD_CELL} text-right`}>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant">
+                  {products.map((product) => (
+                    <tr key={product.id} className="hover:bg-surface-container-low/30 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-surface-container flex-shrink-0 relative">
+                            {product.cover ? (
+                              <Image src={product.cover.url || ''} alt={product.name} fill className="object-cover" />
+                            ) : (
+                              <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center text-on-surface-variant text-[20px]">image</span>
+                            )}
+                          </div>
+                          <div>
+                            <Link href={`/product/${product.slug}`} className="text-title-md text-on-surface hover:text-primary transition-colors line-clamp-1 max-w-[300px]">
+                              {product.name}
+                            </Link>
+                            <div className="text-body-xs text-on-surface-variant mt-1">ID: {product.id.split('_')[1]?.substring(0,8) || product.id}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant="surface" className={product.status === "active" ? "bg-secondary-container text-on-secondary-container border-transparent" : "bg-surface-container text-on-surface-variant border-transparent"}>
+                          {LISTING_STATUS_VI[product.status] || product.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-price-md text-on-surface">
+                        {formatMoney(product.price, product.currency)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <ListingRowActions listing={product} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-5 md:p-6">
+              {products.map((product) => (
+                <div key={product.id} className="border border-outline-variant rounded-xl overflow-hidden hover:shadow-md transition-shadow group flex flex-col">
+                  <div className="aspect-[4/3] bg-surface-container relative">
+                     {product.cover ? (
+                       <Image src={product.cover.url || ''} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                     ) : (
+                       <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center text-on-surface-variant text-[28px]">image</span>
+                     )}
+                     <div className="absolute top-2 right-2">
+                       <Badge variant="surface" className={product.status === "active" ? "bg-secondary-container/90 text-on-secondary-container backdrop-blur-sm border-transparent" : "bg-surface-container/90 text-on-surface-variant backdrop-blur-sm border-transparent"}>
+                         {LISTING_STATUS_VI[product.status] || product.status}
+                       </Badge>
+                     </div>
+                  </div>
+                  <div className="p-4 flex flex-col flex-1">
+                    <Link href={`/product/${product.slug}`} className="text-title-md text-on-surface hover:text-primary transition-colors line-clamp-2 mb-2">
+                      {product.name}
+                    </Link>
+                    <div className="mt-auto pt-2 flex items-center justify-between border-t border-outline-variant">
+                      <span className="text-price-md text-primary">{formatMoney(product.price, product.currency)}</span>
+                      <ListingRowActions listing={product} compact />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        {hasNextPage && (
-          <div className="p-6 flex justify-center border-t border-outline-variant/20">
-            <Button variant="outline" disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
-              {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
-            </Button>
-          </div>
-        )}
-      </section>
+          {hasNextPage && (
+            <div className="p-6 flex justify-center border-t border-outline-variant">
+              <Button variant="outline" disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
+                {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
+              </Button>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function ListingRowActions({
   compact?: boolean;
 }) {
   const actions = useListingActions();
-  const size = compact ? "text-[18px]" : "text-[20px]";
+ const size = compact ?"text-body-lg" :"text-headline-sm";
 
   return (
     <div className="flex justify-end gap-1">

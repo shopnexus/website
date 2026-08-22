@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import type { Contact, ContactId } from "@/api/generated/types.gen";
 import Button from "@/components/ui/Button";
+import EmptyState from "@/components/ui/EmptyState";
 
 /**
  * Which saved address a courier collects from.
@@ -28,17 +28,12 @@ export default function PickupAddressPicker({
 
   if (contacts.length === 0) {
     return (
-      <div className="text-center py-8">
-        <span className="material-symbols-outlined text-4xl opacity-40 mb-3 block text-on-surface-variant">
-          location_off
-        </span>
-        <p className="font-body-md text-on-surface-variant mb-4">
-          Bạn chưa lưu địa chỉ nào. Người bán cần ít nhất một địa chỉ để đăng tin.
-        </p>
-        <Link href="/account/contacts">
-          <Button>Mở thông tin liên lạc</Button>
-        </Link>
-      </div>
+      <EmptyState
+        icon="location_off"
+        title="Chưa có địa chỉ lấy hàng"
+        description="Bạn chưa lưu địa chỉ nào. Thêm một địa chỉ trong Thông tin liên lạc để đơn vị vận chuyển biết đến lấy hàng ở đâu."
+        action={{ label: "Mở thông tin liên lạc", href: "/account/contacts" }}
+      />
     );
   }
 
@@ -55,18 +50,18 @@ export default function PickupAddressPicker({
           ].join(" ")}
         >
           <div className="min-w-0 flex-1">
-            <p className="font-label-md font-bold text-on-surface flex items-center gap-2 flex-wrap">
+            <p className="text-label-md text-on-surface flex items-center gap-2 flex-wrap">
               {contact.full_name}
               {contact.is_default_pickup && (
-                <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-primary-container text-on-primary-container uppercase tracking-wide">
+                <span className="px-2 py-0.5 text-label-xs rounded-full bg-primary-container text-on-primary-container uppercase tracking-wide">
                   Đang dùng
                 </span>
               )}
             </p>
-            <p className="font-body-sm text-on-surface-variant mt-0.5">
+            <p className="text-body-sm text-on-surface-variant mt-0.5">
               {contact.address}, {contact.ward_name}, {contact.province_name}
             </p>
-            <p className="font-body-sm text-on-surface-variant">{contact.phone}</p>
+            <p className="text-body-sm text-on-surface-variant">{contact.phone}</p>
           </div>
 
           {!contact.is_default_pickup && (
@@ -82,7 +77,7 @@ export default function PickupAddressPicker({
         </div>
       ))}
 
-      <p className="text-[11px] text-on-surface-variant leading-relaxed">
+      <p className="text-body-xs text-on-surface-variant">
         Tin đăng đã lên sàn giữ nguyên địa chỉ lấy hàng đã chọn lúc đăng. Thay đổi ở đây áp dụng
         cho những tin bạn đăng sau này.
       </p>

@@ -21,7 +21,7 @@ export default function ChannelSwitch({
 			className={`flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3 transition-colors ${
 				isDirty
 					? "border-primary/50 bg-primary/5"
-					: "border-outline-variant/40 bg-surface-container-lowest"
+					: "border-outline-variant bg-surface-container-lowest"
 			}`}
 		>
 			<span className="flex items-center gap-2.5 min-w-0">
@@ -31,11 +31,11 @@ export default function ChannelSwitch({
 					{icon}
 				</span>
 				<span className="min-w-0">
-					<span className="block font-body-md text-on-surface truncate">{label}</span>
+					<span className="block text-body-md text-on-surface truncate">{label}</span>
 					{isDefault && !isDirty && (
-						<span className="block text-[11px] text-on-surface-variant">Theo mặc định</span>
+						<span className="block text-label-xs text-on-surface-variant">Theo mặc định</span>
 					)}
-					{isDirty && <span className="block text-[11px] text-primary font-semibold">Chưa lưu</span>}
+					{isDirty && <span className="block text-label-xs text-primary">Chưa lưu</span>}
 				</span>
 			</span>
 
@@ -50,7 +50,7 @@ export default function ChannelSwitch({
 				}`}
 			>
 				<span
-					className={`absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white border border-outline-variant/40 transition-transform ${
+					className={`absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white border border-outline-variant transition-transform ${
 						checked ? "translate-x-5" : "translate-x-0"
 					}`}
 				/>

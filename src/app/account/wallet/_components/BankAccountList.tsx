@@ -67,11 +67,11 @@ export default function BankAccountList() {
     form.bank_code.trim() && form.account_number.trim() && form.account_holder.trim();
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-outline-variant/40 flex items-center justify-between gap-4">
+    <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
+      <div className="p-5 md:p-6 border-b border-outline-variant flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-headline font-bold text-lg text-primary">Tài khoản ngân hàng</h2>
-          <p className="font-body-sm text-on-surface-variant mt-1">
+          <h2 className="text-title-md text-on-surface">Tài khoản ngân hàng</h2>
+          <p className="text-body-sm text-on-surface-variant mt-1">
             Nơi nhận tiền khi bạn rút. Số tài khoản chỉ hiển thị vài số cuối.
           </p>
         </div>
@@ -85,36 +85,42 @@ export default function BankAccountList() {
       </div>
 
       {isLoading ? (
-        <div className="p-12 flex justify-center">
-          <span className="material-symbols-outlined animate-spin text-primary text-3xl">
+        <div className="p-5 md:p-6 flex justify-center">
+          <span className="material-symbols-outlined animate-spin text-primary text-[28px]">
             progress_activity
           </span>
         </div>
       ) : accounts.length === 0 ? (
-        <div className="p-12 text-center text-on-surface-variant">
-          <span className="material-symbols-outlined text-4xl opacity-40 mb-3 block">
-            account_balance_wallet
+        <div className="px-5 md:px-6 py-10 text-center">
+          <span
+            className="material-symbols-outlined text-[32px] text-on-surface-variant mb-3 block"
+            aria-hidden="true"
+          >
+            account_balance
           </span>
-          <p className="font-body-md">Chưa có tài khoản nào được đăng ký.</p>
+          <p className="text-title-md text-on-surface">Chưa có tài khoản ngân hàng nào</p>
+          <p className="text-body-sm text-on-surface-variant mt-1.5 max-w-[46ch] mx-auto">
+            Thêm tài khoản bạn muốn nhận tiền vào, để yêu cầu rút đầu tiên có nơi để đến.
+          </p>
         </div>
       ) : (
-        <ul className="divide-y divide-outline-variant/30">
+        <ul className="divide-y divide-outline-variant">
           {accounts.map((account) => (
-            <li key={account.id} className="p-5 flex flex-wrap items-center gap-4">
+            <li key={account.id} className="p-5 md:p-6 flex flex-wrap items-center gap-4">
               <span className="material-symbols-outlined w-11 h-11 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
                 account_balance
               </span>
 
               <div className="min-w-0 flex-1">
-                <div className="font-label-md font-semibold text-on-surface flex items-center gap-2 flex-wrap">
+                <div className="text-label-md text-on-surface flex items-center gap-2 flex-wrap">
                   {bankLabel(account)}
                   {account.is_default && (
-                    <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-primary-container text-on-primary-container uppercase tracking-wide">
+                    <span className="px-2 py-0.5 text-label-sm rounded-full bg-primary-container text-on-primary-container uppercase tracking-wide">
                       Mặc định
                     </span>
                   )}
                 </div>
-                <div className="font-body-sm text-on-surface-variant mt-0.5">
+                <div className="text-body-sm text-on-surface-variant mt-0.5">
                   {account.account_holder}
                 </div>
               </div>
@@ -158,7 +164,7 @@ export default function BankAccountList() {
           <div>
             <label
               htmlFor="bank-code"
-              className="block font-label-sm font-semibold text-on-surface mb-1.5"
+              className="block text-label-md text-on-surface mb-1.5"
             >
               Mã ngân hàng
             </label>
@@ -183,7 +189,7 @@ export default function BankAccountList() {
           <div>
             <label
               htmlFor="bank-number"
-              className="block font-label-sm font-semibold text-on-surface mb-1.5"
+              className="block text-label-md text-on-surface mb-1.5"
             >
               Số tài khoản
             </label>
@@ -200,7 +206,7 @@ export default function BankAccountList() {
           <div>
             <label
               htmlFor="bank-holder"
-              className="block font-label-sm font-semibold text-on-surface mb-1.5"
+              className="block text-label-md text-on-surface mb-1.5"
             >
               Tên chủ tài khoản
             </label>
@@ -214,7 +220,7 @@ export default function BankAccountList() {
           </div>
 
           {accounts.length > 0 && (
-            <label className="flex items-center gap-2 font-body-sm text-on-surface cursor-pointer">
+            <label className="flex items-center gap-2 text-body-sm text-on-surface cursor-pointer">
               <input
                 type="checkbox"
                 checked={Boolean(form.is_default)}

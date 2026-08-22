@@ -109,7 +109,7 @@ export default function ProfileForm() {
   const isUpdating = updateProfile.isPending;
 
   return (
-    <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
+    <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
       <form onSubmit={handleUpdateProfile} className="space-y-8">
         
         {/* Avatar Section */}
@@ -119,7 +119,7 @@ export default function ProfileForm() {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="material-symbols-outlined text-4xl text-on-surface-variant">person</span>
+                <span className="material-symbols-outlined text-[36px] text-on-surface-variant">person</span>
               )}
             </div>
             <button 
@@ -129,7 +129,7 @@ export default function ProfileForm() {
               className="absolute inset-0 bg-black/40 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
             >
               <span className="material-symbols-outlined">photo_camera</span>
-              <span className="text-[10px] font-medium mt-1">Thay đổi</span>
+              <span className="text-label-xs mt-1">Thay đổi</span>
             </button>
             <input 
               type="file" 
@@ -140,8 +140,8 @@ export default function ProfileForm() {
             />
           </div>
           <div className="text-center md:text-left space-y-1">
-            <h3 className="font-headline-sm font-bold text-on-surface">Ảnh đại diện</h3>
-            <p className="font-body-sm text-on-surface-variant max-w-sm">
+            <h3 className="text-title-md text-on-surface">Ảnh đại diện</h3>
+            <p className="text-body-sm text-on-surface-variant max-w-sm">
               Ảnh định dạng JPG, PNG hoặc GIF. Kích thước tối đa 5MB. Ảnh sẽ được công khai với mọi người.
             </p>
           </div>
@@ -151,22 +151,22 @@ export default function ProfileForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Tên hiển thị <span className="text-error">*</span></label>
+              <label className="block text-label-md text-on-surface mb-1.5">Tên hiển thị <span className="text-error">*</span></label>
               <input 
                 type="text" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+                className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
                 required
               />
             </div>
             
             <div>
-              <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Quốc gia <span className="text-error">*</span></label>
+              <label className="block text-label-md text-on-surface mb-1.5">Quốc gia <span className="text-error">*</span></label>
               <select 
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+                className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
                 required
               >
                 <option value="VN">Việt Nam</option>
@@ -178,21 +178,21 @@ export default function ProfileForm() {
 
           <div className="space-y-4">
             <div>
-              <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Ngày sinh</label>
+              <label className="block text-label-md text-on-surface mb-1.5">Ngày sinh</label>
               <input 
                 type="date" 
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
-                className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+                className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
               />
             </div>
             
             <div>
-              <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Giới tính</label>
+              <label className="block text-label-md text-on-surface mb-1.5">Giới tính</label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value as ProfileGender | typeof UNSPECIFIED)}
-                className="w-full h-10 px-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
+                className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
               >
                 <option value="unspecified">Không chỉ định</option>
                 <option value="male">Nam</option>
@@ -203,12 +203,12 @@ export default function ProfileForm() {
           </div>
           
           <div className="md:col-span-2">
-            <label className="block font-label-sm font-semibold text-on-surface mb-1.5">Tiểu sử (Giới thiệu bản thân)</label>
+            <label className="block text-label-md text-on-surface mb-1.5">Tiểu sử (Giới thiệu bản thân)</label>
             <textarea 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full p-3 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md resize-none"
+              className="w-full p-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary resize-none"
               placeholder="Chia sẻ một chút về bản thân bạn..."
             />
           </div>

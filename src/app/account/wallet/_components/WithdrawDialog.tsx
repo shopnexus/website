@@ -60,8 +60,8 @@ export default function WithdrawDialog({
     <Modal open={open} title="Rút tiền về ngân hàng" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="rounded-xl bg-surface-container-low p-4 flex items-baseline justify-between">
-          <span className="font-label-sm text-on-surface-variant">Số dư khả dụng</span>
-          <span className="font-headline font-bold text-lg text-on-surface tabular-nums">
+          <span className="text-label-sm text-on-surface-variant">Số dư khả dụng</span>
+          <span className="text-price-lg text-on-surface">
             {formatMoney(available, currency)}
           </span>
         </div>
@@ -69,7 +69,7 @@ export default function WithdrawDialog({
         <div>
           <label
             htmlFor="withdraw-amount"
-            className="block font-label-sm font-semibold text-on-surface mb-1.5"
+            className="block text-label-md text-on-surface mb-1.5"
           >
             Số tiền muốn rút
           </label>
@@ -91,12 +91,12 @@ export default function WithdrawDialog({
         <div>
           <label
             htmlFor="withdraw-bank"
-            className="block font-label-sm font-semibold text-on-surface mb-1.5"
+            className="block text-label-md text-on-surface mb-1.5"
           >
             Tài khoản nhận
           </label>
           {banks.length === 0 ? (
-            <p className="font-body-sm text-on-surface-variant bg-surface-container-low rounded-lg p-3">
+            <p className="text-body-sm text-on-surface-variant bg-surface-container-low rounded-lg p-3">
               Chưa có tài khoản ngân hàng nào. Thêm một tài khoản ở thẻ “Tài khoản ngân hàng” rồi
               quay lại đây.
             </p>
@@ -116,12 +116,12 @@ export default function WithdrawDialog({
           )}
         </div>
 
-        <p className="font-body-sm text-on-surface-variant leading-relaxed">
+        <p className="text-body-sm text-on-surface-variant">
           Tiền được trừ khỏi số dư ngay khi gửi yêu cầu và hoàn lại nếu yêu cầu bị từ chối hoặc bạn
           hủy trước khi được duyệt.
         </p>
 
-        {problem && <p className="font-body-sm text-error">{problem}</p>}
+        {problem && <p className="text-body-sm text-error">{problem}</p>}
 
         <div className="flex gap-3 pt-1">
           <Button type="button" variant="outline" onClick={onClose} fullWidth>

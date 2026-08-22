@@ -10,7 +10,8 @@ import {
   useDeleteContact,
   useUpdateContact,
 } from "@/hooks/api/useContacts";
-import { useProvinces, useWards } from "@/hooks/useAdminAreas";
+import AreaPicker from "@/components/ui/AreaPicker";
+import EmptyState from "@/components/ui/EmptyState";
 import type { Contact, ContactId, CreateContactRequest } from "@/api/generated/types.gen";
 
 /**
@@ -46,9 +47,6 @@ export default function ContactManager() {
     is_default_delivery: false,
     is_default_pickup: false,
   });
-
-  const { data: provinces = [] } = useProvinces();
-  const { data: wards = [] } = useWards(formData.province_code);
 
   const handleOpenForm = (contact?: Contact) => {
     if (contact) {
@@ -97,6 +95,14 @@ export default function ContactManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // The area picker is not a native form control, so `required` cannot carry this: an
+    // address stops at the province otherwise, which the server refuses and no carrier
+    // could collect from.
+    if (!formData.province_code || !formData.ward_code) {
+      toast.error("Hãy chọn tỉnh / thành phố và phường / xã.");
+      return;
+    }
+
     const payload: CreateContactRequest = {
       ...formData,
       phone: toE164(formData.phone),
@@ -134,23 +140,23 @@ export default function ContactManager() {
     <div className="space-y-6">
       {!isFormOpen ? (
         <>
-          <div className="flex justify-between items-center bg-surface p-4 rounded-xl border border-outline-variant shadow-sm">
-            <div className="font-label-lg font-semibold text-on-surface">Bạn có {contacts.length} địa chỉ đã lưu</div>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
+            <div className="text-label-lg text-on-surface">Bạn có {contacts.length} địa chỉ đã lưu</div>
             <Button onClick={() => handleOpenForm()} icon={<span className="material-symbols-outlined">add</span>}>
               Thêm địa chỉ mới
             </Button>
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center p-8"><span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span></div>
+            <div className="flex justify-center p-8"><span className="material-symbols-outlined animate-spin text-[36px] text-primary">progress_activity</span></div>
           ) : contacts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {contacts.map(contact => (
-                <div key={contact.id} className="bg-surface border border-outline-variant rounded-2xl p-5 shadow-sm relative group hover:border-primary transition-colors">
+                <div key={contact.id} className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6 relative group hover:border-primary transition-colors">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-headline-sm font-bold text-on-surface">{contact.full_name}</span>
-                      {contact.is_default_delivery && <span className="text-[10px] bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full font-bold">Mặc định</span>}
+                      <span className="text-title-md text-on-surface">{contact.full_name}</span>
+                      {contact.is_default_delivery && <span className="text-label-sm bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full">Mặc định</span>}
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => handleOpenForm(contact)} className="text-on-surface-variant hover:text-primary transition-colors">
@@ -177,11 +183,11 @@ export default function ContactManager() {
                   </div>
                   
                   <div className="flex gap-2">
-                    <span className="text-xs bg-surface-container-high text-on-surface px-2 py-1 rounded">
+                    <span className="text-label-sm bg-surface-container-high text-on-surface px-2 py-1 rounded">
                       {contact.address_type === "home" ? "Nhà riêng" : "Văn phòng"}
                     </span>
                     {contact.is_default_pickup && (
-                      <span className="text-xs bg-secondary-container text-on-secondary-container px-2 py-1 rounded">
+                      <span className="text-label-sm bg-secondary-container text-on-secondary-container px-2 py-1 rounded">
                         Địa chỉ lấy hàng
                       </span>
                     )}
@@ -190,105 +196,90 @@ export default function ContactManager() {
               ))}
             </div>
           ) : (
-            <div className="bg-surface border border-outline-variant rounded-2xl p-12 text-center shadow-sm">
-              <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-4">location_off</span>
-              <h3 className="font-headline-sm font-bold text-on-surface mb-2">Chưa có địa chỉ nào</h3>
-              <p className="text-body-md text-on-surface-variant mb-6">Bạn chưa lưu địa chỉ nhận hàng nào. Hãy thêm một địa chỉ mới.</p>
-              <Button onClick={() => handleOpenForm()}>Thêm địa chỉ</Button>
-            </div>
+            <EmptyState
+              icon="location_off"
+              title="Chưa có địa chỉ nào"
+              description="Thêm một địa chỉ nhận hàng để đặt đơn nhanh hơn và không phải nhập lại khi thanh toán."
+              action={<Button onClick={() => handleOpenForm()}>Thêm địa chỉ</Button>}
+            />
           )}
         </>
       ) : (
-        <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
-          <h2 className="font-headline-sm font-bold text-on-surface mb-6">
+        <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
+          <h2 className="text-title-md text-on-surface mb-5">
             {editingId ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới"}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block font-label-sm font-semibold mb-1.5">Họ và tên <span className="text-error">*</span></label>
+                <label className="block text-label-md text-on-surface mb-1.5">Họ và tên <span className="text-error">*</span></label>
                 <input 
                   type="text" 
                   value={formData.full_name}
                   onChange={e => setFormData({...formData, full_name: e.target.value})}
-                  className="w-full h-10 px-3 rounded-lg border border-outline focus:border-primary outline-none"
+                  className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
                   required
                 />
               </div>
               <div>
-                <label className="block font-label-sm font-semibold mb-1.5">Số điện thoại <span className="text-error">*</span></label>
+                <label className="block text-label-md text-on-surface mb-1.5">Số điện thoại <span className="text-error">*</span></label>
                 <input 
                   type="tel" 
                   value={formData.phone}
                   onChange={e => setFormData({...formData, phone: e.target.value})}
-                  className="w-full h-10 px-3 rounded-lg border border-outline focus:border-primary outline-none"
+                  className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
                   required
                 />
               </div>
 
               <div>
-                <label className="block font-label-sm font-semibold mb-1.5">Tỉnh / Thành phố <span className="text-error">*</span></label>
-                <select 
-                  value={formData.province_code}
-                  onChange={e => {
-                    const prov = provinces.find(p => p.code === e.target.value);
+                <label className="block text-label-md text-on-surface mb-1.5">
+                  Tỉnh / Thành phố và Phường / Xã <span className="text-error">*</span>
+                </label>
+                {/*
+                  One control for both levels, searchable — the same one the browse filters
+                  with. Two selects over 526 wards was a list nobody found a name in, and the
+                  names it wrote came from whichever option happened to be picked; the server
+                  now resolves them from the codes, so what this sends is advisory.
+                */}
+                <AreaPicker
+                  provinceCode={formData.province_code}
+                  wardCode={formData.ward_code}
+                  onChange={(area) =>
                     setFormData({
                       ...formData,
-                      province_code: e.target.value,
-                      province_name: prov?.name || "",
-                      ward_code: "",
-                      ward_name: ""
-                    });
-                  }}
-                  className="w-full h-10 px-3 rounded-lg border border-outline focus:border-primary outline-none bg-surface"
-                  required
-                >
-                  <option value="">Chọn Tỉnh/Thành phố</option>
-                  {provinces.map(p => (
-                    <option key={p.code} value={p.code}>{p.name}</option>
-                  ))}
-                </select>
+                      province_code: area.provinceCode,
+                      province_name: area.provinceName,
+                      ward_code: area.wardCode,
+                      ward_name: area.wardName,
+                    })
+                  }
+                  placeholder="Chọn tỉnh / thành phố"
+                  label="Tỉnh, thành phố và phường, xã"
+                />
+                {!formData.ward_code && (
+                  <p className="mt-1 text-label-sm text-on-surface-variant">
+                    Cần chọn tới phường / xã để lưu địa chỉ.
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block font-label-sm font-semibold mb-1.5">Phường / Xã <span className="text-error">*</span></label>
-                <select
-                  value={formData.ward_code}
-                  onChange={e => {
-                    const ward = wards.find(w => w.code === e.target.value);
-                    setFormData({
-                      ...formData,
-                      ward_code: e.target.value,
-                      ward_name: ward?.name || ""
-                    });
-                  }}
-                  className="w-full h-10 px-3 rounded-lg border border-outline focus:border-primary outline-none bg-surface"
-                  required
-                  disabled={!formData.province_code}
-                >
-                  <option value="">Chọn Phường/Xã</option>
-                  {wards.map(w => (
-                    <option key={w.code} value={w.code}>{w.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-label-sm font-semibold mb-1.5">Địa chỉ cụ thể (Số nhà, tên đường) <span className="text-error">*</span></label>
+                <label className="block text-label-md text-on-surface mb-1.5">Địa chỉ cụ thể (Số nhà, tên đường) <span className="text-error">*</span></label>
                 <input 
                   type="text" 
                   value={formData.address}
                   onChange={e => setFormData({...formData, address: e.target.value})}
-                  className="w-full h-10 px-3 rounded-lg border border-outline focus:border-primary outline-none"
+                  className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-body-md outline-none transition-colors focus:border-primary"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block font-label-sm font-semibold mb-1.5">Loại địa chỉ</label>
+              <label className="block text-label-md text-on-surface mb-1.5">Loại địa chỉ</label>
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer text-body-md text-on-surface">
                   <input 
                     type="radio" 
                     name="address_type" 
@@ -298,7 +289,7 @@ export default function ContactManager() {
                   />
                   Nhà riêng
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer text-body-md text-on-surface">
                   <input 
                     type="radio" 
                     name="address_type" 
@@ -312,7 +303,7 @@ export default function ContactManager() {
             </div>
 
             <div className="space-y-2 pt-2">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer text-body-md text-on-surface">
                 <input 
                   type="checkbox" 
                   checked={formData.is_default_delivery}
@@ -320,7 +311,7 @@ export default function ContactManager() {
                 />
                 Đặt làm địa chỉ nhận hàng mặc định
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer text-body-md text-on-surface">
                 <input 
                   type="checkbox" 
                   checked={formData.is_default_pickup}

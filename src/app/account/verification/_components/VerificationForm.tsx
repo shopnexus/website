@@ -23,7 +23,7 @@ export default function VerificationForm({ onDone }: { onDone: () => void }) {
   return (
     <div className="space-y-6">
       <div>
-        <span className="block font-label-sm font-semibold text-on-surface mb-2">Loại giấy tờ</span>
+        <span className="block text-label-md text-on-surface mb-2">Loại giấy tờ</span>
         <div className="flex flex-wrap gap-2">
           {DOC_TYPES.map((type) => (
             <button
@@ -32,7 +32,7 @@ export default function VerificationForm({ onDone }: { onDone: () => void }) {
               aria-pressed={docType === type}
               onClick={() => setDocType(type)}
               className={[
-                "px-4 py-2 rounded-full border text-sm font-semibold transition-all cursor-pointer",
+                "px-4 py-2 rounded-full border text-label-md transition-all cursor-pointer",
                 docType === type
                   ? "bg-primary text-on-primary border-primary"
                   : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
@@ -87,7 +87,7 @@ export default function VerificationForm({ onDone }: { onDone: () => void }) {
           {isSubmitting ? "Đang gửi..." : "Gửi giấy tờ xác minh"}
         </Button>
         {missing.length > 0 && (
-          <span className="font-body-sm text-on-surface-variant">
+          <span className="text-body-sm text-on-surface-variant">
             Còn thiếu {missing.length} ảnh.
           </span>
         )}

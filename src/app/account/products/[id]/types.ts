@@ -1,4 +1,5 @@
 import type { ListingCondition, PriceMode } from "@/api/generated/types.gen"
+import type { AttributePair } from "@/lib/variant-attributes"
 
 /**
  * The listing fields this editor can change.
@@ -17,9 +18,10 @@ export interface ListingDraft {
 	tags: string
 }
 
-/** One variant's editable numbers. Attributes stay as posted. */
+/** One variant's editable state, including the pairs that name it. */
 export interface VariantDraft {
 	price: number
 	quantity: number
 	weightG: number
+	attributes: AttributePair[]
 }

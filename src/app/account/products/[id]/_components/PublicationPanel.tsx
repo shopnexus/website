@@ -47,25 +47,25 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
   };
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-6 space-y-5">
+    <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6 space-y-5">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-headline font-bold text-lg text-primary">Trạng thái</h2>
+        <h2 className="text-title-md text-on-surface">Trạng thái</h2>
         <span
-          className={`px-3 py-1 text-[11px] font-semibold rounded-full ${STATUS_STYLES[listing.status]}`}
+          className={`px-3 py-1 text-label-xs rounded-full ${STATUS_STYLES[listing.status]}`}
         >
           {LISTING_STATUS_VI[listing.status]}
         </span>
       </div>
 
       {listing.taken_down_at && (
-        <div className="rounded-xl bg-error/10 text-error p-4 font-body-sm">
+        <div className="rounded-xl bg-error/10 text-error p-4 text-body-sm">
           <strong className="block mb-1">Sản phẩm đã bị gỡ bởi kiểm duyệt viên.</strong>
           {listing.takedown_reason || "Không có lý do được gửi kèm."}
         </div>
       )}
 
       {listing.pending_edit && (
-        <div className="rounded-xl bg-primary-container/40 text-on-surface p-4 font-body-sm">
+        <div className="rounded-xl bg-primary-container/40 text-on-surface p-4 text-body-sm">
           Bạn có một bản chỉnh sửa đang chờ kiểm duyệt. Người mua vẫn thấy bản đang bán cho tới khi
           bản mới được duyệt.
         </div>
@@ -75,12 +75,12 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
         <div className="space-y-3">
           <label
             htmlFor="pickup-contact"
-            className="block font-label-sm font-semibold text-on-surface"
+            className="block text-label-sm text-on-surface"
           >
             Địa chỉ lấy hàng
           </label>
           {contacts.length === 0 ? (
-            <p className="font-body-sm text-on-surface-variant bg-surface-container-low rounded-lg p-3">
+            <p className="text-body-sm text-on-surface-variant bg-surface-container-low rounded-lg p-3">
               Bạn chưa có địa chỉ nào. Thêm một địa chỉ ở Thông tin liên lạc trước khi đăng bán.
             </p>
           ) : (
@@ -98,7 +98,7 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
               ))}
             </select>
           )}
-          <p className="text-[11px] text-on-surface-variant">
+          <p className="text-body-xs text-on-surface-variant">
             Đây cũng là vị trí người mua nhìn thấy trên tin đăng.
           </p>
           <Button
@@ -123,7 +123,7 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
       )}
 
       {listing.status === "pending" && (
-        <p className="font-body-sm text-on-surface-variant">
+        <p className="text-body-sm text-on-surface-variant">
           Sản phẩm đang chờ kiểm duyệt. Bạn sẽ nhận được thông báo khi có kết quả.
         </p>
       )}
