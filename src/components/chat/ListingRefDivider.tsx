@@ -37,7 +37,12 @@ export default function ListingRefDivider({ listing }: { listing: Listing }) {
 				) : (
 					<span className="h-6 w-6 shrink-0 rounded-full bg-surface-container" />
 				)}
-				<span className="text-label-xs uppercase text-on-surface-variant">Hỏi về</span>
+				{/* `shrink-0`: in the product page's 380px dock the flex row was squeezing the
+				    label instead of the name, and "HỎI VỀ" broke across two lines inside the pill.
+				    The name is the part with room to give. */}
+				<span className="shrink-0 text-label-xs uppercase text-on-surface-variant">
+					Hỏi về
+				</span>
 				<span className="truncate text-label-sm text-on-surface transition-colors group-hover:text-primary">
 					{listing.name}
 				</span>

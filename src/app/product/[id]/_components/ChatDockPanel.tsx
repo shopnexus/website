@@ -17,6 +17,10 @@ import ChatDockListingRef from "./ChatDockListingRef";
  * The three bodies are the three states a chat with a stranger has: not signed in, no thread
  * yet, and a thread. Only the last is the real chat component; the middle one is a composer
  * with suggestions and no conversation behind it, because none exists until something is sent.
+ *
+ * Around all three: who you are talking to and what about, above; and below, the way into the
+ * full inbox — which is a named link rather than an icon, and is there in every state that has
+ * one, not only once a thread exists.
  */
 export default function ChatDockPanel({
   product,
@@ -73,19 +77,6 @@ export default function ChatDockPanel({
           {product.seller.name}
         </Link>
 
-        {/* Only once there is a thread: the inbox has nothing to open before that. */}
-        {conversationId && (
-          <Link
-            href={`/inbox?c=${conversationId}&listing_id=${product.id}`}
-            title="Mở trong hộp thư"
-            aria-label="Mở trong hộp thư"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
-          >
-            <span className="material-symbols-outlined text-[19px]" aria-hidden="true">
-              open_in_full
-            </span>
-          </Link>
-        )}
         <button
           type="button"
           onClick={onClose}
@@ -123,6 +114,35 @@ export default function ChatDockPanel({
           isSending={isSending}
           onSend={onSendFirst}
         />
+      )}
+
+      {/*
+       * The way out of the dock and into the whole inbox.
+       *
+       * It was an `open_in_full` icon up in the header, which failed twice. That glyph means
+       * "fullscreen" everywhere else it appears, so the only thing saying otherwise was a
+       * `title` — and a `title` does not exist on a touch screen. And it was drawn only once a
+       * thread existed, so the first time anybody opened the dock there was no way out of it
+       * at all, which is exactly when a reader is looking for one.
+       *
+       * Named, and always here. Before the first message it points at the inbox itself; after
+       * it, at this conversation with this listing already in view. Hidden only when signed
+       * out, where the panel is already one button that says what to do.
+       */}
+      {isAuthenticated && (
+        <Link
+          href={
+            conversationId
+              ? `/inbox?c=${conversationId}&listing_id=${product.id}`
+              : "/inbox"
+          }
+          className="flex shrink-0 items-center justify-center gap-1 border-t border-outline-variant bg-surface py-2.5 font-label-sm font-bold text-primary transition-colors hover:bg-surface-container-low"
+        >
+          Xem tất cả tin nhắn
+          <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+            arrow_forward
+          </span>
+        </Link>
       )}
     </>
   );
