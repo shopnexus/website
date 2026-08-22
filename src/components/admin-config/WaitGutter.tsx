@@ -5,7 +5,12 @@ import { WAIT_TONE_STYLES, type Wait } from "@/lib/wait";
  *
  * The signature of this surface: every staff queue is oldest-first, so the wait is the fact
  * that orders the work, and it reads as a ruler down the left edge rather than as a
- * timestamp somebody has to subtract. Tabular figures so the column stays a column.
+ * timestamp somebody has to subtract. Mono and tabular so the column stays a column.
+ *
+ * One line, not two. It was a 56px block with the value at title size over the word "chờ",
+ * which made the oldest thing about a row the largest thing in it and set the row's height on
+ * its own. The tooltip says "Đã chờ 2n 22g", so the word is not lost — it is just not repeated
+ * on every row of a column that is entirely waits.
  *
  * Shared rather than owned by the ticket queue that first drew it — the overview compares
  * four queues by exactly this number, and the withdrawal and verification desks are
@@ -15,14 +20,13 @@ export default function WaitGutter({ wait }: { wait: Wait }) {
   return (
     <div
       className={[
-        "w-14 shrink-0 flex flex-col items-center justify-center self-stretch rounded-xl",
-        "font-label-sm tabular-nums tracking-tight py-2",
+        "grid w-12 shrink-0 place-items-center self-stretch rounded-lg py-1",
+        "font-mono text-[13px] font-bold tabular-nums tracking-tight",
         WAIT_TONE_STYLES[wait.tone],
       ].join(" ")}
-      title="Thời gian chờ xử lý"
+      title={`Đã chờ ${wait.label}`}
     >
-      <span className="text-title-md leading-none">{wait.label}</span>
-      <span className="text-label-xs uppercase tracking-[0.1em] mt-1 opacity-70">chờ</span>
+      {wait.label}
     </div>
   );
 }

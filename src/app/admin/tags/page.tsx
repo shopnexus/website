@@ -9,7 +9,6 @@ export default function AdminTagsPage() {
   return (
     <AdminPage
       width="md"
-      eyebrow="Cấu hình"
       title="Thẻ"
       consequence="Slug của thẻ chính là danh tính của nó: ghi vào một slug khác là tạo thẻ mới, không phải đổi tên. Chỉ mô tả là sửa được."
     >

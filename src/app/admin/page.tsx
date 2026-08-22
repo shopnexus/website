@@ -14,7 +14,6 @@ export default function AdminOverviewPage() {
   return (
     <AdminPage
       width="lg"
-      eyebrow="Tổng quan"
       title="Bảng điều hành"
       consequence="Bốn hàng đợi, cũ nhất lên trước. Con số bên phải mỗi thẻ là thời gian chờ dài nhất trong hàng đợi đó — đỏ là đã quá ba ngày."
     >

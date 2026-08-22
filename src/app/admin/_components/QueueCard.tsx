@@ -49,16 +49,18 @@ export default function QueueCard({
 
   return (
     <Panel className="flex flex-col">
-      <div className="px-5 py-4 flex items-start gap-3 border-b border-outline-variant">
+      <div className="flex items-start gap-2.5 border-b border-outline-variant px-4 py-3">
+        {/* Neutral. The icon is decoration on a card whose whole job is to report a number,
+            and four teal icons on the landing page spend the colour budget before any of the
+            waits get to use it. */}
         <span
-          className="material-symbols-outlined text-[22px] text-primary shrink-0 mt-0.5"
-          style={{ fontVariationSettings: "'FILL' 1" }}
+          className="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-on-surface-variant"
           aria-hidden="true"
         >
           {icon}
         </span>
         <div className="min-w-0 mr-auto">
-          <h2 className="font-headline-sm text-on-surface truncate">{name}</h2>
+          <h2 className="truncate font-label-lg font-bold text-on-surface">{name}</h2>
           {isLoading ? (
             <Skeleton className="h-4 w-24 mt-1.5" />
           ) : (

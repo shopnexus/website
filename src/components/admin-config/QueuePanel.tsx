@@ -54,11 +54,11 @@ export default function QueuePanel({
 }) {
   return (
     <Panel>
-      <div className="px-4 sm:px-5 py-4 border-b border-outline-variant flex flex-wrap items-center gap-x-4 gap-y-3">
-        <div className="mr-auto flex items-baseline gap-2.5 min-w-0">
-          <h2 className="font-headline-sm text-on-surface">{heading}</h2>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-outline-variant px-3 py-2.5 sm:px-4">
+        <div className="mr-auto flex min-w-0 items-baseline gap-2">
+          <h2 className="font-label-lg font-bold text-on-surface">{heading}</h2>
           {count !== null && count !== undefined && (
-            <span className="font-body-sm text-on-surface-variant tabular-nums">
+            <span className="font-label-sm tabular-nums text-on-surface-variant">
               {count} {countNoun}
             </span>
           )}
@@ -67,9 +67,11 @@ export default function QueuePanel({
       </div>
 
       {isLoading ? (
-        <div className="p-4 sm:p-5 flex flex-col gap-3" aria-busy="true">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+        // Six at the height of a real row, not four at 80px: a skeleton that is taller than
+        // what replaces it makes the list jump upward as it loads.
+        <div className="flex flex-col gap-2 p-3 sm:p-4" aria-busy="true">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-12 w-full rounded-lg" />
           ))}
         </div>
       ) : isEmpty ? (
@@ -79,7 +81,7 @@ export default function QueuePanel({
       )}
 
       {hasNextPage && (
-        <div className="px-5 py-4 border-t border-outline-variant">
+        <div className="border-t border-outline-variant px-4 py-3">
           <LoadMore isFetching={isFetchingNextPage} onClick={onLoadMore} />
         </div>
       )}

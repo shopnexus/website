@@ -40,11 +40,13 @@ export default function QueueOverview() {
   const isAdmin = me?.role === "admin";
   const withdrawals = useAdminWithdrawals("pending", PEEK, isAdmin);
 
-  // Stretching rather than `items-start`: the cards hold different numbers of preview rows,
-  // and letting them size to content puts the four "Mở hàng đợi" links at four different
-  // heights — and that link is the one control on each card.
+  // `items-start`, after a spell of stretching them to a common height so the four "Mở hàng
+  // đợi" links would line up. On a quiet day that traded 200px of white space per empty card
+  // for the alignment of a link on a card with nothing to open — two of the four here are
+  // "Không còn việc" holding one line inside a 280px box. A short card is the more useful
+  // signal: the queues with work in them are the tall ones.
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
       <QueueCard
         href="/admin/tickets"
         icon="support_agent"

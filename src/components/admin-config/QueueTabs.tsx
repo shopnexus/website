@@ -20,14 +20,11 @@ export default function QueueTabs<T extends string>({
   active: T;
   onChange: (id: T) => void;
 }) {
+  // Not `fullWidth`. Four labels of two words each were being stretched across the whole
+  // panel, ~280px per tab, so the strip read as four buttons rather than as one control.
   return (
-    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant overflow-hidden">
-      <Tabs
-        tabs={[...tabs]}
-        activeTabId={active}
-        onChange={(id) => onChange(id as T)}
-        fullWidth
-      />
+    <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest px-1">
+      <Tabs tabs={[...tabs]} activeTabId={active} onChange={(id) => onChange(id as T)} />
     </div>
   );
 }

@@ -83,12 +83,26 @@ export function isNavItemActive(itemPath: string, pathname: string): boolean {
 
 /** The name of the page being looked at, for the topbar. */
 export function currentPageName(pathname: string): string {
+  return currentPageTrail(pathname).name;
+}
+
+/**
+ * Where you are, as the two names the topbar shows: the group and the page.
+ *
+ * The group is the same word `PageHeader` used to print as an eyebrow above the page title,
+ * one screen below the sidebar heading that already said it. Reading it off the nav means it
+ * cannot disagree with the sidebar, and it only exists in one place.
+ */
+export function currentPageTrail(pathname: string): { group: string | null; name: string } {
   for (const group of NAV_GROUPS) {
     for (const item of group.items) {
-      if (isNavItemActive(item.path, pathname)) return item.name;
+      if (isNavItemActive(item.path, pathname)) {
+        // The overview is not "in" a group as far as a reader is concerned — it is the root.
+        return { group: item.path === "/admin" ? null : group.label, name: item.name };
+      }
     }
   }
-  return "Vận hành";
+  return { group: null, name: "Vận hành" };
 }
 
 /**

@@ -62,10 +62,14 @@ export function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={[
-        "px-3 py-1.5 rounded-full font-label-sm border transition-colors cursor-pointer",
+        "cursor-pointer rounded-full border px-2.5 py-1 font-label-sm transition-colors",
+        // A tint of the brand rather than `primary-container`, which in this palette is a
+        // dark teal — so a row of filters with one of them chosen put a solid dark block at
+        // the top of every table. Selection is a state of the control, not of the data, so it
+        // does not read off the status scale either.
         active
-          ? "bg-primary-container text-on-primary-container border-transparent"
-          : "bg-transparent text-on-surface-variant border-outline-variant hover:bg-surface-container",
+          ? "border-primary/40 bg-primary/10 font-semibold text-primary"
+          : "border-outline-variant bg-transparent text-on-surface-variant hover:bg-surface-container",
       ].join(" ")}
     >
       {children}

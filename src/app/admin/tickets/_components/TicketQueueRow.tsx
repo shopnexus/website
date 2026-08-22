@@ -20,48 +20,40 @@ export default function TicketQueueRow({ entry, now }: { entry: AdminTicket; now
 		<li>
 			<Link
 				href={`/admin/tickets/${ticket.id}`}
-				className="group flex gap-4 px-4 sm:px-5 py-4 hover:bg-surface-container-low transition-colors"
+				className="group flex gap-3 px-3 py-2.5 transition-colors hover:bg-surface-container-low sm:px-4"
 			>
 				<WaitGutter wait={waitSince(ticket.created_at, now)} />
 
-				<div className="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
-					<div className="flex flex-wrap items-center gap-2">
-						<Badge variant="surface" className={TICKET_STATUS_STYLES[ticket.status]}>
-							{TICKET_STATUS_VI[ticket.status]}
-						</Badge>
-						<span className="font-label-sm text-on-surface-variant">
-							{TICKET_KIND_VI[ticket.kind]}
+				<div className="flex min-w-0 flex-1 flex-col gap-0.5 py-px">
+					<div className="flex items-center gap-2">
+						<span className="min-w-0 flex-1 truncate font-label-md font-semibold text-on-surface transition-colors group-hover:text-primary">
+							{ticket.subject}
 						</span>
-						{ticket.reason && (
-							<span className="font-label-sm text-on-surface-variant">
-								· {TICKET_REASON_VI[ticket.reason]}
-							</span>
-						)}
 						{/* A decision rests on the pattern, not on one complaint — so a target that
 						    several people have reported says so before the subject does. */}
 						{pattern > 1 && (
-							<Badge
-								variant="surface"
-								icon="flag"
-								className="bg-error-container text-on-error-container"
-							>
-								{pattern} yêu cầu về cùng đối tượng
+							<Badge variant="surface" icon="flag" className="shrink-0 bg-status-danger text-on-status-danger">
+								{pattern}
 							</Badge>
 						)}
+						<Badge variant="surface" className={`shrink-0 ${TICKET_STATUS_STYLES[ticket.status]}`}>
+							{TICKET_STATUS_VI[ticket.status]}
+						</Badge>
 					</div>
 
-					<div className="font-body-md font-semibold text-on-surface truncate group-hover:text-primary transition-colors">
-						{ticket.subject}
-					</div>
-
-					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-label-sm text-on-surface-variant">
-						<span className="inline-flex items-center gap-1">
-							<span className="material-symbols-outlined text-[14px]">person</span>
-							{requester.name}
-						</span>
+					{/* Everything else on one line. It was three stacked ones — kind and reason, then
+					    the subject, then requester and target and assignee — which made a row 120px
+					    tall and showed three of them on a 1000px screen. */}
+					<div className="flex min-w-0 items-center gap-x-2 font-label-sm text-on-surface-variant">
+						<span className="shrink-0">{TICKET_KIND_VI[ticket.kind]}</span>
+						{ticket.reason && (
+							<span className="shrink-0">· {TICKET_REASON_VI[ticket.reason]}</span>
+						)}
+						<span aria-hidden="true">·</span>
+						<span className="truncate">{requester.name}</span>
 						{target && (
-							<span className="inline-flex items-center gap-1 min-w-0">
-								<span className="material-symbols-outlined text-[14px]">link</span>
+							<span className="hidden min-w-0 items-center gap-1 sm:inline-flex">
+								<span aria-hidden="true">·</span>
 								<span className="truncate">
 									{target.kind}
 									{target.title ? `: ${target.title}` : ""}
@@ -69,7 +61,7 @@ export default function TicketQueueRow({ entry, now }: { entry: AdminTicket; now
 							</span>
 						)}
 						{assignee && (
-							<span className="inline-flex items-center gap-1 ml-auto text-primary">
+							<span className="ml-auto inline-flex shrink-0 items-center gap-1 text-primary">
 								<span className="material-symbols-outlined text-[14px]">how_to_reg</span>
 								{assignee.name}
 							</span>

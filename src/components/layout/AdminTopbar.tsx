@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { staffRoleLabel } from "@/lib/staff";
-import { currentPageName } from "./AdminNav";
+import { currentPageTrail } from "./AdminNav";
 
 /**
  * The bar across the top of every staff page.
@@ -23,9 +23,10 @@ export default function AdminTopbar({
   onOpenNav: () => void;
 }) {
   const pathname = usePathname();
+  const trail = currentPageTrail(pathname);
 
   return (
-    <header className="sticky top-0 z-30 h-14 shrink-0 bg-surface/90 backdrop-blur-md border-b border-outline-variant flex items-center gap-3 px-3 sm:px-5">
+    <header className="sticky top-0 z-30 h-12 shrink-0 bg-surface/90 backdrop-blur-md border-b border-outline-variant flex items-center gap-3 px-3 sm:px-5">
       <button
         type="button"
         onClick={onOpenNav}
@@ -37,15 +38,32 @@ export default function AdminTopbar({
 
       {/* The sidebar carries the wordmark from `lg` up, so repeating it here would be the
           same word twice on one screen. Below that the sidebar is gone and this is it. */}
-      <span className="lg:hidden font-headline-sm font-bold text-on-surface">Vận hành</span>
-      <span className="lg:hidden text-outline-variant" aria-hidden="true">
-        /
-      </span>
+      <span className="lg:hidden font-title-md font-bold text-on-surface">Vận hành</span>
 
-      <h1 className="font-label-md text-on-surface truncate min-w-0">{currentPageName(pathname)}</h1>
+      {/*
+       * A breadcrumb, and deliberately not an `<h1>`. There were two on every page — this
+       * one and the page's own — and between them the same words appeared three times on one
+       * screen: the sidebar's active row, this bar, and the title in the body. The page owns
+       * the heading; this is wayfinding, so it is a `nav`.
+       */}
+      <nav aria-label="Vị trí" className="flex min-w-0 items-center gap-1.5 font-label-md">
+        {trail.group && (
+          <>
+            <span className="hidden shrink-0 text-on-surface-variant sm:inline">
+              {trail.group}
+            </span>
+            <span className="hidden shrink-0 text-outline sm:inline" aria-hidden="true">
+              /
+            </span>
+          </>
+        )}
+        <span className="min-w-0 truncate text-on-surface">{trail.name}</span>
+      </nav>
 
       <div className="ml-auto flex items-center gap-2 shrink-0">
-        <span className="hidden sm:inline text-label-xs bg-tertiary-container text-on-tertiary-container px-2 py-1 rounded uppercase tracking-wider font-bold">
+        {/* Neutral. It was `tertiary-container` — #924628 — so the loudest thing on the bar
+            was a label that never changes while you work. */}
+        <span className="hidden sm:inline rounded bg-surface-container-high px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">
           {staffRoleLabel(role)}
         </span>
         <Link

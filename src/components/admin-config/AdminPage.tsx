@@ -40,7 +40,7 @@ export function AdminCanvas({
   children: ReactNode;
 }) {
   return (
-    <div className={`p-4 md:p-6 lg:p-8 pb-12 mx-auto flex flex-col gap-6 ${WIDTHS[width]}`}>
+    <div className={`mx-auto flex flex-col gap-4 p-4 pb-10 lg:p-6 ${WIDTHS[width]}`}>
       {children}
     </div>
   );
@@ -48,14 +48,12 @@ export function AdminCanvas({
 
 export default function AdminPage({
   width = "lg",
-  eyebrow,
   title,
   consequence,
   actions,
   children,
 }: {
   width?: Width;
-  eyebrow: string;
   title: string;
   consequence: string;
   actions?: ReactNode;
@@ -63,7 +61,7 @@ export default function AdminPage({
 }) {
   return (
     <AdminCanvas width={width}>
-      <PageHeader eyebrow={eyebrow} title={title} consequence={consequence} actions={actions} />
+      <PageHeader title={title} consequence={consequence} actions={actions} />
       {children}
     </AdminCanvas>
   );
