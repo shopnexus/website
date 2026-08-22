@@ -23,9 +23,16 @@ export interface DayBucket {
 /**
  * A headline number with its comparison against the window immediately before it.
  *
- * `change` is null where a comparison would be a lie: a previous window of zero has no
- * percentage to move by, and "+100%" from one order to two reads as growth that is not
- * there. The card renders "không có kỳ trước" rather than a number in that case.
+ * Two different absences of a comparison, told apart on purpose — they were one field, and
+ * the card printed the wrong sentence for one of them.
+ *
+ * `comparable` is false where the metric is not the kind of thing a percentage applies to.
+ * The cancellation rate is already a percentage; "tỷ lệ hủy tăng 20%" cannot be read without
+ * knowing whether the rate or the count moved, so it is not offered at all.
+ *
+ * `change` is null on a comparable metric where a comparison would be a lie: a previous
+ * window of zero has no percentage to move by, and "+100%" from one order to two reads as
+ * growth that is not there.
  */
 export interface Metric {
 	id: string
@@ -33,6 +40,7 @@ export interface Metric {
 	value: string
 	hint: string
 	icon: string
+	comparable: boolean
 	change: number | null
 }
 

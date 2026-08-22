@@ -108,6 +108,7 @@ export function buildMetrics(
 			value: formatMoney(leading?.amount ?? 0, currency),
 			hint: "Tiền hàng của đơn đã hoàn thành, chưa gồm phí giao",
 			icon: "payments",
+			comparable: true,
 			change: percentChange(totalIn(current, currency), totalIn(previous, currency)),
 		},
 		{
@@ -116,6 +117,7 @@ export function buildMetrics(
 			value: String(placed),
 			hint: "Mọi đơn phát sinh trong kỳ",
 			icon: "receipt_long",
+			comparable: true,
 			change: percentChange(placed, previousPlaced),
 		},
 		{
@@ -124,6 +126,7 @@ export function buildMetrics(
 			value: String(current?.completed ?? 0),
 			hint: `${current?.open ?? 0} đơn đang xử lý`,
 			icon: "task_alt",
+			comparable: true,
 			change: percentChange(current?.completed ?? 0, previous?.completed ?? 0),
 		},
 		{
@@ -132,6 +135,11 @@ export function buildMetrics(
 			value: placed === 0 ? "0%" : `${Math.round(((current?.cancelled ?? 0) / placed) * 100)}%`,
 			hint: `${current?.cancelled ?? 0} đơn đã hủy`,
 			icon: "cancel",
+			// A rate is already a percentage. "Tỷ lệ hủy −20%" cannot be read without knowing
+			// whether the rate moved or the number of orders under it did, so this metric is not
+			// compared at all — which is a different thing from having nothing to compare against,
+			// and the card is told which.
+			comparable: false,
 			change: null,
 		},
 	]

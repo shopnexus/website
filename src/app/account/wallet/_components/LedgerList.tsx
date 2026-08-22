@@ -5,7 +5,13 @@ import EmptyState from "@/components/ui/EmptyState";
 import { WALLET_TRANSACTION_KIND_VI } from "@/lib/dictionaries";
 import { formatMoney, formatSignedMoney } from "@/lib/money";
 import { useWalletLedger } from "@/hooks/api/useWallet";
-import { KIND_ICONS, movementDirection } from "../_lib/wallet.logic";
+import Link from "next/link";
+import {
+  KIND_ICONS,
+  movementDirection,
+  movementOrderId,
+  movementReason,
+} from "../_lib/wallet.logic";
 
 const KINDS: Array<WalletTransactionKind | "all"> = [
   "all",
@@ -52,8 +58,12 @@ export default function LedgerList({
 
   return (
     <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
-      <div className="p-5 md:p-6 border-b border-outline-variant flex flex-wrap items-center gap-2">
-        <h2 className="text-title-md text-on-surface mr-auto">Lịch sử biến động</h2>
+      {/* The heading on its own line and the nine kinds on theirs, scrolling sideways. Sharing
+          one wrapping row meant the filters broke onto a second line at every width there is,
+          which put a control row where the list's first row should be. */}
+      <div className="border-b border-outline-variant p-5 md:p-6">
+        <h2 className="text-title-md text-on-surface">Lịch sử biến động</h2>
+        <div className="hide-scrollbar -mx-1 mt-3 flex gap-2 overflow-x-auto px-1">
         {KINDS.map((option) => {
           const active = option === "all" ? kind === undefined : kind === option;
           return (
@@ -63,7 +73,7 @@ export default function LedgerList({
               aria-pressed={active}
               onClick={() => onKindChange(option === "all" ? undefined : option)}
               className={[
-                "px-3 py-1.5 rounded-full border text-label-sm transition-all cursor-pointer",
+                "shrink-0 cursor-pointer rounded-full border px-3 py-1.5 text-label-sm transition-all",
                 active
                   ? "bg-primary text-on-primary border-primary"
                   : "border-outline-variant text-on-surface-variant hover:bg-surface-container-high",
@@ -73,6 +83,7 @@ export default function LedgerList({
             </button>
           );
         })}
+        </div>
       </div>
 
       {isLoading ? (
@@ -93,6 +104,8 @@ export default function LedgerList({
         <ul className="divide-y divide-outline-variant">
           {movements.map((tx) => {
             const direction = movementDirection(tx);
+            const orderId = movementOrderId(tx);
+            const reason = movementReason(tx);
             return (
               <li key={tx.seq} className="p-5 md:p-6 flex items-start gap-4">
                 <div
@@ -118,9 +131,24 @@ export default function LedgerList({
                     {new Date(tx.created_at).toLocaleString("vi-VN")}
                     <span className="mx-2 opacity-40">·</span>
                     <span className="tabular-nums">#{tx.seq}</span>
+                    {/* Which order this was for. The row used to print the module's own audit
+                        label here instead — "escrow hold", in English, under a Vietnamese
+                        title that already said it. The order is the thing a seller is
+                        actually trying to match a movement to. */}
+                    {orderId && (
+                      <>
+                        <span className="mx-2 opacity-40">·</span>
+                        <Link
+                          href={`/account/orders/${orderId}`}
+                          className="underline decoration-dotted underline-offset-4 transition-colors hover:text-primary"
+                        >
+                          Xem đơn hàng
+                        </Link>
+                      </>
+                    )}
                   </div>
-                  {tx.note && (
-                    <div className="text-body-sm text-on-surface-variant mt-1">{tx.note}</div>
+                  {reason && (
+                    <div className="text-body-sm text-on-surface-variant mt-1">{reason}</div>
                   )}
                 </div>
 

@@ -34,6 +34,32 @@ export const KIND_ICONS: Record<WalletTransactionKind, string> = {
 	adjustment: "tune",
 }
 
+/**
+ * The reason written on a movement, or null when there is none worth reading.
+ *
+ * Only an adjustment has one. Every other kind is explained by its own name and by what it
+ * references, so the finance module writes the note there as an internal audit label — and
+ * writes it in English: a Vietnamese seller's ledger was printing "escrow hold" under a row
+ * already titled "Tạm giữ cho đơn hàng". An adjustment is the exception by design, because
+ * it points at no order and no session: its note is the only thing that can ever explain it,
+ * so a person writes that one.
+ */
+export function movementReason(tx: WalletTransaction): string | null {
+	if (tx.kind !== "adjustment") return null
+	const reason = tx.note.trim()
+	return reason === "" ? null : reason
+}
+
+/**
+ * The order a movement was for, when it was for one.
+ *
+ * `payment-session` is the other `ref_type` and has no screen a seller can open, so it is
+ * left unlinked rather than pointed at a route that does not exist.
+ */
+export function movementOrderId(tx: WalletTransaction): string | null {
+	return tx.ref_type === "order" && tx.ref_id !== "" ? tx.ref_id : null
+}
+
 /** Chip styling per outcome, so the four states are told apart without reading them. */
 export const OUTCOME_STYLES: Record<WithdrawalOutcome, string> = {
 	"awaiting-review": "bg-status-warn text-on-status-warn",
