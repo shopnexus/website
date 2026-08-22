@@ -25,9 +25,16 @@ import type { Refund } from "@/api/generated/types.gen"
 export default function RefundActions({
 	refund,
 	isBuyer,
+	layout = "stack",
 }: {
 	refund: Refund
 	isBuyer: boolean
+	/**
+	 * `stack` is the detail screen's narrow column, where a full-width button per line is
+	 * the shape. `row` is a list, where the same two buttons stacked make every row twice
+	 * as tall as the case it describes.
+	 */
+	layout?: "stack" | "row"
 }) {
 	const withdraw = useWithdrawRefund()
 	const accept = useAcceptRefund()
@@ -85,8 +92,10 @@ export default function RefundActions({
 		}
 	}
 
+	const wide = layout === "stack"
+
 	return (
-		<div className="flex flex-col gap-2">
+		<div className={wide ? "flex flex-col gap-2" : "flex flex-wrap justify-end gap-2"}>
 			{actions.map((action) =>
 				action === "escalate" ? (
 					// Not a route of its own: handing a case to staff *is* opening a
@@ -99,7 +108,7 @@ export default function RefundActions({
 						href={`/inbox?kind=refund-dispute&ref_id=${refund.order_id}`}
 						className="block"
 					>
-						<Button variant="outline" fullWidth>
+						<Button variant="outline" fullWidth={wide}>
 							{LABELS[action]}
 						</Button>
 					</Link>
@@ -107,7 +116,7 @@ export default function RefundActions({
 					<Button
 						key={action}
 						variant={PRIMARY.has(action) ? "primary" : "outline"}
-						fullWidth
+						fullWidth={wide}
 						disabled={busy}
 						onClick={() => run(action)}
 					>

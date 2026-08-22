@@ -1907,6 +1907,7 @@ export type Refund = {
      */
     deadline_at: string | null;
     id: RefundId;
+    order: RefundOrder;
     order_id: OrderId;
     reason: string;
     /**
@@ -1923,6 +1924,31 @@ export type Refund = {
 };
 
 export type RefundId = string;
+
+/**
+ * The sale being disputed, trimmed to what a row about it has to show. It rides on the refund for the same reason `RefundSummary` rides on the order, in the other direction: a list of cases carrying only `order_id` renders as a column of opaque ids, and the one question a reader has of each row — which item, how much, and who — cannot be answered without a second request per row.
+ *
+ * Not the whole `Order`. That carries both addresses, the parcel, the receipt evidence and the refund summary pointing back here, none of which a list row draws.
+ *
+ */
+export type RefundOrder = {
+    buyer: AccountSummary;
+    created_at: string;
+    currency: CurrencyCode;
+    id: OrderId;
+    /**
+     * Every distinct listing on the order, in item order. Named rather than resolved: catalogue is another module, and a client drawing these rows batches one `GET /listings?ids=` for the whole page — the order list does the same. A refund is raised against the whole sale rather than one line, so a row showing the first item can say how many others there are.
+     *
+     */
+    listing_ids: Array<ListingId>;
+    seller: AccountSummary;
+    /**
+     * The sale's own state, which is not the refund's — a case can be open on an order that has already been delivered.
+     *
+     */
+    state: OrderState;
+    total: number;
+};
 
 export type RefundPage = {
     data: Array<Refund>;
