@@ -20,7 +20,10 @@ export default function QuickFacts({ facts }: { facts: readonly Fact[] }) {
   if (facts.length === 0) return null;
 
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+    // Two columns at every width, not one below `sm`. The facts sit above the price on a phone
+    // now, and stacked one per row they pushed it a full screen down; paired, the block is half
+    // as tall and the price lands at the fold.
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-3.5">
       {facts.map((fact) => (
         <div key={fact.key} className="min-w-0">
           <dt className="font-label-sm text-on-surface-variant">{fact.label}</dt>

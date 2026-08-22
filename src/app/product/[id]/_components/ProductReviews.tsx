@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import Chip from "@/components/ui/Chip";
+import MenuSelect from "@/components/ui/MenuSelect";
 import Skeleton from "@/components/ui/Skeleton";
 import {
   useListingReviewSummary,
@@ -114,22 +115,13 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
             </Chip>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
-            <label htmlFor="review-sort" className="font-label-sm text-on-surface-variant">
-              Sắp xếp:
-            </label>
-            <select
-              id="review-sort"
+          <div className="ml-auto">
+            <MenuSelect
+              label="Sắp xếp đánh giá"
               value={sort}
-              onChange={(event) => setSort(event.target.value as ReviewSort)}
-              className="rounded-lg border border-outline-variant bg-surface-container-lowest py-1.5 pl-3 pr-8 font-body-sm text-on-surface outline-none focus:border-primary"
-            >
-              {SORTS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setSort(value as ReviewSort)}
+              options={SORTS.map((option) => ({ value: option.value, label: option.label }))}
+            />
           </div>
         </div>
       )}
