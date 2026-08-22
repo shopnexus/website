@@ -2,11 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMe } from "@/hooks/api/useAccount";
 
 interface NavItem {
   name: string;
   path: string;
   icon: string;
+  /**
+   * Hidden from a moderator, because the read behind it is `requireAdmin` and the page could
+   * only ever be a failed request. Not every admin-only *write* earns this — categories, tags
+   * and options are public reads with admin-only writes, so a moderator reads them and
+   * `AdminOnlyNotice` explains the missing buttons. These three are the ones where the list
+   * itself is refused, and one of them was reported putting `{"error":{"code":
+   * "admin_required"}}` on screen.
+   */
+  adminOnly?: boolean;
 }
 
 /**
@@ -27,16 +37,16 @@ export const NAV_GROUPS: Array<{ label: string; items: NavItem[] }> = [
     label: "Hàng đợi",
     items: [
       { name: "Yêu cầu hỗ trợ", path: "/admin/tickets", icon: "support_agent" },
-      { name: "Xác minh danh tính", path: "/admin/identity-documents", icon: "badge" },
-      { name: "Tin đăng chờ duyệt", path: "/admin/listings", icon: "inventory_2" },
-      { name: "Yêu cầu rút tiền", path: "/admin/withdrawals", icon: "payments" },
+      { name: "Xác minh KYC", path: "/admin/identity-documents", icon: "badge" },
+      { name: "Tin chờ duyệt", path: "/admin/listings", icon: "inventory_2" },
+      { name: "Rút tiền", path: "/admin/withdrawals", icon: "payments", adminOnly: true },
     ],
   },
   {
     label: "Người dùng",
     items: [
       { name: "Tài khoản", path: "/admin/accounts", icon: "group" },
-      { name: "Kiểm duyệt viên", path: "/admin/moderators", icon: "shield_person" },
+      { name: "Kiểm duyệt viên", path: "/admin/moderators", icon: "shield_person", adminOnly: true },
     ],
   },
   {
@@ -44,12 +54,19 @@ export const NAV_GROUPS: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { name: "Danh mục", path: "/admin/categories", icon: "category" },
       { name: "Thẻ", path: "/admin/tags", icon: "sell" },
-      { name: "Cổng thanh toán & vận chuyển", path: "/admin/options", icon: "tune" },
+      { name: "Thanh toán & vận chuyển", path: "/admin/options", icon: "tune" },
     ],
   },
   {
     label: "Đối soát",
-    items: [{ name: "Phiên thanh toán", path: "/admin/payment-sessions", icon: "receipt_long" }],
+    items: [
+      {
+        name: "Phiên thanh toán",
+        path: "/admin/payment-sessions",
+        icon: "receipt_long",
+        adminOnly: true,
+      },
+    ],
   },
 ];
 
@@ -82,12 +99,23 @@ export function currentPageName(pathname: string): string {
  */
 export default function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { data: me } = useMe();
+  const isAdmin = me?.role === "admin";
+
+  // Filtered before the groups are drawn, so a group whose every item is admin-only
+  // disappears with its heading rather than leaving "ĐỐI SOÁT" over nothing. While the role
+  // is still unknown the admin-only rows are held back: showing them and then removing them
+  // is a nav that moves under the pointer.
+  const groups = NAV_GROUPS.map((group) => ({
+    label: group.label,
+    items: group.items.filter((item) => !item.adminOnly || isAdmin),
+  })).filter((group) => group.items.length > 0);
 
   return (
-    <nav className="flex-1 px-4 pb-4 flex flex-col gap-1 overflow-y-auto">
-      {NAV_GROUPS.map((group) => (
-        <div key={group.label} className="flex flex-col gap-1">
-          <h2 className="px-4 pt-4 pb-1 text-label-xs uppercase tracking-[0.08em] text-on-surface-variant">
+    <nav className="flex-1 px-3 pb-4 flex flex-col gap-0.5 overflow-y-auto">
+      {groups.map((group) => (
+        <div key={group.label} className="flex flex-col gap-0.5">
+          <h2 className="px-3 pt-4 pb-1 text-label-xs uppercase tracking-[0.08em] text-on-surface-variant">
             {group.label}
           </h2>
           {group.items.map((item) => {
@@ -99,9 +127,9 @@ export default function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
                 onClick={onNavigate}
                 aria-current={isActive ? "page" : undefined}
                 className={[
-                  "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors font-label-md",
+                  "relative flex items-center gap-2.5 rounded-lg py-2 pl-3 pr-2 font-label-md transition-colors",
                   isActive
-                    ? "bg-primary-container text-on-primary-container font-bold"
+                    ? "bg-surface-container-high font-bold text-on-surface before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-primary"
                     : "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface",
                 ].join(" ")}
               >

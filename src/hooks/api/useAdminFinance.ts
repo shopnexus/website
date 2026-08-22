@@ -89,10 +89,20 @@ function invalidateWithdrawalSet(client: QueryClient): Promise<void> {
  * renders: `awaiting-review` covers both `pending` and `processing`, and the route only
  * knows the five statuses. Page-paginated, so it walks `page` and stops at `total_count`.
  */
-export function useAdminWithdrawals(status: PaymentSessionStatus | undefined, limit = 20) {
+/**
+ * `enabled` because this route is `requireAdmin`, unlike the moderation queues beside it: the
+ * overview draws four cards for every staff member and this one 403s for a moderator, so the
+ * caller holds the request rather than making it and swallowing the refusal.
+ */
+export function useAdminWithdrawals(
+	status: PaymentSessionStatus | undefined,
+	limit = 20,
+	enabled = true,
+) {
 	const query = useInfiniteQuery({
 		...getAdminWithdrawalsInfiniteOptions({ query: { status, limit } }),
 		...pagePagination,
+		enabled,
 	})
 
 	const withdrawals = useMemo(() => flattenPages(query.data), [query.data])

@@ -6,6 +6,7 @@ import { longestWait } from "@/lib/wait";
 import { useNow } from "@/hooks/useNow";
 import { useAdminTickets, useAdminListings } from "@/hooks/api/useAdminModeration";
 import { useAdminIdentityDocuments, useAdminWithdrawals } from "@/hooks/api/useAdminFinance";
+import { useMe } from "@/hooks/api/useAccount";
 import QueueCard from "./QueueCard";
 
 /** How many rows a card previews. Also the page's whole cost: four reads of three. */
@@ -32,7 +33,12 @@ export default function QueueOverview() {
   const tickets = useAdminTickets(undefined, undefined, PEEK);
   const identity = useAdminIdentityDocuments("pending", PEEK);
   const listings = useAdminListings(undefined, PEEK);
-  const withdrawals = useAdminWithdrawals("pending", PEEK);
+  // `GET /admin/withdrawals` is requireAdmin, so for a moderator this card was a 403 —
+  // the overview firing a request it is not allowed to make, on the one page every staff
+  // member lands on.
+  const { data: me } = useMe();
+  const isAdmin = me?.role === "admin";
+  const withdrawals = useAdminWithdrawals("pending", PEEK, isAdmin);
 
   // Stretching rather than `items-start`: the cards hold different numbers of preview rows,
   // and letting them size to content puts the four "Mở hàng đợi" links at four different
@@ -89,7 +95,8 @@ export default function QueueOverview() {
         emptyLine="Không tin đăng nào chờ duyệt"
       />
 
-      <QueueCard
+      {isAdmin && (
+        <QueueCard
         href="/admin/withdrawals"
         icon="payments"
         name="Yêu cầu rút tiền"
@@ -97,13 +104,14 @@ export default function QueueOverview() {
         countNoun="yêu cầu chờ duyệt"
         wait={longestWait(withdrawals.withdrawals, (row) => row.created_at, now)}
         peeks={withdrawals.withdrawals.map((row) => ({
-          id: row.id,
-          title: formatMoney(row.amount, row.currency),
-          detail: `${row.bank_account.account_holder} · ${row.bank_account.account_number_masked}`,
+        id: row.id,
+        title: formatMoney(row.amount, row.currency),
+        detail: `${row.bank_account.account_holder} · ${row.bank_account.account_number_masked}`,
         }))}
         isLoading={withdrawals.isLoading}
         emptyLine="Không ai đang chờ tiền"
-      />
+        />
+      )}
     </div>
   );
 }

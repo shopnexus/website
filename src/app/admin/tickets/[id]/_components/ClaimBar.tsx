@@ -26,7 +26,7 @@ export default function ClaimBar({
 
 	if (assignee) {
 		return (
-			<div className="bg-secondary-container text-on-secondary-container rounded-2xl px-4 py-3 flex items-center gap-2 font-label-md">
+			<div className="bg-status-info text-on-status-info rounded-2xl px-4 py-3 flex items-center gap-2 font-label-md">
 				<span className="material-symbols-outlined text-[18px]">how_to_reg</span>
 				{assignee.name} đang xử lý yêu cầu này.
 			</div>
@@ -36,10 +36,10 @@ export default function ClaimBar({
 	if (!claimable) return null
 
 	return (
-		<div className="bg-primary-container text-on-primary-container rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3">
-			<span className="font-label-md flex-1 min-w-0">
-				Chưa ai tiếp nhận. Nhận xử lý để yêu cầu này rời hàng đợi chung.
-			</span>
+		<div className="bg-status-warn text-on-status-warn rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3">
+			{/* One clause. The second sentence used to explain what the button beside it does,
+			    and the button is called "Nhận xử lý". */}
+			<span className="font-label-md flex-1 min-w-0">Chưa ai tiếp nhận yêu cầu này.</span>
 			<Button
 				variant="primary"
 				size="sm"

@@ -1,3 +1,4 @@
+import AdminOnly from "@/components/admin-config/AdminOnly";
 import AdminPage from "@/components/admin-config/AdminPage";
 import SessionLedger from "./_components/SessionLedger";
 
@@ -13,7 +14,9 @@ export default function AdminPaymentSessionsPage() {
       title="Phiên thanh toán"
       consequence="Trang này chỉ đọc. Chỉ webhook của cổng thanh toán mới quyết định một phiên đã thu được tiền hay chưa — con số ở đây là kết quả đó, để đối chiếu với số cổng báo về."
     >
-      <SessionLedger />
+      <AdminOnly what="Sổ phiên thanh toán">
+        <SessionLedger />
+      </AdminOnly>
     </AdminPage>
   );
 }

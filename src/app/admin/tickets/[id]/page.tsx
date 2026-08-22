@@ -101,7 +101,7 @@ export default function AdminTicketPage({ params }: { params: Promise<{ id: stri
 					    concluded by recording what was done. Never both. */}
 					{!resolved &&
 						(refundDispute ? (
-							<RefundVerdictPanel orderRefId={ticket.ref_id} refund={orderRefund} />
+							<RefundVerdictPanel refund={orderRefund} />
 						) : (
 							<ResolutionForm ticketId={ticket.id} />
 						))}

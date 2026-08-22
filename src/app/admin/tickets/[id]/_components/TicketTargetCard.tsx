@@ -39,10 +39,10 @@ export default function TicketTargetCard({
 						{target.title}
 					</p>
 				) : (
-					<p className="font-body-sm text-on-surface-variant">
-						Không đọc được nội dung — có thể đã bị gỡ, hoặc hệ thống không dựng sẵn bản xem
-						cho loại này.
-					</p>
+					// Two reasons used to be given — the thing was removed, or no module projects
+					// this kind for staff. Neither changes what happens next: the id below and the
+					// link beside it are what gets used either way.
+					<p className="font-body-sm text-on-surface-variant">Không có bản xem trước.</p>
 				)}
 				{target.lines.map((line) => (
 					<span key={line} className="font-label-sm text-on-surface-variant">
