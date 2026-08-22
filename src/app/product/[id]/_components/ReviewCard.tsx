@@ -23,7 +23,10 @@ import ReviewVoteButtons from "./ReviewVoteButtons";
 export default function ReviewCard({ review }: { review: Review }) {
   const { user } = useAuthStore();
   const remove = useDeleteReview();
-  const [viewing, setViewing] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
+  const photoUrls = review.attachments
+    .map((attachment) => attachment.url)
+    .filter((url): url is string => Boolean(url));
 
   const isAuthor = user?.id === review.author.id;
 
@@ -100,7 +103,7 @@ export default function ReviewCard({ review }: { review: Review }) {
             <button
               key={attachment.id}
               type="button"
-              onClick={() => setViewing(attachment.url)}
+              onClick={() => setViewing(photoUrls.indexOf(attachment.url!))}
               disabled={!attachment.url}
               className="relative h-20 w-20 overflow-hidden rounded-xl border border-outline-variant transition-colors hover:border-primary disabled:opacity-50"
               aria-label="Xem ảnh đánh giá"
@@ -131,9 +134,10 @@ export default function ReviewCard({ review }: { review: Review }) {
       <ReviewReplyThread review={review} />
 
       <ImageViewerModal
-        isOpen={viewing !== null}
+        images={photoUrls}
+        index={viewing}
+        onIndexChange={setViewing}
         onClose={() => setViewing(null)}
-        imageUrl={viewing ?? ""}
         altText={`Ảnh trong đánh giá của ${review.author.name}`}
       />
     </article>

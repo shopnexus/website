@@ -4,7 +4,11 @@ import { useState } from "react";
 import { toast } from "react-hot-toast";
 import Chip from "@/components/ui/Chip";
 import Skeleton from "@/components/ui/Skeleton";
-import { useListingReviews, type ReviewSort } from "@/hooks/api/useReviews";
+import {
+  useListingReviewSummary,
+  useListingReviews,
+  type ReviewSort,
+} from "@/hooks/api/useReviews";
 import { useAuthStore } from "@/stores/use-auth-store";
 import type { ListingDetail } from "@/api/generated/types.gen";
 import { useReviewableOrders } from "../_hooks/useReviewableOrders";
@@ -17,24 +21,25 @@ const SORTS: Array<{ value: ReviewSort; label: string }> = [
   { value: "helpful", label: "Hữu ích nhất" },
 ];
 
-const RATINGS = [5, 4, 3, 2, 1] as const;
-
 /**
- * Everything a listing's reviews are: the rating, the filters, the list, and the way in
- * for somebody who bought it.
+ * Everything a listing's reviews are: the rating and its distribution, the filters, the list,
+ * and the way in for somebody who bought it.
  *
- * The star filter carries no counts beside it — the API filters by rating but reports no
- * per-star totals, and a number here would be one nobody sent.
+ * Every filter here now carries the number of reviews it will return, because the summary read
+ * answers per-star counts and how many came with a photo. A chip whose size nobody can see is
+ * a chip readers press to find out it was empty.
  */
 export default function ProductReviews({ product }: { product: ListingDetail }) {
   const { user } = useAuthStore();
   const [sort, setSort] = useState<ReviewSort>("newest");
   const [rating, setRating] = useState<number | null>(null);
+  const [mediaOnly, setMediaOnly] = useState(false);
   const [composing, setComposing] = useState(false);
 
+  const { data: summary } = useListingReviewSummary(product.id);
   const { reviews, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useListingReviews(
     product.id,
-    { sort, rating: rating ?? undefined },
+    { sort, rating: rating ?? undefined, media: mediaOnly || undefined },
   );
 
   const { orders } = useReviewableOrders(product.id);
@@ -49,7 +54,7 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
   };
 
   return (
-    <section id="reviews" className="mt-12 scroll-mt-24">
+    <section id="reviews" className="scroll-mt-32">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h2 className="font-headline-md font-bold text-on-surface">Đánh giá sản phẩm</h2>
         {canReview && (
@@ -66,28 +71,46 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
         )}
       </div>
 
-      <ReviewSummaryPanel
-        rating={product.rating}
-        reviewCount={product.review_count}
-        sold={product.sold}
-        favoriteCount={product.favorite_count}
-      />
+      {(summary?.review_count ?? product.review_count) > 0 && (
+        <ReviewSummaryPanel
+          summary={summary}
+          sold={product.sold}
+          favoriteCount={product.favorite_count}
+          activeRating={rating}
+          onPickRating={setRating}
+        />
+      )}
 
-      {product.review_count > 0 && (
+      {(summary?.review_count ?? product.review_count) > 0 && (
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          <Chip selected={rating === null} onClick={() => setRating(null)}>
-            Tất cả
+          <Chip
+            selected={rating === null && !mediaOnly}
+            onClick={() => {
+              setRating(null);
+              setMediaOnly(false);
+            }}
+          >
+            Tất cả{summary ? ` (${summary.review_count})` : ""}
           </Chip>
-          {RATINGS.map((star) => (
+          {summary?.breakdown.map((bucket) => (
             <Chip
-              key={star}
-              selected={rating === star}
+              key={bucket.rating}
+              selected={rating === bucket.rating}
               icon="star"
-              onClick={() => setRating(rating === star ? null : star)}
+              onClick={() => setRating(rating === bucket.rating ? null : bucket.rating)}
             >
-              {star}
+              {bucket.rating} ({bucket.count})
             </Chip>
           ))}
+          {summary && summary.with_media_count > 0 && (
+            <Chip
+              selected={mediaOnly}
+              icon="photo_camera"
+              onClick={() => setMediaOnly((current) => !current)}
+            >
+              Có hình ảnh ({summary.with_media_count})
+            </Chip>
+          )}
 
           <div className="ml-auto flex items-center gap-2">
             <label htmlFor="review-sort" className="font-label-sm text-on-surface-variant">
@@ -97,7 +120,7 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
               id="review-sort"
               value={sort}
               onChange={(event) => setSort(event.target.value as ReviewSort)}
-              className="rounded-lg border border-outline-variant/30 bg-surface-container-lowest py-1.5 pl-3 pr-8 font-body-sm text-on-surface outline-none focus:border-primary"
+              className="rounded-lg border border-outline-variant bg-surface-container-lowest py-1.5 pl-3 pr-8 font-body-sm text-on-surface outline-none focus:border-primary"
             >
               {SORTS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -132,12 +155,17 @@ export default function ProductReviews({ product }: { product: ListingDetail }) 
             <p className="font-body-lg text-on-surface-variant">
               {rating !== null
                 ? `Chưa có đánh giá ${rating} sao cho sản phẩm này.`
-                : "Chưa ai đánh giá sản phẩm này."}
+                : mediaOnly
+                  ? "Chưa có đánh giá nào kèm hình ảnh."
+                  : "Chưa ai đánh giá sản phẩm này."}
             </p>
-            {rating !== null ? (
+            {rating !== null || mediaOnly ? (
               <button
                 type="button"
-                onClick={() => setRating(null)}
+                onClick={() => {
+                  setRating(null);
+                  setMediaOnly(false);
+                }}
                 className="mt-4 font-label-md font-bold text-primary hover:underline"
               >
                 Xem tất cả đánh giá

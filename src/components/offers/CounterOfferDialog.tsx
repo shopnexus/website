@@ -1,148 +1,71 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { toast } from "react-hot-toast"
-import Button from "@/components/ui/Button"
-import Modal from "@/components/ui/Modal"
-import { useCounterOffer } from "@/hooks/api/useOffers"
-import { useListing } from "@/hooks/api/useCatalog"
-import type { Offer } from "@/api/generated/types.gen"
-
-const formatPrice = (value: number) =>
-	new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value)
+import { toast } from "react-hot-toast";
+import Modal from "@/components/ui/Modal";
+import { useCounterOffer } from "@/hooks/api/useOffers";
+import { useListing } from "@/hooks/api/useCatalog";
+import { useAuthStore } from "@/stores/use-auth-store";
+import type { Offer } from "@/api/generated/types.gen";
+import OfferForm from "./OfferForm";
 
 /**
  * Putting different terms on the table.
  *
- * A revision of the same negotiation, not a new offer: the id stays, authorship flips to
- * you, and the 12-hour window restarts. Which is also why the current terms are shown
- * above the field — a counter is answering a number, and typing one with the other out of
- * sight is how people land on the wrong side of their own intent.
+ * A revision of the same negotiation, not a new offer: the id stays, authorship flips to you, and
+ * the 12-hour window restarts. Which is also why the terms being answered are shown above the
+ * field — a counter is a reply to a number, and typing one with that number out of sight is how
+ * people land on the wrong side of their own intent.
+ *
+ * The form is shared with the dialog that opens a negotiation, because they ask for the same
+ * three things under the same rule. What is left here is the request.
  */
 export default function CounterOfferDialog({
-	offer,
-	open,
-	onClose,
+  offer,
+  open,
+  onClose,
 }: {
-	offer: Offer
-	open: boolean
-	onClose: () => void
+  offer: Offer;
+  open: boolean;
+  onClose: () => void;
 }) {
-	const [total, setTotal] = useState("")
-	const [quantity, setQuantity] = useState(offer.quantity)
-	const [reason, setReason] = useState("")
-	const counterOffer = useCounterOffer()
+  const counterOffer = useCounterOffer();
+  const me = useAuthStore((s) => s.user?.id);
 
-	// Giá niêm yết là trần của mức trả giá, và DTO của offer không mang nó — chỉ có
-	// `variant_id`. Nên một lượt đọc riêng, và chỉ khi hộp thoại mở. Đọc hỏng thì hộp
-	// thoại không tự bịa ra một cái trần: server vẫn là chỗ giữ luật, và chặn người ta
-	// trả giá vì một lượt đọc phụ hỏng là đổi một bất tiện lấy một chức năng.
-	const { data: listing } = useListing(open ? offer.listing_id : undefined)
-	const askingUnitPrice = listing?.variants.find((v) => v.id === offer.variant_id)?.price
+  // The asking price is the ceiling and the offer DTO does not carry it — only `variant_id`. So
+  // a read of its own, and only while the dialog is open. A failed read invents no ceiling: the
+  // server is where the rule lives, and blocking somebody from negotiating because a secondary
+  // read failed trades an inconvenience for a feature.
+  const { data: listing } = useListing(open ? offer.listing_id : undefined);
+  const unitPrice = listing?.variants.find((v) => v.id === offer.variant_id)?.price;
 
-	const parsed = Number.parseInt(total.replace(/\D/g, ""), 10)
-	// Trần của **tổng tiền**, vì ô nhập là tổng chứ không phải giá mỗi cái — cùng phép
-	// so sánh server làm. Đổi theo số lượng, nên ô số lượng cũng làm câu báo lỗi đổi.
-	const ceiling = askingUnitPrice && askingUnitPrice > 0 ? askingUnitPrice * quantity : undefined
-	const aboveAsking = ceiling !== undefined && Number.isFinite(parsed) && parsed > ceiling
-	const valid = Number.isFinite(parsed) && parsed > 0 && quantity > 0 && !aboveAsking
-
-	const submit = () => {
-		if (!valid) return
-		counterOffer.mutate(
-			{ id: offer.id, body: { total: parsed, quantity, reason: reason.trim() || undefined } },
-			{
-				onSuccess: () => {
-					toast.success("Đã gửi mức giá của bạn")
-					setTotal("")
-					setReason("")
-					onClose()
-				},
-			},
-		)
-	}
-
-	return (
-		<Modal open={open} title="Trả giá" onClose={onClose}>
-			<div className="flex flex-col gap-5">
-				<div className="flex items-center justify-between p-3 rounded-xl bg-surface-container">
-					<span className="text-body-sm text-on-surface-variant">
-						{offer.counterparty.name} đang đề nghị
-					</span>
-					<span className="font-price-md font-bold text-on-surface">
-						{formatPrice(offer.total)} × {offer.quantity}
-					</span>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<label htmlFor="counter-total" className="font-label-md font-bold text-on-surface">
-						Mức giá của bạn (tổng)
-					</label>
-					<input
-						id="counter-total"
-						inputMode="numeric"
-						value={total}
-						onChange={(event) => setTotal(event.target.value)}
-						placeholder="Nhập số tiền"
-						aria-invalid={aboveAsking}
-						className={`w-full px-3 py-2 rounded-lg bg-surface-container border text-body-md outline-none transition-all ${
-							aboveAsking
-								? "border-error focus:border-error focus:ring-1 focus:ring-error"
-								: "border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary"
-						}`}
-					/>
-					{aboveAsking ? (
-						<span className="text-body-sm text-error">
-							Không cao hơn giá niêm yết ({formatPrice(ceiling)}
-							{quantity > 1 ? ` cho ${quantity} sản phẩm` : ""}).
-						</span>
-					) : (
-						valid && <span className="text-body-sm text-on-surface-variant">{formatPrice(parsed)}</span>
-					)}
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<label htmlFor="counter-qty" className="font-label-md font-bold text-on-surface">
-						Số lượng
-					</label>
-					<input
-						id="counter-qty"
-						type="number"
-						min={1}
-						value={quantity}
-						onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
-						className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary text-body-md outline-none transition-all"
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<label htmlFor="counter-reason" className="font-label-md font-bold text-on-surface">
-						Lời nhắn (không bắt buộc)
-					</label>
-					<textarea
-						id="counter-reason"
-						rows={3}
-						value={reason}
-						onChange={(event) => setReason(event.target.value)}
-						placeholder="Vì sao bạn đề nghị mức này?"
-						className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary text-body-md outline-none resize-none transition-all"
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Button
-						variant="primary"
-						fullWidth
-						onClick={submit}
-						disabled={!valid || counterOffer.isPending}
-					>
-						{counterOffer.isPending ? "Đang gửi..." : "Gửi mức giá này"}
-					</Button>
-					<Button variant="ghost" fullWidth onClick={onClose} disabled={counterOffer.isPending}>
-						Hủy
-					</Button>
-				</div>
-			</div>
-		</Modal>
-	)
+  return (
+    <Modal open={open} title="Trả giá" onClose={onClose}>
+      <OfferForm
+        unitPrice={unitPrice}
+        currency={offer.currency}
+        standing={{
+          total: offer.total,
+          quantity: offer.quantity,
+          from: offer.counterparty.name,
+        }}
+        // Which way the suggested number moves: a seller answers upward towards their asking
+        // price, a buyer answers downward from what the seller just asked.
+        asSeller={me === offer.seller_id}
+        submitLabel="Gửi mức giá này"
+        isPending={counterOffer.isPending}
+        onCancel={onClose}
+        onSubmit={({ total, quantity, reason }) =>
+          counterOffer.mutate(
+            { id: offer.id, body: { total, quantity, reason: reason || undefined } },
+            {
+              onSuccess: () => {
+                toast.success("Đã gửi mức giá của bạn");
+                onClose();
+              },
+            },
+          )
+        }
+      />
+    </Modal>
+  );
 }

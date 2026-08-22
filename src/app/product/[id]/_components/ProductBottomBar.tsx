@@ -1,195 +1,153 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, type RefObject } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import OfferModal from "@/components/offers/OfferModal";
-import { useAuthStore } from "@/stores/use-auth-store";
-import { useCart } from "@/hooks/api/useCart";
-import { useCreateDraft } from "@/hooks/api/useOrders";
-import { useAddFavorite, useRemoveFavorite } from "@/hooks/api/useCatalog";
-import { useStartConversation } from "@/hooks/api/useChat";
-import { toast } from "react-hot-toast";
+import { formatMoney } from "@/lib/money";
+import { listingDownNote, listingIsLive } from "@/lib/listing-state";
 import type { ListingDetail, Variant } from "@/api/generated/types.gen";
-import NegotiableChoiceModal from "./NegotiableChoiceModal";
+import type { PurchaseActions } from "../_hooks/usePurchaseActions";
 
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-
+/**
+ * The buy controls again, once the real ones have scrolled away.
+ *
+ * The bar used to be there from the first paint, which made it the *only* place to buy —
+ * the price and the buttons were otherwise at the bottom of a very long column — and on a
+ * phone it covered content the whole way down the page. Now the panel beside the photos is
+ * where a purchase starts, and this appears only while that panel is off screen: it is a
+ * reminder, not a second interface, so it holds no state of its own and calls the same
+ * actions the panel does.
+ *
+ * `anchor` is watched rather than the scroll position: a bar that flips on a pixel threshold
+ * has to guess where the panel ended, and it guesses wrong at every viewport width.
+ */
 export default function ProductBottomBar({
   product,
   selectedVariant,
+  actions,
+  anchor,
 }: {
   product: ListingDetail;
-  /** The variant the page's classification picker has chosen — what every action acts on. */
+  /** The variant the picker has chosen — what every action acts on. */
   selectedVariant: Variant;
+  actions: PurchaseActions;
+  anchor: RefObject<HTMLElement | null>;
 }) {
-  const router = useRouter();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const user = useAuthStore((s) => s.user);
-  const { addItem } = useCart();
-  const createDraft = useCreateDraft();
-  const startConversation = useStartConversation();
-  const addFavorite = useAddFavorite();
-  const removeFavorite = useRemoveFavorite();
-
-  const handleOfferSuccess = () => {
-    startConversation.mutate(
-      { account_id: product.seller.id },
-      {
-        onSuccess: (conversation) => {
-          router.push(`/inbox?c=${conversation.id}&listing_id=${product.id}`);
-        }
-      }
-    );
-  };
-
-  const [isChoiceOpen, setIsChoiceOpen] = useState(false);
-  const [isOfferOpen, setIsOfferOpen] = useState(false);
-
-  const isNegotiable = product.price_mode === "negotiable";
-  const isOutOfStock = selectedVariant.stock.available <= 0;
-
-  // Không ai mua được tin của chính mình — server chặn ở draft, ở giỏ hàng và ở cả
-  // thương lượng — nên thanh này không bày ra ba cái nút chỉ để dẫn tới một 403.
-  // Chỗ đó dành cho việc người bán thật sự làm được ở đây: sửa tin.
-  if (user?.id === product.seller.id) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 p-4">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-4">
-          <span className="flex items-center gap-2 font-label-md text-on-surface-variant">
-            <span className="material-symbols-outlined">storefront</span>
-            Đây là tin đăng của bạn
-          </span>
-          <Link href={`/account/products/${product.id}`}>
-            <Button variant="primary" className="px-8 py-3 h-12 rounded-xl font-bold">
-              Chỉnh sửa tin
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const requireSignIn = (message: string): boolean => {
-    if (isAuthenticated) return false;
-    toast.error(message);
-    router.push(`/login?callbackUrl=/product/${product.id}`);
-    return true;
-  };
-
-  // The draft is opened for the listing: `CreateDraftRequest` takes only `listing_id` and
-  // the variant is picked at checkout.
-  const buyAtAskingPrice = () => {
-    createDraft.mutate(
-      { listing_id: product.id },
-      { onSuccess: (draft) => router.push(`/checkout?draft_id=${draft.id}`) },
-    );
-  };
-
-  /**
-   * A negotiable listing is buyable at the asking price like any other, so pressing "buy"
-   * asks which of the two the buyer meant rather than routing them into a negotiation.
-   */
-  const handleBuyNow = () => {
-    if (requireSignIn("Vui lòng đăng nhập để mua hàng")) return;
-    if (isNegotiable) {
-      setIsChoiceOpen(true);
-      return;
-    }
-    buyAtAskingPrice();
-  };
-
-  const handleAddToCart = async () => {
-    try {
-      // A guest's cart lives in the store and is merged server-side at sign-in, so this
-      // works signed out too.
-      await addItem(product.id, selectedVariant.id, 1);
-      toast.success("Đã thêm vào giỏ hàng.");
-    } catch {
-      // The global handler raises the toast.
-    }
-  };
-
-  const handleNegotiate = () => {
-    if (requireSignIn("Vui lòng đăng nhập để thương lượng")) return;
-    setIsChoiceOpen(false);
-    setIsOfferOpen(true);
-  };
+  const visible = useScrolledPast(anchor);
+  const live = listingIsLive(product);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 p-4">
-      <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-4">
-        <div className="hidden sm:flex items-center gap-4">
-          <span className="font-label-md text-on-surface-variant">Tổng thanh toán:</span>
-          <span className="font-display-lg text-[24px] text-primary font-bold leading-none">
-            {formatPrice(selectedVariant.price)}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          {/* The product card in every listing grid has toggled favourites all along; the
-              detail page — where someone actually decides to keep something — had the
-              button drawn and wired to nothing. */}
-          <Button
-            variant="outline"
-            className="px-6 py-3 shrink-0 h-12 rounded-xl text-on-surface"
-            disabled={addFavorite.isPending || removeFavorite.isPending}
-            aria-pressed={product.favorited}
-            onClick={() => {
-              if (requireSignIn("Vui lòng đăng nhập để lưu sản phẩm")) return;
-              const toggle = product.favorited ? removeFavorite : addFavorite;
-              toggle.mutate(product.id, {
-                onSuccess: () =>
-                  toast.success(product.favorited ? "Đã bỏ lưu" : "Đã lưu sản phẩm"),
-              });
-            }}
-          >
-            <span
-              className="material-symbols-outlined mr-2"
-              style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
-            >
-              favorite
+    <div
+      aria-hidden={!visible}
+      className={[
+        "fixed inset-x-0 bottom-0 z-40 border-t border-outline-variant bg-surface p-3",
+        "shadow-[0_-4px_16px_-4px_rgba(0,0,0,0.12)]",
+        // MD3 emphasized-decelerate on the way in. `visibility` rides the same transition so
+        // the bar stops taking keyboard focus while it is off screen, and still slides out
+        // rather than disappearing mid-animation.
+        "transition-[transform,visibility] duration-400 ease-[cubic-bezier(0.05,0.7,0.1,1)] motion-reduce:transition-none",
+        visible ? "visible translate-y-0" : "invisible pointer-events-none translate-y-full",
+      ].join(" ")}
+    >
+      <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-4 px-1 md:px-5">
+        {actions.isOwn ? (
+          <>
+            <span className="flex items-center gap-2 font-label-md text-on-surface-variant">
+              <span className="material-symbols-outlined" aria-hidden="true">
+                storefront
+              </span>
+              <span className="hidden sm:inline">Đây là tin đăng của bạn</span>
             </span>
-            {product.favorited ? "Đã lưu" : "Lưu"}
-          </Button>
-          <Button
-            variant="secondary"
-            className="flex-1 sm:flex-none px-6 py-3 h-12 rounded-xl text-on-secondary-container"
-            onClick={handleAddToCart}
-            disabled={isOutOfStock}
-          >
-            Thêm vào giỏ
-          </Button>
+            <Link href={`/account/products/${product.id}`}>
+              <Button variant="primary" className="h-11 rounded-xl px-8">
+                Chỉnh sửa tin
+              </Button>
+            </Link>
+          </>
+        ) : !live ? (
+          // Only its seller and staff reach this page once the listing is down, and neither has
+          // anything to buy: the server refuses a cart line, a session and an offer alike.
+          <span className="mx-auto flex items-center gap-2 font-label-md text-on-surface-variant">
+            <span className="material-symbols-outlined" aria-hidden="true">
+              visibility_off
+            </span>
+            {listingDownNote(product).title} · không thể mua
+          </span>
+        ) : (
+          <>
+            <div className="hidden min-w-0 items-baseline gap-3 sm:flex">
+              <span className="truncate font-label-md text-on-surface-variant">
+                {product.name}
+              </span>
+              <span className="shrink-0 font-title-lg font-bold tabular-nums text-primary">
+                {formatMoney(selectedVariant.price, product.currency)}
+              </span>
+            </div>
 
-          <Button
-            variant="primary"
-            className="flex-1 sm:flex-none px-8 py-3 h-12 rounded-xl font-bold"
-            onClick={handleBuyNow}
-            disabled={createDraft.isPending || isOutOfStock}
-          >
-            {isOutOfStock ? "Hết hàng" : createDraft.isPending ? "Đang xử lý..." : "Mua ngay"}
-          </Button>
-        </div>
+            <div className="flex w-full items-center gap-2 sm:w-auto">
+              <button
+                type="button"
+                onClick={actions.toggleFavorite}
+                disabled={actions.favoriteBusy}
+                aria-pressed={product.favorited}
+                aria-label={product.favorited ? "Bỏ lưu sản phẩm" : "Lưu sản phẩm"}
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-outline-variant text-on-surface-variant transition-colors hover:text-primary disabled:opacity-50"
+              >
+                <span
+                  className="material-symbols-outlined text-[22px]"
+                  style={{ fontVariationSettings: product.favorited ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  favorite
+                </span>
+              </button>
+              <Button
+                variant="secondary"
+                className="h-11 flex-1 rounded-xl sm:flex-none sm:px-6"
+                onClick={() => actions.addToCart(1)}
+                disabled={actions.isOutOfStock}
+              >
+                Thêm vào giỏ
+              </Button>
+              <Button
+                variant="primary"
+                className="h-11 flex-1 rounded-xl font-bold sm:flex-none sm:px-8"
+                onClick={actions.buyNow}
+                disabled={actions.isBuying || actions.isOutOfStock}
+              >
+                {actions.isOutOfStock
+                  ? "Hết hàng"
+                  : actions.isBuying
+                    ? "Đang xử lý..."
+                    : "Mua ngay"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
-
-      <NegotiableChoiceModal
-        isOpen={isChoiceOpen}
-        onClose={() => setIsChoiceOpen(false)}
-        price={selectedVariant.price}
-        onBuyNow={buyAtAskingPrice}
-        onNegotiate={handleNegotiate}
-        isBuying={createDraft.isPending}
-      />
-
-      <OfferModal
-        isOpen={isOfferOpen}
-        onClose={() => setIsOfferOpen(false)}
-        product={product}
-        variant={selectedVariant}
-        onSuccessCallback={handleOfferSuccess}
-      />
     </div>
   );
+}
+
+/**
+ * Whether the anchor has left the viewport upwards.
+ *
+ * Upwards specifically: an anchor below the fold on first paint is also "not intersecting",
+ * and a bar that appeared before the reader had ever seen the real controls would be back to
+ * being the only interface.
+ */
+function useScrolledPast(anchor: RefObject<HTMLElement | null>): boolean {
+  const [past, setPast] = useState(false);
+
+  useEffect(() => {
+    const element = anchor.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setPast(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+      { threshold: 0 },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [anchor]);
+
+  return past;
 }

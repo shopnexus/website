@@ -90,7 +90,7 @@ export default function ReviewReplyThread({ review }: { review: Review }) {
   };
 
   return (
-    <div className="mt-4 border-l-2 border-outline-variant/50 pl-4">
+    <div className="mt-4 border-l-2 border-outline-variant pl-4">
       {replies.length > 0 && (
         <ul className="flex flex-col gap-4">
           {replies.map((item) => (
