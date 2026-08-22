@@ -1,2 +1,5 @@
-/** The two ways the thread list is filtered. */
-export type InboxTab = "all" | "unread"
+/**
+ * The two kinds of thread, which is the only split the list needs: whoever you are trading
+ * with, and the support desk.
+ */
+export type InboxTab = "all" | "support"

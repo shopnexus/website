@@ -1,4 +1,4 @@
-import type { ConversationId, Resource, ResourceId } from "@/api/generated/types.gen"
+import type { ConversationId, Message, Resource, ResourceId } from "@/api/generated/types.gen"
 
 /** Whoever is on the other side of a thread, as much of them as a thread needs. */
 export interface Counterparty {
@@ -31,5 +31,18 @@ export interface ChatThreadProps {
 	 * receipt: no message carries a delivery status of its own.
 	 */
 	counterpartyReadAt?: string | null
+	/**
+	 * How far the *caller* had read when the thread was opened, from the conversation row.
+	 * It is where the "Tin nhắn mới" line goes, and it has to come from outside: opening a
+	 * thread posts the read receipt, so by the time the thread could ask, the answer is
+	 * already "all of it".
+	 */
+	readAt?: string | null
 	placeholder?: string
+	/**
+	 * Report the other side's message. Optional, and the host supplies the behaviour: what
+	 * a report *is* here is a `report-message` ticket, which the inbox owns — a thread has
+	 * no business knowing the route.
+	 */
+	onReportMessage?: (message: Message) => void
 }

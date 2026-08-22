@@ -66,7 +66,7 @@ export default function MessageEditor({
 					{isSaving ? "Đang lưu..." : "Lưu"}
 				</button>
 			</div>
-			<p className="text-[10px] text-outline pt-0.5">Enter để lưu, Esc để hủy.</p>
+			<p className="text-label-xs text-outline pt-0.5">Enter để lưu, Esc để hủy.</p>
 		</div>
 	)
 }

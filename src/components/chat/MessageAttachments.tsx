@@ -10,6 +10,9 @@ import type { Resource } from "@/api/generated/types.gen"
  * `Message.attachments` is a list and the composer can fill it, so rendering
  * `attachments[0]` silently dropped whatever came after it — a seller sending four photos
  * of a scratch showed one.
+ *
+ * Opening one hands over the whole image set and the position within it, so the viewer can
+ * step through the rest. A video is not in that set: it plays in place.
  */
 
 function download(event: React.MouseEvent, url: string): void {
@@ -31,7 +34,7 @@ function AttachmentTile({
 }: {
 	attachment: Resource
 	isMine: boolean
-	onOpen: (url: string) => void
+	onOpen: () => void
 }) {
 	const url = attachment.url || ""
 	const isVideo = attachment.mime?.startsWith("video/") ?? false
@@ -39,11 +42,11 @@ function AttachmentTile({
 
 	return (
 		<div
-			className={`group relative rounded-xl overflow-hidden border border-outline-variant/40 shadow-sm ${
+			className={`group relative rounded-xl overflow-hidden border border-outline-variant shadow-sm ${
 				isMine ? "rounded-br-sm" : "rounded-bl-sm"
 			} ${isVideo ? "" : "cursor-zoom-in"}`}
 			onClick={() => {
-				if (!isVideo) onOpen(url)
+				if (!isVideo) onOpen()
 			}}
 		>
 			{isVideo ? (
@@ -83,9 +86,13 @@ export default function MessageAttachments({
 }: {
 	attachments: readonly Resource[]
 	isMine: boolean
-	onOpen: (url: string) => void
+	onOpen: (images: string[], index: number) => void
 }) {
 	if (attachments.length === 0) return null
+
+	const images = attachments
+		.filter((attachment) => attachment.url && !attachment.mime?.startsWith("video/"))
+		.map((attachment) => attachment.url!)
 
 	return (
 		<div
@@ -96,7 +103,7 @@ export default function MessageAttachments({
 					key={attachment.id}
 					attachment={attachment}
 					isMine={isMine}
-					onOpen={onOpen}
+					onOpen={() => onOpen(images, images.indexOf(attachment.url ?? ""))}
 				/>
 			))}
 		</div>

@@ -2,13 +2,14 @@
 
 import Image from "next/image"
 
-import type { Message } from "@/api/generated/types.gen"
+import type { AccountId, Message } from "@/api/generated/types.gen"
 import OfferMessageCard from "@/components/offers/OfferMessageCard"
 
 import MessageActions from "./MessageActions"
 import MessageAttachments from "./MessageAttachments"
 import MessageEditor from "./MessageEditor"
-import { formatClock, isRedacted, offerIdOf } from "./chat.logic"
+import QuoteBlock from "./QuoteBlock"
+import { formatClock, isRedacted, offerIdOf, quoteLines } from "./chat.logic"
 import type { Counterparty } from "./types"
 
 const SUPPORT_NAME = "ShopNexus Hỗ trợ"
@@ -17,7 +18,11 @@ interface MessageRowProps {
 	message: Message
 	isMine: boolean
 	canModify: boolean
+	/** The reader, so a quote of their own words reads "Bạn". */
+	accountId: AccountId | undefined
 	counterparty?: Counterparty
+	/** Set briefly after jumping here from a reply, so the eye finds the row. */
+	isHighlighted?: boolean
 	/** "Đã xem"/"Đã gửi" on the newest message the caller sent, and nowhere else. */
 	receipt?: string
 	isEditing: boolean
@@ -26,7 +31,14 @@ interface MessageRowProps {
 	onCancelEdit: () => void
 	onSaveEdit: (body: string) => void
 	onDelete: () => void
-	onOpenImage: (url: string) => void
+	/** The message's own image set and the one that was clicked, for the viewer. */
+	onOpenImage: (images: string[], index: number) => void
+	/** Only on the other side's messages, and only where the host offers reporting. */
+	onReport?: () => void
+	/** Start a reply to this message. Absent where the thread does not accept one. */
+	onReply?: () => void
+	/** Scroll to the message this one answers. */
+	onJumpToQuoted?: () => void
 }
 
 /** A redaction keeps the row and loses the content, so the thread has no unexplained gap. */
@@ -46,7 +58,9 @@ export default function MessageRow({
 	message,
 	isMine,
 	canModify,
+	accountId,
 	counterparty,
+	isHighlighted,
 	receipt,
 	isEditing,
 	isSaving,
@@ -55,19 +69,46 @@ export default function MessageRow({
 	onSaveEdit,
 	onDelete,
 	onOpenImage,
+	onReport,
+	onReply,
+	onJumpToQuoted,
 }: MessageRowProps) {
 	const redacted = isRedacted(message)
 	const offerId = offerIdOf(message)
 	const card = offerId ? <OfferMessageCard offerId={offerId} /> : null
 	const edited = message.edited_at !== null && !redacted
 
+	// The quote rides inside the bubble's column on either side, so it reads as part of the
+	// message rather than as a row of its own.
+	const quote = message.reply_to ? (
+		<QuoteBlock
+			lines={quoteLines(message.reply_to, accountId, counterparty?.name)}
+			tone={isMine ? "mine" : "theirs"}
+			onJump={onJumpToQuoted}
+		/>
+	) : null
+
+	// What a jump from a quote scrolls to, and how the row shows that it was found.
+	const found = `rounded-xl transition-shadow motion-reduce:transition-none${
+		isHighlighted ? " ring-2 ring-tertiary/60" : ""
+	}`
+
 	if (isMine) {
 		return (
-			<div className="group flex gap-1.5 max-w-[85%] md:max-w-[75%] ml-auto justify-end">
-				{canModify && !isEditing && (
-					<MessageActions onEdit={onStartEdit} onDelete={onDelete} isBusy={isSaving} />
+			<div
+				data-message-id={message.id}
+				className={`group flex gap-1.5 max-w-[85%] md:max-w-[75%] ml-auto justify-end ${found}`}
+			>
+				{!isEditing && (
+					<MessageActions
+						onEdit={canModify ? onStartEdit : undefined}
+						onDelete={canModify ? onDelete : undefined}
+						onReply={onReply}
+						isBusy={isSaving}
+					/>
 				)}
 				<div className="flex flex-col items-end space-y-1.5 min-w-0">
+					{quote}
 					<MessageAttachments
 						attachments={message.attachments}
 						isMine
@@ -92,7 +133,7 @@ export default function MessageRow({
 							) : null))
 					)}
 
-					<span className="text-[9px] text-outline flex items-center gap-1">
+					<span className="text-label-xs text-outline flex items-center gap-1">
 						{edited && <span className="italic">đã chỉnh sửa</span>}
 						<span>{formatClock(message.created_at)}</span>
 						{receipt && (
@@ -113,15 +154,15 @@ export default function MessageRow({
 	// `from_support` is the only thing that tells them apart.
 	if (!message.sender_id && !message.from_support) {
 		return (
-			<div className="flex w-full justify-center my-4">
+			<div data-message-id={message.id} className={`flex w-full justify-center my-4 ${found}`}>
 				<div className="flex flex-col items-center">
 					{card ??
 						(message.body ? (
-							<span className="bg-surface-container-high px-3 py-1 rounded-full text-[10px] md:text-xs text-on-surface-variant max-w-[80%] text-center">
+							<span className="bg-surface-container-high px-3 py-1 rounded-full text-label-xs md:text-label-sm text-on-surface-variant max-w-[80%] text-center">
 								{message.body}
 							</span>
 						) : null)}
-					<span className="text-[9px] text-outline mt-1 block">
+					<span className="text-label-xs text-outline mt-1 block">
 						{formatClock(message.created_at)}
 					</span>
 				</div>
@@ -135,8 +176,11 @@ export default function MessageRow({
 	const incomingName = counterparty?.name ?? "Người dùng"
 
 	return (
-		<div className="flex gap-2.5 max-w-[85%] md:max-w-[75%]">
-			<div className="relative w-7 h-7 rounded-full overflow-hidden self-end mb-4 shrink-0 border border-outline-variant/30 bg-surface-container flex items-center justify-center text-xs">
+		<div
+			data-message-id={message.id}
+			className={`group flex gap-2.5 max-w-[85%] md:max-w-[75%] ${found}`}
+		>
+			<div className="relative w-7 h-7 rounded-full overflow-hidden self-end mb-4 shrink-0 border border-outline-variant bg-surface-container flex items-center justify-center text-xs">
 				{fromSupport ? (
 					<span className="material-symbols-outlined text-primary text-[16px]">support_agent</span>
 				) : counterparty?.avatarUrl ? (
@@ -146,7 +190,9 @@ export default function MessageRow({
 				)}
 			</div>
 			<div className="flex flex-col items-start space-y-1.5 min-w-0">
-				{fromSupport && <span className="text-[10px] font-bold text-primary">{SUPPORT_NAME}</span>}
+				{fromSupport && <span className="text-label-xs text-primary">{SUPPORT_NAME}</span>}
+
+				{quote}
 
 				<MessageAttachments
 					attachments={message.attachments}
@@ -159,17 +205,20 @@ export default function MessageRow({
 				) : (
 					(card ??
 						(message.body ? (
-							<div className="bg-surface-container-high text-on-surface px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-bl-sm text-xs md:text-sm shadow-sm leading-relaxed break-words whitespace-pre-wrap border border-outline-variant/20 max-w-full">
+							<div className="bg-surface-container-high text-on-surface px-3.5 py-2 md:px-4 md:py-2.5 rounded-xl rounded-bl-sm text-xs md:text-sm shadow-sm leading-relaxed break-words whitespace-pre-wrap border border-outline-variant max-w-full">
 								{message.body}
 							</div>
 						) : null))
 				)}
 
-				<span className="text-[9px] text-outline pl-1 flex items-center gap-1">
+				<span className="text-label-xs text-outline pl-1 flex items-center gap-1">
 					{edited && <span className="italic">đã chỉnh sửa</span>}
 					<span>{formatClock(message.created_at)}</span>
 				</span>
 			</div>
+
+			{/* Reporting is not offered on a redacted message: there is nothing left in it. */}
+			<MessageActions onReply={onReply} onReport={redacted ? undefined : onReport} />
 		</div>
 	)
 }
