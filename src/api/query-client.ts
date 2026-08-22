@@ -42,7 +42,7 @@ function toastError(error: ApiError): void {
 		})
 		return
 	}
-	const message = getErrorMessage(error.code)
+	const message = getErrorMessage(error)
 	toast.error(message, { id: message })
 }
 

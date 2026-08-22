@@ -33,6 +33,7 @@ import type {
 import { OPERATIONS, invalidate } from "@/api/invalidate"
 import { flattenPages, pagePagination, totalCountOf } from "@/api/pagination"
 import { unwrapData } from "@/api/unwrap"
+import { useAuthStore } from "@/stores/use-auth-store"
 
 // ── Profile ──────────────────────────────────────────────────────────────────
 
@@ -254,6 +255,15 @@ export function useVerifyEmail() {
 		mutationFn: async (token: string) => {
 			await postEmailVerifications({ body: { token }, throwOnError: true })
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.me),
+		onSuccess: async () => {
+			await invalidate(queryClient, OPERATIONS.me)
+			// The shell renders the account out of the auth store, not out of this cache,
+			// so invalidating alone leaves the "email not verified" banner up. Only for a
+			// signed-in tab: these links open just as often in a browser with no session,
+			// where `getMe` would answer 401 and the API layer would redirect to sign-in.
+			if (useAuthStore.getState().isAuthenticated) {
+				await useAuthStore.getState().fetchProfile()
+			}
+		},
 	})
 }

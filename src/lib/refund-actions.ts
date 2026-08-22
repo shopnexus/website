@@ -117,3 +117,66 @@ export function refundWaitingOn(status: RefundStatus, { isBuyer }: { isBuyer: bo
 export function refundSideOf(refund: Refund, me: AccountId | undefined) {
 	return { isBuyer: me !== undefined && refund.buyer_id === me }
 }
+
+/**
+ * The moves that change the case's state.
+ *
+ * Everything `refundActionsFor` allows except adding evidence, which the detail screen
+ * offers beside the evidence itself rather than in the decision stack: a photo is part of
+ * the claim, not a decision about it, and listing it with "chấp nhận hoàn tiền" made the
+ * two read as equal weight.
+ */
+export type RefundDecision = Exclude<RefundAction, "add-evidence">
+
+export function refundDecisionsFor(
+	refund: Refund,
+	{ isBuyer }: { isBuyer: boolean },
+): RefundDecision[] {
+	return refundActionsFor(refund, { isBuyer }).filter(
+		(action): action is RefundDecision => action !== "add-evidence",
+	)
+}
+
+export function refundCanAddEvidence(refund: Refund, { isBuyer }: { isBuyer: boolean }): boolean {
+	return refundActionsFor(refund, { isBuyer }).includes("add-evidence")
+}
+
+/**
+ * What happens next, including what happens if nobody does anything.
+ *
+ * Every live status is a clock somebody can let run out, and running out is a *decision*
+ * here — the seller's silence hands the case to staff, the inspection window closing pays
+ * the buyer. A screen that shows only buttons tells the half of the story where somebody
+ * acts, which is why a disputed case, where neither side has a button, rendered an empty
+ * card.
+ */
+export function refundNextStep(status: RefundStatus, { isBuyer }: { isBuyer: boolean }): string {
+	switch (status) {
+		case "awaiting-seller-review":
+			return isBuyer
+				? "Người bán có 48 giờ để trả lời. Nếu họ im lặng đến hết hạn, ShopNexus sẽ tự tiếp nhận vụ việc — bạn không phải làm gì thêm."
+				: "Bạn có 48 giờ để chấp nhận hoàn tiền hoặc nhờ ShopNexus xử lý. Quá hạn mà không trả lời, vụ việc tự động chuyển cho ShopNexus."
+		case "returning":
+			return isBuyer
+				? "Gửi hàng về cho người bán rồi báo lại ở đây. Không có hạn nào chạy trong lúc hàng đang trên đường."
+				: "Đang chờ hàng về. Khi nhận được, hãy xác nhận để mở 48 giờ kiểm tra hàng."
+		case "returned":
+			return isBuyer
+				? "Người bán có 48 giờ để kiểm tra hàng. Hết hạn mà họ không phản hồi, tiền sẽ được hoàn cho bạn."
+				: "Bạn có 48 giờ để kiểm tra. Nếu hàng về không đúng như bằng chứng người mua đưa ra, hãy nhờ ShopNexus xử lý; im lặng đến hết hạn thì tiền sẽ hoàn cho người mua."
+		case "disputed":
+			return isBuyer
+				? "ShopNexus đang đọc bằng chứng của cả hai bên. Bạn không phải làm gì thêm, nhưng vẫn có thể bổ sung ảnh trong lúc chờ. Kết quả sẽ được trả lời trong yêu cầu hỗ trợ của vụ việc."
+				: "ShopNexus đang đọc bằng chứng của cả hai bên. Kết quả sẽ được trả lời trong yêu cầu hỗ trợ của vụ việc."
+		case "accepted":
+			return isBuyer
+				? "Tiền đã được hoàn về ví của bạn. Vụ việc khép lại tại đây."
+				: "Tiền đã được hoàn cho người mua. Vụ việc khép lại tại đây."
+		case "rejected":
+			return "ShopNexus kết luận không hoàn tiền cho vụ việc này. Đơn hàng giữ nguyên."
+		case "cancelled":
+			return isBuyer
+				? "Bạn đã rút yêu cầu trước khi người bán trả lời. Đơn hàng giữ nguyên."
+				: "Người mua đã rút yêu cầu trước khi bạn trả lời. Đơn hàng giữ nguyên."
+	}
+}

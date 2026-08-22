@@ -213,12 +213,14 @@ function invalidateTicket(queryClient: Parameters<typeof invalidate>[0]) {
 }
 
 // A verdict on a listing decides whether the marketplace serves it, so the public feed
-// and the product page are stale too.
+// and the product page are stale too — and the verdict is itself the newest row of the
+// listing's trail, which the panel that made it is showing.
 function invalidateListing(queryClient: Parameters<typeof invalidate>[0]) {
 	return invalidate(
 		queryClient,
 		OPERATIONS.adminListings,
 		OPERATIONS.listings,
 		OPERATIONS.listing,
+		OPERATIONS.listingHistory,
 	)
 }

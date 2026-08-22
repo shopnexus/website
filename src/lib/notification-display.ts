@@ -1,47 +1,62 @@
-import type { Notification, NotificationCategory } from "@/api/generated/types.gen"
+import type { NotificationCategory } from "@/api/generated/types.gen"
 
 /**
- * Rendering helpers for a notification.
+ * How a notification is drawn.
  *
- * A Notification carries a `title` and a free-form `payload`, and no body column — the
- * structured content is whatever the emitting module put in the payload, so reading it
- * means probing for the keys that are actually used rather than typing a body that does
- * not exist.
+ * Only presentation lives here. A notification arrives already written — `title`, `body` and
+ * `href` are rendered by the server in the reader's own language — so there is nothing to
+ * derive and nothing to probe. This file used to guess a body by trying `payload.body`,
+ * `payload.message`, `payload.description` and `payload.text` in turn, and a link by trying
+ * `payload.url` and `payload.href`: no emitter ever set any of the six, so every row rendered
+ * as a bare title with nowhere to go.
+ *
+ * Keyed by category rather than by kind. There are two dozen kinds and they grow with every
+ * fact the platform learns to tell somebody; what a reader needs at a glance is which part of
+ * their life this is about, which is exactly what the category says.
  */
-
-const BODY_KEYS = ["body", "message", "description", "text"] as const
-
-/** The notification's supporting line, or empty when the payload carries none. */
-export function notificationBody(notification: Notification): string {
-	for (const key of BODY_KEYS) {
-		const value = notification.payload[key]
-		if (typeof value === "string" && value) return value
-	}
-	return ""
+export interface CategoryStyle {
+	/** A Material Symbols ligature. */
+	icon: string
+	label: string
+	/** Container and content colours, from the theme's tonal pairs. */
+	bg: string
+	color: string
 }
 
-/** A deep link into the app, when the payload names one. */
-export function notificationHref(notification: Notification): string | undefined {
-	const value = notification.payload.url ?? notification.payload.href
-	return typeof value === "string" && value.startsWith("/") ? value : undefined
+export const CATEGORY_STYLES: Record<NotificationCategory, CategoryStyle> = {
+	order: {
+		icon: "local_shipping",
+		label: "Đơn hàng",
+		bg: "bg-secondary-container",
+		color: "text-on-secondary-container",
+	},
+	promotion: {
+		icon: "sell",
+		label: "Khuyến mãi",
+		bg: "bg-tertiary-container",
+		color: "text-on-tertiary-container",
+	},
+	chat: {
+		icon: "chat_bubble",
+		label: "Tin nhắn",
+		bg: "bg-primary-container",
+		color: "text-on-primary-container",
+	},
+	social: {
+		icon: "group",
+		label: "Cộng đồng",
+		bg: "bg-surface-container-highest",
+		color: "text-on-surface-variant",
+	},
+	system: {
+		icon: "verified_user",
+		label: "Hệ thống",
+		bg: "bg-surface-container-high",
+		color: "text-outline",
+	},
 }
 
-const CATEGORY_ICONS: Record<NotificationCategory, string> = {
-	order: "local_shipping",
-	promotion: "sell",
-	system: "info",
-	chat: "chat_bubble",
-	social: "group",
-}
-
-export function notificationIcon(category: NotificationCategory): string {
-	return CATEGORY_ICONS[category] ?? "info"
-}
-
-export const CATEGORY_LABELS: Record<NotificationCategory, string> = {
-	order: "Đơn hàng",
-	promotion: "Khuyến mãi",
-	system: "Hệ thống",
-	chat: "Tin nhắn",
-	social: "Cộng đồng",
+/** A category the client does not know renders as a system notice rather than a blank box. */
+export function categoryStyle(category: NotificationCategory): CategoryStyle {
+	return CATEGORY_STYLES[category] ?? CATEGORY_STYLES.system
 }

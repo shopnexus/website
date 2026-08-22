@@ -58,3 +58,37 @@ export function groupByDay<T>(
 
 	return groups
 }
+
+/**
+ * How long ago, in words: "vừa xong", "3 giờ trước", "12/08/2026".
+ *
+ * A listing's age is a trust signal on a C2C marketplace — a phone posted this morning and
+ * one posted eight months ago are different offers — and a bare date makes the reader do the
+ * subtraction. Past a week the date is the more useful answer, so the relative form stops
+ * there rather than counting out "37 tuần trước".
+ */
+export function timeAgo(iso: string, now: number = Date.now()): string {
+	const elapsed = now - new Date(iso).getTime()
+	if (elapsed < 0 || elapsed < 60_000) return "vừa xong"
+
+	const minutes = Math.floor(elapsed / 60_000)
+	if (minutes < 60) return `${minutes} phút trước`
+
+	const hours = Math.floor(minutes / 60)
+	if (hours < 24) return `${hours} giờ trước`
+
+	const days = Math.floor(hours / 24)
+	if (days < 7) return `${days} ngày trước`
+
+	return new Date(iso).toLocaleDateString("vi-VN", {
+		day: "2-digit",
+		month: "2-digit",
+		year: "numeric",
+	})
+}
+
+/** The month and year an account joined: "tháng 3/2023". */
+export function monthYear(iso: string): string {
+	const date = new Date(iso)
+	return `tháng ${date.getMonth() + 1}/${date.getFullYear()}`
+}

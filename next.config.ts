@@ -28,6 +28,14 @@ const nextConfig: NextConfig = {
 			{ protocol: "https", hostname: "shopnexus.hopto.org" },
 		],
 	},
+	// Support used to be its own screen. A ticket is a conversation, so it is read in the
+	// inbox now — old links and bookmarks land on the tab that holds them, query intact.
+	async redirects() {
+		return [
+			{ source: "/support", destination: "/inbox?tab=support", permanent: true },
+			{ source: "/support/:path*", destination: "/inbox?tab=support", permanent: true },
+		]
+	},
 	async rewrites() {
 		const apiUrl =
 			process.env.NEXT_PUBLIC_API_URL || "https://shopnexus.hopto.org/api/v1"

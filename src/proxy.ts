@@ -3,8 +3,6 @@ import type { NextRequest } from "next/server";
 
 // Danh sách các trang yêu cầu đăng nhập
 const protectedRoutes = ["/account", "/account/orders", "/account/refunds", "/admin", "/inbox", "/sell", "/settings", "/cart", "/notifications"];
-// Danh sách các trang chỉ dành cho khách (guest)
-const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,7 +16,6 @@ export default function proxy(request: NextRequest) {
   const hasSession = Boolean(request.cookies.get("refresh_token")?.value);
 
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
   if (isProtectedRoute && !hasSession) {
     // Nếu vào trang bảo vệ mà chưa đăng nhập -> chuyển về login
@@ -28,12 +25,11 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (isAuthRoute && hasSession) {
-    // Nếu vào trang login/register mà đã có token -> chuyển về trang chủ
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
+  // Trang đăng nhập KHÔNG bị chặn khi đã có cookie phiên. Chặn ở đây biến /login thành cái
+  // bẫy: `refresh_token` sống 30 ngày và vẫn nằm đó sau khi phiên phía server đã chết hoặc bị
+  // thu hồi, nên giao diện hiện "Đăng nhập" còn middleware lại đá về "/" — không còn đường nào
+  // đăng nhập lại. Đổi tài khoản cũng là việc chính đáng: đăng nhập lần nữa chỉ đơn giản là
+  // thay phiên hiện tại. Trang đăng nhập tự nói rằng bạn đang đăng nhập bằng ai.
 
   return NextResponse.next();
 }

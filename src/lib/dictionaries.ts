@@ -4,6 +4,7 @@ import type {
   IdentityDocumentType,
   IdentityStatus,
   ListingCondition,
+  ListingHistoryCode,
   ListingStatus,
   NotificationCategory,
   NotificationChannel,
@@ -12,6 +13,7 @@ import type {
   PaymentSessionStatus,
   PriceMode,
   ProfileGender,
+  ShelfReason,
   RefundStatus,
   TaxCodeType,
   TaxVerificationStatus,
@@ -53,6 +55,50 @@ export const LISTING_STATUS_VI: Record<ListingStatus, string> = {
 export const PRICE_MODE_VI: Record<PriceMode, string> = {
   fixed: "Giá cố định",
   negotiable: "Có thể thương lượng",
+};
+
+/**
+ * What each entry in a listing's trail says, written from the reader's side: the subject
+ * is whoever acted, which the timeline puts in front of the label.
+ *
+ * `listing.edit` and `listing.edit_submitted` are the same edit under different
+ * circumstances — written straight through, or held because buyers were already looking
+ * at the listing — and the labels have to keep them apart, since only one of them means
+ * the change is live.
+ */
+export const LISTING_HISTORY_CODE_VI: Record<ListingHistoryCode, string> = {
+  "listing.create": "đã tạo tin đăng",
+  "listing.edit": "đã chỉnh sửa",
+  "listing.edit_submitted": "đã gửi chỉnh sửa chờ duyệt",
+  "listing.publish": "đã gửi tin đăng đi duyệt",
+  "listing.approve": "đã duyệt tin đăng",
+  "listing.takedown": "đã gỡ tin đăng",
+  "listing.hide": "đã ẩn tin đăng",
+  "listing.variant_added": "đã thêm một phiên bản",
+  "listing.variant_edited": "đã sửa một phiên bản",
+  "listing.variant_removed": "đã xoá một phiên bản",
+  "listing.delete": "đã xoá tin đăng",
+};
+
+/**
+ * The field names the trail records, in the words the form beside it uses. Both halves are
+ * here — a listing's own fields and a variant's — because one timeline shows both and a
+ * reader does not care which table a price lives in.
+ */
+export const LISTING_FIELD_VI: Record<string, string> = {
+  name: "Tên",
+  description: "Mô tả",
+  category_id: "Danh mục",
+  condition: "Tình trạng",
+  price_mode: "Kiểu giá",
+  specifications: "Thông số",
+  attachments: "Hình ảnh",
+  tags: "Thẻ",
+  price: "Giá",
+  attributes: "Thuộc tính",
+  package_details: "Đóng gói",
+  quantity: "Số lượng kho",
+  is_featured: "Phiên bản hiển thị",
 };
 
 // ── Orders ───────────────────────────────────────────────────────────────────
@@ -243,6 +289,42 @@ export const REFUND_STATUS_VI: Record<RefundStatus, string> = {
   rejected: "Từ chối",
   cancelled: "Đã hủy",
 };
+
+// ── Home shelves ─────────────────────────────────────────────────────────────
+
+/**
+ * What each shelf on the home page says it is.
+ *
+ * The server sends a `reason` and, where the reason is about something, a `subject` — never a
+ * title. That split is deliberate and it is why this map exists: a Vietnamese sentence composed
+ * on the server would be the one string a second language could not translate, and the reason
+ * is an enum like every other one localised in this file.
+ *
+ * `interest` and `because-you-viewed` need the subject's name, so they are written as templates
+ * rather than as labels. A shelf whose subject is missing is not rendered with a hole in its
+ * title — see shelfTitle.
+ */
+export const SHELF_REASON_VI: Record<ShelfReason, (subject?: string) => string> = {
+  interest: (subject) => `Vì bạn thích ${subject}`,
+  "because-you-viewed": (subject) => `Tương tự “${subject}”`,
+  trending: () => "Đang được quan tâm",
+  "best-selling": () => "Bán chạy nhất",
+  "top-rated": () => "Được đánh giá cao",
+  newest: () => "Vừa lên sàn",
+};
+
+/**
+ * The shelf's heading.
+ *
+ * A reason that needs a subject and has none falls back to the generic line rather than
+ * rendering "Vì bạn hay xem undefined" — the server drops such a shelf, so this is the second
+ * line of defence rather than the first.
+ */
+export function shelfTitle(reason: ShelfReason, subject?: string): string {
+  const needsSubject = reason === "interest" || reason === "because-you-viewed";
+  if (needsSubject && !subject) return "Gợi ý cho bạn";
+  return SHELF_REASON_VI[reason](subject);
+}
 
 /**
  * Read a label, falling back to a capitalised form of the key.

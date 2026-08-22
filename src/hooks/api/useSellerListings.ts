@@ -25,8 +25,9 @@ import { OPERATIONS, invalidate } from "@/api/invalidate"
  * here is the management half — editing, taking down, deleting, and the variants that
  * carry the price and the stock.
  *
- * Every mutation drops both the feed and the single-listing read: the products table and
- * an open editor show the same row, and a price changed in one is wrong in the other.
+ * Every mutation drops the feed, the single-listing read and the trail: the products table
+ * and an open editor show the same row, a price changed in one is wrong in the other, and
+ * the change itself is the newest entry of the history shown beside the form.
  */
 
 /**
@@ -43,7 +44,7 @@ export function useUpdateListing() {
 			const { data } = await patchListingsById({ path: { id }, body, throwOnError: true })
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.listingHistory),
 	})
 }
 
@@ -58,7 +59,7 @@ export function useUnpublishListing() {
 			const { data } = await deleteListingsByIdPublication({ path: { id }, throwOnError: true })
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.listingHistory),
 	})
 }
 
@@ -69,7 +70,7 @@ export function useDeleteListing() {
 		mutationFn: async (id: ListingId) => {
 			await deleteListingsById({ path: { id }, throwOnError: true })
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.listingHistory),
 	})
 }
 
@@ -82,7 +83,7 @@ export function useAddVariant() {
 			const { data } = await postListingsByIdVariants({ path: { id }, body, throwOnError: true })
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.listingHistory),
 	})
 }
 
@@ -99,7 +100,7 @@ export function useUpdateVariant() {
 			const { data } = await patchVariantsById({ path: { id }, body, throwOnError: true })
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.listingHistory),
 	})
 }
 
@@ -110,6 +111,6 @@ export function useDeleteVariant() {
 		mutationFn: async (id: VariantId) => {
 			await deleteVariantsById({ path: { id }, throwOnError: true })
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.listingHistory),
 	})
 }

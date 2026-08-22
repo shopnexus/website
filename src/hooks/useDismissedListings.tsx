@@ -81,7 +81,7 @@ function UndoToast({
 }) {
   return (
     <div
-      className={`relative overflow-hidden bg-surface text-on-surface rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-outline-variant/60 min-w-[280px] max-w-sm transition-all duration-200 ${
+      className={`relative overflow-hidden bg-surface text-on-surface rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-outline-variant min-w-[280px] max-w-sm transition-all duration-200 ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
       }`}
     >

@@ -20,6 +20,13 @@ export const OPERATIONS = {
 	cartItems: "getCartItems",
 	listings: "getListings",
 	listing: "getListingsById",
+	// The home page's shelves. A favourite or a dismissal moves what they hold — the personal
+	// rows are drawn from the same signals — so they are dropped alongside the feed.
+	shelves: "getListingsShelves",
+	// The listing's own trail. Every write to a listing adds a row to it, and both the
+	// seller's editor and the moderator's review panel show the trail beside the thing
+	// they just changed.
+	listingHistory: "getListingsByIdHistory",
 	following: "getMeFollowing",
 	devices: "getMeDevices",
 	oauthIdentities: "getMeOauthIdentities",
@@ -54,6 +61,10 @@ export const OPERATIONS = {
 	// listing page holds the paged list and a single-review read holds the whole reply
 	// thread, and a tally that moved on one is stale on the other.
 	listingReviews: "getListingsByListingIdReviews",
+	// The rating distribution behind those reviews. Dropped with the list: a new review, an
+	// edit or a deletion moves a bucket, and a histogram that disagrees with the list under
+	// it is worse than no histogram.
+	listingReviewSummary: "getListingsByListingIdReviewsSummary",
 	review: "getReviewsById",
 	// A new review moves the seller's product-review average, which the shop header reads.
 	reputation: "getAccountsByAccountIdReputation",

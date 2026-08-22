@@ -112,7 +112,15 @@ export const useAuthStore = create<AuthState>()(
       loginWithGoogle: async (credential) => {
         set({ isLoading: true, error: null });
         try {
-          const body: OAuthLoginRequest = { credential, provider: "google" };
+          // Google asserts an identity, never a locale or a timezone, and the server
+          // reads these only when the sign-in creates the account — so an omitted one
+          // is a new seller stuck with whatever the default happened to be.
+          const body: OAuthLoginRequest = {
+            credential,
+            provider: "google",
+            locale: "vi-VN",
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          };
           const { data } = await postLoginOauth({ body, throwOnError: true });
           set(acceptAuth(data.data));
         } catch (error) {

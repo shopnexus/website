@@ -7,6 +7,7 @@ import {
 	getListingsByIdOptions,
 	getListingsInfiniteOptions,
 	getListingsOptions,
+	getListingsShelvesOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import {
 	postListings,
@@ -62,11 +63,17 @@ export function useListing(id: string | undefined) {
 	})
 }
 
-/** One page of listings, for the places that draw a numbered pager. */
-export function useListings(filters: ListingFilters = {}, page = 1) {
+/**
+ * One page of listings, for the places that draw a numbered pager.
+ *
+ * `enabled` is for the `ids` lookups: an empty id set is not "every listing", so a caller
+ * with nothing to resolve holds the request rather than paging the whole catalog.
+ */
+export function useListings(filters: ListingFilters = {}, page = 1, enabled = true) {
 	return useQuery({
 		...getListingsOptions({ query: { ...filters, page } }),
 		select: unwrapData,
+		enabled,
 	})
 }
 
@@ -98,6 +105,23 @@ export function useListingsFeed(filters: ListingFilters = {}, enabled = true) {
 		understood: firstPage?.understood ?? "",
 		probes: firstPage?.probes ?? [],
 	}
+}
+
+/**
+ * The home page: several short rows, each carrying the reason it is there.
+ *
+ * One request rather than one per row, and the reasons are why it has to be: the personal
+ * shelves are built from the account's interest slots, which are not published and cannot be —
+ * a client firing six `/listings` calls could only invent its own headings.
+ *
+ * `limit` is cards *per shelf*. How many shelves come back is the server's answer: a row it
+ * could not fill is dropped rather than rendered short.
+ */
+export function useShelves(limit = 12) {
+	return useQuery({
+		...getListingsShelvesOptions({ query: { limit } }),
+		select: unwrapData,
+	})
 }
 
 // ── Posting a listing ────────────────────────────────────────────────────────
@@ -164,7 +188,8 @@ export function usePublishListing() {
 			const { data } = await postListingsByIdPublication({ path: { id }, body, throwOnError: true })
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () =>
+			invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.listingHistory),
 	})
 }
 
@@ -176,7 +201,8 @@ export function useAddFavorite() {
 		mutationFn: async (id: string) => {
 			await putFavoritesByListingId({ path: { listingID: id }, throwOnError: true })
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () =>
+			invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.shelves),
 	})
 }
 
@@ -186,7 +212,8 @@ export function useRemoveFavorite() {
 		mutationFn: async (id: string) => {
 			await deleteFavoritesByListingId({ path: { listingID: id }, throwOnError: true })
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing),
+		onSuccess: () =>
+			invalidate(queryClient, OPERATIONS.listings, OPERATIONS.listing, OPERATIONS.shelves),
 	})
 }
 

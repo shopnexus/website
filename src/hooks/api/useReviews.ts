@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
 	getListingsByListingIdReviewsInfiniteOptions,
+	getListingsByListingIdReviewsSummaryOptions,
 	getReviewsByIdOptions,
 } from "@/api/generated/@tanstack/react-query.gen"
 import {
@@ -63,6 +64,22 @@ export function useListingReviews(
 	return { ...query, reviews }
 }
 
+/**
+ * The rating distribution of one listing: the average, the total, the count at each star and
+ * how many reviews came with a photo.
+ *
+ * Its own read rather than fields on the listing, because only the average and the count are
+ * cached on the listing row — the buckets are an aggregate over the reviews themselves, which
+ * is exactly why the product page had no histogram until this endpoint existed.
+ */
+export function useListingReviewSummary(listingId: ListingId | undefined) {
+	return useQuery({
+		...getListingsByListingIdReviewsSummaryOptions({ path: { listingID: listingId! } }),
+		select: unwrapData,
+		enabled: Boolean(listingId),
+	})
+}
+
 /** One review with its whole reply thread — the listing page caps the thread at a few. */
 export function useReview(id: ReviewId | undefined) {
 	return useQuery({
@@ -93,7 +110,12 @@ export function useVoteReview() {
 			})
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listingReviews, OPERATIONS.review),
+		onSuccess: () => invalidate(
+				queryClient,
+				OPERATIONS.listingReviews,
+				OPERATIONS.listingReviewSummary,
+				OPERATIONS.review,
+			),
 	})
 }
 
@@ -109,7 +131,12 @@ export function useReplyToReview() {
 			})
 			return data.data
 		},
-		onSuccess: () => invalidate(queryClient, OPERATIONS.listingReviews, OPERATIONS.review),
+		onSuccess: () => invalidate(
+				queryClient,
+				OPERATIONS.listingReviews,
+				OPERATIONS.listingReviewSummary,
+				OPERATIONS.review,
+			),
 	})
 }
 
@@ -124,6 +151,7 @@ export function useDeleteReview() {
 			invalidate(
 				queryClient,
 				OPERATIONS.listingReviews,
+				OPERATIONS.listingReviewSummary,
 				OPERATIONS.review,
 				OPERATIONS.listing,
 				OPERATIONS.reputation,
@@ -188,6 +216,7 @@ export function useSubmitReview() {
 			invalidate(
 				queryClient,
 				OPERATIONS.listingReviews,
+				OPERATIONS.listingReviewSummary,
 				OPERATIONS.listing,
 				OPERATIONS.listings,
 				OPERATIONS.reputation,

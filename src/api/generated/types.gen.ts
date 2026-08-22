@@ -410,9 +410,21 @@ export type CreateContactRequest = {
     longitude?: number;
     phone: string;
     postal_code?: string;
+    /**
+     * A province code from /administrative-areas. It and the ward code must name a real pair, or the request is 400.
+     */
     province_code: string;
+    /**
+     * Ignored: the name is resolved from the code against /administrative-areas, so two addresses with one code cannot disagree. Still required, so a client that has the name need not look it up to send a valid body.
+     */
     province_name: string;
+    /**
+     * A ward code from /administrative-areas, under the province named above.
+     */
     ward_code: string;
+    /**
+     * Ignored: the name is resolved from the code against /administrative-areas, so two addresses with one code cannot disagree. Still required, so a client that has the name need not look it up to send a valid body.
+     */
     ward_name: string;
 };
 
@@ -453,6 +465,10 @@ export type CreateModeratorRequest = {
 export type CreateOfferRequest = {
     quantity: number;
     reason?: string;
+    /**
+     * The whole proposal, not a unit price, and strictly below the variant's listed price times `quantity` — see the route description for why the boundary is exclusive.
+     *
+     */
     total: number;
     variant_id: VariantId;
 };
@@ -900,6 +916,52 @@ export type ListingDetail = {
     variants: Array<Variant>;
 };
 
+/**
+ * The business fact recorded. Stored values, so they are the vocabulary the trail was written in rather than one chosen for the wire — which is also why they are `snake_case` after the dot while every other enum here is kebab: the family predates that rule and rewriting a code would rewrite how existing history reads.
+ *
+ * `listing.edit` and `listing.edit_submitted` are the same change under different circumstances: the first was written straight through, the second was held for a moderator because buyers were already looking at the listing.
+ *
+ */
+export type ListingHistoryCode = 'listing.create' | 'listing.edit' | 'listing.edit_submitted' | 'listing.publish' | 'listing.approve' | 'listing.takedown' | 'listing.hide' | 'listing.variant_added' | 'listing.variant_edited' | 'listing.variant_removed' | 'listing.delete';
+
+/**
+ * One change the listing has been through. What the trail stored beside this — a snapshot of the whole row as it then was — is deliberately not published: a client rendering it would be reading a shape the database is free to change.
+ *
+ */
+export type ListingHistoryEntry = {
+    /**
+     * The account responsible, and null when there is none to show — a `system` change, or a moderator's read by anyone but staff.
+     */
+    actor: AccountSummary | null;
+    /**
+     * Who was behind the change. `system` is one no account is responsible for — a scheduled job, a vendor callback. `staff` is a moderator, and stays just that word to a seller.
+     *
+     */
+    actor_kind: 'seller' | 'staff' | 'system';
+    change_type: 'insert' | 'update' | 'delete';
+    changed_at: string;
+    code: ListingHistoryCode;
+    /**
+     * The rest of what was recorded: the status it reached, the variant it was about, and — for staff only — the words a moderator wrote.
+     */
+    details: {
+        [key: string]: unknown;
+    };
+    /**
+     * What an edit touched, in the listing's own field names. Empty for a fact that names none.
+     */
+    fields: Array<string>;
+    /**
+     * The trail's counter for this listing. 1 is its creation, and it never repeats.
+     */
+    version: number;
+};
+
+export type ListingHistoryPage = {
+    data: Array<ListingHistoryEntry>;
+    meta: PageMeta;
+};
+
 export type ListingId = string;
 
 /**
@@ -1027,10 +1089,15 @@ export type MarkConversationReadRequest = {
 
 export type MarkNotificationsReadRequest = {
     /**
-     * Mark everything created at or before this instant read. Omit to mark the whole feed read.
+     * Mark everything created at or before this instant read. Send neither field to mark the whole feed read.
      *
      */
     before?: string;
+    /**
+     * Mark exactly these rows read. Capped because the statement has no time bound and so visits every chunk in the retention window; a reader never opens more than a screenful.
+     *
+     */
+    ids?: Array<NotificationId>;
 };
 
 /**
@@ -1094,6 +1161,10 @@ export type Message = {
         [key: string]: unknown;
     };
     /**
+     * The message this one answers, resolved. Null on an ordinary message.
+     */
+    reply_to: MessageQuote | null;
+    /**
      * Null on a system message, and null on a support reply seen by the requester — see `from_support`, which is how the two are told apart.
      *
      */
@@ -1106,6 +1177,61 @@ export type MessageId = string;
 export type MessagePage = {
     data: Array<Message>;
     meta: CursorMeta;
+};
+
+/**
+ * The little of a message a reply has to show above itself.
+ * Resolved when the thread is read, never copied at send time — the same rule an offer card follows by storing only `offer_id`. A snapshot would keep the sender's original words in every reply to it after an edit, and would go on showing them after a redaction, which is the one thing unsending is for.
+ *
+ */
+export type MessageQuote = {
+    /**
+     * How many files it carried, so a quote of four photos says four instead of looking like an empty message.
+     *
+     */
+    attachments: number;
+    /**
+     * The quoted message's own instant — what a client needs to jump to it.
+     */
+    created_at: string;
+    /**
+     * True when the quoted message is a reply the support desk wrote.
+     */
+    from_support: boolean;
+    /**
+     * Opaque id of the quoted message.
+     */
+    id: string;
+    /**
+     * The opening of what it said, cut to 120 characters on a rune boundary. Empty on a redacted one and on one that carried only files.
+     *
+     */
+    preview: string;
+    /**
+     * Set when the quoted message has since been unsent.
+     */
+    redacted: boolean;
+    /**
+     * Null on a system message and on a support reply seen by the requester — the same masking the quoted message itself gets, because a quote is a projection of it.
+     *
+     */
+    sender_id: AccountId | null;
+};
+
+/**
+ * Names the message a reply answers.
+ * The instant travels with the id because `message` is a hypertable whose primary key is (id, created_at): it is what makes resolving the quote a point lookup in one chunk rather than a scan of every chunk. A client always has it — it is on the message being replied to — which is the same reason the edit and redact routes take it.
+ *
+ */
+export type MessageReplyRef = {
+    /**
+     * That message's own instant, passed back unchanged.
+     */
+    created_at: string;
+    /**
+     * Opaque id of the message being answered.
+     */
+    id: string;
 };
 
 /**
@@ -1126,19 +1252,32 @@ export type MoneyByCurrency = {
     currency: CurrencyCode;
 };
 
+/**
+ * A feed row as it is drawn: already written, in the reader's language, with the page it opens resolved. There is no payload — the server renders the stored facts, so a client never probes a free-form object for a body that may not be there.
+ *
+ */
 export type Notification = {
+    /**
+     * The one supporting line, empty for a fact that needs none.
+     */
+    body: string;
     category: NotificationCategory;
     /**
-     * Identifies the row together with the feed order, and it is what `POST /notifications/read` is given a bound against.
+     * The feed order, and the bound `POST /notifications/read` takes to clear everything the reader has scrolled past.
      *
      */
     created_at: string;
     /**
-     * Structured content such as deep links and images.
+     * The in-app path this notification opens, empty when it opens nothing. A row with nowhere to go is still worth reading and still dismissible.
+     *
      */
-    payload: {
-        [key: string]: unknown;
-    };
+    href: string;
+    id: NotificationId;
+    /**
+     * What happened, kebab-case. Not an enum: the vocabulary grows with every fact the platform learns to tell somebody, and a client renders by `category` — `kind` is for a client that wants to special-case one row, and for support reading a log.
+     *
+     */
+    kind: string;
     read_at: string | null;
     title: string;
 };
@@ -1149,6 +1288,8 @@ export type Notification = {
 export type NotificationCategory = 'order' | 'promotion' | 'system' | 'chat' | 'social';
 
 export type NotificationChannel = 'in-app' | 'push' | 'email' | 'sms';
+
+export type NotificationId = string;
 
 export type NotificationPage = {
     data: Array<Notification>;
@@ -1440,6 +1581,39 @@ export type OrderFeedback = {
     theirs_submitted: boolean;
 };
 
+/**
+ * One thing that happened to an order. The stored row snapshot is deliberately not exposed.
+ */
+export type OrderHistoryEntry = {
+    /**
+     * Which side was behind it, derived from the fact rather than stored — only a seller confirms, only a carrier moves a parcel.
+     *
+     */
+    actor_kind: 'buyer' | 'seller' | 'carrier' | 'system';
+    changed_at: string;
+    /**
+     * Which fact this is. One of `order.placed`, `order.confirmed`, `order.declined`, `order.confirmation_escalated`, `order.shipment_advanced`, `order.received`, `order.cancelled`, `order.completed`, `order.payout_released`.
+     *
+     */
+    code: string;
+    /**
+     * How many photos were filed with a receipt. Zero otherwise.
+     */
+    evidence: number;
+    /**
+     * The seller's own words on a refusal. Empty for every other fact.
+     */
+    reason: string;
+    /**
+     * Where the parcel got to. Empty unless this entry is a shipment move.
+     */
+    shipment_status: string;
+    /**
+     * The trail's own counter for this order, so it is also the entry's key.
+     */
+    version: number;
+};
+
 export type OrderId = string;
 
 /**
@@ -1694,6 +1868,14 @@ export type PutTagRequest = {
     description?: string;
 };
 
+/**
+ * How many reviews gave one star rating.
+ */
+export type RatingBucket = {
+    count: number;
+    rating: number;
+};
+
 export type RefreshRequest = {
     refresh_token: string;
 };
@@ -1910,6 +2092,28 @@ export type ReviewReply = {
 
 export type ReviewReplyId = string;
 
+export type ReviewSummary = {
+    /**
+     * Always five buckets, five stars first, zeros included. A rating with no one-star reviews still has a one-star row: a client that has to invent the missing ones cannot draw the same chart twice.
+     *
+     */
+    breakdown: [
+        RatingBucket,
+        RatingBucket,
+        RatingBucket,
+        RatingBucket,
+        RatingBucket
+    ];
+    listing_id: ListingId;
+    rating: number;
+    review_count: number;
+    /**
+     * How many carry at least one attachment — the count beside the "with photos" filter, which the list route takes as `media=true`.
+     *
+     */
+    with_media_count: number;
+};
+
 /**
  * Counters on the review, not a count of `review_vote` rows per request — that is what lets `sort=helpful` be an index scan. Flipping a vote moves one unit between the two totals, so both sides have to change in the same transaction as the vote row itself; a tally that has drifted from the rows it summarises is recomputable, but a half-applied flip is visible.
  *
@@ -1961,6 +2165,60 @@ export type SendMessageRequest = {
     refs?: {
         [key: string]: unknown;
     };
+    /**
+     * The message being answered, and absent on an ordinary one. It has to be in this same conversation: the quote carries a preview of what was said, so answering a message from elsewhere would read another thread out through this one. `422 reply_outside_thread` when it is not, `404` when it names nothing.
+     *
+     */
+    reply_to?: MessageReplyRef | null;
+};
+
+export type Shelf = {
+    browse: ShelfBrowse;
+    /**
+     * Unique within the response. A reason can occur more than once — four interest slots — so a client needs one stable handle per row rather than per reason.
+     *
+     */
+    key: string;
+    /**
+     * At least three, or the shelf is not returned at all.
+     */
+    listings: Array<Listing>;
+    reason: ShelfReason;
+    subject: ShelfSubject | null;
+};
+
+/**
+ * The search that widens this shelf into a whole page — what a "see all" link asks for. Sent as parameters rather than as a URL: the client owns its own routes, and a server writing them would be writing the client's router. Every field is nullable and only the ones that apply are set.
+ *
+ */
+export type ShelfBrowse = {
+    category_id: CategoryId | null;
+    similar_to: ListingId | null;
+    /**
+     * Empty when the shelf's own ranking is not a `sort` a client can ask for.
+     */
+    sort: string | null;
+};
+
+/**
+ * Why the shelf is on the page.
+ *
+ * `interest` is one of the account's four interest slots, shown apart instead of blended into `sort=recommended`; its subject is the category nearest that slot. `because-you-viewed` is the neighbourhood of the last listing the shopper opened. The rest are the marketplace's own orderings and are about nobody in particular.
+ *
+ */
+export type ShelfReason = 'interest' | 'because-you-viewed' | 'trending' | 'best-selling' | 'top-rated' | 'newest';
+
+/**
+ * What the reason is *about*, and null on a reason that is about nothing in particular — what is trending is trending for everyone.
+ *
+ */
+export type ShelfSubject = {
+    id: string;
+    /**
+     * Fixes what `id` is.
+     */
+    kind: 'listing' | 'category';
+    name: string;
 };
 
 export type ShippingQuote = {
@@ -2344,7 +2602,18 @@ export type TransportId = string;
  */
 export type TransportStatus = 'pending' | 'picked-up' | 'in-transit' | 'delivered' | 'returned' | 'failed' | 'cancelled';
 
+/**
+ * The badge and the breakdown behind it, from one query — so the number on the bell and the number beside each filter cannot disagree.
+ *
+ */
 export type UnreadCount = {
+    /**
+     * Every category, zeros included: a client renders a fixed set of filters and must not have to know which of them the server considers empty.
+     *
+     */
+    by_category: {
+        [key: string]: number;
+    };
     unread: number;
 };
 
@@ -2407,8 +2676,14 @@ export type UpdateContactRequest = {
     phone?: string;
     postal_code?: string;
     province_code?: string;
+    /**
+     * Ignored: the name is resolved from the code against /administrative-areas, so two addresses with one code cannot disagree.
+     */
     province_name?: string;
     ward_code?: string;
+    /**
+     * Ignored: the name is resolved from the code against /administrative-areas, so two addresses with one code cannot disagree.
+     */
     ward_name?: string;
 };
 
@@ -2418,10 +2693,6 @@ export type UpdateContactRequest = {
 export type UpdateListingRequest = {
     attachments?: Array<ResourceId>;
     category_id?: CategoryId;
-    /**
-     * Leaves the listing with no featured variant; the card then shows the cheapest one.
-     */
-    clear_featured_variant_id?: boolean;
     condition?: ListingCondition;
     description?: string;
     featured_variant_id?: VariantId;
@@ -2448,6 +2719,10 @@ export type UpdateNotificationPreferencesRequest = {
 export type UpdateOfferRequest = {
     quantity: number;
     reason?: string;
+    /**
+     * The whole proposal, not a unit price, and strictly below the variant's listed price times `quantity` — see the route description for why the boundary is exclusive.
+     *
+     */
     total: number;
 };
 
@@ -2488,7 +2763,7 @@ export type UpdateVariantRequest = {
         [key: string]: unknown;
     };
     /**
-     * True moves the card's variant to this one. False is ignored: which variant is featured is cleared through `clear_featured_variant_id` on the listing, so there is one way to spell it.
+     * True moves the card's variant to this one. False is ignored: exactly one variant is featured at all times, so the flag is moved rather than dropped.
      *
      */
     is_featured?: boolean;
@@ -5588,6 +5863,15 @@ export type GetListingsData = {
         category_id?: CategoryId;
         tag?: TagSlug;
         seller_id?: AccountId;
+        /**
+         * "More like this one": rank by that listing's own stored embedding. The listing itself is excluded — its vector is its own nearest neighbour — and one that the embedding pass has not reached yet degrades to the newest of the catalogue rather than answering nothing.
+         *
+         * Cheaper as well as more accurate than the text search it replaces. Spelling this as `q=<the listing's name>` ran the whole query-understanding stage, model call included, once per page view, to rediscover a vector that was already in the database — and ranked by the *words* of the title, which puts a phone case beside a phone.
+         *
+         * It is a ranking, so it cannot share a request with another one: not with `q`, not with a `sort` other than `relevance`, and not with `mine` or `favorited`, which are sets the caller already chose.
+         *
+         */
+        similar_to?: ListingId;
         condition?: ListingCondition;
         min_price?: number;
         max_price?: number;
@@ -5828,6 +6112,46 @@ export type PatchListingsByIdResponses = {
 
 export type PatchListingsByIdResponse = PatchListingsByIdResponses[keyof PatchListingsByIdResponses];
 
+export type GetListingsByIdHistoryData = {
+    body?: never;
+    path: {
+        /**
+         * The opaque id. History addresses the listing, never its public slug.
+         */
+        id: ListingId;
+    };
+    query?: {
+        /**
+         * 1-based page number.
+         */
+        page?: number;
+        limit?: number;
+    };
+    url: '/listings/{id}/history';
+};
+
+export type GetListingsByIdHistoryErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+};
+
+export type GetListingsByIdHistoryError = GetListingsByIdHistoryErrors[keyof GetListingsByIdHistoryErrors];
+
+export type GetListingsByIdHistoryResponses = {
+    /**
+     * OK
+     */
+    200: ListingHistoryPage;
+};
+
+export type GetListingsByIdHistoryResponse = GetListingsByIdHistoryResponses[keyof GetListingsByIdHistoryResponses];
+
 export type DeleteListingsByIdPublicationData = {
     body?: never;
     path: {
@@ -5966,6 +6290,11 @@ export type GetListingsByListingIdReviewsData = {
          */
         rating?: number;
         /**
+         * Only reviews that came with a photo or a video. How many those are is `with_media_count` on the summary, so the filter can be offered with its count rather than as a chip nobody can size.
+         *
+         */
+        media?: boolean;
+        /**
          * `helpful` reads the stored tally; see the note above about paging it.
          */
         sort?: 'newest' | 'helpful';
@@ -6049,6 +6378,35 @@ export type PostListingsByListingIdReviewsResponses = {
 
 export type PostListingsByListingIdReviewsResponse = PostListingsByListingIdReviewsResponses[keyof PostListingsByListingIdReviewsResponses];
 
+export type GetListingsByListingIdReviewsSummaryData = {
+    body?: never;
+    path: {
+        listingID: ListingId;
+    };
+    query?: never;
+    url: '/listings/{listingID}/reviews/summary';
+};
+
+export type GetListingsByListingIdReviewsSummaryErrors = {
+    /**
+     * Resource not found
+     */
+    404: Error;
+};
+
+export type GetListingsByListingIdReviewsSummaryError = GetListingsByListingIdReviewsSummaryErrors[keyof GetListingsByListingIdReviewsSummaryErrors];
+
+export type GetListingsByListingIdReviewsSummaryResponses = {
+    /**
+     * OK
+     */
+    200: {
+        data: ReviewSummary;
+    };
+};
+
+export type GetListingsByListingIdReviewsSummaryResponse = GetListingsByListingIdReviewsSummaryResponses[keyof GetListingsByListingIdReviewsSummaryResponses];
+
 export type PostListingsInteractionsData = {
     body: {
         interactions: Array<{
@@ -6078,6 +6436,39 @@ export type PostListingsInteractionsResponses = {
 };
 
 export type PostListingsInteractionsResponse = PostListingsInteractionsResponses[keyof PostListingsInteractionsResponses];
+
+export type GetListingsShelvesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Cards per shelf, not for the response. How many shelves there are is the server's answer rather than the client's request.
+         *
+         */
+        limit?: number;
+    };
+    url: '/listings/shelves';
+};
+
+export type GetListingsShelvesErrors = {
+    /**
+     * Validation or malformed request
+     */
+    400: Error;
+};
+
+export type GetListingsShelvesError = GetListingsShelvesErrors[keyof GetListingsShelvesErrors];
+
+export type GetListingsShelvesResponses = {
+    /**
+     * OK — in the order the page should be read: what is about the reader first, then what is about the marketplace.
+     */
+    200: {
+        data: Array<Shelf>;
+    };
+};
+
+export type GetListingsShelvesResponse = GetListingsShelvesResponses[keyof GetListingsShelvesResponses];
 
 export type PostListingsSuggestionsData = {
     body: SuggestListingRequest;
@@ -6922,7 +7313,7 @@ export type PostOffersErrors = {
      */
     409: Error;
     /**
-     * `total` is above the listed price for that `quantity`, or the listing is not negotiable
+     * `total` is at or above the listed price for that `quantity`, or the listing is not negotiable
      */
     422: Error;
 };
@@ -7047,7 +7438,7 @@ export type PatchOffersByIdErrors = {
      */
     409: Error;
     /**
-     * `total` is above the listed price for that `quantity`
+     * `total` is at or above the listed price for that `quantity`
      */
     422: Error;
 };
@@ -7407,6 +7798,39 @@ export type PostOrdersByIdDeclineResponses = {
 };
 
 export type PostOrdersByIdDeclineResponse = PostOrdersByIdDeclineResponses[keyof PostOrdersByIdDeclineResponses];
+
+export type GetOrdersByIdHistoryData = {
+    body?: never;
+    path: {
+        id: OrderId;
+    };
+    query?: never;
+    url: '/orders/{id}/history';
+};
+
+export type GetOrdersByIdHistoryErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: Error;
+    /**
+     * Resource not found
+     */
+    404: Error;
+};
+
+export type GetOrdersByIdHistoryError = GetOrdersByIdHistoryErrors[keyof GetOrdersByIdHistoryErrors];
+
+export type GetOrdersByIdHistoryResponses = {
+    /**
+     * OK
+     */
+    200: {
+        data: Array<OrderHistoryEntry>;
+    };
+};
+
+export type GetOrdersByIdHistoryResponse = GetOrdersByIdHistoryResponses[keyof GetOrdersByIdHistoryResponses];
 
 export type PostOrdersByIdReceiptData = {
     body: ConfirmReceiptRequest;

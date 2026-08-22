@@ -18,6 +18,7 @@ import {
 import {
 	getDraftsByIdOptions,
 	getItemsOptions,
+	getOrdersByIdHistoryOptions,
 	getOrdersByIdOptions,
 	getOrdersByOrderIdFeedbackOptions,
 	getOrdersInfiniteOptions,
@@ -70,6 +71,21 @@ export function useOrder(id: string | undefined) {
 	})
 }
 
+/**
+ * What has happened to an order, newest first.
+ *
+ * Unpaged, because the server caps it: an order collects one entry per transition plus one
+ * per carrier checkpoint. The trail only holds facts recorded since the module started
+ * writing them, so an older order legitimately answers an empty list.
+ */
+export function useOrderHistory(id: string | undefined) {
+	return useQuery({
+		...getOrdersByIdHistoryOptions({ path: { id: id! } }),
+		select: unwrapData,
+		enabled: Boolean(id),
+	})
+}
+
 /** `/listings?ids=` is capped at the API's maximum page size. */
 const MAX_RESOLVED_LISTINGS = 100
 
@@ -90,7 +106,7 @@ export function useListingMap(listingIds: ReadonlyArray<ListingId>) {
 		[listingIds],
 	)
 
-	const { data } = useListings({ ids: capped, limit: MAX_RESOLVED_LISTINGS }, 1)
+	const { data } = useListings({ ids: capped, limit: MAX_RESOLVED_LISTINGS }, 1, capped.length > 0)
 
 	return useMemo(() => {
 		const map = new Map<ListingId, Listing>()
