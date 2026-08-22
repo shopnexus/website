@@ -21,7 +21,12 @@ export default function SearchToolbar({ search }: { search: SearchState }) {
   return (
     <div className="mb-6 flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="font-headline text-headline-sm text-on-surface">
+        {/*
+         * Announced, because changing a filter replaces the grid without navigating anywhere:
+         * a sighted shopper sees the count move, and without a live region nobody using a
+         * screen reader is told the page they are on now holds something else.
+         */}
+        <div className="font-headline text-headline-sm text-on-surface" aria-live="polite" aria-atomic="true">
           {isLoading ? (
             <Skeleton className="h-6 w-48 inline-block align-middle" />
           ) : totalCount !== null ? (
@@ -48,7 +53,7 @@ export default function SearchToolbar({ search }: { search: SearchState }) {
             id="sort-select"
             value={search.sortBy}
             onChange={(event) => search.setSortBy(event.target.value as SortOption)}
-            className="bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-body-sm rounded-lg py-1.5 pl-3 pr-8 focus:ring-primary focus:border-primary outline-none cursor-pointer"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-sm rounded-lg py-1.5 pl-3 pr-8 focus:ring-primary focus:border-primary outline-none cursor-pointer"
           >
             {SORT_OPTIONS.map((option) => (
               <option

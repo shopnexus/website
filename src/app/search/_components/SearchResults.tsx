@@ -16,7 +16,8 @@ const GRID = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-
  * shows up then.
  */
 export default function SearchResults({ search }: { search: SearchState }) {
-  const { listings, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = search.feed;
+  const { listings, isLoading, isError, refetch, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    search.feed;
   // A typed query is a search; a category picked with nothing typed is a category browse.
   // Neither when the page opened to neither (the whole catalogue, unfiltered) — that click
   // is not one of the three the contract can tell apart.
@@ -32,9 +33,34 @@ export default function SearchResults({ search }: { search: SearchState }) {
     );
   }
 
+  // A failed request is not an empty catalogue. Both rendered the same "nothing matched"
+  // card, whose "clear your filters" was advice that could not work.
+  if (isError) {
+    return (
+      <div className="bg-surface-container-low rounded-2xl p-12 text-center my-8 border border-outline-variant">
+        <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-2" aria-hidden="true">
+          cloud_off
+        </span>
+        <p className="text-body-lg text-on-surface-variant font-medium">
+          Không tải được kết quả tìm kiếm.
+        </p>
+        <p className="text-body-sm text-on-surface-variant mt-1">
+          Kiểm tra đường truyền mạng rồi thử lại.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-6 px-6 py-2 bg-primary text-on-primary rounded-full font-bold text-label-md hover:opacity-90 transition-opacity cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          Thử lại
+        </button>
+      </div>
+    );
+  }
+
   if (listings.length === 0) {
     return (
-      <div className="bg-surface-container-low rounded-2xl p-12 text-center my-8 border border-outline-variant/20">
+      <div className="bg-surface-container-low rounded-2xl p-12 text-center my-8 border border-outline-variant">
         <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-2" aria-hidden="true">
           search_off
         </span>

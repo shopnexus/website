@@ -42,7 +42,7 @@ export default function SearchUnderstanding({ search }: { search: SearchState })
           {corrected.map((probe) => (
             <span
               key={probe}
-              className="rounded-full border border-outline-variant/30 bg-surface-container-low px-3 py-1 text-label-sm text-on-surface-variant"
+              className="rounded-full border border-outline-variant bg-surface-container-low px-3 py-1 text-label-sm text-on-surface-variant"
             >
               {probe}
             </span>

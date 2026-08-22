@@ -1,5 +1,5 @@
 import { LISTING_CONDITION_VI } from "@/lib/dictionaries";
-import type { ListingCondition } from "@/api/generated/types.gen";
+import type { ContactId, ListingCondition } from "@/api/generated/types.gen";
 import type { ConditionFilter, Position, SortOption } from "../_types";
 
 /** What the sort selector offers, in the order a shopper scans it — the default first. */
@@ -22,14 +22,18 @@ export const CONDITION_OPTIONS: Array<{ value: ConditionFilter; label: string }>
   ),
 ];
 
-/** What the radius selector offers. Any value here needs a position to mean anything. */
-export const RADIUS_OPTIONS = [5, 10, 25, 50, 100] as const;
+/**
+ * What the radius selector offers; each needs an origin to mean anything. `0` is "no bound" —
+ * a real choice, so a rare thing three provinces away is found rather than excluded.
+ */
+export const RADIUS_OPTIONS = [5, 10, 25, 50, 100, 0] as const;
 
-/** A price input that is blank or not a number means "no bound". */
-export function priceBound(raw: string): number | undefined {
-  if (!raw.trim()) return undefined;
-  const value = Number(raw);
-  return Number.isFinite(value) && value >= 0 ? value : undefined;
+/** The radius a "near me" browse starts at: wide enough to fill a page in a city. */
+export const DEFAULT_RADIUS_KM = 25;
+
+/** How a radius reads in the selector and on its chip. */
+export function radiusLabel(km: number): string {
+  return km === 0 ? "Không giới hạn khoảng cách" : `Trong vòng ${km} km`;
 }
 
 /**
@@ -85,11 +89,23 @@ export function locationFilter(provinceCode: string, wardCode: string) {
   };
 }
 
-/** A position ranks and reports distance on its own; the radius is what excludes. */
-export function positionFilter(position: Position | null, radiusKm: number) {
-  return {
-    lat: position?.lat,
-    lon: position?.lon,
-    radius_km: position ? radiusKm : undefined,
-  };
+/**
+ * Where distance is measured from. The origin only measures; `radius_km` is what excludes.
+ * Coordinates and a saved address are exclusive — the server refuses the pair.
+ */
+export function originFilter(
+  position: Position | null,
+  nearContactId: ContactId | null,
+  radiusKm: number,
+) {
+  // A radius of zero is "no bound", so the parameter is left off entirely rather than sent
+  // as 0 — the server validates it as `gt=0` and would refuse the request.
+  const bound = radiusKm > 0 ? { radius_km: radiusKm } : {};
+  if (position) {
+    return { lat: position.lat, lon: position.lon, ...bound };
+  }
+  if (nearContactId) {
+    return { near_contact_id: nearContactId, ...bound };
+  }
+  return {};
 }

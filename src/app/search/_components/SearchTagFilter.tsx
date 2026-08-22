@@ -33,8 +33,8 @@ export default function SearchTagFilter({
   if (isLoading || shown.length === 0) return null;
 
   return (
-    <div className="pt-4 border-t border-outline-variant/10">
-      <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4 text-[11px]">
+    <div className="pt-4 border-t border-outline-variant">
+      <h3 className="font-label-md text-on-surface-variant uppercase tracking-wider mb-4">
         Thẻ {categoryId ? "liên quan" : "phổ biến"}
       </h3>
       <div className="flex flex-wrap gap-1.5">
@@ -47,7 +47,7 @@ export default function SearchTagFilter({
               title={tag.description ?? undefined}
               onClick={() => onSelect(isSelected ? "" : tag.slug)}
               aria-pressed={isSelected}
-              className={`rounded-full border px-2.5 py-1 text-[12px] font-medium transition-colors cursor-pointer ${
+              className={`rounded-full border px-2.5 py-1 text-label-sm transition-colors cursor-pointer ${
                 isSelected
                   ? "border-transparent bg-primary-container text-on-primary-container"
                   : "border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary"
