@@ -922,6 +922,11 @@ export type ListingDetail = {
      */
     taken_down_at: string | null;
     variants: Array<Variant>;
+    /**
+     * What the row was at when this was read. A moderator sends it back with their verdict, so a listing edited between the reading and the decision is answered 409 rather than approved on content nobody looked at.
+     *
+     */
+    version: number;
 };
 
 /**
@@ -1248,8 +1253,16 @@ export type MessageReplyRef = {
  */
 export type MessageType = 'user' | 'system';
 
+/**
+ * A verdict, on the version the moderator read. A queued listing is still editable by its seller and that edit is written straight through — there is no approved version to protect yet — so a verdict that named no version would approve whatever the row happened to say when the button landed rather than what was on the screen.
+ *
+ */
 export type ModerationNoteRequest = {
     note?: string;
+    /**
+     * ListingDetail.version as it was read. A 409 means it moved; read it again.
+     */
+    version: number;
 };
 
 /**
@@ -3548,7 +3561,7 @@ export type GetAdminListingsResponses = {
 export type GetAdminListingsResponse = GetAdminListingsResponses[keyof GetAdminListingsResponses];
 
 export type PostAdminListingsByIdApprovalData = {
-    body?: ModerationNoteRequest;
+    body: ModerationNoteRequest;
     path: {
         id: ListingId;
     };
@@ -3574,7 +3587,7 @@ export type PostAdminListingsByIdApprovalErrors = {
      */
     404: Error;
     /**
-     * Not awaiting moderation
+     * Nothing awaiting a decision, or the listing changed since it was read
      */
     409: Error;
     /**

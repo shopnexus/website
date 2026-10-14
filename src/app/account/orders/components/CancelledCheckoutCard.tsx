@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import type { CheckoutGroup } from "@/lib/pending-checkout"
 import type { Listing, ListingId } from "@/api/generated/types.gen"
 import { rowShell } from "./rowShell"
@@ -24,6 +25,10 @@ const formatDate = (iso: string) =>
  *
  * Drawn flat and faded, like the other finished rows: nothing here is waiting on anyone.
  */
+/** The 64px media box, shared by the linked and the unlinked case. */
+const coverFrame =
+	"relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-surface-container border border-outline-variant"
+
 export default function CancelledCheckoutCard({
 	checkout,
 	listingsById,
@@ -34,31 +39,42 @@ export default function CancelledCheckoutCard({
 	const firstItem = checkout.items[0]
 	const firstListing = firstItem ? listingsById.get(firstItem.listing_id) : undefined
 	const otherCount = checkout.items.length - 1
+	// This row has no order to open — one does not exist until the money lands — but the thing
+	// being bought does, and a name drawn like the linked one on every order row above it has to
+	// go somewhere when it is clicked.
+	const listingHref = firstListing ? `/product/${firstListing.slug}` : null
+	const cover = firstListing?.cover?.url ? (
+		<Image src={firstListing.cover.url} alt={firstListing.name} fill className="object-cover" />
+	) : (
+		<span className="material-symbols-outlined absolute inset-0 flex items-center justify-center text-on-surface-variant text-[20px]">
+			inventory_2
+		</span>
+	)
 	// The lines of one checkout are cancelled together, so the first one's stamp is the
 	// moment the buyer dropped it.
 	const cancelledAt = firstItem?.cancelled_at
 
 	return (
 		<article className={`group relative flex gap-4 p-4 ${rowShell({ dim: true })}`}>
-			<div className="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-surface-container border border-outline-variant">
-				{firstListing?.cover?.url ? (
-					<Image
-						src={firstListing.cover.url}
-						alt={firstListing.name}
-						fill
-						className="object-cover"
-					/>
-				) : (
-					<span className="material-symbols-outlined absolute inset-0 flex items-center justify-center text-on-surface-variant text-[20px]">
-						inventory_2
-					</span>
-				)}
-			</div>
+			{listingHref ? (
+				<Link href={listingHref} className={coverFrame}>
+					{cover}
+				</Link>
+			) : (
+				<div className={coverFrame}>{cover}</div>
+			)}
 
 			<div className="flex-1 min-w-0 flex flex-col gap-1">
 				<div className="flex items-start justify-between gap-3">
 					<span className="text-title-sm text-on-surface line-clamp-1">
-						{firstListing?.name ?? "Đơn hàng"}
+						{listingHref ? (
+							<Link href={listingHref} className="hover:text-primary transition-colors">
+								{firstListing?.name}
+							</Link>
+						) : (
+							"Đơn hàng"
+						)}
+						{/* Outside the link: the other lines are other products, not this one. */}
 						{otherCount > 0 && (
 							<span className="text-body-sm text-on-surface-variant">
 								{" "}

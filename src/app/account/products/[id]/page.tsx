@@ -1,17 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import { use } from "react";
 import Link from "next/link";
 import AccountPage from "@/components/account/AccountPage";
 import ListingHistory from "@/components/listings/ListingHistory";
+import ListingActionBar from "./_components/ListingActionBar";
 import ListingDetailsForm from "./_components/ListingDetailsForm";
 import PublicationPanel from "./_components/PublicationPanel";
 import VariantsPanel from "./_components/VariantsPanel";
+import { useContacts } from "@/hooks/api/useContacts";
 import { useListingEditor } from "./_hooks/useListingEditor";
 
 export default function EditListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { listing, isLoading, categories, draft, setDraft, save, isSaving } = useListingEditor(id);
+  const {
+    listing,
+    isLoading,
+    categories,
+    draft,
+    setDraft,
+    submit,
+    unpublish,
+    isDirty,
+    isSaving,
+    isUnpublishing,
+  } = useListingEditor(id);
+  const { data: contacts = [] } = useContacts();
+  const [pickupID, setPickupID] = useState("");
+  // The default pickup address is what the server would pick anyway, so the selector starts
+  // there rather than on nothing — a select with no selection reads as a field to fill in.
+  const pickup =
+    pickupID || contacts.find((c) => c.is_default_pickup)?.id || contacts[0]?.id || "";
 
   if (isLoading || !listing || !draft) {
     return (
@@ -54,16 +74,30 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
             listing={listing}
             draft={draft}
             onChange={setDraft}
-            onSave={() => save(listing)}
-            saving={isSaving}
+            onSubmit={() => void submit(listing, pickup)}
             categories={categories}
           />
           <VariantsPanel listing={listing} />
           <ListingHistory listingId={listing.id} viewerIsSeller />
+          <ListingActionBar
+            listing={listing}
+            isDirty={isDirty}
+            isSaving={isSaving}
+            isUnpublishing={isUnpublishing}
+            hasPickupAddress={contacts.length > 0}
+            onSubmit={() => void submit(listing, pickup)}
+            onUnpublish={() => {
+              if (confirm("Ẩn sản phẩm này khỏi trang bán?")) void unpublish(listing);
+            }}
+          />
         </div>
 
         <div className="lg:sticky lg:top-24">
-          <PublicationPanel listing={listing} />
+          <PublicationPanel
+            listing={listing}
+            pickupContactID={pickup}
+            onPickupChange={setPickupID}
+          />
         </div>
       </div>
     </AccountPage>

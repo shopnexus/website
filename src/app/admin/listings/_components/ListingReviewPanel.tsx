@@ -123,7 +123,10 @@ export default function ListingReviewPanel({ listingId }: { listingId: ListingId
 					disabled={!awaitingDecision || approve.isPending}
 					onClick={() =>
 						approve.mutate(
-							{ id: detail.id },
+							// The version ties the verdict to what is on screen: the seller may
+							// edit a listing while it is queued, and a 409 means they did. The
+							// hook reloads the panel, so the moderator reads it again.
+							{ id: detail.id, version: detail.version },
 							{ onSuccess: () => toast.success("Tin đăng đã được duyệt.") },
 						)
 					}

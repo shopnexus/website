@@ -7,25 +7,62 @@ import type {
 import { attributePairs, attributesEqual, pairsToAttributes } from "@/lib/variant-attributes"
 import type { ListingDraft, VariantDraft } from "../types"
 
-/** The form's starting values, read off the listing as the server has it. */
-export function draftFrom(listing: ListingDetail): ListingDraft {
+/**
+ * What the seller last said about the listing, which is not always what buyers see.
+ *
+ * An edit to a live listing is held for moderation: the row keeps the approved version and the
+ * change sits in `pending_edit`. The form has to open on the held one — it is what the seller
+ * wrote and what a moderator will publish — because seeding from the live fields made a save
+ * look like it had been thrown away: come back to the page and their words were gone.
+ *
+ * `tags` and `attachments` arrive as `[]` when the edit did not touch them, so an empty list
+ * reads as "unchanged" rather than "cleared". Clearing every tag is rare and repeatable; losing
+ * the live tags on every unrelated edit would not be.
+ */
+export function effectiveListing(listing: ListingDetail) {
+	const held = listing.pending_edit
 	return {
-		name: listing.name,
-		description: listing.description,
-		condition: listing.condition,
-		price_mode: listing.price_mode,
-		category_id: listing.category.id,
-		tags: listing.tags.join(", "),
+		name: held?.name ?? listing.name,
+		description: held?.description ?? listing.description,
+		condition: held?.condition ?? listing.condition,
+		price_mode: held?.price_mode ?? listing.price_mode,
+		category_id: held?.category_id ?? listing.category.id,
+		tags: held?.tags?.length ? held.tags : listing.tags,
 	}
 }
 
+/** The form's starting values: the newest thing the seller wrote. */
+export function draftFrom(listing: ListingDetail): ListingDraft {
+	const current = effectiveListing(listing)
+	return { ...current, tags: current.tags.join(", ") }
+}
+
 /**
- * Only what actually changed.
+ * Whether the form differs from what the seller last submitted.
  *
- * `PATCH /listings/{id}` may hold the whole write for moderation, so sending back the
- * name that was already there would queue an edit that changes nothing and take the
- * listing off sale while a moderator reads it. Comparing against the loaded listing is
- * what keeps a no-op save a no-op.
+ * Separate from `listingPatch` on purpose, and compared against a different thing: this asks
+ * "is there anything to send", so it reads the held edit, while the patch is built against the
+ * live version — see below.
+ */
+export function hasChanges(draft: ListingDraft, listing: ListingDetail): boolean {
+	const current = effectiveListing(listing)
+	return (
+		draft.name.trim() !== current.name ||
+		draft.description.trim() !== current.description ||
+		draft.condition !== current.condition ||
+		draft.price_mode !== current.price_mode ||
+		draft.category_id !== current.category_id ||
+		!sameTags(splitTags(draft.tags), current.tags)
+	)
+}
+
+/**
+ * Everything that differs from the version buyers can see.
+ *
+ * Against the live listing and not against the held edit, because a new edit *replaces* the
+ * held one rather than merging into it: sending only what changed since the last submission
+ * would drop the fields that submission carried. So the patch is always the full set of
+ * differences from live, and `hasChanges` is what decides whether to send it at all.
  */
 export function listingPatch(draft: ListingDraft, listing: ListingDetail): UpdateListingRequest {
 	const patch: UpdateListingRequest = {}

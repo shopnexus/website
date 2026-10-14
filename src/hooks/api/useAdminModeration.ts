@@ -25,6 +25,7 @@ import type {
 	TicketKind,
 	TicketStatus,
 } from "@/api/generated/types.gen"
+import { ApiError } from "@/api/api-error"
 import { OPERATIONS, invalidate } from "@/api/invalidate"
 import { cursorPagination, flattenPages, pagePagination, totalCountOf } from "@/api/pagination"
 import { unwrapData } from "@/api/unwrap"
@@ -165,18 +166,41 @@ export function useAdminListings(status?: ListingStatus, limit = 20) {
 }
 
 /** Clearing whatever was awaiting a decision — a first publication or a held edit. */
+/**
+ * The verdict, on the version the moderator read.
+ *
+ * A queued listing is still the seller's to edit and that edit is written straight through, so
+ * the version is what ties the decision to the content that was on the screen: a 409 means it
+ * moved while it was being read, and the answer is to read it again rather than to retry.
+ */
 export function useApproveListing() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, note }: { id: ListingId; note?: string }) => {
+		mutationFn: async ({
+			id,
+			version,
+			note,
+		}: {
+			id: ListingId
+			version: number
+			note?: string
+		}) => {
 			const { data } = await postAdminListingsByIdApproval({
 				path: { id },
-				body: { note },
+				body: { version, note },
 				throwOnError: true,
 			})
 			return data.data
 		},
 		onSuccess: () => invalidateListing(queryClient),
+		// A stale version is the one failure where the moderator's next move is to read the
+		// listing again, so the panel under them is refreshed rather than left showing what
+		// the verdict was refused for.
+		onError: (error) => {
+			if (error instanceof ApiError && error.code === "version_conflict") {
+				void invalidateListing(queryClient)
+			}
+		},
 	})
 }
 

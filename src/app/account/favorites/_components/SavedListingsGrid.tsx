@@ -5,7 +5,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import ProductCardSkeleton from "@/components/ui/ProductCardSkeleton";
 import { useListingsFeed } from "@/hooks/api/useCatalog";
 
-const GRID = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6";
+const GRID = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6";
 
 /** The saved listings themselves. Empty, this is one card and nothing else. */
 export default function SavedListingsGrid() {

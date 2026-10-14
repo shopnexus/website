@@ -1,14 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { toast } from "react-hot-toast";
 import type { ContactId, ListingDetail } from "@/api/generated/types.gen";
-import Button from "@/components/ui/Button";
 import { LISTING_STATUS_VI } from "@/lib/dictionaries";
-import { usePublishListing } from "@/hooks/api/useCatalog";
 import { useContacts } from "@/hooks/api/useContacts";
-import { useUnpublishListing } from "@/hooks/api/useSellerListings";
-import { canPublish, canUnpublish } from "../../_lib/listing-actions";
+import { canPublish } from "../../_lib/listing-actions";
 
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-secondary-container text-on-secondary-container",
@@ -18,41 +13,33 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 /**
- * Where the listing stands, and the one control that moves it.
+ * Where the listing stands, and the address it ships from.
  *
- * Publishing is also where the listing gets its location: `pickup_contact_id` names the
- * address a carrier collects from, and it is frozen onto the row at that moment because
- * it is both where the courier goes and how buyers find the listing. Omitting it means
- * the seller's default pickup address, which is why the selector starts on that one and
- * a seller with no address is told before they press anything.
+ * No buttons: this panel used to carry "Đăng bán" while the form beside it carried "Lưu thay
+ * đổi", which is two controls competing to be the one a seller presses. The page has a single
+ * action bar now and this is what it reads from — the pickup address in particular, which is
+ * why the selector stays here beside the status it belongs to.
+ *
+ * `pickup_contact_id` names the address a carrier collects from, and it is frozen onto the row
+ * when the listing goes live because it is both where the courier goes and how buyers find the
+ * listing. Omitting it means the seller's default, which is why the selector starts there.
  */
-export default function PublicationPanel({ listing }: { listing: ListingDetail }) {
+export default function PublicationPanel({
+  listing,
+  pickupContactID,
+  onPickupChange,
+}: {
+  listing: ListingDetail;
+  pickupContactID: string;
+  onPickupChange: (id: string) => void;
+}) {
   const { data: contacts = [] } = useContacts();
-  const publish = usePublishListing();
-  const unpublish = useUnpublishListing();
-
-  const [pickupId, setPickupId] = useState("");
-  const chosen = pickupId || contacts.find((c) => c.is_default_pickup)?.id || contacts[0]?.id || "";
-
-  const handlePublish = () => {
-    publish.mutate(
-      { id: listing.id, body: chosen ? { pickup_contact_id: chosen as ContactId } : undefined },
-      { onSuccess: () => toast.success("Đã gửi sản phẩm đi kiểm duyệt.") },
-    );
-  };
-
-  const handleUnpublish = () => {
-    if (!confirm("Ẩn sản phẩm này khỏi trang bán?")) return;
-    unpublish.mutate(listing.id, { onSuccess: () => toast.success("Đã ẩn sản phẩm.") });
-  };
 
   return (
     <section className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6 space-y-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-title-md text-on-surface">Trạng thái</h2>
-        <span
-          className={`px-3 py-1 text-label-xs rounded-full ${STATUS_STYLES[listing.status]}`}
-        >
+        <span className={`px-3 py-1 text-label-xs rounded-full ${STATUS_STYLES[listing.status]}`}>
           {LISTING_STATUS_VI[listing.status]}
         </span>
       </div>
@@ -64,19 +51,15 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
         </div>
       )}
 
-      {listing.pending_edit && (
-        <div className="rounded-xl bg-primary-container/40 text-on-surface p-4 text-body-sm">
-          Bạn có một bản chỉnh sửa đang chờ kiểm duyệt. Người mua vẫn thấy bản đang bán cho tới khi
-          bản mới được duyệt.
-        </div>
+      {listing.status === "pending" && (
+        <p className="text-body-sm text-on-surface-variant">
+          Đang chờ kiểm duyệt. Bạn sẽ nhận được thông báo khi có kết quả.
+        </p>
       )}
 
       {canPublish(listing.status) && (
         <div className="space-y-3">
-          <label
-            htmlFor="pickup-contact"
-            className="block text-label-sm text-on-surface"
-          >
+          <label htmlFor="pickup-contact" className="block text-label-sm text-on-surface">
             Địa chỉ lấy hàng
           </label>
           {contacts.length === 0 ? (
@@ -86,8 +69,8 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
           ) : (
             <select
               id="pickup-contact"
-              value={chosen}
-              onChange={(event) => setPickupId(event.target.value)}
+              value={pickupContactID}
+              onChange={(event) => onPickupChange(event.target.value as ContactId)}
               className="w-full px-3 py-2.5 bg-surface-container-lowest rounded-lg border border-outline focus:border-primary outline-none transition-colors text-body-md"
             >
               {contacts.map((contact) => (
@@ -101,31 +84,7 @@ export default function PublicationPanel({ listing }: { listing: ListingDetail }
           <p className="text-body-xs text-on-surface-variant">
             Đây cũng là vị trí người mua nhìn thấy trên tin đăng.
           </p>
-          <Button
-            fullWidth
-            disabled={publish.isPending || contacts.length === 0}
-            onClick={handlePublish}
-          >
-            {publish.isPending ? "Đang gửi..." : "Đăng bán"}
-          </Button>
         </div>
-      )}
-
-      {canUnpublish(listing.status) && (
-        <Button
-          fullWidth
-          variant="outline"
-          disabled={unpublish.isPending}
-          onClick={handleUnpublish}
-        >
-          {unpublish.isPending ? "Đang ẩn..." : "Ẩn khỏi trang bán"}
-        </Button>
-      )}
-
-      {listing.status === "pending" && (
-        <p className="text-body-sm text-on-surface-variant">
-          Sản phẩm đang chờ kiểm duyệt. Bạn sẽ nhận được thông báo khi có kết quả.
-        </p>
       )}
     </section>
   );

@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import type { Category, ListingCondition, ListingDetail, PriceMode } from "@/api/generated/types.gen";
-import Button from "@/components/ui/Button";
 import { LISTING_CONDITION_VI, PRICE_MODE_VI } from "@/lib/dictionaries";
 import type { ListingDraft } from "../types";
 
@@ -18,20 +18,23 @@ const field =
  * Photos and specifications are not here: they are captured by the posting flow, and a
  * second uploader on this page would be the same field with two behaviours. The price is
  * not here either — it lives on the variant, which is the row a buyer actually buys.
+ *
+ * No button either. Saving and putting the listing on sale were two of them, side by side and
+ * worded almost the same, so this form ends where the fields do and the page draws the one
+ * action at the bottom. Submitting still works — pressing Enter in a field does what the
+ * button does.
  */
 export default function ListingDetailsForm({
   listing,
   draft,
   onChange,
-  onSave,
-  saving,
+  onSubmit,
   categories,
 }: {
   listing: ListingDetail;
   draft: ListingDraft;
   onChange: (draft: ListingDraft) => void;
-  onSave: () => void;
-  saving: boolean;
+  onSubmit: () => void;
   categories: ReadonlyArray<Category>;
 }) {
   return (
@@ -54,11 +57,30 @@ export default function ListingDetailsForm({
         <h2 className="text-title-md text-on-surface">Thông tin sản phẩm</h2>
       </div>
 
+      {listing.pending_edit && (
+        <div className="mx-5 md:mx-6 mt-5 rounded-xl bg-primary-container/40 p-4 text-body-sm text-on-surface">
+          <p className="mb-1">
+            <strong>Đây là bản bạn vừa sửa, đang chờ kiểm duyệt.</strong> Người mua vẫn thấy bản
+            đang bán cho tới khi bản này được duyệt.
+          </p>
+          <Link
+            href={`/product/${listing.slug}`}
+            target="_blank"
+            className="inline-flex items-center gap-1 text-primary hover:underline"
+          >
+            Xem bản đang bán
+            <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+              open_in_new
+            </span>
+          </Link>
+        </div>
+      )}
+
       <form
         className="p-5 md:p-6 space-y-5"
         onSubmit={(event) => {
           event.preventDefault();
-          onSave();
+          onSubmit();
         }}
       >
         <div>
@@ -180,12 +202,6 @@ export default function ListingDetailsForm({
             className={field}
           />
           <p className="text-body-xs text-on-surface-variant mt-2">Tối đa 10 thẻ.</p>
-        </div>
-
-        <div className="pt-2">
-          <Button type="submit" disabled={saving}>
-            {saving ? "Đang lưu..." : "Lưu thay đổi"}
-          </Button>
         </div>
       </form>
     </section>
