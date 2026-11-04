@@ -1,0 +1,309 @@
+/*
+ * ShopNexus design tokens for the web.
+ *
+ * Source of truth: app/.superdesign/design-system.md (the Android app). The
+ * values below are copied from it: the M3 colour roles generated from #066A61
+ * and #924628, the M3 type scale in Be Vietnam Pro, the M3 Expressive corner
+ * scale, and the motion springs. website/ and console/ carry the same file;
+ * change the app's design system first, then both copies.
+ *
+ * Web-only additions are marked "web:". Material You is left out: a browser has
+ * no wallpaper to build a scheme from.
+ */
+
+@import "@fontsource/be-vietnam-pro/400.css";
+@import "@fontsource/be-vietnam-pro/500.css";
+@import "@fontsource/be-vietnam-pro/600.css";
+@import "@fontsource/be-vietnam-pro/700.css";
+
+/* ---------------------------------------------------------------- colour --
+ * Light by default, dark when the system asks, and data-theme on <html>
+ * overrides both ("Theo hệ thống", "Sáng", "Tối", as in the app's Tôi).
+ */
+:root {
+  color-scheme: light;
+  --md-primary: #005049;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #066a61;
+  --md-on-primary-container: #97e7db;
+  --md-secondary: #47645f;
+  --md-on-secondary: #ffffff;
+  --md-secondary-container: #c7e6e0;
+  --md-on-secondary-container: #4b6863;
+  --md-tertiary: #773115;
+  --md-on-tertiary: #ffffff;
+  --md-tertiary-container: #95482a;
+  --md-on-tertiary-container: #ffcdbc;
+  --md-tertiary-fixed: #ffdbcf;
+  --md-on-tertiary-fixed-variant: #773215;
+  --md-error: #ba1a1a;
+  --md-on-error: #ffffff;
+  --md-error-container: #ffdad6;
+  --md-surface: #f7faf8;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low: #f1f4f2;
+  --md-surface-container: #ebefed;
+  --md-surface-container-high: #e6e9e7;
+  --md-surface-container-highest: #e0e3e1;
+  --md-on-surface: #181c1c;
+  --md-on-surface-variant: #3e4947;
+  --md-outline: #6e7977;
+  --md-outline-variant: #bec9c6;
+  --md-inverse-surface: #2d3130;
+  --md-inverse-on-surface: #eef1ef;
+  --md-inverse-primary: #85d5c9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --md-primary: #85d5c9;
+    --md-on-primary: #003732;
+    --md-secondary: #aecdc7;
+    --md-on-secondary: #193531;
+    --md-secondary-container: #324e4a;
+    --md-on-secondary-container: #a0bfb9;
+    --md-tertiary: #ffb59a;
+    --md-on-tertiary: #5a1c02;
+    --md-error: #ffb4ab;
+    --md-on-error: #690005;
+    --md-error-container: #93000a;
+    --md-surface: #101413;
+    --md-surface-container-lowest: #0b0f0e;
+    --md-surface-container-low: #181c1c;
+    --md-surface-container: #1c2020;
+    --md-surface-container-high: #272b2a;
+    --md-surface-container-highest: #313635;
+    --md-on-surface: #e0e3e1;
+    --md-on-surface-variant: #bec9c6;
+    --md-outline: #889390;
+    --md-outline-variant: #3e4947;
+    --md-inverse-surface: #e0e3e1;
+    --md-inverse-on-surface: #2d3130;
+    --md-inverse-primary: #066a61;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --md-primary: #85d5c9;
+  --md-on-primary: #003732;
+  --md-secondary: #aecdc7;
+  --md-on-secondary: #193531;
+  --md-secondary-container: #324e4a;
+  --md-on-secondary-container: #a0bfb9;
+  --md-tertiary: #ffb59a;
+  --md-on-tertiary: #5a1c02;
+  --md-error: #ffb4ab;
+  --md-on-error: #690005;
+  --md-error-container: #93000a;
+  --md-surface: #101413;
+  --md-surface-container-lowest: #0b0f0e;
+  --md-surface-container-low: #181c1c;
+  --md-surface-container: #1c2020;
+  --md-surface-container-high: #272b2a;
+  --md-surface-container-highest: #313635;
+  --md-on-surface: #e0e3e1;
+  --md-on-surface-variant: #bec9c6;
+  --md-outline: #889390;
+  --md-outline-variant: #3e4947;
+  --md-inverse-surface: #e0e3e1;
+  --md-inverse-on-surface: #2d3130;
+  --md-inverse-primary: #066a61;
+}
+
+/*
+ * Tailwind gets only these colours: the default palette is switched off so a
+ * colour outside the system cannot slip in. `bg-primary`, `text-on-surface-variant`,
+ * `bg-surface-container-high`, `bg-black/60` (the photo scrim) and so on.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-primary: var(--md-primary);
+  --color-on-primary: var(--md-on-primary);
+  --color-primary-container: var(--md-primary-container);
+  --color-on-primary-container: var(--md-on-primary-container);
+  --color-secondary: var(--md-secondary);
+  --color-on-secondary: var(--md-on-secondary);
+  --color-secondary-container: var(--md-secondary-container);
+  --color-on-secondary-container: var(--md-on-secondary-container);
+  --color-tertiary: var(--md-tertiary);
+  --color-on-tertiary: var(--md-on-tertiary);
+  --color-tertiary-container: var(--md-tertiary-container);
+  --color-on-tertiary-container: var(--md-on-tertiary-container);
+  --color-tertiary-fixed: var(--md-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--md-on-tertiary-fixed-variant);
+  --color-error: var(--md-error);
+  --color-on-error: var(--md-on-error);
+  --color-error-container: var(--md-error-container);
+  --color-surface: var(--md-surface);
+  --color-surface-container-lowest: var(--md-surface-container-lowest);
+  --color-surface-container-low: var(--md-surface-container-low);
+  --color-surface-container: var(--md-surface-container);
+  --color-surface-container-high: var(--md-surface-container-high);
+  --color-surface-container-highest: var(--md-surface-container-highest);
+  --color-on-surface: var(--md-on-surface);
+  --color-on-surface-variant: var(--md-on-surface-variant);
+  --color-outline: var(--md-outline);
+  --color-outline-variant: var(--md-outline-variant);
+  --color-inverse-surface: var(--md-inverse-surface);
+  --color-inverse-on-surface: var(--md-inverse-on-surface);
+  --color-inverse-primary: var(--md-inverse-primary);
+}
+
+@theme {
+  /* ------------------------------------------------------ breakpoints -- */
+  /* web: M3 window size classes in place of Tailwind's steps. Below md is
+     compact, the app's own phone layout. */
+  --breakpoint-*: initial;
+  --breakpoint-md: 600px; /* medium */
+  --breakpoint-lg: 840px; /* expanded */
+  --breakpoint-xl: 1200px; /* large */
+  --breakpoint-2xl: 1600px; /* extra-large */
+
+  /* ------------------------------------------------------------ type -- */
+  /* One family, drawn for Vietnamese diacritics. No style goes tighter than
+     its line height: Vietnamese stacks marks above and below (ặ, ỗ, ữ). */
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+  /* web: opaque ids and keys in the console are read character by character. */
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
+
+  /* Tailwind's own steps are off; use the M3 names: text-body-medium, ... */
+  --text-*: initial;
+  --text-display-small: 2.25rem;
+  --text-display-small--line-height: 2.75rem;
+  --text-display-small--font-weight: 400;
+  --text-headline-medium: 1.75rem;
+  --text-headline-medium--line-height: 2.25rem;
+  --text-headline-medium--font-weight: 400;
+  --text-headline-small: 1.5rem;
+  --text-headline-small--line-height: 2rem;
+  --text-headline-small--font-weight: 400;
+  --text-title-large: 1.375rem;
+  --text-title-large--line-height: 1.75rem;
+  --text-title-large--font-weight: 400;
+  --text-title-medium: 1rem;
+  --text-title-medium--line-height: 1.5rem;
+  --text-title-medium--font-weight: 500;
+  --text-title-small: 0.875rem;
+  --text-title-small--line-height: 1.25rem;
+  --text-title-small--font-weight: 500;
+  --text-body-large: 1rem;
+  --text-body-large--line-height: 1.5rem;
+  --text-body-large--font-weight: 400;
+  --text-body-medium: 0.875rem;
+  --text-body-medium--line-height: 1.25rem;
+  --text-body-medium--font-weight: 400;
+  --text-body-small: 0.75rem;
+  --text-body-small--line-height: 1rem;
+  --text-body-small--font-weight: 400;
+  --text-label-large: 0.875rem;
+  --text-label-large--line-height: 1.25rem;
+  --text-label-large--font-weight: 500;
+  --text-label-medium: 0.75rem;
+  --text-label-medium--line-height: 1rem;
+  --text-label-medium--font-weight: 500;
+  --text-label-small: 0.6875rem;
+  --text-label-small--line-height: 1rem;
+  --text-label-small--font-weight: 500;
+
+  /* ----------------------------------------------------------- shape -- */
+  /* M3 Expressive corner scale. rounded-full is Tailwind's own. */
+  --radius-*: initial;
+  --radius-xs: 4px; /* extraSmall */
+  --radius-sm: 8px; /* small */
+  --radius-md: 12px; /* medium */
+  --radius-lg: 16px; /* large */
+  --radius-lg-plus: 20px; /* largeIncreased */
+  --radius-xl: 28px; /* extraLarge */
+  --radius-xl-plus: 32px; /* extraLargeIncreased */
+
+  /* ------------------------------------------------------- elevation -- */
+  /* Depth is tonal. Only floating elements get a shadow, at M3 level 3. */
+  --shadow-*: initial;
+  --shadow-float: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15);
+
+  /* ---------------------------------------------------------- motion -- */
+  /* The app animates with springs only. CSS has no spring, so each one is
+     sampled into linear() and paired with the time it takes to settle.
+     Springs with the same damping share a curve. Use as
+     `ease-spatial duration-(--duration-spatial-default)`. */
+  --ease-*: initial;
+  /* damping 0.6: the press morph and toggles overshoot a little */
+  --ease-spatial-fast: linear(0, 0.047, 0.163, 0.315, 0.478, 0.634, 0.771, 0.884, 0.97, 1.031, 1.07, 1.089, 1.095, 1.09, 1.079, 1.064, 1.049, 1.034, 1.021, 1.011, 1.003, 0.997, 0.993, 0.991, 0.991, 0.991, 0.993, 0.994, 0.995, 0.997, 1);
+  /* damping 0.8 */
+  --ease-spatial: linear(0, 0.031, 0.107, 0.209, 0.321, 0.433, 0.539, 0.635, 0.719, 0.789, 0.848, 0.894, 0.931, 0.959, 0.979, 0.994, 1.004, 1.01, 1.014, 1.015, 1.015, 1.014, 1.013, 1.011, 1.01, 1.008, 1.006, 1.005, 1.004, 1.003, 1);
+  /* damping 1.0: effects never overshoot */
+  --ease-effects: linear(0, 0.099, 0.286, 0.472, 0.625, 0.742, 0.826, 0.885, 0.924, 0.951, 0.968, 0.98, 0.987, 0.992, 0.995, 0.997, 1);
+}
+
+:root {
+  --duration-spatial-fast: 348ms; /* stiffness 800: press morph, toggle */
+  --duration-spatial-default: 412ms; /* 380: chip select, indicator slide */
+  --duration-spatial-slow: 567ms; /* 200: screen transitions, carousel */
+  --duration-effects-fast: 138ms; /* 3800: colour and opacity on press */
+  --duration-effects-default: 212ms; /* 1600: content fade-in */
+  --duration-effects-slow: 300ms; /* 800: skeleton to content */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ------------------------------------------------------------- base -- */
+@layer base {
+  html {
+    background: var(--md-surface);
+    color: var(--md-on-surface);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* web: keyboard focus is visible everywhere, in the action colour. */
+  :focus-visible {
+    outline: 2px solid var(--md-primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--md-secondary-container);
+    color: var(--md-on-secondary-container);
+  }
+}
+
+/*
+ * web: M3 state layers. A pointer has a hover state a touch screen does not.
+ * Put `state-layer` on an interactive element; the overlay takes the element's
+ * text colour, so it works on any fill.
+ */
+@utility state-layer {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-effects-fast) var(--ease-effects);
+  }
+  &:hover::after {
+    opacity: 0.08;
+  }
+  &:focus-visible::after,
+  &:active::after {
+    opacity: 0.1;
+  }
+}

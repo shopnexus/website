@@ -1,36 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShopNexus website
 
-## Getting Started
+The public storefront for ShopNexus, a C2C marketplace for used goods in Vietnam. It is an Astro site rendered on the server by the Node adapter, with React for the parts of a page that react to the buyer. Data comes from the Go server in the `server` repository.
 
-First, run the development server:
+The earlier Next.js site, built for the escrow model, is on the `escrow` branch.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Development
+
+```
+bun install
+cp .env.example .env
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`API_URL` points at the Go server and defaults to `http://localhost:8080/v1`. Astro reads it at runtime, so one image runs in the dev and prod stacks.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`bun run check` type-checks the project and `bun run build` writes the server to `dist/`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Design
 
-## Learn More
+`DESIGN.md` lists what the website takes from the Android app's design system and what it changes for the web. The tokens are in `src/styles/tokens.css`.
 
-To learn more about Next.js, take a look at the following resources:
+## Image
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The Dockerfile builds with Bun and runs `node dist/server/entry.mjs` on port 3000. A push to `main` builds `ghcr.io/shopnexus/website:main`, and a `v*` tag builds a semver tag; Argo CD Image Updater in the umbrella repository deploys them.
