@@ -175,6 +175,14 @@
 
   /* Tailwind's own steps are off; use the M3 names: text-body-medium, ... */
   --text-*: initial;
+  /* web: the two display steps the app leaves out, for page headlines. */
+  --text-display-large: 3.5625rem;
+  --text-display-large--line-height: 4rem;
+  --text-display-large--font-weight: 400;
+  --text-display-large--letter-spacing: -0.015625rem;
+  --text-display-medium: 2.8125rem;
+  --text-display-medium--line-height: 3.25rem;
+  --text-display-medium--font-weight: 400;
   --text-display-small: 2.25rem;
   --text-display-small--line-height: 2.75rem;
   --text-display-small--font-weight: 400;

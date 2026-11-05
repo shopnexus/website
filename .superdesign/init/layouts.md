@@ -1,0 +1,33 @@
+# Layouts
+
+## src/layouts/Layout.astro
+
+The only layout: the document shell with the global stylesheet.
+
+```astro
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body class="min-h-dvh bg-surface text-body-medium text-on-surface">
+    <slot />
+  </body>
+</html>
+```
+
+There is no header, navigation or footer yet.

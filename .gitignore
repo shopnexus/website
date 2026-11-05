@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# superdesign scratch files
+.superdesign/tmp/
+.superdesign/prototypes/map/*.pmtiles
+__pycache__/

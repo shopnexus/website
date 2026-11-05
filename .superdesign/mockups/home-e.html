@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trang chủ · E. Hỏi là thấy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: {'primary':'#005049','on-primary':'#FFFFFF','primary-container':'#066A61','on-primary-container':'#97E7DB','secondary':'#47645F','on-secondary':'#FFFFFF','secondary-container':'#C7E6E0','on-secondary-container':'#4B6863','tertiary':'#773115','on-tertiary':'#FFFFFF','tertiary-container':'#95482A','on-tertiary-container':'#FFCDBC','tertiary-fixed':'#FFDBCF','on-tertiary-fixed-variant':'#773215','error':'#BA1A1A','on-error':'#FFFFFF','error-container':'#FFDAD6','surface':'#F7FAF8','surface-container-lowest':'#FFFFFF','surface-container-low':'#F1F4F2','surface-container':'#EBEFED','surface-container-high':'#E6E9E7','surface-container-highest':'#E0E3E1','on-surface':'#181C1C','on-surface-variant':'#3E4947','outline':'#6E7977','outline-variant':'#BEC9C6','inverse-surface':'#2D3130','inverse-on-surface':'#EEF1EF','inverse-primary':'#85D5C9'},
+  fontSize: {'display-l':['57px',{lineHeight:'64px',fontWeight:'400',letterSpacing:'-0.25px'}],'display-m':['45px',{lineHeight:'52px',fontWeight:'400',letterSpacing:'0'}],'display-s':['36px',{lineHeight:'44px',fontWeight:'400',letterSpacing:'0'}],'headline-m':['28px',{lineHeight:'36px',fontWeight:'400',letterSpacing:'0'}],'headline-s':['24px',{lineHeight:'32px',fontWeight:'400',letterSpacing:'0'}],'title-l':['22px',{lineHeight:'28px',fontWeight:'400',letterSpacing:'0'}],'title-m':['16px',{lineHeight:'24px',fontWeight:'500',letterSpacing:'0.15px'}],'title-s':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'body-l':['16px',{lineHeight:'24px',fontWeight:'400',letterSpacing:'0.5px'}],'body-m':['14px',{lineHeight:'20px',fontWeight:'400',letterSpacing:'0.25px'}],'body-s':['12px',{lineHeight:'16px',fontWeight:'400',letterSpacing:'0.4px'}],'label-l':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'label-m':['12px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.5px'}],'label-s':['11px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.5px'}]},
+  borderRadius: {'xs':'4px','sm':'8px','md':'12px','lg':'16px','lg-plus':'20px','xl':'28px','xl-plus':'32px'},
+  fontFamily: { sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'] },
+  boxShadow: { float: '0 1px 3px 0 rgba(0,0,0,.30), 0 4px 8px 3px rgba(0,0,0,.15)' },
+} } };
+</script>
+<script src="https://code.iconify.design/iconify-icon/3.0.2/iconify-icon.min.js"></script>
+<style>
+  :root { --md-primary: #005049; --md-on-primary: #FFFFFF; --md-primary-container: #066A61; --md-on-primary-container: #97E7DB; --md-secondary: #47645F; --md-on-secondary: #FFFFFF; --md-secondary-container: #C7E6E0; --md-on-secondary-container: #4B6863; --md-tertiary: #773115; --md-on-tertiary: #FFFFFF; --md-tertiary-container: #95482A; --md-on-tertiary-container: #FFCDBC; --md-tertiary-fixed: #FFDBCF; --md-on-tertiary-fixed-variant: #773215; --md-error: #BA1A1A; --md-on-error: #FFFFFF; --md-error-container: #FFDAD6; --md-surface: #F7FAF8; --md-surface-container-lowest: #FFFFFF; --md-surface-container-low: #F1F4F2; --md-surface-container: #EBEFED; --md-surface-container-high: #E6E9E7; --md-surface-container-highest: #E0E3E1; --md-on-surface: #181C1C; --md-on-surface-variant: #3E4947; --md-outline: #6E7977; --md-outline-variant: #BEC9C6; --md-inverse-surface: #2D3130; --md-inverse-on-surface: #EEF1EF; --md-inverse-primary: #85D5C9;
+    --spatial: linear(0, 0.107, 0.321, 0.539, 0.719, 0.848, 0.931, 0.979, 1.004, 1.014, 1.015, 1.011, 1.006, 1.003, 1);
+    --effects: linear(0, 0.286, 0.625, 0.826, 0.924, 0.968, 0.987, 0.995, 1); }
+  html, body { background: var(--md-surface); }
+  .state { position: relative; isolation: isolate; }
+  .state::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0;
+    pointer-events: none; transition: opacity 140ms var(--effects); }
+  .state:hover::after { opacity: .08; }
+  .state:active::after { opacity: .1; }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  .caret { display: inline-block; width: 2px; height: 28px; margin-left: 2px; vertical-align: -6px; background: var(--md-primary); }
+  .row-hover:hover { background: var(--md-surface-container-low); }
+
+</style>
+</head>
+<body>
+<div class="min-h-screen bg-surface font-sans text-on-surface">
+  <main>
+    <section class="relative overflow-hidden">
+      <div class="fixed inset-x-0 top-0 z-30"><header class="sticky top-4 z-30 mx-auto mt-4 max-w-[1328px] px-6">
+  <div class="flex h-16 items-center gap-2 rounded-full bg-surface-container-lowest pl-3 pr-2 shadow-float">
+    <a id="brand-7" href="#home" class="flex items-center gap-2 pr-4"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium">ShopNexus</span></a>
+    <nav class="flex items-center gap-1"><a id="nav-0-3" href="#nav-0" class="state flex h-10 items-center rounded-full px-4 text-label-l bg-secondary-container text-on-secondary-container">Khám phá</a><a id="nav-1-4" href="#nav-1" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Danh mục</a><a id="nav-2-5" href="#nav-2" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Bản đồ</a><a id="nav-3-6" href="#nav-3" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Cách mua</a></nav>
+    <span class="flex-1"></span>
+    <button id="quick-search" type="button" class="quick quick-hidden state flex h-10 items-center gap-2 whitespace-nowrap rounded-full bg-surface-container-high px-4 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:search-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Tìm nhanh<span class="ml-6 rounded-xs bg-surface-container-lowest px-1.5 text-label-s">/</span></button>
+    <a id="messages-8" href="#messages" class="state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:chat-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon><span class="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-label-s text-on-error">3</span></a>
+    <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-primary pl-4 pr-5 text-label-l text-on-primary"><iconify-icon icon="material-symbols:add-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Đăng tin</button>
+    <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=96&h=96&q=80&auto=format&fit=crop" alt="Tài khoản" class="ml-1 h-11 w-11 rounded-full object-cover">
+  </div>
+</header><style>
+  .quick { max-width: 240px; transition: max-width 412ms var(--spatial), opacity 212ms var(--effects), padding 412ms var(--spatial); overflow: hidden; }
+  .quick-hidden { max-width: 0; opacity: 0; padding-left: 0; padding-right: 0; pointer-events: none; }
+</style>
+<script>
+// Pages with a big search field hide "Tìm nhanh" until that field scrolls under the header.
+addEventListener('DOMContentLoaded', () => {
+  const big = document.querySelector('[data-big-search]'), quick = document.getElementById('quick-search');
+  if (!big || !quick) return;
+  new IntersectionObserver(([e]) => quick.classList.toggle('quick-hidden', e.isIntersecting || e.boundingClientRect.top > 0),
+    { rootMargin: '-96px 0px 0px 0px' }).observe(big);
+});
+</script></div>
+      <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=2400&h=1400&q=80&auto=format&fit=crop" alt="" class="absolute inset-0 h-full w-full object-cover">
+      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+      <div class="relative mx-auto max-w-[1328px] px-6 pb-14 pt-[176px]">
+        <div class="mx-auto max-w-[920px]">
+          <p class="flex items-center justify-center gap-2 text-label-l text-white/85"><iconify-icon icon="material-symbols:near-me-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Thủ Đức, TP.HCM · 2.418 món đang bán quanh bạn</p>
+          <h1 class="mt-4 text-center text-display-l text-white">Bạn đang tìm gì?</h1>
+          <p class="mt-3 text-center text-body-l text-white/85">Gõ như đang nhắn cho người bạn rành đồ cũ, hoặc chụp một tấm ảnh.</p>
+          <div data-big-search class="mt-10 flex h-[76px] items-center gap-3 rounded-full bg-surface-container-lowest pl-7 pr-2.5 shadow-float">
+            <iconify-icon icon="material-symbols:search-rounded" width="28" height="28" class="block shrink-0 text-on-surface-variant"></iconify-icon>
+            <p class="min-w-0 flex-1 truncate text-title-l text-on-surface">laptop cũ cho sinh viên thiết kế, dưới 8 triệu, gần Thủ Đức<span class="caret"></span></p>
+            <button type="button" class="state grid h-12 w-12 place-items-center rounded-full text-on-surface-variant" aria-label="Nói"><iconify-icon icon="material-symbols:mic-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon></button>
+            <button type="button" class="state grid h-12 w-12 place-items-center rounded-full text-on-surface-variant" aria-label="Tìm bằng ảnh"><iconify-icon icon="material-symbols:photo-camera-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon></button>
+            <button type="button" class="state h-14 rounded-full bg-primary px-8 text-label-l text-on-primary">Tìm</button>
+          </div>
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-2"><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Laptop<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Dưới 8 triệu<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Gần Thủ Đức · 5 km<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Màn hình chuẩn màu<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest pl-4 pr-2 text-label-l text-on-surface-variant">Tình trạng<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button><button type="button" class="state flex h-9 items-center gap-1 rounded-full border border-dashed border-outline bg-surface-container-lowest px-3 text-label-l text-on-surface-variant"><iconify-icon icon="material-symbols:add-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Thêm điều kiện</button></div>
+          <div class="mt-8 flex items-center justify-center gap-1 border-t border-white/20 pt-5">
+            <span class="mr-2 whitespace-nowrap text-label-l text-white/80">Gần đây</span><a id="recent-0-1" href="#recent-0" class="state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-black/30 px-3 text-label-l text-white"><iconify-icon icon="material-symbols:history-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>iPhone 13 pin trên 85%</a><a id="recent-1-2" href="#recent-1" class="state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-black/30 px-3 text-label-l text-white"><iconify-icon icon="material-symbols:history-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>xe đạp cho bé 8 tuổi</a>
+            <span class="mx-3 h-5 w-px bg-white/25"></span>
+            <a id="alert-a7-9" href="#alert-a7" class="state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-container-lowest px-3 text-label-l text-on-surface"><iconify-icon icon="material-symbols:notifications-active-outline-rounded" width="16" height="16" class="block shrink-0 text-primary"></iconify-icon>Sony A7 III dưới 25 triệu<span class="ml-1 whitespace-nowrap rounded-full bg-primary px-1.5 text-label-s text-on-primary">2 mới</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto mt-10 grid max-w-[1328px] grid-cols-[1fr_400px] gap-10 px-6">
+      <div>
+        <div class="flex items-center justify-between">
+          <p class="text-title-m">38 tin khớp <span class="text-body-m text-on-surface-variant">· trong 5 km quanh Thủ Đức</span></p>
+          <div class="flex items-center gap-2">
+            <a id="save-search-10" href="#save-search" class="state flex h-10 items-center gap-2 rounded-full border border-outline-variant px-4 text-label-l text-primary"><iconify-icon icon="material-symbols:notifications-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Báo khi có tin mới</a>
+            <button type="button" class="state flex h-10 items-center gap-1 rounded-full border border-outline-variant pl-4 pr-2 text-label-l text-on-surface-variant">Phù hợp nhất<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button>
+          </div>
+        </div>
+        <div class="mt-4 flex flex-col gap-1"><article class="row-hover flex gap-5 rounded-lg p-3 bg-surface-container-low">
+  <img src="https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=320&h=240&q=80&auto=format&fit=crop" alt="Dell XPS 13 9310 i7, 16 GB, màn 100% sRGB" class="h-[120px] w-[160px] shrink-0 rounded-md object-cover">
+  <div class="min-w-0 flex-1">
+    <div class="flex items-start gap-3">
+      <h3 class="min-w-0 flex-1 text-title-m text-on-surface">Dell XPS 13 9310 i7, 16 GB, màn 100% sRGB</h3>
+      <p class="whitespace-nowrap text-title-l text-on-surface">7.400.000<span class="text-body-m text-on-surface-variant"> ₫</span></p>
+    </div>
+    <p class="mt-1 text-body-m text-on-surface-variant">Như mới · Thủ Đức · 1,8 km<span class="mx-1.5">·</span><iconify-icon icon="material-symbols:star-rounded" width="14" height="14" class="block shrink-0 inline-block align-[-2px]"></iconify-icon> 4,9</p>
+    <div class="mt-2.5 flex flex-wrap gap-1.5"><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">16 GB RAM</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Màn 100% sRGB</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Pin 89%</span></div>
+    <p class="mt-1 flex items-center gap-1 text-label-m text-tertiary"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon>Thấp hơn mức giữa 6%</p>
+  </div>
+  <button type="button" class="state -mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+</article><article class="row-hover flex gap-5 rounded-lg p-3 ">
+  <img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=320&h=240&q=80&auto=format&fit=crop" alt="MacBook Air M1 8/256GB, màn P3, sạc 92 lần" class="h-[120px] w-[160px] shrink-0 rounded-md object-cover">
+  <div class="min-w-0 flex-1">
+    <div class="flex items-start gap-3">
+      <h3 class="min-w-0 flex-1 text-title-m text-on-surface">MacBook Air M1 8/256GB, màn P3, sạc 92 lần</h3>
+      <p class="whitespace-nowrap text-title-l text-on-surface">7.900.000<span class="text-body-m text-on-surface-variant"> ₫</span></p>
+    </div>
+    <p class="mt-1 text-body-m text-on-surface-variant">Như mới · Thủ Đức · 3,2 km<span class="mx-1.5">·</span><iconify-icon icon="material-symbols:star-rounded" width="14" height="14" class="block shrink-0 inline-block align-[-2px]"></iconify-icon> 4,8</p>
+    <div class="mt-2.5 flex flex-wrap gap-1.5"><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Màn P3</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Pin 92%</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">8 GB RAM</span></div>
+    
+  </div>
+  <button type="button" class="state -mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-full text-primary" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+</article><article class="row-hover flex gap-5 rounded-lg p-3 ">
+  <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=320&h=240&q=80&auto=format&fit=crop" alt="ThinkPad X1 Carbon Gen 8, i5, 16 GB" class="h-[120px] w-[160px] shrink-0 rounded-md object-cover">
+  <div class="min-w-0 flex-1">
+    <div class="flex items-start gap-3">
+      <h3 class="min-w-0 flex-1 text-title-m text-on-surface">ThinkPad X1 Carbon Gen 8, i5, 16 GB</h3>
+      <p class="whitespace-nowrap text-title-l text-on-surface">6.800.000<span class="text-body-m text-on-surface-variant"> ₫</span></p>
+    </div>
+    <p class="mt-1 text-body-m text-on-surface-variant">Đã dùng · Q.9 cũ · 2,6 km<span class="mx-1.5">·</span><iconify-icon icon="material-symbols:star-rounded" width="14" height="14" class="block shrink-0 inline-block align-[-2px]"></iconify-icon> 4,7</p>
+    <div class="mt-2.5 flex flex-wrap gap-1.5"><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">16 GB RAM</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Màn 100% sRGB</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Pin 81%</span></div>
+    <p class="mt-1 flex items-center gap-1 text-label-m text-tertiary"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon>Thấp hơn mức giữa 14%</p>
+  </div>
+  <button type="button" class="state -mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+</article><article class="row-hover flex gap-5 rounded-lg p-3 ">
+  <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=320&h=240&q=80&auto=format&fit=crop" alt="MacBook Pro 13 2019 i5, 8 GB, Touch Bar" class="h-[120px] w-[160px] shrink-0 rounded-md object-cover">
+  <div class="min-w-0 flex-1">
+    <div class="flex items-start gap-3">
+      <h3 class="min-w-0 flex-1 text-title-m text-on-surface">MacBook Pro 13 2019 i5, 8 GB, Touch Bar</h3>
+      <p class="whitespace-nowrap text-title-l text-on-surface">7.950.000<span class="text-body-m text-on-surface-variant"> ₫</span></p>
+    </div>
+    <p class="mt-1 text-body-m text-on-surface-variant">Đã dùng · Bình Thạnh · 4,1 km<span class="mx-1.5">·</span><iconify-icon icon="material-symbols:star-rounded" width="14" height="14" class="block shrink-0 inline-block align-[-2px]"></iconify-icon> 4,6</p>
+    <div class="mt-2.5 flex flex-wrap gap-1.5"><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Màn P3</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Pin 84%</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">8 GB RAM</span></div>
+    
+  </div>
+  <button type="button" class="state -mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+</article><article class="row-hover flex gap-5 rounded-lg p-3 ">
+  <img src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=320&h=240&q=80&auto=format&fit=crop" alt="HP Envy 13, i5 thế hệ 10, màn cảm ứng" class="h-[120px] w-[160px] shrink-0 rounded-md object-cover">
+  <div class="min-w-0 flex-1">
+    <div class="flex items-start gap-3">
+      <h3 class="min-w-0 flex-1 text-title-m text-on-surface">HP Envy 13, i5 thế hệ 10, màn cảm ứng</h3>
+      <p class="whitespace-nowrap text-title-l text-on-surface">5.900.000<span class="text-body-m text-on-surface-variant"> ₫</span></p>
+    </div>
+    <p class="mt-1 text-body-m text-on-surface-variant">Đã dùng · Thủ Đức · 1,1 km<span class="mx-1.5">·</span><iconify-icon icon="material-symbols:star-rounded" width="14" height="14" class="block shrink-0 inline-block align-[-2px]"></iconify-icon> 4,5</p>
+    <div class="mt-2.5 flex flex-wrap gap-1.5"><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">8 GB RAM</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Màn 72% NTSC</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Pin 78%</span></div>
+    
+  </div>
+  <button type="button" class="state -mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+</article><article class="row-hover flex gap-5 rounded-lg p-3 ">
+  <img src="https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=320&h=240&q=80&auto=format&fit=crop" alt="ASUS ZenBook 14 OLED, Ryzen 5, 16 GB" class="h-[120px] w-[160px] shrink-0 rounded-md object-cover">
+  <div class="min-w-0 flex-1">
+    <div class="flex items-start gap-3">
+      <h3 class="min-w-0 flex-1 text-title-m text-on-surface">ASUS ZenBook 14 OLED, Ryzen 5, 16 GB</h3>
+      <p class="whitespace-nowrap text-title-l text-on-surface">7.600.000<span class="text-body-m text-on-surface-variant"> ₫</span></p>
+    </div>
+    <p class="mt-1 text-body-m text-on-surface-variant">Như mới · Q.2 cũ · 5,4 km<span class="mx-1.5">·</span><iconify-icon icon="material-symbols:star-rounded" width="14" height="14" class="block shrink-0 inline-block align-[-2px]"></iconify-icon> 4,9</p>
+    <div class="mt-2.5 flex flex-wrap gap-1.5"><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">16 GB RAM</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Màn OLED 100% DCI-P3</span><span class="rounded-sm bg-surface-container px-2 py-0.5 text-label-m text-on-surface-variant">Pin 95%</span></div>
+    
+  </div>
+  <button type="button" class="state -mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+</article></div>
+        <button type="button" class="state mt-4 h-12 w-full rounded-full bg-surface-container text-label-l text-on-surface">Xem thêm 32 tin</button>
+      </div>
+      <aside class="self-start">
+        <div class="rounded-xl bg-surface-container-low p-6">
+          <p class="flex items-center gap-2 text-title-m text-on-surface"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="20" height="20" class="block shrink-0 text-primary"></iconify-icon>Cách đọc câu hỏi của bạn</p>
+          <ul class="mt-4 flex flex-col gap-4"><li><p class="text-title-s text-on-surface">Màn hình chuẩn màu</p><p class="mt-0.5 text-body-m text-on-surface-variant">Chỉ giữ máy có màn từ 100% sRGB hoặc P3 trở lên, hợp làm đồ họa.</p></li><li><p class="text-title-s text-on-surface">Dưới 8 triệu</p><p class="mt-0.5 text-body-m text-on-surface-variant">38 tin khớp, mức giữa 7,3 triệu cho cấu hình này.</p></li><li><p class="text-title-s text-on-surface">Cho sinh viên thiết kế</p><p class="mt-0.5 text-body-m text-on-surface-variant">Ưu tiên RAM 16 GB, vì Photoshop và Figma mở cùng lúc dùng nhiều bộ nhớ.</p></li></ul>
+          <div class="mt-6"><div class="relative overflow-hidden rounded-lg" style="height:240px"><svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 h-full w-full" aria-hidden="true"><rect width="400" height="240" fill="#F1F4F2"/><path d="M0 84 H400 M110 0 V240 M330 0 V240 M0 166 H400" stroke="#FFFFFF" stroke-width="8"/><rect x="16" y="16" width="90" height="60" rx="8" fill="#E6ECEA"/><rect x="120" y="16" width="80" height="60" rx="8" fill="#E6ECEA"/><rect x="214" y="16" width="110" height="60" rx="8" fill="#E6ECEA"/><rect x="338" y="16" width="46" height="110" rx="8" fill="#E6ECEA"/><rect x="16" y="90" width="90" height="70" rx="8" fill="#E6ECEA"/><rect x="120" y="90" width="80" height="70" rx="8" fill="#E6ECEA"/><rect x="214" y="90" width="110" height="70" rx="8" fill="#E6ECEA"/><rect x="16" y="174" width="140" height="50" rx="8" fill="#E6ECEA"/><rect x="170" y="174" width="154" height="50" rx="8" fill="#E6ECEA"/></svg><span class="absolute -translate-x-1/2 -translate-y-full rounded-full px-2.5 py-1 text-label-m shadow-float bg-primary text-on-primary" style="left:26%;top:36%">7,4 tr</span><span class="absolute -translate-x-1/2 -translate-y-full rounded-full px-2.5 py-1 text-label-m shadow-float bg-surface-container-lowest text-on-surface" style="left:52%;top:30%">7,9 tr</span><span class="absolute -translate-x-1/2 -translate-y-full rounded-full px-2.5 py-1 text-label-m shadow-float bg-surface-container-lowest text-on-surface" style="left:70%;top:58%">6,8 tr</span><span class="absolute -translate-x-1/2 -translate-y-full rounded-full px-2.5 py-1 text-label-m shadow-float bg-surface-container-lowest text-on-surface" style="left:44%;top:80%">5,9 tr</span><span class="absolute -translate-x-1/2 -translate-y-full rounded-full px-2.5 py-1 text-label-m shadow-float bg-surface-container-lowest text-on-surface" style="left:84%;top:28%">7,6 tr</span><span class="absolute h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-surface-container-lowest bg-primary ring-8 ring-primary/15" style="left:30%;top:64%"></span></div></div>
+          <p class="mt-5 text-label-l text-on-surface-variant">Hỏi tiếp</p>
+          <div class="mt-2.5 flex flex-wrap gap-2"><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full border border-outline-variant px-3.5 text-label-l text-on-surface"><iconify-icon icon="material-symbols:add-rounded" width="16" height="16" class="block shrink-0 text-on-surface-variant"></iconify-icon>Chỉ RAM 16 GB</button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full border border-outline-variant px-3.5 text-label-l text-on-surface"><iconify-icon icon="material-symbols:add-rounded" width="16" height="16" class="block shrink-0 text-on-surface-variant"></iconify-icon>Thêm MacBook M1</button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full border border-outline-variant px-3.5 text-label-l text-on-surface"><iconify-icon icon="material-symbols:add-rounded" width="16" height="16" class="block shrink-0 text-on-surface-variant"></iconify-icon>Trong 3 km</button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full border border-outline-variant px-3.5 text-label-l text-on-surface"><iconify-icon icon="material-symbols:add-rounded" width="16" height="16" class="block shrink-0 text-on-surface-variant"></iconify-icon>Pin trên 85%</button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full border border-outline-variant px-3.5 text-label-l text-on-surface"><iconify-icon icon="material-symbols:add-rounded" width="16" height="16" class="block shrink-0 text-on-surface-variant"></iconify-icon>Có thể trả giá</button></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+  <footer class="mx-auto mt-24 max-w-[1328px] px-6 pb-6">
+  <div class="relative overflow-hidden rounded-xl bg-inverse-surface px-12 pb-10 pt-14">
+    <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
+      <div>
+        <div class="flex items-center gap-2"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium text-inverse-on-surface">ShopNexus</span></div>
+        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Giá tốt, gần bạn, chốt nhanh. ShopNexus không giữ tiền và không nhận cọc.</p>
+      </div>
+      <div><p class="text-title-s text-inverse-on-surface">Khám phá</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Khá-0-11" href="#f-Khá-0" class="hover:text-inverse-on-surface">Gần bạn</a></li><li><a id="f-Khá-1-12" href="#f-Khá-1" class="hover:text-inverse-on-surface">Bản đồ</a></li><li><a id="f-Khá-2-13" href="#f-Khá-2" class="hover:text-inverse-on-surface">Danh mục</a></li><li><a id="f-Khá-3-14" href="#f-Khá-3" class="hover:text-inverse-on-surface">Vừa đăng</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Mua và bán</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Mua-0-15" href="#f-Mua-0" class="hover:text-inverse-on-surface">Cách mua bằng COD</a></li><li><a id="f-Mua-1-16" href="#f-Mua-1" class="hover:text-inverse-on-surface">Cách đăng tin</a></li><li><a id="f-Mua-2-17" href="#f-Mua-2" class="hover:text-inverse-on-surface">Gói người bán</a></li><li><a id="f-Mua-3-18" href="#f-Mua-3" class="hover:text-inverse-on-surface">Điểm uy tín</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Hỗ trợ</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Hỗ -0-19" href="#f-Hỗ -0" class="hover:text-inverse-on-surface">Trung tâm trợ giúp</a></li><li><a id="f-Hỗ -1-20" href="#f-Hỗ -1" class="hover:text-inverse-on-surface">Báo cáo vi phạm</a></li><li><a id="f-Hỗ -2-21" href="#f-Hỗ -2" class="hover:text-inverse-on-surface">Quy định đăng tin</a></li><li><a id="f-Hỗ -3-22" href="#f-Hỗ -3" class="hover:text-inverse-on-surface">Điều khoản</a></li></ul></div>
+    </div>
+    <div class="mt-12 flex justify-between border-t border-inverse-on-surface/15 pt-6 text-body-s text-inverse-on-surface/60"><span>© 2026 ShopNexus</span><span>TP.HCM · Hà Nội · Đà Nẵng</span></div>
+  </div>
+</footer>
+</div>
+</body>
+</html>

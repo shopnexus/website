@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bản đồ · thử MapLibre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: {'primary':'#005049','on-primary':'#FFFFFF','primary-container':'#066A61','on-primary-container':'#97E7DB','secondary':'#47645F','on-secondary':'#FFFFFF','secondary-container':'#C7E6E0','on-secondary-container':'#4B6863','tertiary':'#773115','on-tertiary':'#FFFFFF','tertiary-container':'#95482A','on-tertiary-container':'#FFCDBC','tertiary-fixed':'#FFDBCF','on-tertiary-fixed-variant':'#773215','error':'#BA1A1A','on-error':'#FFFFFF','error-container':'#FFDAD6','surface':'#F7FAF8','surface-container-lowest':'#FFFFFF','surface-container-low':'#F1F4F2','surface-container':'#EBEFED','surface-container-high':'#E6E9E7','surface-container-highest':'#E0E3E1','on-surface':'#181C1C','on-surface-variant':'#3E4947','outline':'#6E7977','outline-variant':'#BEC9C6','inverse-surface':'#2D3130','inverse-on-surface':'#EEF1EF','inverse-primary':'#85D5C9'},
+  fontSize: {'display-l':['57px',{lineHeight:'64px',fontWeight:'400',letterSpacing:'-0.25px'}],'display-m':['45px',{lineHeight:'52px',fontWeight:'400',letterSpacing:'0'}],'display-s':['36px',{lineHeight:'44px',fontWeight:'400',letterSpacing:'0'}],'headline-m':['28px',{lineHeight:'36px',fontWeight:'400',letterSpacing:'0'}],'headline-s':['24px',{lineHeight:'32px',fontWeight:'400',letterSpacing:'0'}],'title-l':['22px',{lineHeight:'28px',fontWeight:'400',letterSpacing:'0'}],'title-m':['16px',{lineHeight:'24px',fontWeight:'500',letterSpacing:'0.15px'}],'title-s':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'body-l':['16px',{lineHeight:'24px',fontWeight:'400',letterSpacing:'0.5px'}],'body-m':['14px',{lineHeight:'20px',fontWeight:'400',letterSpacing:'0.25px'}],'body-s':['12px',{lineHeight:'16px',fontWeight:'400',letterSpacing:'0.4px'}],'label-l':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'label-m':['12px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.5px'}],'label-s':['11px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.5px'}]},
+  borderRadius: {'xs':'4px','sm':'8px','md':'12px','lg':'16px','lg-plus':'20px','xl':'28px','xl-plus':'32px'},
+  fontFamily: { sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'] },
+  boxShadow: { float: '0 1px 3px 0 rgba(0,0,0,.30), 0 4px 8px 3px rgba(0,0,0,.15)' },
+} } };
+</script>
+<script src="https://code.iconify.design/iconify-icon/3.0.2/iconify-icon.min.js"></script>
+<style>
+  :root { --md-primary: #005049; --md-on-primary: #FFFFFF; --md-primary-container: #066A61; --md-on-primary-container: #97E7DB; --md-secondary: #47645F; --md-on-secondary: #FFFFFF; --md-secondary-container: #C7E6E0; --md-on-secondary-container: #4B6863; --md-tertiary: #773115; --md-on-tertiary: #FFFFFF; --md-tertiary-container: #95482A; --md-on-tertiary-container: #FFCDBC; --md-tertiary-fixed: #FFDBCF; --md-on-tertiary-fixed-variant: #773215; --md-error: #BA1A1A; --md-on-error: #FFFFFF; --md-error-container: #FFDAD6; --md-surface: #F7FAF8; --md-surface-container-lowest: #FFFFFF; --md-surface-container-low: #F1F4F2; --md-surface-container: #EBEFED; --md-surface-container-high: #E6E9E7; --md-surface-container-highest: #E0E3E1; --md-on-surface: #181C1C; --md-on-surface-variant: #3E4947; --md-outline: #6E7977; --md-outline-variant: #BEC9C6; --md-inverse-surface: #2D3130; --md-inverse-on-surface: #EEF1EF; --md-inverse-primary: #85D5C9;
+    --spatial: linear(0, 0.107, 0.321, 0.539, 0.719, 0.848, 0.931, 0.979, 1.004, 1.014, 1.015, 1.011, 1.006, 1.003, 1);
+    --effects: linear(0, 0.286, 0.625, 0.826, 0.924, 0.968, 0.987, 0.995, 1); }
+  html, body { background: var(--md-surface); }
+  .state { position: relative; isolation: isolate; }
+  .state::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0;
+    pointer-events: none; transition: opacity 140ms var(--effects); }
+  .state:hover::after { opacity: .08; }
+  .state:active::after { opacity: .1; }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  html, body { height: 100%; }
+  .maplibregl-ctrl-attrib { font-family: "Be Vietnam Pro", sans-serif; font-size: 11px; }
+  .pin { transform: translate(-50%, -100%); cursor: pointer; }
+  .pin span { display: block; white-space: nowrap; border-radius: 9999px; padding: 6px 12px; font: 500 14px/20px "Be Vietnam Pro";
+    background: var(--md-surface-container-lowest); color: var(--md-on-surface); box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15); }
+  .pin.on span { background: var(--md-primary); color: var(--md-on-primary); }
+  .pin i { display: block; width: 8px; height: 8px; margin: -4px auto 0; transform: rotate(45deg); background: inherit; }
+  .pin span + i { background: var(--md-surface-container-lowest); } .pin.on span + i { background: var(--md-primary); }
+  .cluster { display: grid; place-items: center; border-radius: 9999px; cursor: pointer; font: 500 14px "Be Vietnam Pro";
+    background: var(--md-secondary-container); color: var(--md-on-secondary-container); border: 3px solid var(--md-surface-container-lowest);
+    box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15); }
+  .me { width: 18px; height: 18px; border-radius: 9999px; background: var(--md-primary); border: 3px solid #fff; box-shadow: 0 0 0 10px rgb(0 80 73 / .18); }
+
+</style>
+</head>
+<body>
+<div class="flex h-screen flex-col bg-surface font-sans text-on-surface">
+  <header class="sticky top-4 z-30 mx-auto mt-4 max-w-[1328px] px-6">
+  <div class="flex h-16 items-center gap-2 rounded-full bg-surface-container-lowest pl-3 pr-2 shadow-float">
+    <a id="brand-5" href="#home" class="flex items-center gap-2 pr-4"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium">ShopNexus</span></a>
+    <nav class="flex items-center gap-1"><a id="nav-0-1" href="#nav-0" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Khám phá</a><a id="nav-1-2" href="#nav-1" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Danh mục</a><a id="nav-2-3" href="#nav-2" class="state flex h-10 items-center rounded-full px-4 text-label-l bg-secondary-container text-on-secondary-container">Bản đồ</a><a id="nav-3-4" href="#nav-3" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Cách mua</a></nav>
+    <span class="flex-1"></span>
+    <button id="quick-search" type="button" class="quick  state flex h-10 items-center gap-2 whitespace-nowrap rounded-full bg-surface-container-high px-4 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:search-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Tìm nhanh<span class="ml-6 rounded-xs bg-surface-container-lowest px-1.5 text-label-s">/</span></button>
+    <a id="messages-6" href="#messages" class="state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:chat-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon><span class="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-label-s text-on-error">3</span></a>
+    <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-primary pl-4 pr-5 text-label-l text-on-primary"><iconify-icon icon="material-symbols:add-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Đăng tin</button>
+    <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=96&h=96&q=80&auto=format&fit=crop" alt="Tài khoản" class="ml-1 h-11 w-11 rounded-full object-cover">
+  </div>
+</header>
+  <main class="mx-auto mt-4 grid w-full max-w-[1328px] grid-cols-[1fr_380px] grid-rows-[minmax(0,1fr)] gap-4 px-6 pb-6" style="height: calc(100vh - 100px)">
+    <div class="relative overflow-hidden rounded-xl">
+      <div id="map" class="h-full w-full"></div>
+      <div class="absolute left-4 top-4 flex gap-2">
+        <button type="button" data-r="1" class="radius state h-10 rounded-full px-4 text-label-l shadow-float bg-surface-container-lowest text-on-surface">1 km</button><button type="button" data-r="3" class="radius state h-10 rounded-full px-4 text-label-l shadow-float bg-primary text-on-primary">3 km</button><button type="button" data-r="5" class="radius state h-10 rounded-full px-4 text-label-l shadow-float bg-surface-container-lowest text-on-surface">5 km</button><button type="button" data-r="10" class="radius state h-10 rounded-full px-4 text-label-l shadow-float bg-surface-container-lowest text-on-surface">10 km</button>
+      </div>
+      <p class="absolute bottom-3 left-4 rounded-full bg-surface-container-lowest/90 px-3 py-1.5 text-label-m text-on-surface-variant"><iconify-icon icon="material-symbols:shield-person-outline-rounded" width="14" height="14" class="block shrink-0 inline-block align-[-3px]"></iconify-icon> Vị trí người bán được làm tròn khoảng 500 m</p>
+    </div>
+    <aside class="flex min-h-0 flex-col rounded-xl bg-surface-container-low p-5">
+      <div class="flex items-baseline justify-between"><h1 class="text-title-l"><span id="count">0</span> món trong khung</h1><span class="text-body-s text-on-surface-variant">kéo để xem thêm</span></div>
+      <ul id="list" class="mt-3 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-1"></ul>
+    </aside>
+  </main>
+</div>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/pmtiles@4.5.0/dist/pmtiles.js"></script>
+<script src="https://unpkg.com/@protomaps/basemaps@5.7.2/dist/basemaps.js"></script>
+<script>
+const DATA = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.705, 10.8]}, "properties": {"id": 0, "title": "iPhone X 64GB, pin 86%, máy zin chưa sửa", "price": "3.900.000 ₫", "short": "3,9 tr", "cond": "Như mới", "area": "Bình Thạnh", "photo": "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.705, 10.765]}, "properties": {"id": 1, "title": "MacBook Air M1 13 inch 8/256GB, sạc 92 lần", "price": "11,5 tr ₫", "short": "11,5 tr", "cond": "Như mới", "area": "Q.1", "photo": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.685, 10.78]}, "properties": {"id": 2, "title": "Xe đạp fixed gear khung thép, vừa thay lốp", "price": "2.300.000 ₫", "short": "2,3 tr", "cond": "Đã dùng", "area": "Q.3", "photo": "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.67, 10.8]}, "properties": {"id": 3, "title": "Máy ảnh Polaroid OneStep 2, tặng 1 hộp film", "price": "1.750.000 ₫", "short": "1,8 tr", "cond": "Như mới", "area": "Phú Nhuận", "photo": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.655, 10.835]}, "properties": {"id": 4, "title": "Tai nghe chống ồn Sony WH-1000XM4, fullbox", "price": "3.200.000 ₫", "short": "3,2 tr", "cond": "Như mới", "area": "Gò Vấp", "photo": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.64, 10.795]}, "properties": {"id": 5, "title": "Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp", "price": "4.800.000 ₫", "short": "4,8 tr", "cond": "Đã dùng", "area": "Tân Bình", "photo": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.755, 10.825]}, "properties": {"id": 6, "title": "Giày Nike Free RN size 42, mới nguyên hộp", "price": "1.290.000 ₫", "short": "1,3 tr", "cond": "Mới", "area": "Thủ Đức", "photo": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.73, 10.78]}, "properties": {"id": 7, "title": "iPhone 15 128GB, bảo hành Apple đến 03/2027", "price": "15,9 tr ₫", "short": "15,9 tr", "cond": "Như mới", "area": "Q.2 cũ", "photo": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.725, 10.745]}, "properties": {"id": 8, "title": "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "price": "26,5 tr ₫", "short": "26,5 tr", "cond": "Đã dùng", "area": "Q.7", "photo": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.67, 10.77]}, "properties": {"id": 9, "title": "Ghế bành bọc vải vàng mù tạt, khung gỗ sồi", "price": "1.600.000 ₫", "short": "1,6 tr", "cond": "Đã dùng", "area": "Q.10", "photo": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.72, 10.795]}, "properties": {"id": 10, "title": "Ghế xoay vải be chân gỗ, ngồi êm", "price": "950.000 ₫", "short": "950 k", "cond": "Như mới", "area": "Bình Thạnh", "photo": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.71, 10.77]}, "properties": {"id": 11, "title": "Máy xay sinh tố 2L, còn bảo hành 6 tháng", "price": "450.000 ₫", "short": "450 k", "cond": "Như mới", "area": "Q.1", "photo": "https://images.unsplash.com/photo-1585515320310-259814833e62?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.675, 10.775]}, "properties": {"id": 12, "title": "iPhone X 64GB, pin 86%, máy zin chưa sửa", "price": "3.900.000 ₫", "short": "3,9 tr", "cond": "Như mới", "area": "Q.3", "photo": "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.675, 10.805]}, "properties": {"id": 13, "title": "MacBook Air M1 13 inch 8/256GB, sạc 92 lần", "price": "11,5 tr ₫", "short": "11,5 tr", "cond": "Như mới", "area": "Phú Nhuận", "photo": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.66, 10.835]}, "properties": {"id": 14, "title": "Xe đạp fixed gear khung thép, vừa thay lốp", "price": "2.300.000 ₫", "short": "2,3 tr", "cond": "Đã dùng", "area": "Gò Vấp", "photo": "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.655, 10.8]}, "properties": {"id": 15, "title": "Máy ảnh Polaroid OneStep 2, tặng 1 hộp film", "price": "1.750.000 ₫", "short": "1,8 tr", "cond": "Như mới", "area": "Tân Bình", "photo": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.755, 10.81]}, "properties": {"id": 16, "title": "Tai nghe chống ồn Sony WH-1000XM4, fullbox", "price": "3.200.000 ₫", "short": "3,2 tr", "cond": "Như mới", "area": "Thủ Đức", "photo": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.725, 10.78]}, "properties": {"id": 17, "title": "Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp", "price": "4.800.000 ₫", "short": "4,8 tr", "cond": "Đã dùng", "area": "Q.2 cũ", "photo": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.725, 10.735]}, "properties": {"id": 18, "title": "Giày Nike Free RN size 42, mới nguyên hộp", "price": "1.290.000 ₫", "short": "1,3 tr", "cond": "Mới", "area": "Q.7", "photo": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.665, 10.775]}, "properties": {"id": 19, "title": "iPhone 15 128GB, bảo hành Apple đến 03/2027", "price": "15,9 tr ₫", "short": "15,9 tr", "cond": "Như mới", "area": "Q.10", "photo": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.71, 10.8]}, "properties": {"id": 20, "title": "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "price": "26,5 tr ₫", "short": "26,5 tr", "cond": "Đã dùng", "area": "Bình Thạnh", "photo": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.705, 10.78]}, "properties": {"id": 21, "title": "Ghế bành bọc vải vàng mù tạt, khung gỗ sồi", "price": "1.600.000 ₫", "short": "1,6 tr", "cond": "Đã dùng", "area": "Q.1", "photo": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.68, 10.785]}, "properties": {"id": 22, "title": "Ghế xoay vải be chân gỗ, ngồi êm", "price": "950.000 ₫", "short": "950 k", "cond": "Như mới", "area": "Q.3", "photo": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.68, 10.81]}, "properties": {"id": 23, "title": "Máy xay sinh tố 2L, còn bảo hành 6 tháng", "price": "450.000 ₫", "short": "450 k", "cond": "Như mới", "area": "Phú Nhuận", "photo": "https://images.unsplash.com/photo-1585515320310-259814833e62?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.675, 10.83]}, "properties": {"id": 24, "title": "iPhone X 64GB, pin 86%, máy zin chưa sửa", "price": "3.900.000 ₫", "short": "3,9 tr", "cond": "Như mới", "area": "Gò Vấp", "photo": "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.665, 10.795]}, "properties": {"id": 25, "title": "MacBook Air M1 13 inch 8/256GB, sạc 92 lần", "price": "11,5 tr ₫", "short": "11,5 tr", "cond": "Như mới", "area": "Tân Bình", "photo": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.755, 10.825]}, "properties": {"id": 26, "title": "Xe đạp fixed gear khung thép, vừa thay lốp", "price": "2.300.000 ₫", "short": "2,3 tr", "cond": "Đã dùng", "area": "Thủ Đức", "photo": "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.73, 10.785]}, "properties": {"id": 27, "title": "Máy ảnh Polaroid OneStep 2, tặng 1 hộp film", "price": "1.750.000 ₫", "short": "1,8 tr", "cond": "Như mới", "area": "Q.2 cũ", "photo": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.71, 10.74]}, "properties": {"id": 28, "title": "Tai nghe chống ồn Sony WH-1000XM4, fullbox", "price": "3.200.000 ₫", "short": "3,2 tr", "cond": "Như mới", "area": "Q.7", "photo": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.675, 10.775]}, "properties": {"id": 29, "title": "Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp", "price": "4.800.000 ₫", "short": "4,8 tr", "cond": "Đã dùng", "area": "Q.10", "photo": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.72, 10.8]}, "properties": {"id": 30, "title": "Giày Nike Free RN size 42, mới nguyên hộp", "price": "1.290.000 ₫", "short": "1,3 tr", "cond": "Mới", "area": "Bình Thạnh", "photo": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.705, 10.78]}, "properties": {"id": 31, "title": "iPhone 15 128GB, bảo hành Apple đến 03/2027", "price": "15,9 tr ₫", "short": "15,9 tr", "cond": "Như mới", "area": "Q.1", "photo": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.685, 10.78]}, "properties": {"id": 32, "title": "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "price": "26,5 tr ₫", "short": "26,5 tr", "cond": "Đã dùng", "area": "Q.3", "photo": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.69, 10.81]}, "properties": {"id": 33, "title": "Ghế bành bọc vải vàng mù tạt, khung gỗ sồi", "price": "1.600.000 ₫", "short": "1,6 tr", "cond": "Đã dùng", "area": "Phú Nhuận", "photo": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.665, 10.84]}, "properties": {"id": 34, "title": "Ghế xoay vải be chân gỗ, ngồi êm", "price": "950.000 ₫", "short": "950 k", "cond": "Như mới", "area": "Gò Vấp", "photo": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.64, 10.805]}, "properties": {"id": 35, "title": "Máy xay sinh tố 2L, còn bảo hành 6 tháng", "price": "450.000 ₫", "short": "450 k", "cond": "Như mới", "area": "Tân Bình", "photo": "https://images.unsplash.com/photo-1585515320310-259814833e62?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.76, 10.83]}, "properties": {"id": 36, "title": "iPhone X 64GB, pin 86%, máy zin chưa sửa", "price": "3.900.000 ₫", "short": "3,9 tr", "cond": "Như mới", "area": "Thủ Đức", "photo": "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.745, 10.785]}, "properties": {"id": 37, "title": "MacBook Air M1 13 inch 8/256GB, sạc 92 lần", "price": "11,5 tr ₫", "short": "11,5 tr", "cond": "Như mới", "area": "Q.2 cũ", "photo": "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.72, 10.74]}, "properties": {"id": 38, "title": "Xe đạp fixed gear khung thép, vừa thay lốp", "price": "2.300.000 ₫", "short": "2,3 tr", "cond": "Đã dùng", "area": "Q.7", "photo": "https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.655, 10.77]}, "properties": {"id": 39, "title": "Máy ảnh Polaroid OneStep 2, tặng 1 hộp film", "price": "1.750.000 ₫", "short": "1,8 tr", "cond": "Như mới", "area": "Q.10", "photo": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.7, 10.8]}, "properties": {"id": 40, "title": "Tai nghe chống ồn Sony WH-1000XM4, fullbox", "price": "3.200.000 ₫", "short": "3,2 tr", "cond": "Như mới", "area": "Bình Thạnh", "photo": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.69, 10.78]}, "properties": {"id": 41, "title": "Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp", "price": "4.800.000 ₫", "short": "4,8 tr", "cond": "Đã dùng", "area": "Q.1", "photo": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.675, 10.78]}, "properties": {"id": 42, "title": "Giày Nike Free RN size 42, mới nguyên hộp", "price": "1.290.000 ₫", "short": "1,3 tr", "cond": "Mới", "area": "Q.3", "photo": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=160&h=160&q=80&auto=format&fit=crop"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [106.675, 10.805]}, "properties": {"id": 43, "title": "iPhone 15 128GB, bảo hành Apple đến 03/2027", "price": "15,9 tr ₫", "short": "15,9 tr", "cond": "Như mới", "area": "Phú Nhuận", "photo": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=160&h=160&q=80&auto=format&fit=crop"}}]};
+const FLAVOR = { ...basemaps.namedFlavor("white"), ...{"background": "#F7FAF8", "earth": "#F1F4F2", "park_a": "#C7E6E0", "park_b": "#C7E6E0", "wood_a": "#C7E6E0", "wood_b": "#C7E6E0", "scrub_a": "#D6EDE8", "scrub_b": "#D6EDE8", "water": "#AEDDD6", "pedestrian": "#EBEFED", "hospital": "#EBEFED", "school": "#EBEFED", "industrial": "#EBEFED", "aerodrome": "#E6E9E7", "runway": "#E0E3E1", "zoo": "#C7E6E0", "military": "#EBEFED", "sand": "#EFEDE4", "beach": "#EFEDE4", "buildings": "#E0E3E1", "pier": "#E0E3E1", "minor_service": "#FFFFFF", "minor_a": "#FFFFFF", "minor_b": "#FFFFFF", "other": "#FFFFFF", "link": "#FFFFFF", "major": "#FFFFFF", "highway": "#FFFFFF", "minor_service_casing": "#E0E3E1", "minor_casing": "#D9DEDC", "link_casing": "#D3D9D7", "major_casing_late": "#C6CECB", "major_casing_early": "#C6CECB", "highway_casing_late": "#BEC9C6", "highway_casing_early": "#BEC9C6", "railway": "#BEC9C6", "boundaries": "#889390", "roads_label_minor": "#6E7977", "roads_label_minor_halo": "#FFFFFF", "roads_label_major": "#3E4947", "roads_label_major_halo": "#FFFFFF", "subplace_label": "#47645F", "subplace_label_halo": "#F7FAF8", "city_label": "#181C1C", "city_label_halo": "#F7FAF8", "address_label": "#889390", "address_label_halo": "#FFFFFF", "ocean_label": "#47645F"} };
+const ME = [106.705, 10.795];
+
+const protocol = new pmtiles.Protocol();
+maplibregl.addProtocol("pmtiles", protocol.tile);
+
+const map = new maplibregl.Map({
+  container: "map",
+  center: ME, zoom: 13.2, minZoom: 11, maxZoom: 18,
+  maxBounds: [[106.55, 10.66], [106.90, 10.96]],
+  attributionControl: { compact: false },
+  style: {
+    version: 8,
+    glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+    sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/light",
+    sources: {
+      protomaps: { type: "vector", url: "pmtiles://" + location.origin + "/hcm.pmtiles",
+        attribution: '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>' },
+      listings: { type: "geojson", data: DATA, cluster: true, clusterRadius: 56, clusterMaxZoom: 14 },
+      radius: { type: "geojson", data: circle(ME, 3) },
+    },
+    layers: [
+      ...basemaps.layers("protomaps", FLAVOR, { lang: "vi" }).filter(l => !l.id.startsWith("pois")),
+      { id: "radius-fill", type: "fill", source: "radius", paint: { "fill-color": "#005049", "fill-opacity": 0.06 } },
+      { id: "radius-line", type: "line", source: "radius", paint: { "line-color": "#005049", "line-width": 2, "line-dasharray": [2, 2] } },
+      { id: "listings-hit", type: "circle", source: "listings", paint: { "circle-radius": 1, "circle-opacity": 0 } },
+    ],
+  },
+});
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
+function circle([lng, lat], km, n = 96) {
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const t = (i / n) * 2 * Math.PI;
+    pts.push([lng + (km / (111.32 * Math.cos(lat * Math.PI / 180))) * Math.cos(t), lat + (km / 110.57) * Math.sin(t)]);
+  }
+  return { type: "Feature", geometry: { type: "Polygon", coordinates: [pts] } };
+}
+
+new maplibregl.Marker({ element: Object.assign(document.createElement("div"), { className: "me" }) }).setLngLat(ME).addTo(map);
+
+let markers = {}, selected = 0;
+function render() {
+  const next = {};
+  for (const f of map.querySourceFeatures("listings")) {
+    const p = f.properties, cl = p.cluster;
+    const key = cl ? "c" + p.cluster_id : "p" + p.id;
+    if (next[key]) continue;
+    let m = markers[key];
+    if (!m) {
+      const el = document.createElement("div");
+      if (cl) {
+        const size = 36 + Math.min(24, Math.sqrt(p.point_count) * 5);
+        el.className = "cluster"; el.style.width = el.style.height = size + "px"; el.textContent = p.point_count;
+        el.onclick = () => map.getSource("listings").getClusterExpansionZoom(p.cluster_id).then(z => map.easeTo({ center: f.geometry.coordinates, zoom: z }));
+      } else {
+        el.className = "pin" + (p.id === selected ? " on" : ""); el.innerHTML = "<span>" + p.short + "</span><i></i>";
+        el.onclick = () => { selected = p.id; Object.values(markers).forEach(x => x.remove()); markers = {}; render(); list(); };
+      }
+      m = new maplibregl.Marker({ element: el, anchor: cl ? "center" : "bottom" }).setLngLat(f.geometry.coordinates);
+    }
+    next[key] = m;
+    if (!markers[key]) m.addTo(map);
+  }
+  for (const k in markers) if (!next[k]) markers[k].remove();
+  markers = next;
+}
+
+function list() {
+  const b = map.getBounds();
+  const items = DATA.features.filter(f => b.contains(f.geometry.coordinates));
+  document.getElementById("count").textContent = items.length;
+  document.getElementById("list").innerHTML = items.slice(0, 40).map(f => {
+    const p = f.properties;
+    return `<li class="flex items-center gap-3 rounded-lg p-2 ${p.id === selected ? "bg-secondary-container" : ""}">
+      <img src="${p.photo}" alt="" class="h-14 w-14 rounded-md object-cover">
+      <div class="min-w-0 flex-1"><p class="text-title-m">${p.price}</p><p class="truncate text-body-m">${p.title}</p>
+      <p class="text-body-s text-on-surface-variant">${p.cond} · ${p.area}</p></div></li>`;
+  }).join("");
+}
+
+map.on("load", () => { render(); list(); });
+map.on("data", e => { if (e.sourceId === "listings" && e.isSourceLoaded) render(); });
+map.on("move", render);
+map.on("moveend", list);
+document.querySelectorAll(".radius").forEach(btn => btn.onclick = () => {
+  document.querySelectorAll(".radius").forEach(b => b.className = b.className.replace("bg-primary text-on-primary", "bg-surface-container-lowest text-on-surface"));
+  btn.className = btn.className.replace("bg-surface-container-lowest text-on-surface", "bg-primary text-on-primary");
+  map.getSource("radius").setData(circle(ME, +btn.dataset.r));
+});
+</script>
+</body>
+</html>
