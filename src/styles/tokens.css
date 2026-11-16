@@ -173,7 +173,9 @@
   /* web: opaque ids and keys in the console are read character by character. */
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
 
-  /* Tailwind's own steps are off; use the M3 names: text-body-medium, ... */
+  /* Tailwind's own steps are off; use the M3 names: text-body-medium, ...
+     The app's scale, a step under the M3 baseline: Be Vietnam Pro is wide
+     with a tall x-height and reads larger than the system font. */
   --text-*: initial;
   /* web: the two display steps the app leaves out, for page headlines. */
   --text-display-large: 3.5625rem;
@@ -183,35 +185,35 @@
   --text-display-medium: 2.8125rem;
   --text-display-medium--line-height: 3.25rem;
   --text-display-medium--font-weight: 400;
-  --text-display-small: 2.25rem;
-  --text-display-small--line-height: 2.75rem;
+  --text-display-small: 2rem;
+  --text-display-small--line-height: 2.5rem;
   --text-display-small--font-weight: 400;
-  --text-headline-medium: 1.75rem;
-  --text-headline-medium--line-height: 2.25rem;
+  --text-headline-medium: 1.5rem;
+  --text-headline-medium--line-height: 2rem;
   --text-headline-medium--font-weight: 400;
-  --text-headline-small: 1.5rem;
-  --text-headline-small--line-height: 2rem;
+  --text-headline-small: 1.25rem;
+  --text-headline-small--line-height: 1.75rem;
   --text-headline-small--font-weight: 400;
-  --text-title-large: 1.375rem;
-  --text-title-large--line-height: 1.75rem;
+  --text-title-large: 1.25rem;
+  --text-title-large--line-height: 1.625rem;
   --text-title-large--font-weight: 400;
-  --text-title-medium: 1rem;
-  --text-title-medium--line-height: 1.5rem;
+  --text-title-medium: 0.9375rem;
+  --text-title-medium--line-height: 1.375rem;
   --text-title-medium--font-weight: 500;
   --text-title-small: 0.875rem;
   --text-title-small--line-height: 1.25rem;
   --text-title-small--font-weight: 500;
-  --text-body-large: 1rem;
-  --text-body-large--line-height: 1.5rem;
+  --text-body-large: 0.875rem;
+  --text-body-large--line-height: 1.25rem;
   --text-body-large--font-weight: 400;
-  --text-body-medium: 0.875rem;
-  --text-body-medium--line-height: 1.25rem;
+  --text-body-medium: 0.8125rem;
+  --text-body-medium--line-height: 1.125rem;
   --text-body-medium--font-weight: 400;
   --text-body-small: 0.75rem;
   --text-body-small--line-height: 1rem;
   --text-body-small--font-weight: 400;
-  --text-label-large: 0.875rem;
-  --text-label-large--line-height: 1.25rem;
+  --text-label-large: 0.8125rem;
+  --text-label-large--line-height: 1.125rem;
   --text-label-large--font-weight: 500;
   --text-label-medium: 0.75rem;
   --text-label-medium--line-height: 1rem;

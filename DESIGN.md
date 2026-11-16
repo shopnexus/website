@@ -38,8 +38,16 @@ breakpoints are switched off, so a value outside the system does not compile.
   errors, the scam warning and "Đăng xuất". Depth is tonal; only floating
   elements get a shadow.
 - One family, Be Vietnam Pro, at the listed weights and never below the
-  listed line heights. Prices in Vietnamese format: `1.250.000 ₫`, and cards
+  listed line heights. The scale is the app's, a step under the M3 baseline
+  (body-medium 13/18, title-large 20/26); the two display steps the web adds
+  stay at the baseline. Prices in Vietnamese format: `1.250.000 ₫`, and cards
   shorten 10 triệu and above to `12,5 tr ₫`.
+- A card or row says the distance under 10 km and the seller's place from
+  10 km on ("1,2 km", "Hà Nội"). Search and categories reach every province
+  unless a distance is picked; nearness is one tab on Home, not the pitch.
+- The snackbar is the app's tonal card: `secondaryContainer`, 16 px corners,
+  the kind's icon in a circle with the time-left ring, an optional `primary`
+  text action; a failure turns the icon and ring `error`.
 - The listing card, the sparkle for AI judgments only, the `MONEY` sentences
   word for word, and Vietnamese copy with correct diacritics.
 - The minimal look: few elements per block, wide spacing, icons and layout in
@@ -110,10 +118,12 @@ website"): A (M3 as drawn), B (M3 with web conventions), C "Chợ xóm"
 mark and "ShopNexus"; the section links Khám phá, Danh mục, Bản đồ, Cách mua
 (the current one on `secondaryContainer`); "Tìm nhanh" with its `/` shortcut;
 Tin nhắn with the `error` badge; "Đăng tin" as the page's one `primary`
-button; the avatar. It is sticky, and on Home it floats over the hero photo.
+button; the avatar. Signed out, Tin nhắn and the avatar give way to a
+"Đăng nhập" text button. It is sticky, and on Home it floats over the hero photo.
 
 **Footer.** A 28 px rounded block on `inverseSurface` inside the content box:
-brand and the `no_hold` sentence, then Khám phá, Mua và bán, Hỗ trợ, and a
+brand, the tagline "Đồ cũ giá tốt, xem hàng rồi mới trả" and the `no_hold`
+sentence, then Khám phá, Mua và bán, Hỗ trợ, and a
 bottom line with the cities.
 
 **Corners.** Large containers (hero, panels, the ticket, footer) use
@@ -134,7 +144,9 @@ hero, on `surface`: results in two columns, a dense list on the left (photo,
 title, condition, area, distance, rating, matched specs, the AI price note)
 with "Báo khi có tin mới" and a sort menu, and on the right "Cách đọc câu
 hỏi của bạn", a small map with price pins and follow-up refinements. Ranking
-carries no AI mark.
+carries no AI mark. Under the results, the feed in tabs as in the app (Dành
+cho bạn, Gần bạn, Mới nhất) on a grid of cards. Signed in there is no
+carousel; the count reads across the country.
 
 **Listing detail.** Breadcrumbs. On the left, a mint stage with the main
 photo ("Chụp trong app" and "Xem 5 ảnh" on it) and the other photos as a
@@ -143,8 +155,8 @@ the ticket: three parts joined by a dashed tear line with real notches cut by
 a mask, and a drop-shadow that follows the notched outline. Part one: seller,
 rating, title, age and saves. Part two: price, the price strip against similar
 listings, "Nhắn tin" and "Trả giá", quick questions. Part three: the condition
-stamp with its meaning, the COD row with the shipping estimate and its
-`MONEY` sentences. Below: "Kiểm 4 điều này khi shipper tới cửa" (Tin ghi with
+stamp with its meaning, the COD row with where it ships from ("Gửi từ Bình
+Thạnh") and its `MONEY` sentences. "Chặn và báo cáo" sits in the ⋮ menu. Below: "Kiểm 4 điều này khi shipper tới cửa" (Tin ghi with
 how to check each claim, the refusal sentence, the model's general tips marked
 as not the seller's promise) beside the mascot drawing; Lời người bán and
 Thông số; the seller with stats, a review and a map with the route and
@@ -167,3 +179,26 @@ has scrolled under the header; elsewhere it always shows.
 **Art.** The app's mascot and category drawings, plus drawings made with
 gpt-image-2.5 from the app's drawings as references (`.superdesign/tools/
 gen_art.py`, files in `.superdesign/art/`). Photos carry no capture time.
+
+**Tin nhắn.** A row is a conversation with one person and shows the deal the
+chat would open on, with a `+N` tag when the two have more; a conversation
+with no deal shows the person's avatar. In the chat, chips under the bar
+switch the deal. A message replies from a hover action instead of the app's
+swipe. A scam warning is the `error` shield on a neutral tag, and a banner in
+the chat; no scam surface uses `errorContainer`. "Chặn và báo cáo" is a
+dialog.
+
+**Orders.** The four steps are Chốt giá, Tạo đơn, Nhận hàng, Đánh giá.
+Đơn bán creates the shipment on one screen through a linked carrier (GHTK,
+GHN) or "Tự gửi"; Thiết lập giao COD has two steps, Địa chỉ lấy hàng and Bên
+vận chuyển, and no payout step.
+
+**Hỗ trợ.** A ticket is its own chat with ShopNexus (`tools/build_support.py`,
+draft "Hỗ trợ"): the tickets on the left, the open one's chat on the right,
+with the chat's own bubbles and composer. Tin nhắn holds buying and selling
+only.
+
+**Synced with the app (2026-11-16).** Every draft was redrawn after the app's
+changes from 2026-11-04 to 2026-11-16: the compact type scale, the place rule,
+the tabbed Home feed, sign-in with Google, a phone or an email code, the
+address book, the new order flow, the carrier links and support tickets.

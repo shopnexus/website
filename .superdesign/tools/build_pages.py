@@ -8,8 +8,8 @@ from html import escape
 
 from build import OUT, a
 from build_c import ART, CSS, area_map, feed_card, footer, header
-from build_e import QUERY, RESULTS, chip, result_row
-from common import MONEY, head, icon, img, split_price
+from build_e import RESULTS, chip, result_row
+from common import MONEY, head, icon, img, split_price, where
 
 PAGE_CSS = CSS + """
   .row-hover:hover { background: var(--md-surface-container-low); }
@@ -29,7 +29,7 @@ def check(label, on=False, count=None):
 def switch(label, on=False):
     track = ("bg-primary" if on else "bg-surface-container-highest border-2 border-outline")
     thumb = ("right-1 h-6 w-6 bg-on-primary" if on else "left-1.5 h-4 w-4 bg-outline")
-    return (f'<label class="flex h-12 items-center justify-between text-body-m text-on-surface">{label}'
+    return (f'<label class="flex h-10 items-center justify-between text-body-m text-on-surface">{label}'
             f'<span class="relative h-8 w-[52px] rounded-full {track}"><span class="absolute top-1/2 -translate-y-1/2 rounded-full {thumb}"></span></span></label>')
 
 
@@ -60,7 +60,7 @@ def search_card(item, i):
   <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 3">
     <img src="{img(photo, 560, 420)}" alt="{escape(title)}" class="h-full w-full object-cover">
     <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">{num}<span class="text-body-s text-on-surface-variant">{unit}</span></span>
-    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">{km}</span>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">{where(km, area)}</span>
     <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 {"text-primary" if saved else "text-on-surface"}" aria-label="Lưu tin">{icon("favorite-rounded" if saved else "favorite-outline-rounded", 22)}</button>
   </div>
   <h3 class="mt-3 line-clamp-2 text-body-l text-on-surface">{escape(title)}</h3>
@@ -70,8 +70,16 @@ def search_card(item, i):
 </article>"""
 
 
+# Tìm kiếm reaches every province unless a distance is picked, so far listings sit among near ones;
+# a row says the distance under 10 km and only the seller's place beyond it.
+SEARCH_QUERY = "laptop cũ cho sinh viên thiết kế, dưới 8 triệu"
+# The search came from Tìm bằng ảnh and its text was edited, so the photo stays in the field.
+QUERY_PHOTO = RESULTS[0][0]
+FAR = {3: ("1.150 km", "Hà Nội"), 5: ("610 km", "Đà Nẵng")}
+SEARCH_RESULTS = [it[:4] + FAR[i] + it[6:] if i in FAR else it for i, it in enumerate(RESULTS[:6])]
+
 EXTRA = [
-    ("1496181133206-80ce9b88a853", "7.200.000 ₫", "Lenovo Yoga Slim 7, Ryzen 7, 16 GB, màn 100% sRGB", "Như mới", "3,8 km", "Q.2 cũ", "4,8",
+    ("1496181133206-80ce9b88a853", "7.200.000 ₫", "Lenovo Yoga Slim 7, Ryzen 7, 16 GB, màn 100% sRGB", "Như mới", "170 km", "Cần Thơ", "4,8",
      ["16 GB RAM", "Màn 100% sRGB", "Pin 90%"], None),
     ("1611186871348-b1ce696e52c9", "7.800.000 ₫", "MacBook Air M1 8/256GB, vỏ còn đẹp", "Đã dùng", "4,6 km", "Bình Thạnh", "4,7",
      ["Màn P3", "Pin 87%", "8 GB RAM"], None),
@@ -81,15 +89,15 @@ EXTRA = [
 
 
 def search():
-    chips = (chip("Laptop", ai=True) + chip("Dưới 8 triệu", ai=True) + chip("Gần Thủ Đức · 5 km", ai=True)
-             + chip("Màn hình chuẩn màu", ai=True) + chip("Thêm điều kiện", add=True))
+    chips = (chip("Laptop", ai=True) + chip("Dưới 8 triệu", ai=True) + chip("Màn hình chuẩn màu", ai=True)
+             + chip("Thêm điều kiện", add=True))
     seg = "".join(f'<span class="flex h-10 flex-1 items-center justify-center gap-1 text-label-l {"bg-secondary-container text-on-secondary-container" if on else "bg-surface-container-high text-on-surface-variant"}">'
                   f'{icon("check-rounded", 16) if on else ""}{t}</span>' for t, on in [("Mới", False), ("Như mới", True), ("Đã dùng", True)])
-    dist = "".join(f'<button type="button" class="state h-9 rounded-full px-3.5 text-label-l {"bg-secondary-container text-on-secondary-container" if d == "5 km" else "border border-outline-variant text-on-surface-variant"}">{d}</button>'
-                   for d in ["1 km", "3 km", "5 km", "10 km", "Cả TP"])
+    dist = "".join(f'<button type="button" class="state h-8 rounded-full px-3.5 text-label-l {"bg-secondary-container text-on-secondary-container" if i == 0 else "border border-outline-variant text-on-surface-variant"}">{d}</button>'
+                   for i, d in enumerate(["Tất cả khu vực", "2 km", "5 km", "10 km", "20 km"]))
     sidebar = f"""<aside class="self-start">
   <div class="overflow-hidden rounded-xl">{area_map([(36, 40, "7,4 tr", True), (64, 30, "7,9 tr", False), (70, 66, "6,8 tr", False), (30, 74, "5,9 tr", False)], you=(48, 56), h=200, guide=False)}</div>
-  {a("map-view", "state mt-3 flex h-11 items-center justify-center gap-2 rounded-full border border-outline-variant text-label-l text-primary", icon("map-outline-rounded", 20) + "Xem trên bản đồ")}
+  {a("map-view", "state mt-3 flex h-10 items-center justify-center gap-2 rounded-full border border-outline-variant text-label-l text-primary", icon("map-outline-rounded", 20) + "Xem trên bản đồ")}
   <div class="mt-6 rounded-xl bg-surface-container-low p-6">
     <div class="mb-4 flex items-center justify-between"><h2 class="text-title-l">Bộ lọc</h2>{a("reset", "text-label-l text-primary hover:underline", "Đặt lại")}</div>
     {filter_group("Giá", price_range("0", "15 tr", 0, 53, 49, "giữa 7,3 tr") + '<div class="mt-2 grid grid-cols-2 gap-2"><span class="rounded-md bg-surface-container-lowest px-3 py-2 text-body-m text-on-surface-variant">Từ <b class="font-medium text-on-surface">0 ₫</b></span><span class="rounded-md bg-surface-container-lowest px-3 py-2 text-body-m text-on-surface-variant">Đến <b class="font-medium text-on-surface">8.000.000 ₫</b></span></div>', first=True)}
@@ -101,11 +109,11 @@ def search():
 </aside>"""
     # Search results are a list (compare price, distance and matched specs at a glance);
     # browsing surfaces use cards. The grid view stays one click away.
-    rows = [result_row(it, i) for i, it in enumerate(RESULTS[:6] + EXTRA)]
+    rows = [result_row(it, i) for i, it in enumerate(SEARCH_RESULTS + EXTRA)]
     alert = f"""<div class="my-3 flex items-center gap-6 overflow-hidden rounded-xl bg-secondary-container py-2 pl-4 pr-8">
   <img src="{ART["art_search"]}" alt="" class="h-[132px] w-[132px] shrink-0">
   <div class="flex-1"><p class="text-title-l text-on-surface">Chưa thấy máy ưng?</p><p class="mt-1 text-body-m text-on-secondary-container">Có laptop mới khớp câu này là ShopNexus báo bạn ngay.</p></div>
-  <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-surface-container-lowest px-5 text-label-l text-primary">{icon("notifications-active-outline-rounded", 20)}Báo khi có tin mới</button>
+  <button type="button" class="state flex h-10 items-center gap-2 rounded-full bg-surface-container-lowest px-5 text-label-l text-primary">{icon("notifications-active-outline-rounded", 20)}Báo khi có tin mới</button>
 </div>"""
     listing = "".join(rows[:3]) + alert + "".join(rows[3:])
     views = "".join(f'<span class="flex h-10 items-center gap-1.5 px-4 text-label-l {"bg-secondary-container text-on-secondary-container" if v == "Danh sách" else "text-on-surface-variant"}">{icon(ic, 18)}{v}</span>'
@@ -115,11 +123,14 @@ def search():
   {header(quick="scroll")}
   <main class="mx-auto max-w-[1328px] px-6">
     <section class="mt-8">
-      <div data-big-search class="flex h-16 items-center gap-3 rounded-full bg-surface-container-lowest pl-6 pr-2 shadow-float">
-        {icon("search-rounded", 26, "text-on-surface-variant")}
-        <p class="min-w-0 flex-1 truncate text-title-m font-normal text-on-surface">{QUERY}</p>
-        <button type="button" class="state grid h-12 w-12 place-items-center rounded-full text-on-surface-variant" aria-label="Tìm bằng ảnh">{icon("photo-camera-outline-rounded", 24)}</button>
-        <button type="button" class="state h-12 rounded-full bg-primary px-7 text-label-l text-on-primary">Tìm</button>
+      <div data-big-search class="flex h-14 items-center gap-3 rounded-full bg-surface-container-lowest pl-1.5 pr-1.5 shadow-float">
+        <button type="button" class="state relative grid h-12 w-12 shrink-0 place-items-center rounded-md" title="Bỏ ảnh" aria-label="Ảnh bạn tìm, bấm để bỏ ảnh">
+          <img src="{img(QUERY_PHOTO, 96, 96)}" alt="" class="h-10 w-10 rounded-md object-cover">
+          <span class="absolute right-0 top-0 grid h-[18px] w-[18px] place-items-center rounded-full bg-inverse-surface text-inverse-on-surface">{icon("close-rounded", 12)}</span>
+        </button>
+        <p class="min-w-0 flex-1 truncate text-title-m font-normal text-on-surface">{SEARCH_QUERY}</p>
+        <button type="button" class="state grid h-10 w-10 place-items-center rounded-full text-on-surface-variant" aria-label="Tìm bằng ảnh khác">{icon("photo-camera-outline-rounded", 24)}</button>
+        <button type="button" class="state h-10 rounded-full bg-primary px-7 text-label-l text-on-primary">Tìm</button>
       </div>
       <div class="mt-4 flex flex-wrap items-center gap-2">{chips}</div>
     </section>
@@ -128,14 +139,14 @@ def search():
       {sidebar}
       <section>
         <div class="flex items-center justify-between">
-          <div><h1 class="text-headline-m">38 laptop khớp</h1><p class="mt-1 flex items-center gap-1 text-body-m text-on-surface-variant">{icon("auto-awesome-rounded", 16, "text-primary")}Ưu tiên RAM 16 GB, vì Photoshop và Figma mở cùng lúc dùng nhiều bộ nhớ.</p></div>
+          <div><h1 class="text-headline-m">126 laptop khớp</h1><p class="mt-1 flex items-center gap-1 text-body-m text-on-surface-variant">{icon("auto-awesome-rounded", 16, "text-primary")}Ưu tiên RAM 16 GB, vì Photoshop và Figma mở cùng lúc dùng nhiều bộ nhớ.</p></div>
           <div class="flex items-center gap-3">
             <div class="flex overflow-hidden rounded-full border border-outline-variant">{views}</div>
             <button type="button" class="state flex h-10 items-center gap-1 rounded-full border border-outline-variant pl-4 pr-3 text-label-l text-on-surface-variant">Phù hợp nhất{icon("keyboard-arrow-down-rounded", 18)}</button>
           </div>
         </div>
         <div class="mt-4 flex flex-col gap-1">{listing}</div>
-        <div class="mt-10 flex justify-center"><button type="button" class="state h-12 rounded-full bg-secondary-container px-8 text-label-l text-on-secondary-container">Xem thêm 29 tin</button></div>
+        <div class="mt-10 flex justify-center"><button type="button" class="state h-10 rounded-full bg-secondary-container px-8 text-label-l text-on-secondary-container">Xem thêm 117 tin</button></div>
       </section>
     </div>
   </main>
@@ -150,11 +161,11 @@ def search():
 PHONES = [
     ("1663499482523-1c0c1bae4ce1", "12,8 tr ₫", "iPhone 14 128GB, pin 91%, máy zin", "Như mới", "4,4 km", "Q.3", "4,8", "1 giờ", None),
     ("1632661674596-df8be070a5c5", "5.200.000 ₫", "iPhone 13 Pro 128GB Xanh Sierra, pin 88%", "Như mới", "2,1 km", "Bình Thạnh", "4,9", "2 giờ", "Giá tham khảo"),
-    ("1678911820864-e2c567c655d7", "14,5 tr ₫", "Galaxy S23 Ultra 256GB, kèm bút", "Như mới", "2,9 km", "Phú Nhuận", "4,9", "20 phút", None),
+    ("1678911820864-e2c567c655d7", "14,5 tr ₫", "Galaxy S23 Ultra 256GB, kèm bút", "Như mới", "1.140 km", "Hà Nội", "4,9", "20 phút", None),
     ("1616348436168-de43ad0db179", "6.900.000 ₫", "iPhone 12 128GB, màn zin, pin 84%", "Đã dùng", "0,8 km", "Bình Thạnh", "4,6", "3 giờ", "Rẻ hơn 8%"),
     ("1598327105666-5b89351aff97", "3.400.000 ₫", "Galaxy A54 5G 128GB, còn bảo hành", "Như mới", "1,7 km", "Q.1", "4,7", "45 phút", None),
     ("1695048133142-1a20484d2569", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", "Cao hơn 6%"),
-    ("1580910051074-3eb694886505", "5.200.000 ₫", "iPhone 12 mini 64GB, pin 82%", "Đã dùng", "1,9 km", "Q.1", "4,7", "5 giờ", None),
+    ("1580910051074-3eb694886505", "5.200.000 ₫", "iPhone 12 mini 64GB, pin 82%", "Đã dùng", "610 km", "Đà Nẵng", "4,7", "5 giờ", None),
     ("1510557880182-3d4d3cba35a5", "3.900.000 ₫", "iPhone X 64GB, pin 86%, máy zin chưa sửa", "Như mới", "1,2 km", "Bình Thạnh", "4,8", "12 phút", "Rẻ hơn 13%"),
 ]
 MODELS = [("iPhone 13 Pro 128GB", 4_900_000, 5_600_000, 5_300_000, 42), ("iPhone 12 128GB", 6_100_000, 7_400_000, 6_800_000, 57),
@@ -189,11 +200,12 @@ def model_card(name, lo, hi, med, n):
 def category():
     brands = [("Tất cả", "3.412"), ("iPhone", "1.986"), ("Samsung", "742"), ("Xiaomi", "268"), ("OPPO", "171"), ("Google Pixel", "58"), ("Khác", "187")]
     brand_html = "".join(
-        f'<button type="button" class="state flex h-11 items-center gap-2 rounded-full px-5 text-label-l {"bg-inverse-surface text-inverse-on-surface" if i == 0 else "bg-surface-container-lowest text-on-surface"}">{b}<span class="{"text-inverse-on-surface/70" if i == 0 else "text-on-surface-variant"} text-label-m">{n}</span></button>'
+        f'<button type="button" class="state flex h-10 items-center gap-2 rounded-full px-5 text-label-l {"bg-inverse-surface text-inverse-on-surface" if i == 0 else "bg-surface-container-lowest text-on-surface"}">{b}<span class="{"text-inverse-on-surface/70" if i == 0 else "text-on-surface-variant"} text-label-m">{n}</span></button>'
         for i, (b, n) in enumerate(brands))
-    filters = "".join(f'<button type="button" class="state flex h-9 items-center gap-1 rounded-full px-4 text-label-l {c}">{t}</button>'
+    area_pick = f'<button type="button" class="state flex h-8 items-center gap-1 rounded-full border border-outline-variant pl-3 pr-2 text-label-l text-on-surface-variant">{icon("location-on-outline-rounded", 18)}Tất cả khu vực{icon("keyboard-arrow-down-rounded", 18)}</button>'
+    filters = area_pick + "".join(f'<button type="button" class="state flex h-8 items-center gap-1 rounded-full px-4 text-label-l {c}">{t}</button>'
                       for t, c in [("Dưới 5 triệu", "border border-outline-variant text-on-surface-variant"), ("Như mới", "bg-secondary-container text-on-secondary-container"),
-                                   ("Trong 3 km", "border border-outline-variant text-on-surface-variant"), ("Pin trên 85%", "border border-outline-variant text-on-surface-variant"),
+                                   ("Pin trên 85%", "border border-outline-variant text-on-surface-variant"),
                                    ("Có thể trả giá", "border border-outline-variant text-on-surface-variant")])
     grid = "".join(feed_card(it, i) for i, it in enumerate(PHONES))
     tips = "".join(f"""<li class="flex items-start gap-4 rounded-lg bg-surface-container-lowest p-4">
@@ -208,8 +220,8 @@ def category():
       <div class="relative z-10 max-w-[620px] px-14 pt-14">
         <p class="text-label-l uppercase tracking-[0.12em] text-on-secondary-container">Danh mục</p>
         <h1 class="mt-2 text-display-l text-on-surface">Điện thoại</h1>
-        <p class="mt-3 text-body-l text-on-secondary-container">3.412 máy quanh Bình Thạnh · 218 máy mới đăng hôm nay</p>
-        <div data-big-search class="mt-7 flex h-14 max-w-[520px] items-center gap-3 rounded-full bg-surface-container-lowest pl-5 pr-2 shadow-float">
+        <p class="mt-3 text-body-l text-on-secondary-container">3.412 máy đang bán · 218 máy mới đăng hôm nay</p>
+        <div data-big-search class="mt-7 flex h-12 max-w-[520px] items-center gap-3 rounded-full bg-surface-container-lowest pl-5 pr-2 shadow-float">
           {icon("search-rounded", 22, "text-on-surface-variant")}<span class="flex-1 text-body-l text-on-surface-variant">iPhone pin trên 85%, dưới 6 triệu</span>
           <button type="button" class="state h-10 rounded-full bg-primary px-5 text-label-l text-on-primary">Tìm</button>
         </div>
@@ -226,19 +238,19 @@ def category():
     <section class="mt-16 rounded-xl bg-surface-container-low p-8">
       <div class="flex items-end justify-between">
         <div><p class="flex items-center gap-1.5 text-label-l uppercase tracking-[0.12em] text-primary">{icon("auto-awesome-rounded", 16)}Giá tham khảo</p><h2 class="mt-2 text-display-s">Máy đời này đang bán quanh bao nhiêu?</h2></div>
-        <p class="max-w-[300px] text-right text-body-m text-on-surface-variant">Tính trên tin cùng đời máy ở TP.HCM trong 30 ngày, đã tính tình trạng và dung lượng.</p>
+        <p class="max-w-[300px] text-right text-body-m text-on-surface-variant">Tính trên tin cùng đời máy trong 30 ngày, đã tính tình trạng và dung lượng.</p>
       </div>
       <div class="mt-6 grid grid-cols-4 gap-4">{"".join(model_card(*m) for m in MODELS)}</div>
     </section>
 
     <section class="mt-16">
       <div class="flex items-end justify-between">
-        <h2 class="text-display-s">Máy đang bán gần bạn</h2>
-        <button type="button" class="state flex h-10 items-center gap-1 rounded-full border border-outline-variant pl-4 pr-3 text-label-l text-on-surface-variant">Gần nhất{icon("keyboard-arrow-down-rounded", 18)}</button>
+        <h2 class="text-display-s">Máy đang bán</h2>
+        <button type="button" class="state flex h-10 items-center gap-1 rounded-full border border-outline-variant pl-4 pr-3 text-label-l text-on-surface-variant">Phù hợp nhất{icon("keyboard-arrow-down-rounded", 18)}</button>
       </div>
       <div class="mt-5 flex flex-wrap gap-2">{filters}</div>
       <div class="stagger mt-8 grid grid-cols-4 gap-x-5 gap-y-10 pb-7">{grid}</div>
-      <div class="mt-10 flex justify-center"><button type="button" class="state h-12 rounded-full bg-secondary-container px-8 text-label-l text-on-secondary-container">Xem thêm 3.404 máy</button></div>
+      <div class="mt-10 flex justify-center"><button type="button" class="state h-10 rounded-full bg-secondary-container px-8 text-label-l text-on-secondary-container">Xem thêm 3.404 máy</button></div>
     </section>
 
     <section class="mt-20 grid grid-cols-[360px_1fr] items-center gap-10 rounded-xl bg-secondary-container p-10">

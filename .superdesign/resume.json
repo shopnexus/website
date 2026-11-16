@@ -33,12 +33,12 @@
       "drafts": {
         "cc1198e3-abdb-4dd9-b538-6d2b6b61b640": {
           "title": "Trang chủ · E. Hỏi là thấy",
-          "currentVersion": 3,
+          "currentVersion": 6,
           "visualDirection": "E Hỏi là thấy: AI search-first, two-pane results, comparison table"
         }
       },
       "note": "Chosen: Home = E on a photo hero; Listing detail = C; header and footer from C. Other drafts deleted from the canvas 2026-11-04.",
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/p/[slug]": {
       "targetKind": "new-ui",
@@ -72,12 +72,12 @@
       "drafts": {
         "297be322-2715-478b-b555-ed2bf0dcfe7c": {
           "title": "Chi tiết tin · C. Chợ xóm",
-          "currentVersion": 2,
+          "currentVersion": 6,
           "visualDirection": "C Chợ xóm: illustrated neighbourhood, mascot art (gpt-image-2.5), SVG area map, polaroids, item ticket"
         }
       },
       "note": "Chosen: Home = E on a photo hero; Listing detail = C; header and footer from C. Other drafts deleted from the canvas 2026-11-04.",
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/s": {
       "targetKind": "new-ui",
@@ -88,11 +88,11 @@
       "drafts": {
         "5064eb8c-9e6b-4301-b53a-6f127a1e35a4": {
           "title": "Tìm kiếm",
-          "currentVersion": 1,
+          "currentVersion": 5,
           "visualDirection": "Sentence search, AI chips, filter sidebar with map, 3-col result cards, alert row with mascot"
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "contextFiles": [
         ".superdesign/design-system.md",
         ".superdesign/tools/common.py",
@@ -121,11 +121,11 @@
       "drafts": {
         "3f316891-b4fa-4d18-8fb0-25f07b547b70": {
           "title": "Danh mục · Điện thoại",
-          "currentVersion": 1,
+          "currentVersion": 4,
           "visualDirection": "Mint hero with category art, brand tabs, AI price ranges by model, staggered grid, door-check tips"
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "contextFiles": [
         ".superdesign/design-system.md",
         ".superdesign/tools/common.py",
@@ -172,10 +172,10 @@
       "drafts": {
         "e322dbf4-f686-4e13-9b4c-07307acf9e36": {
           "title": "Người bán",
-          "currentVersion": 1
+          "currentVersion": 3
         }
       },
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/ban-do": {
       "targetKind": "new-ui",
@@ -204,10 +204,10 @@
       "drafts": {
         "0a8a0c4c-0715-48fe-b7fb-dc1ebaa64dbb": {
           "title": "Bản đồ",
-          "currentVersion": 1
+          "currentVersion": 3
         }
       },
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/tin-nhan": {
       "targetKind": "new-ui",
@@ -236,10 +236,10 @@
       "drafts": {
         "5f73de9d-4afa-4101-9bef-658bd4331f66": {
           "title": "Tin nhắn",
-          "currentVersion": 1
+          "currentVersion": 3
         }
       },
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/giao-cod": {
       "targetKind": "new-ui",
@@ -268,10 +268,10 @@
       "drafts": {
         "7e3ac5c7-d989-4364-8cdb-4f5f7f55101b": {
           "title": "Giao COD",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/dang-tin": {
       "targetKind": "new-ui",
@@ -300,10 +300,10 @@
       "drafts": {
         "9e3ff29b-a8bb-46ad-9563-ab7b06470094": {
           "title": "Đăng tin",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/cach-mua": {
       "targetKind": "new-ui",
@@ -332,10 +332,10 @@
       "drafts": {
         "6aa21972-7f8f-42a2-b5f4-2122f25e2fe8": {
           "title": "Cách mua",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04"
+      "updatedAt": "2026-11-16"
     },
     "/dang-nhap": {
       "targetKind": "new-ui",
@@ -355,10 +355,10 @@
       "drafts": {
         "31ef8a60-7d0c-484c-aaf8-38f819fc0434": {
           "title": "Đăng nhập",
-          "currentVersion": 1
+          "currentVersion": 3
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -387,10 +387,10 @@
       "drafts": {
         "b0456a9c-cf87-4073-a25b-29b61f9dc4cb": {
           "title": "Tôi",
-          "currentVersion": 1
+          "currentVersion": 3
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -419,10 +419,10 @@
       "drafts": {
         "e9aac9e5-1b2a-48d5-950a-0b44c32b2716": {
           "title": "Thông báo",
-          "currentVersion": 1
+          "currentVersion": 3
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -451,10 +451,10 @@
       "drafts": {
         "f874fc32-71bf-4f49-901a-6069e97202aa": {
           "title": "Đơn hàng",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -483,10 +483,10 @@
       "drafts": {
         "dbf0b87b-c943-422a-8887-e5b2d7c7ef20": {
           "title": "Đơn COD",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -515,10 +515,10 @@
       "drafts": {
         "5af7cd52-be74-4781-9148-f53b78e5ea58": {
           "title": "Đơn bán",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -547,10 +547,10 @@
       "drafts": {
         "e7f20770-6b20-4ea8-b23e-ef717b2c1ec3": {
           "title": "Tin của bạn",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -579,10 +579,10 @@
       "drafts": {
         "ac40ee5a-e804-4db6-8030-3abc9e385006": {
           "title": "Đã lưu",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -611,10 +611,10 @@
       "drafts": {
         "1d38ced3-110d-407e-a285-5e053e602871": {
           "title": "Thiết lập giao COD",
-          "currentVersion": 1
+          "currentVersion": 2
         }
       },
-      "updatedAt": "2026-11-04",
+      "updatedAt": "2026-11-16",
       "fingerprints": {
         ".superdesign/design-system.md": "9da6c524aa42b97b3ea7caca40a9f475df33dbdb4ff34a8342a88a8374536048",
         ".superdesign/tools/common.py": "a461bcd64a75d950171d0132afc297095546e0b0b64c24500ecf2c034a4f197f",
@@ -624,6 +624,27 @@
         ".superdesign/tools/art_urls.json": "85a8fd937d96dbe5855e362ff4c0e587bd9e37b52901e2e5d85a6ae4e77aa6d0",
         ".superdesign/tools/build_seller_tools.py": "91d21936bdc1a69d7ad6c71c50b71603050fbfe25876d573a64a4107c415c17a"
       }
+    },
+    "/ho-tro": {
+      "targetKind": "new-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "72743100-5344-4813-a878-2b5a11b1edfe",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/common.py",
+        ".superdesign/tools/build_c.py",
+        ".superdesign/tools/build_chat_cod.py",
+        ".superdesign/tools/build_support.py"
+      ],
+      "drafts": {
+        "72743100-5344-4813-a878-2b5a11b1edfe": {
+          "title": "Hỗ trợ",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-11-16"
     }
   }
 }

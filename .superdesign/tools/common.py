@@ -36,6 +36,7 @@ DRAFTS = {
     "my-listings": "e7f20770-6b20-4ea8-b23e-ef717b2c1ec3",
     "saved": "ac40ee5a-e804-4db6-8030-3abc9e385006",
     "cod-setup": "1d38ced3-110d-407e-a285-5e053e602871",
+    "support": "72743100-5344-4813-a878-2b5a11b1edfe",
 }
 
 LIGHT = {
@@ -50,23 +51,24 @@ LIGHT = {
     "inverse-surface": "#2D3130", "inverse-on-surface": "#EEF1EF", "inverse-primary": "#85D5C9",
 }
 
-# M3 type scale; display-l and display-m are M3 steps the app leaves out and
-# the web direction uses for the Home headline.
+# The app's type scale, a step under the M3 baseline (Be Vietnam Pro reads
+# larger than the system font). display-l and display-m are M3 steps the app
+# leaves out; the web keeps them at the baseline for page headlines.
 TYPE = {
     "display-l": ("57px", "64px", "400", "-0.25px"),
     "display-m": ("45px", "52px", "400", "0"),
-    "display-s": ("36px", "44px", "400", "0"),
-    "headline-m": ("28px", "36px", "400", "0"),
-    "headline-s": ("24px", "32px", "400", "0"),
-    "title-l": ("22px", "28px", "400", "0"),
-    "title-m": ("16px", "24px", "500", "0.15px"),
+    "display-s": ("32px", "40px", "400", "0"),
+    "headline-m": ("24px", "32px", "400", "0"),
+    "headline-s": ("20px", "28px", "400", "0"),
+    "title-l": ("20px", "26px", "400", "0"),
+    "title-m": ("15px", "22px", "500", "0.1px"),
     "title-s": ("14px", "20px", "500", "0.1px"),
-    "body-l": ("16px", "24px", "400", "0.5px"),
-    "body-m": ("14px", "20px", "400", "0.25px"),
-    "body-s": ("12px", "16px", "400", "0.4px"),
-    "label-l": ("14px", "20px", "500", "0.1px"),
-    "label-m": ("12px", "16px", "500", "0.5px"),
-    "label-s": ("11px", "16px", "500", "0.5px"),
+    "body-l": ("14px", "20px", "400", "0.25px"),
+    "body-m": ("13px", "18px", "400", "0.2px"),
+    "body-s": ("12px", "16px", "400", "0.3px"),
+    "label-l": ("13px", "18px", "500", "0.1px"),
+    "label-m": ("12px", "16px", "500", "0.4px"),
+    "label-s": ("11px", "16px", "500", "0.4px"),
 }
 RADII = {"xs": "4px", "sm": "8px", "md": "12px", "lg": "16px", "lg-plus": "20px", "xl": "28px", "xl-plus": "32px"}
 
@@ -74,7 +76,11 @@ MONEY = dict(
     no_hold="ShopNexus không giữ tiền và không nhận cọc.",
     meet_hint="Món trên 5 triệu nên hẹn gặp xem trực tiếp.",
     cod_buyer="Xem hàng rồi mới trả tiền hàng và phí ship cho shipper.",
+    cancel="Bạn hủy được đơn khi người bán chưa tạo đơn và không mất tiền.",
     refuse="Nếu không ưng, bạn từ chối nhận hàng và không mất tiền.",
+    cod_seller="Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.",
+    return_leg="Người mua từ chối nhận thì bạn trả phí ship cả chiều đi và chiều về.",
+    pay_shipper="Trả tiền hàng và phí ship cho shipper sau khi xem, bằng tiền mặt hoặc chuyển khoản.",
 )
 
 CATEGORIES = [
@@ -95,11 +101,19 @@ LISTINGS = [
     ("1555041469-a586c61ea9bc", "4.800.000 ₫", "Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp", "Đã dùng", "5,6 km", "Q.7", "4,9", "5 giờ", None),
     ("1542291026-7eec264c27ff", "1.290.000 ₫", "Giày Nike Free RN size 42, mới nguyên hộp", "Mới", "1,9 km", "Q.10", "4,8", "20 phút", None),
     ("1695048133142-1a20484d2569", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", "Cao hơn 6%"),
-    ("1516035069371-29a1b244cc32", "26,5 tr ₫", "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "Đã dùng", "6,3 km", "Gò Vấp", "4,7", "1 ngày", None),
+    ("1516035069371-29a1b244cc32", "26,5 tr ₫", "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "Đã dùng", "1.140 km", "Hà Nội", "4,7", "1 ngày", None),
     ("1586023492125-27b2c045efd7", "1.600.000 ₫", "Ghế bành bọc vải vàng mù tạt, khung gỗ sồi", "Đã dùng", "3,8 km", "Q.2", "5,0", "6 giờ", None),
     ("1580480055273-228ff5388ef8", "950.000 ₫", "Ghế xoay vải be chân gỗ, ngồi êm", "Như mới", "1,4 km", "Bình Thạnh", "4,5", "50 phút", None),
     ("1585515320310-259814833e62", "450.000 ₫", "Máy xay sinh tố 2L, còn bảo hành 6 tháng", "Như mới", "0,6 km", "Q.1", "4,8", "15 phút", "Rẻ hơn 20%"),
 ]
+
+
+NEAR_KM = 10
+
+
+def where(km, area):
+    """A card's place, as the app's whereText: the distance under 10 km, the seller's place beyond."""
+    return area if float(km.split()[0].replace(".", "").replace(",", ".")) >= NEAR_KM else km
 
 
 def img(photo_id, w=600, h=None):

@@ -11,7 +11,7 @@ import os
 from html import escape
 
 from build import DESCRIPTION, OUT, PHOTOS, PRICE, SELLER, SIMILAR, SPECS, TITLE, a, money
-from common import LISTINGS, LOGO, MONEY, head, icon, img, split_price
+from common import LISTINGS, LOGO, MONEY, head, icon, img, split_price, where
 
 ART = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "art_urls.json")))
 
@@ -72,8 +72,9 @@ addEventListener('DOMContentLoaded', () => {
 </script>"""
 
 
-def header(quick="always"):
-    """quick="scroll" on a page with its own big search field (marked data-big-search):
+def header(quick="always", signed_in=True):
+    """signed_in=False (Đăng nhập) drops Tin nhắn and the avatar for a "Đăng nhập" button.
+    quick="scroll" on a page with its own big search field (marked data-big-search):
     "Tìm nhanh" stays hidden until that field has scrolled under the header."""
     nav = "".join(a(f"nav-{i}", f"state flex h-10 items-center rounded-full px-4 text-label-l {'bg-secondary-container text-on-secondary-container' if i == 0 else 'text-on-surface-variant'}", t)
                   for i, t in enumerate(["Khám phá", "Danh mục", "Bản đồ", "Cách mua"]))
@@ -83,9 +84,9 @@ def header(quick="always"):
     <nav class="flex items-center gap-1">{nav}</nav>
     <span class="flex-1"></span>
     <button id="quick-search" type="button" class="quick {"quick-hidden" if quick == "scroll" else ""} state flex h-10 items-center gap-2 whitespace-nowrap rounded-full bg-surface-container-high px-4 text-body-m text-on-surface-variant">{icon("search-rounded", 20)}Tìm nhanh<span class="ml-6 rounded-xs bg-surface-container-lowest px-1.5 text-label-s">/</span></button>
-    {a("messages", "state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant", icon("chat-outline-rounded", 24) + '<span class="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-label-s text-on-error">3</span>')}
+    {"" if not signed_in else a("messages", "state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant", icon("chat-outline-rounded", 24) + '<span class="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-label-s text-on-error">3</span>')}
     <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-primary pl-4 pr-5 text-label-l text-on-primary">{icon("add-rounded", 20)}Đăng tin</button>
-    <img src="{img(SELLER["photo"], 96, 96)}" alt="Tài khoản" class="ml-1 h-11 w-11 rounded-full object-cover">
+    {f'<img src="{img(SELLER["photo"], 96, 96)}" alt="Tài khoản" class="ml-1 h-11 w-11 rounded-full object-cover">' if signed_in else '<button type="button" class="state h-12 rounded-full px-4 text-label-l text-primary">Đăng nhập</button>'}
   </div>
 </header>{QUICK_SCRIPT if quick == "scroll" else ""}"""
 
@@ -111,12 +112,33 @@ def feed_card(item, i):
     <img src="{img(photo, 480, 600)}" alt="{escape(title)}" class="h-full w-full object-cover">
     <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">{num}<span class="text-body-s text-on-surface-variant">{unit}</span></span>
     <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 {"text-primary" if saved else "text-on-surface"}" aria-label="Lưu tin">{icon("favorite-rounded" if saved else "favorite-outline-rounded", 22)}</button>
-    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">{km}</span>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">{where(km, area)}</span>
   </div>
   {ins}
   <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">{escape(title)}</h3>
-  <p class="mt-1 text-body-s text-on-surface-variant">{cond} · {area} · {posted} trước</p>
+  <p class="mt-1 text-body-s text-on-surface-variant">{cond} · {area + " · " if where(km, area) == km else ""}{posted} trước</p>
 </article>"""
+
+
+SNACK_ICONS = {"done": "check-rounded", "undo": "undo-rounded", "next": "arrow-forward-rounded", "info": "info-outline-rounded", "error": "error-outline-rounded"}
+
+
+def snackbar(text, kind="done", action=None, left=None):
+    """The app's MessageHost card: secondaryContainer, 16 px corners, at least 56 px
+    tall, level-3 shadow; the kind's icon in a 36 px circle with the time-left ring;
+    one or two lines of body-m; an optional primary text action. A failure turns the
+    icon, circle and ring error. Pinned 24 px above the window's foot, at `left` (px)
+    or centred."""
+    err = kind == "error"
+    tone = "text-error" if err else "text-on-secondary-container"
+    ring = "var(--md-error)" if err else "var(--md-on-secondary-container)"
+    pos = f"left:{left}px" if left is not None else "left:50%;transform:translateX(-50%)"
+    act = f'<button type="button" class="state -mr-2 h-12 shrink-0 rounded-full px-3 text-label-l text-primary">{action}</button>' if action else ""
+    return f"""<div role="status" class="fixed bottom-6 z-40 flex min-h-14 w-[min(480px,calc(100vw-32px))] items-center gap-3 rounded-lg bg-secondary-container py-2 pl-2.5 pr-4 text-on-secondary-container shadow-float" style="{pos}">
+  <span class="relative grid h-9 w-9 shrink-0 place-items-center rounded-full {"bg-error/10" if err else "bg-on-secondary-container/[.12]"} {tone}">{icon(SNACK_ICONS[kind], 20)}
+    <svg viewBox="0 0 36 36" class="absolute inset-0 -rotate-90" aria-hidden="true"><circle cx="18" cy="18" r="16.75" fill="none" stroke="{ring}" stroke-width="2.5" stroke-dasharray="105.2" stroke-dashoffset="34" stroke-linecap="round"/></svg></span>
+  <p class="line-clamp-2 flex-1 text-body-m">{text}</p>{act}
+</div>"""
 
 
 def area_map(pins, you=(54, 58), h=460, guide=True, route=None):
@@ -145,8 +167,8 @@ def area_map(pins, you=(54, 58), h=460, guide=True, route=None):
 
 
 def footer():
-    cols = [("Khám phá", ["Gần bạn", "Bản đồ", "Danh mục", "Vừa đăng"]), ("Mua và bán", ["Cách mua bằng COD", "Cách đăng tin", "Gói người bán", "Điểm uy tín"]),
-            ("Hỗ trợ", ["Trung tâm trợ giúp", "Báo cáo vi phạm", "Quy định đăng tin", "Điều khoản"])]
+    cols = [("Khám phá", ["Dành cho bạn", "Bản đồ", "Danh mục", "Mới nhất"]), ("Mua và bán", ["Cách mua bằng COD", "Cách đăng tin", "Gói người bán", "Điểm uy tín"]),
+            ("Hỗ trợ", ["Trợ giúp và an toàn", "Yêu cầu hỗ trợ", "Quy định đăng tin", "Điều khoản"])]
     col_html = "".join(f'<div><p class="text-title-s text-inverse-on-surface">{t}</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70">'
                        + "".join(f"<li>{a(f'f-{t[:3]}-{i}', 'hover:text-inverse-on-surface', l)}</li>" for i, l in enumerate(ls)) + "</ul></div>" for t, ls in cols)
     return f"""<footer class="mx-auto mt-24 max-w-[1328px] px-6 pb-6">
@@ -154,7 +176,7 @@ def footer():
     <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
       <div>
         <div class="flex items-center gap-2"><img src="{LOGO}" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium text-inverse-on-surface">ShopNexus</span></div>
-        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Giá tốt, gần bạn, chốt nhanh. {MONEY["no_hold"]}</p>
+        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Đồ cũ giá tốt, xem hàng rồi mới trả. {MONEY["no_hold"]}</p>
       </div>
       {col_html}
     </div>
@@ -309,8 +331,12 @@ def detail():
   <div><p class="text-title-m">{c}</p><p class="mt-0.5 text-body-m text-on-surface-variant">{how}</p></div>
 </li>""" for c, how in CLAIMS)
     specs = "".join(f'<div class="flex justify-between py-3 text-body-m {"border-t border-outline-variant" if i > 1 else ""}"><dt class="text-on-surface-variant">{k}</dt><dd>{v}</dd></div>' for i, (k, v) in enumerate(SPECS))
-    qs = "".join(f'<button type="button" class="state h-9 rounded-full border border-outline-variant px-3.5 text-label-l text-on-surface-variant">{q}</button>'
-                 for q in ["Máy còn không bạn?", "Xem máy ở đâu được?", "Có hộp và hóa đơn không?"])
+    qs = icon("chat-outline-rounded", 20, "mr-1 text-on-surface-variant") + "".join(
+        f'<button type="button" class="state h-9 rounded-full border border-outline-variant px-3.5 text-label-l text-on-surface-variant">{q}</button>'
+        for q in ["Máy còn không bạn?", "Xem máy ở đâu được?", "Có hộp và hóa đơn không?"])
+    facts = "".join(f'<span class="flex items-center gap-1">{icon(ic, 16)}{t}</span>'
+                    for ic, t in [("check-circle-outline-rounded", "Như mới"), ("location-on-outline-rounded", where("2,1 km", "Bình Thạnh")), ("schedule-outline-rounded", "2 giờ trước")])
+    n = len(PHOTOS)
     lo, hi = 4_500_000, 6_000_000
     at = lambda v: round((v - lo) / (hi - lo) * 100, 2)
     strip = f"""<div class="relative mt-3 h-12" aria-hidden="true">
@@ -327,17 +353,20 @@ def detail():
 <div class="min-h-screen bg-surface pb-2 font-sans text-on-surface">
   {header()}
   <main class="mx-auto max-w-[1328px] px-6">
-    <nav class="mt-6 flex items-center gap-1.5 text-body-s text-on-surface-variant">{a("crumb-home", "hover:underline", "Khám phá")}{icon("chevron-right-rounded", 16)}{a("crumb-cat", "hover:underline", "Điện thoại")}{icon("chevron-right-rounded", 16)}<span class="text-on-surface">iPhone 13 Pro</span></nav>
+    <nav class="mt-4 flex items-center gap-1.5 text-body-s text-on-surface-variant">{a("crumb-home", "hover:underline", "Khám phá")}{icon("chevron-right-rounded", 16)}{a("crumb-cat", "hover:underline", "Điện thoại")}{icon("chevron-right-rounded", 16)}<span class="text-on-surface">iPhone 13 Pro</span>
+      <span class="flex-1"></span>
+      <button type="button" class="state grid h-10 w-10 place-items-center rounded-full text-on-surface-variant" aria-label="Chia sẻ">{icon("share-outline-rounded", 20)}</button>
+      <button type="button" class="state grid h-10 w-10 place-items-center rounded-full text-on-surface-variant" aria-label="Ẩn tin tương tự, Báo cáo tin">{icon("more-vert", 20)}</button></nav>
     <div class="mt-4 grid grid-cols-[1fr_440px] gap-8">
       <section class="relative overflow-hidden rounded-xl bg-[#E3F2EF] p-8">
         <div class="relative overflow-hidden rounded-lg" style="aspect-ratio: 4 / 3.2">
           <img src="{PHOTOS[0]}" alt="{escape(TITLE)}" class="h-full w-full object-cover">
           <span class="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-label-m text-white">{icon("photo-camera-outline-rounded", 16)}Chụp trong app</span>
-          <button type="button" class="state absolute bottom-4 right-4 flex h-10 items-center gap-2 rounded-full bg-surface-container-lowest/90 px-4 text-label-l text-on-surface">{icon("fullscreen-rounded", 18)}Xem 5 ảnh</button>
+          <button type="button" class="state absolute bottom-4 right-4 flex h-10 items-center gap-2 rounded-full bg-surface-container-lowest/90 px-4 text-label-l text-on-surface">{icon("fullscreen-rounded", 18)}Xem {n} ảnh</button>
         </div>
         <div class="mt-6 flex items-end gap-5 pl-2">{thumbs}
-          <div class="ml-auto flex items-center gap-3 rounded-full bg-surface-container-lowest py-2 pl-2 pr-5 text-body-m">
-            <span class="grid h-9 w-9 place-items-center rounded-full bg-primary-container text-on-primary-container">{icon("photo-camera-outline-rounded", 20)}</span>Cả 5 ảnh chụp trong app
+          <div class="ml-auto flex items-center gap-3 whitespace-nowrap rounded-full bg-surface-container-lowest py-2 pl-2 pr-5 text-body-m">
+            <span class="grid h-9 w-9 place-items-center rounded-full bg-primary-container text-on-primary-container">{icon("photo-camera-outline-rounded", 20)}</span>Cả {n} ảnh chụp trong app
           </div>
         </div>
       </section>
@@ -346,22 +375,24 @@ def detail():
         <div>
         <div class="flex items-center gap-3">
           <img src="{img(SELLER["photo"], 96, 96)}" alt="" class="h-10 w-10 rounded-full object-cover">
-          <div class="flex-1"><p class="flex items-center gap-1 text-title-s">{SELLER["name"]}{icon("verified-rounded", 16, "text-primary")}</p><p class="text-body-s text-on-surface-variant">Bình Thạnh · cách bạn 2,1 km</p></div>
+          <p class="flex flex-1 items-center gap-1 text-title-s">{SELLER["name"]}{icon("verified-rounded", 16, "text-primary")}</p>
           <span class="flex items-center gap-1 rounded-full bg-surface-container px-2.5 py-1 text-label-l">{icon("star-rounded", 16)}4,9</span>
+          {a("ticket-seller", "state -mr-2 grid h-10 w-10 place-items-center rounded-full text-on-surface-variant", icon("chevron-right-rounded", 22), "#seller")}
         </div>
         <h1 class="mt-5 text-headline-m">{escape(TITLE)}</h1>
-        <p class="mt-2 text-body-m text-on-surface-variant">Đăng 2 giờ trước · 38 người đã lưu</p>
+        <p class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-body-s text-on-surface-variant">{facts}</p>
         </div>
         <div>
-        <p><span class="text-display-m">{PRICE[0]}</span><span class="text-title-l text-on-surface-variant">{PRICE[1]}</span></p>
-        <p class="mt-1 flex items-center gap-1 text-label-l text-tertiary">{icon("auto-awesome-rounded", 16)}Thấp hơn mức giữa một chút</p>
+        <div class="flex items-center justify-between"><p><span class="text-display-m">{PRICE[0]}</span><span class="text-title-l text-on-surface-variant">{PRICE[1]}</span></p>
+          <button type="button" class="state -mr-2 grid h-12 w-12 place-items-center rounded-full text-on-surface-variant" aria-label="Lưu tin">{icon("favorite-outline-rounded", 24)}</button></div>
+        <p class="mt-1 flex items-center gap-1 text-label-l text-tertiary">{icon("auto-awesome-rounded", 16)}Ngang giá thị trường</p>
         {strip}
         <p class="text-body-s text-on-surface-variant">42 tin cùng đời máy · 30 ngày · TP.HCM</p>
         <div class="mt-6 grid grid-cols-2 gap-2">
-          <button type="button" class="state flex h-14 items-center justify-center gap-2 rounded-full bg-secondary-container text-label-l text-on-secondary-container">{icon("chat-outline-rounded", 20)}Nhắn tin</button>
-          <button type="button" class="state flex h-14 items-center justify-center gap-2 rounded-full bg-tertiary text-label-l text-on-tertiary">{icon("sell-outline-rounded", 20)}Trả giá</button>
+          <button type="button" class="state flex h-12 items-center justify-center gap-2 rounded-full bg-secondary-container text-label-l text-on-secondary-container">{icon("chat-outline-rounded", 20)}Nhắn tin</button>
+          <button type="button" class="state flex h-12 items-center justify-center gap-2 rounded-full bg-tertiary text-label-l text-on-tertiary">{icon("sell-outline-rounded", 20)}Trả giá</button>
         </div>
-        <div class="mt-4 flex flex-wrap gap-2">{qs}</div>
+        <div class="mt-4 flex flex-wrap items-center gap-2">{qs}</div>
         </div>
         <div>
         <div class="flex items-center gap-5">
@@ -372,9 +403,9 @@ def detail():
         </div>
         <div class="mt-5 flex items-center gap-4 rounded-lg bg-surface-container px-4 py-3">
           {icon("local-shipping-outline-rounded", 24, "text-on-surface-variant")}
-          <span class="flex-1"><span class="block text-body-l">COD, xem hàng trước</span><span class="block text-body-s text-on-surface-variant">Gửi từ Bình Thạnh · phí ship 16.000–30.000 ₫</span></span>
+          <span class="flex-1"><span class="block text-body-l">COD, xem hàng trước</span><span class="block text-body-s text-on-surface-variant">Gửi từ Bình Thạnh</span></span>
         </div>
-        <div class="mt-4 flex flex-col gap-2.5">{money("cod_buyer", "inventory-2-outline-rounded")}{money("meet_hint", "group-outline-rounded")}{money("no_hold", "account-balance-outline-rounded")}</div>
+        <div class="mt-4 flex flex-col gap-2.5">{money("meet_hint", "group-outline-rounded")}{money("no_hold", "account-balance-outline-rounded")}</div>
         </div>
       </aside>
     </div>
@@ -398,18 +429,18 @@ def detail():
     <section class="mt-16 grid grid-cols-[1fr_480px] gap-8">
       <div class="rounded-xl bg-surface-container-low p-8">
         <div class="flex items-center gap-4">
-          <div class="relative"><img src="{img(SELLER["photo"], 160, 160)}" alt="" class="h-20 w-20 rounded-full object-cover"><img src="{ART["tier_top"]}" alt="" class="absolute -bottom-1 -right-2 h-9 w-9"></div>
-          <div class="flex-1"><p class="flex items-center gap-1.5 text-headline-s">{SELLER["name"]}{icon("verified-rounded", 22, "text-primary")}</p><p class="text-body-m text-on-surface-variant">Hàng xóm ở Bình Thạnh · tham gia 2023</p></div>
+          <img src="{img(SELLER["photo"], 160, 160)}" alt="" class="h-20 w-20 rounded-full object-cover">
+          <div class="flex-1"><p class="flex items-center gap-1.5 text-headline-s">{SELLER["name"]}{icon("verified-rounded", 22, "text-primary")}</p><p class="text-body-m text-on-surface-variant">Bình Thạnh, TP.HCM</p></div>
           {a("seller-page", "state flex h-12 items-center rounded-full border border-outline-variant px-5 text-label-l text-primary", "Xem 14 tin khác")}
         </div>
-        <div class="mt-8 grid grid-cols-4 gap-4">{"".join(f'<div class="rounded-lg bg-surface-container-lowest p-4"><p class="text-headline-s">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>' for v, l in [("4,9", "32 đánh giá"), ("14", "đã bán"), ("10 phút", "thường trả lời"), ("0", "ghi nhận bị từ chối")])}</div>
+        <div class="mt-8 grid grid-cols-4 gap-4">{"".join(f'<div class="rounded-lg bg-surface-container-lowest p-4"><p class="text-headline-s">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>' for v, l in [("4,9", "32 đánh giá"), ("14", "đã bán"), ("10 phút", "thường trả lời"), ("2023", "tham gia")])}</div>
         <blockquote class="mt-6 rounded-lg bg-surface-container-lowest p-5"><p class="text-body-l">“Máy đúng như mô tả, pin còn tốt. Anh bán hẹn giờ rất đúng.”</p><footer class="mt-2 text-body-s text-on-surface-variant">Minh Thư · 28/10/2026 · ★★★★★</footer></blockquote>
       </div>
-      {area_map([(62, 38, "Tuấn Kiệt", True)], you=(28, 72), h=420, guide=False, route=((28, 72), (62, 38), "2,1 km · khoảng 9 phút đi xe"))}
+      {area_map([(62, 38, "Tuấn Kiệt", True)], you=(28, 72), h=420, guide=False, route=((28, 72), (62, 38), where("2,1 km", "Bình Thạnh")))}
     </section>
 
     <section class="mt-20">
-      <div class="flex items-end justify-between"><h2 class="text-display-s">Món tương tự quanh đây</h2>{a("similar-all", "text-label-l text-primary hover:underline", "Xem tất cả")}</div>
+      <div class="flex items-end justify-between"><h2 class="text-display-s">Tin tương tự</h2>{a("similar-all", "text-label-l text-primary hover:underline", "Xem tất cả")}</div>
       <div class="stagger mt-8 grid grid-cols-5 gap-x-5 pb-7">{similar}</div>
     </section>
   </main>

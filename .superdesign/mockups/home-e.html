@@ -11,7 +11,7 @@
 <script>
 tailwind.config = { theme: { extend: {
   colors: {'primary':'#005049','on-primary':'#FFFFFF','primary-container':'#066A61','on-primary-container':'#97E7DB','secondary':'#47645F','on-secondary':'#FFFFFF','secondary-container':'#C7E6E0','on-secondary-container':'#4B6863','tertiary':'#773115','on-tertiary':'#FFFFFF','tertiary-container':'#95482A','on-tertiary-container':'#FFCDBC','tertiary-fixed':'#FFDBCF','on-tertiary-fixed-variant':'#773215','error':'#BA1A1A','on-error':'#FFFFFF','error-container':'#FFDAD6','surface':'#F7FAF8','surface-container-lowest':'#FFFFFF','surface-container-low':'#F1F4F2','surface-container':'#EBEFED','surface-container-high':'#E6E9E7','surface-container-highest':'#E0E3E1','on-surface':'#181C1C','on-surface-variant':'#3E4947','outline':'#6E7977','outline-variant':'#BEC9C6','inverse-surface':'#2D3130','inverse-on-surface':'#EEF1EF','inverse-primary':'#85D5C9'},
-  fontSize: {'display-l':['57px',{lineHeight:'64px',fontWeight:'400',letterSpacing:'-0.25px'}],'display-m':['45px',{lineHeight:'52px',fontWeight:'400',letterSpacing:'0'}],'display-s':['36px',{lineHeight:'44px',fontWeight:'400',letterSpacing:'0'}],'headline-m':['28px',{lineHeight:'36px',fontWeight:'400',letterSpacing:'0'}],'headline-s':['24px',{lineHeight:'32px',fontWeight:'400',letterSpacing:'0'}],'title-l':['22px',{lineHeight:'28px',fontWeight:'400',letterSpacing:'0'}],'title-m':['16px',{lineHeight:'24px',fontWeight:'500',letterSpacing:'0.15px'}],'title-s':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'body-l':['16px',{lineHeight:'24px',fontWeight:'400',letterSpacing:'0.5px'}],'body-m':['14px',{lineHeight:'20px',fontWeight:'400',letterSpacing:'0.25px'}],'body-s':['12px',{lineHeight:'16px',fontWeight:'400',letterSpacing:'0.4px'}],'label-l':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'label-m':['12px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.5px'}],'label-s':['11px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.5px'}]},
+  fontSize: {'display-l':['57px',{lineHeight:'64px',fontWeight:'400',letterSpacing:'-0.25px'}],'display-m':['45px',{lineHeight:'52px',fontWeight:'400',letterSpacing:'0'}],'display-s':['32px',{lineHeight:'40px',fontWeight:'400',letterSpacing:'0'}],'headline-m':['24px',{lineHeight:'32px',fontWeight:'400',letterSpacing:'0'}],'headline-s':['20px',{lineHeight:'28px',fontWeight:'400',letterSpacing:'0'}],'title-l':['20px',{lineHeight:'26px',fontWeight:'400',letterSpacing:'0'}],'title-m':['15px',{lineHeight:'22px',fontWeight:'500',letterSpacing:'0.1px'}],'title-s':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'body-l':['14px',{lineHeight:'20px',fontWeight:'400',letterSpacing:'0.25px'}],'body-m':['13px',{lineHeight:'18px',fontWeight:'400',letterSpacing:'0.2px'}],'body-s':['12px',{lineHeight:'16px',fontWeight:'400',letterSpacing:'0.3px'}],'label-l':['13px',{lineHeight:'18px',fontWeight:'500',letterSpacing:'0.1px'}],'label-m':['12px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.4px'}],'label-s':['11px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.4px'}]},
   borderRadius: {'xs':'4px','sm':'8px','md':'12px','lg':'16px','lg-plus':'20px','xl':'28px','xl-plus':'32px'},
   fontFamily: { sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'] },
   boxShadow: { float: '0 1px 3px 0 rgba(0,0,0,.30), 0 4px 8px 3px rgba(0,0,0,.15)' },
@@ -33,6 +33,11 @@ tailwind.config = { theme: { extend: {
 
   .caret { display: inline-block; width: 2px; height: 28px; margin-left: 2px; vertical-align: -6px; background: var(--md-primary); }
   .row-hover:hover { background: var(--md-surface-container-low); }
+  .lift { transition: transform 420ms var(--spatial); } .lift:hover { transform: translateY(-4px) rotate(-1deg); }
+  .feed-tab { color: var(--md-on-surface-variant); }
+  .feed-tab[aria-selected="true"] { color: var(--md-on-surface); }
+  .feed-tab[aria-selected="true"]::before { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 3px;
+    border-radius: 3px 3px 0 0; background: var(--md-primary); }
 
 </style>
 </head>
@@ -42,11 +47,11 @@ tailwind.config = { theme: { extend: {
     <section class="relative overflow-hidden">
       <div class="fixed inset-x-0 top-0 z-30"><header class="sticky top-4 z-30 mx-auto mt-4 max-w-[1328px] px-6">
   <div class="flex h-16 items-center gap-2 rounded-full bg-surface-container-lowest pl-3 pr-2 shadow-float">
-    <a id="brand-7" href="#home" class="flex items-center gap-2 pr-4"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium">ShopNexus</span></a>
-    <nav class="flex items-center gap-1"><a id="nav-0-3" href="#nav-0" class="state flex h-10 items-center rounded-full px-4 text-label-l bg-secondary-container text-on-secondary-container">Khám phá</a><a id="nav-1-4" href="#nav-1" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Danh mục</a><a id="nav-2-5" href="#nav-2" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Bản đồ</a><a id="nav-3-6" href="#nav-3" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Cách mua</a></nav>
+    <a id="brand-8" href="#home" class="flex items-center gap-2 pr-4"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium">ShopNexus</span></a>
+    <nav class="flex items-center gap-1"><a id="nav-0-4" href="#nav-0" class="state flex h-10 items-center rounded-full px-4 text-label-l bg-secondary-container text-on-secondary-container">Khám phá</a><a id="nav-1-5" href="#nav-1" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Danh mục</a><a id="nav-2-6" href="#nav-2" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Bản đồ</a><a id="nav-3-7" href="#nav-3" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Cách mua</a></nav>
     <span class="flex-1"></span>
     <button id="quick-search" type="button" class="quick quick-hidden state flex h-10 items-center gap-2 whitespace-nowrap rounded-full bg-surface-container-high px-4 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:search-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Tìm nhanh<span class="ml-6 rounded-xs bg-surface-container-lowest px-1.5 text-label-s">/</span></button>
-    <a id="messages-8" href="#messages" class="state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:chat-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon><span class="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-label-s text-on-error">3</span></a>
+    <a id="messages-9" href="#messages" class="state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:chat-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon><span class="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-label-s text-on-error">3</span></a>
     <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-primary pl-4 pr-5 text-label-l text-on-primary"><iconify-icon icon="material-symbols:add-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Đăng tin</button>
     <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=96&h=96&q=80&auto=format&fit=crop" alt="Tài khoản" class="ml-1 h-11 w-11 rounded-full object-cover">
   </div>
@@ -68,7 +73,7 @@ addEventListener('DOMContentLoaded', () => {
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
       <div class="relative mx-auto max-w-[1328px] px-6 pb-14 pt-[176px]">
         <div class="mx-auto max-w-[920px]">
-          <p class="flex items-center justify-center gap-2 text-label-l text-white/85"><iconify-icon icon="material-symbols:near-me-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Thủ Đức, TP.HCM · 2.418 món đang bán quanh bạn</p>
+          <p class="flex items-center justify-center gap-2 text-label-l text-white/85"><iconify-icon icon="material-symbols:sell-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>48.210 món đang bán trên cả nước</p>
           <h1 class="mt-4 text-center text-display-l text-white">Bạn đang tìm gì?</h1>
           <p class="mt-3 text-center text-body-l text-white/85">Gõ như đang nhắn cho người bạn rành đồ cũ, hoặc chụp một tấm ảnh.</p>
           <div data-big-search class="mt-10 flex h-[76px] items-center gap-3 rounded-full bg-surface-container-lowest pl-7 pr-2.5 shadow-float">
@@ -78,12 +83,8 @@ addEventListener('DOMContentLoaded', () => {
             <button type="button" class="state grid h-12 w-12 place-items-center rounded-full text-on-surface-variant" aria-label="Tìm bằng ảnh"><iconify-icon icon="material-symbols:photo-camera-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon></button>
             <button type="button" class="state h-14 rounded-full bg-primary px-8 text-label-l text-on-primary">Tìm</button>
           </div>
-          <div class="mt-5 flex flex-wrap items-center justify-center gap-2"><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Laptop<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Dưới 8 triệu<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Gần Thủ Đức · 5 km<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Màn hình chuẩn màu<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-9 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest pl-4 pr-2 text-label-l text-on-surface-variant">Tình trạng<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button><button type="button" class="state flex h-9 items-center gap-1 rounded-full border border-dashed border-outline bg-surface-container-lowest px-3 text-label-l text-on-surface-variant"><iconify-icon icon="material-symbols:add-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Thêm điều kiện</button></div>
-          <div class="mt-8 flex items-center justify-center gap-1 border-t border-white/20 pt-5">
-            <span class="mr-2 whitespace-nowrap text-label-l text-white/80">Gần đây</span><a id="recent-0-1" href="#recent-0" class="state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-black/30 px-3 text-label-l text-white"><iconify-icon icon="material-symbols:history-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>iPhone 13 pin trên 85%</a><a id="recent-1-2" href="#recent-1" class="state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-black/30 px-3 text-label-l text-white"><iconify-icon icon="material-symbols:history-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>xe đạp cho bé 8 tuổi</a>
-            <span class="mx-3 h-5 w-px bg-white/25"></span>
-            <a id="alert-a7-9" href="#alert-a7" class="state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-container-lowest px-3 text-label-l text-on-surface"><iconify-icon icon="material-symbols:notifications-active-outline-rounded" width="16" height="16" class="block shrink-0 text-primary"></iconify-icon>Sony A7 III dưới 25 triệu<span class="ml-1 whitespace-nowrap rounded-full bg-primary px-1.5 text-label-s text-on-primary">2 mới</span></a>
-          </div>
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-2"><button type="button" class="state flex h-8 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Laptop<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-8 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Dưới 8 triệu<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-8 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Gần Thủ Đức · 5 km<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-8 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Màn hình chuẩn màu<span class="ml-1 grid h-6 w-6 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></button><button type="button" class="state flex h-8 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest pl-4 pr-2 text-label-l text-on-surface-variant">Tình trạng<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button><button type="button" class="state flex h-8 items-center gap-1 rounded-full border border-dashed border-outline bg-surface-container-lowest px-3 text-label-l text-on-surface-variant"><iconify-icon icon="material-symbols:add-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Thêm điều kiện</button></div>
+          <div class="mt-8 flex items-center justify-center gap-2 border-t border-white/20 pt-5"><span class="flex h-8 items-center whitespace-nowrap rounded-full pl-3 text-label-l bg-surface-container-lowest text-on-surface"><a id="recent-0-1" href="#recent-0" class="flex items-center gap-1.5"><iconify-icon icon="material-symbols:notifications-active-outline-rounded" width="16" height="16" class="block shrink-0 text-primary"></iconify-icon>Sony A7 III dưới 25 triệu<span class="rounded-full bg-tertiary px-1.5 text-label-s text-on-tertiary">+2</span></a><button type="button" class="state grid h-8 w-8 place-items-center rounded-full text-on-surface-variant" aria-label="Xoá Sony A7 III dưới 25 triệu"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></button></span><span class="flex h-8 items-center whitespace-nowrap rounded-full pl-3 text-label-l bg-black/30 text-white"><a id="recent-1-2" href="#recent-1" class="flex items-center gap-1.5"><iconify-icon icon="material-symbols:history-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>iPhone 13 pin trên 85%</a><button type="button" class="state grid h-8 w-8 place-items-center rounded-full text-white/80" aria-label="Xoá iPhone 13 pin trên 85%"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></button></span><span class="flex h-8 items-center whitespace-nowrap rounded-full pl-3 text-label-l bg-black/30 text-white"><a id="recent-2-3" href="#recent-2" class="flex items-center gap-1.5"><iconify-icon icon="material-symbols:history-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>xe đạp cho bé 8 tuổi</a><button type="button" class="state grid h-8 w-8 place-items-center rounded-full text-white/80" aria-label="Xoá xe đạp cho bé 8 tuổi"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></button></span></div>
         </div>
       </div>
     </section>
@@ -170,7 +171,7 @@ addEventListener('DOMContentLoaded', () => {
   </div>
   <button type="button" class="state -mr-1 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
 </article></div>
-        <button type="button" class="state mt-4 h-12 w-full rounded-full bg-surface-container text-label-l text-on-surface">Xem thêm 32 tin</button>
+        <button type="button" class="state mt-4 h-10 w-full rounded-full bg-surface-container text-label-l text-on-surface">Xem thêm 32 tin</button>
       </div>
       <aside class="self-start">
         <div class="rounded-xl bg-surface-container-low p-6">
@@ -182,15 +183,121 @@ addEventListener('DOMContentLoaded', () => {
         </div>
       </aside>
     </section>
+
+    <section class="mx-auto mt-20 max-w-[1328px] px-6" aria-label="Tin đang bán">
+      <div role="tablist" class="flex gap-2 border-b border-outline-variant"><button type="button" role="tab" aria-selected="true" class="feed-tab state relative h-12 rounded-t-md px-4 text-title-s">Dành cho bạn</button><button type="button" role="tab" aria-selected="false" class="feed-tab state relative h-12 rounded-t-md px-4 text-title-s">Gần bạn</button><button type="button" role="tab" aria-selected="false" class="feed-tab state relative h-12 rounded-t-md px-4 text-title-s">Mới nhất</button></div>
+      <div class="mt-6 grid grid-cols-5 gap-x-3 gap-y-8"><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=480&h=600&q=80&auto=format&fit=crop" alt="iPhone 15 128GB, bảo hành Apple đến 03/2027" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">15,9<span class="text-body-s text-on-surface-variant"> tr ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">Hà Nội</span>
+  </div>
+  <p class="mt-1 flex items-center gap-1 text-label-m text-tertiary"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon>Rẻ hơn 12%</p>
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">iPhone 15 128GB, bảo hành Apple đến 03/2027</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Như mới · 40 phút trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=480&h=600&q=80&auto=format&fit=crop" alt="iPhone X 64GB, pin 86%, máy zin chưa sửa" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">3.900.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">0,6 km</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">iPhone X 64GB, pin 86%, máy zin chưa sửa</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Đã dùng · Thủ Đức · 12 phút trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=480&h=600&q=80&auto=format&fit=crop" alt="MacBook Air M1 13 inch 8/256GB, sạc 92 lần" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">11,5<span class="text-body-s text-on-surface-variant"> tr ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">3,4 km</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">MacBook Air M1 13 inch 8/256GB, sạc 92 lần</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Đã dùng · Q.2 cũ · 1 giờ trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=480&h=600&q=80&auto=format&fit=crop" alt="Sony A7 III kèm lens 28-70 và 50mm f/1.8" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">26,5<span class="text-body-s text-on-surface-variant"> tr ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-primary" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">Đà Nẵng</span>
+  </div>
+  <p class="mt-1 flex items-center gap-1 text-label-m text-tertiary"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon>Rẻ hơn 18%</p>
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">Sony A7 III kèm lens 28-70 và 50mm f/1.8</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Như mới · 1 ngày trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=480&h=600&q=80&auto=format&fit=crop" alt="Giày Nike Free RN size 42, mới nguyên hộp" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">1.290.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">2,2 km</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">Giày Nike Free RN size 42, mới nguyên hộp</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Mới · Thủ Đức · 20 phút trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=480&h=600&q=80&auto=format&fit=crop" alt="Tai nghe chống ồn Sony WH-1000XM4, fullbox" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">3.200.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">Cần Thơ</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">Tai nghe chống ồn Sony WH-1000XM4, fullbox</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Như mới · 3 giờ trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=480&h=600&q=80&auto=format&fit=crop" alt="Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">4.800.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">6,8 km</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Đã dùng · Bình Thạnh · 5 giờ trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=480&h=600&q=80&auto=format&fit=crop" alt="Máy ảnh Polaroid OneStep 2, tặng 1 hộp film" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">1.750.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">1,8 km</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">Máy ảnh Polaroid OneStep 2, tặng 1 hộp film</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Như mới · Thủ Đức · 2 giờ trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=600&q=80&auto=format&fit=crop" alt="Ghế bành bọc vải vàng mù tạt, khung gỗ sồi" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">1.600.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">Huế</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">Ghế bành bọc vải vàng mù tạt, khung gỗ sồi</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Đã dùng · 6 giờ trước</p>
+</article><article class="lift min-w-0">
+  <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 5">
+    <img src="https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=480&h=600&q=80&auto=format&fit=crop" alt="Ghế xoay vải be chân gỗ, ngồi êm" class="h-full w-full object-cover">
+    <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">950.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
+    <button type="button" class="state absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-surface-container-lowest/90 text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></button>
+    <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">3,9 km</span>
+  </div>
+  
+  <h3 class="mt-2 line-clamp-2 text-body-l text-on-surface">Ghế xoay vải be chân gỗ, ngồi êm</h3>
+  <p class="mt-1 text-body-s text-on-surface-variant">Như mới · Q.9 cũ · 50 phút trước</p>
+</article></div>
+      <div class="mt-10 flex justify-center"><button type="button" class="state h-10 rounded-full bg-secondary-container px-8 text-label-l text-on-secondary-container">Xem thêm tin</button></div>
+    </section>
   </main>
   <footer class="mx-auto mt-24 max-w-[1328px] px-6 pb-6">
   <div class="relative overflow-hidden rounded-xl bg-inverse-surface px-12 pb-10 pt-14">
     <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
       <div>
         <div class="flex items-center gap-2"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium text-inverse-on-surface">ShopNexus</span></div>
-        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Giá tốt, gần bạn, chốt nhanh. ShopNexus không giữ tiền và không nhận cọc.</p>
+        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Đồ cũ giá tốt, xem hàng rồi mới trả. ShopNexus không giữ tiền và không nhận cọc.</p>
       </div>
-      <div><p class="text-title-s text-inverse-on-surface">Khám phá</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Khá-0-11" href="#f-Khá-0" class="hover:text-inverse-on-surface">Gần bạn</a></li><li><a id="f-Khá-1-12" href="#f-Khá-1" class="hover:text-inverse-on-surface">Bản đồ</a></li><li><a id="f-Khá-2-13" href="#f-Khá-2" class="hover:text-inverse-on-surface">Danh mục</a></li><li><a id="f-Khá-3-14" href="#f-Khá-3" class="hover:text-inverse-on-surface">Vừa đăng</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Mua và bán</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Mua-0-15" href="#f-Mua-0" class="hover:text-inverse-on-surface">Cách mua bằng COD</a></li><li><a id="f-Mua-1-16" href="#f-Mua-1" class="hover:text-inverse-on-surface">Cách đăng tin</a></li><li><a id="f-Mua-2-17" href="#f-Mua-2" class="hover:text-inverse-on-surface">Gói người bán</a></li><li><a id="f-Mua-3-18" href="#f-Mua-3" class="hover:text-inverse-on-surface">Điểm uy tín</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Hỗ trợ</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Hỗ -0-19" href="#f-Hỗ -0" class="hover:text-inverse-on-surface">Trung tâm trợ giúp</a></li><li><a id="f-Hỗ -1-20" href="#f-Hỗ -1" class="hover:text-inverse-on-surface">Báo cáo vi phạm</a></li><li><a id="f-Hỗ -2-21" href="#f-Hỗ -2" class="hover:text-inverse-on-surface">Quy định đăng tin</a></li><li><a id="f-Hỗ -3-22" href="#f-Hỗ -3" class="hover:text-inverse-on-surface">Điều khoản</a></li></ul></div>
+      <div><p class="text-title-s text-inverse-on-surface">Khám phá</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Khá-0-11" href="#f-Khá-0" class="hover:text-inverse-on-surface">Dành cho bạn</a></li><li><a id="f-Khá-1-12" href="#f-Khá-1" class="hover:text-inverse-on-surface">Bản đồ</a></li><li><a id="f-Khá-2-13" href="#f-Khá-2" class="hover:text-inverse-on-surface">Danh mục</a></li><li><a id="f-Khá-3-14" href="#f-Khá-3" class="hover:text-inverse-on-surface">Mới nhất</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Mua và bán</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Mua-0-15" href="#f-Mua-0" class="hover:text-inverse-on-surface">Cách mua bằng COD</a></li><li><a id="f-Mua-1-16" href="#f-Mua-1" class="hover:text-inverse-on-surface">Cách đăng tin</a></li><li><a id="f-Mua-2-17" href="#f-Mua-2" class="hover:text-inverse-on-surface">Gói người bán</a></li><li><a id="f-Mua-3-18" href="#f-Mua-3" class="hover:text-inverse-on-surface">Điểm uy tín</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Hỗ trợ</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Hỗ -0-19" href="#f-Hỗ -0" class="hover:text-inverse-on-surface">Trợ giúp và an toàn</a></li><li><a id="f-Hỗ -1-20" href="#f-Hỗ -1" class="hover:text-inverse-on-surface">Yêu cầu hỗ trợ</a></li><li><a id="f-Hỗ -2-21" href="#f-Hỗ -2" class="hover:text-inverse-on-surface">Quy định đăng tin</a></li><li><a id="f-Hỗ -3-22" href="#f-Hỗ -3" class="hover:text-inverse-on-surface">Điều khoản</a></li></ul></div>
     </div>
     <div class="mt-12 flex justify-between border-t border-inverse-on-surface/15 pt-6 text-body-s text-inverse-on-surface/60"><span>© 2026 ShopNexus</span><span>TP.HCM · Hà Nội · Đà Nẵng</span></div>
   </div>
