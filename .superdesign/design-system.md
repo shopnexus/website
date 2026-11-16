@@ -1,10 +1,10 @@
 # ShopNexus website design system
 
 The public storefront of ShopNexus, a Vietnamese C2C marketplace for single
-items, new or used. Buyers find something near them, message the seller,
+items, new or used. Buyers find something, message the seller,
 haggle, and get it by COD, looking at it at the door before paying the
-shipper. ShopNexus holds none of the money. Tagline: "Giá tốt, gần bạn, chốt
-nhanh".
+shipper. ShopNexus holds none of the money. Tagline: "Đồ cũ giá tốt, xem
+hàng rồi mới trả" (the app's `auth_tagline`).
 
 The reference is the Android app's system, `app/.superdesign/design-system.md`:
 product, deal model, colour roles, type scale, corner scale, motion, the
@@ -18,9 +18,10 @@ listing card, the `MONEY` sentences and the copy rules all come from there.
   is the one main action and trust; `tertiary` is bargaining and the agreed
   price only; `secondaryContainer` fills selected chips and indicators; depth
   is tonal, and only floating elements take the level-3 shadow.
-- Type: Be Vietnam Pro, M3 scale. The web may also use the two M3 display
-  steps the app leaves out: displayLarge 57/64 and displayMedium 45/52, both
-  weight 400.
+- Type: Be Vietnam Pro on the app's scale, a step under the M3 baseline
+  (`TYPE` in `tools/common.py`). The web may also use the two M3 display
+  steps the app leaves out, at the baseline: displayLarge 57/64 and
+  displayMedium 45/52, both weight 400.
 - Corners: 4, 8, 12, 16, 20, 28, 32 and full.
 - Icons: Material Symbols Rounded, weight 400; outline when inactive, filled
   when selected.

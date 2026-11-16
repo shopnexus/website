@@ -57,6 +57,14 @@ def ring(done, total, size=56, stroke=6):
 </span>"""
 
 
+# Google's "G", which its sign-in branding asks to sit on the button as it is (the app's build_welcome.py).
+GOOGLE_G = ('<svg viewBox="0 0 48 48" class="h-5 w-5" aria-hidden="true">'
+            '<path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>'
+            '<path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>'
+            '<path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>'
+            '<path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>')
+
+
 # -------------------------------------------------------------------- login --
 def login():
     shapes = [("1611186871348-b1ce696e52c9", "rounded-[38%]", "left-10 top-14 w-[190px] -rotate-6"),
@@ -67,20 +75,18 @@ def login():
     promises = "".join(f'<li class="flex items-center gap-3 text-body-l text-on-surface">{icon(ic, 22, "text-primary")}{t}</li>' for ic, t in [
         ("local-shipping-outline-rounded", "Giao tận nơi, xem hàng rồi mới trả"),
         ("photo-camera-outline-rounded", "Ảnh chụp trong app, ghi rõ tình trạng"),
-        ("account-balance-outline-rounded", MONEY["no_hold"])])
+        ("shield-outline-rounded", "Không cọc trước, không ai giữ tiền của bạn")])
     boxes_filled = "".join(f'<span class="otp grid place-items-center rounded-md border-2 {"border-primary" if i == 4 else "border-outline-variant"} bg-surface-container-lowest text-headline-m">{d}</span>'
                            for i, d in enumerate("2849") ) + '<span class="otp grid place-items-center rounded-md border-2 border-primary bg-surface-container-lowest"><span class="h-7 w-0.5 bg-primary"></span></span>' \
                    + '<span class="otp rounded-md border-2 border-outline-variant bg-surface-container-lowest"></span>'
-    step = lambda n, label: (f'<span class="inline-flex items-center gap-2 rounded-full bg-surface-container-high px-3 py-1 text-label-l text-on-surface-variant">'
-                             f'<span class="text-primary">Bước {n}/3</span>· {label}</span>')
     body = f"""<body>
 <div class="min-h-screen bg-surface pb-2 font-sans text-on-surface">
-  {nav_active(header(quick="always"), None)}
+  {nav_active(header(quick="always", signed_in=False), None)}
   <main class="mx-auto max-w-[1328px] px-6">
     <div class="mt-8 grid grid-cols-[1fr_520px] gap-8">
       <section class="relative overflow-hidden rounded-xl bg-secondary-container p-12">
         <div class="flex items-center gap-3"><img src="{LOGO}" alt="ShopNexus" class="h-12 w-12"><span class="text-headline-s font-medium text-on-surface">ShopNexus</span></div>
-        <h1 class="mt-8 max-w-[440px] text-display-m text-on-surface">Giá tốt, gần bạn, chốt nhanh</h1>
+        <h1 class="mt-8 max-w-[520px] text-display-m text-on-surface">Đồ cũ giá tốt, xem hàng rồi mới trả</h1>
         <ul class="mt-8 flex flex-col gap-4">{promises}</ul>
         <div class="relative mt-10 h-[480px]">
           {photos}
@@ -91,25 +97,34 @@ def login():
       </section>
 
       <section class="flex flex-col gap-6">
+        <div role="alert" class="flex gap-4 rounded-xl bg-surface-container-high p-5">
+          <span class="mt-0.5 text-on-surface-variant">{icon("devices-off-outline-rounded", 22)}</span>
+          <div class="min-w-0 flex-1"><p class="text-title-s text-on-surface">Bạn đã được đăng xuất</p>
+            <p class="mt-1 text-body-m text-on-surface-variant">Phiên này đã kết thúc từ một thiết bị khác. Đăng nhập lại để tiếp tục.</p></div>
+          <button type="button" class="state -mr-2 -mt-1 h-10 shrink-0 self-start rounded-full px-3 text-label-l text-primary">Đã hiểu</button>
+        </div>
+
         <div class="rounded-xl bg-surface-container-lowest p-8 shadow-float">
-          {step(1, "Số điện thoại")}
-          <h2 class="mt-5 text-headline-m">Đăng nhập bằng số điện thoại</h2>
-          <p class="mt-2 text-body-l text-on-surface-variant">Chỉ cần số điện thoại. Mã gửi qua SMS.</p>
-          <label class="mt-6 block text-label-l text-on-surface-variant">Số điện thoại</label>
+          <h2 class="text-headline-m">Đăng nhập</h2>
+          <button id="google" type="button" class="state mt-6 flex h-14 w-full items-center justify-center gap-3 rounded-full border border-outline text-label-l text-on-surface">{GOOGLE_G}Tiếp tục với Google</button>
+          <div class="my-6 flex items-center gap-4 text-body-s text-on-surface-variant"><span class="h-px flex-1 bg-outline-variant"></span>hoặc<span class="h-px flex-1 bg-outline-variant"></span></div>
+          <label class="block text-label-l text-on-surface-variant">Số điện thoại</label>
           <div class="mt-2 flex h-14 items-center gap-3 rounded-full border-2 border-primary bg-surface-container-lowest pl-2 pr-5">
-            <span class="flex h-10 items-center gap-1 rounded-full bg-surface-container-high px-3 text-label-l text-on-surface">+84{icon("keyboard-arrow-down-rounded", 18)}</span>
-            <span class="flex-1 text-title-l font-normal text-on-surface">903 452 128</span>
+            <span class="flex h-10 items-center rounded-full bg-surface-container-high px-3 text-label-l text-on-surface">+84</span>
+            <span class="flex-1 text-body-l text-on-surface">903 452 128</span>
           </div>
-          <p class="mt-3 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("visibility-off-outline-rounded", 18)}Người mua và người bán không thấy số của bạn.</p>
-          <button type="button" class="state mt-6 h-14 w-full rounded-full bg-secondary-container text-label-l text-on-secondary-container">Gửi mã</button>
+          <p class="mt-3 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("visibility-off-outline-rounded", 18)}Người khác không thấy số của bạn.</p>
+          <div class="mt-6 flex items-center gap-3">
+            <button type="button" class="state h-14 flex-1 rounded-full bg-secondary-container text-label-l text-on-secondary-container">Gửi mã</button>
+            <button type="button" class="state flex h-14 items-center gap-2 rounded-full px-5 text-label-l text-primary">{icon("mail-outline-rounded", 20)}Dùng email</button>
+          </div>
         </div>
 
         <div class="rounded-xl bg-surface-container-low p-8">
-          {step(2, "Mã xác nhận")}
-          <h2 class="mt-5 text-headline-s">Nhập mã 6 số</h2>
-          <p class="mt-2 text-body-m text-on-surface-variant">Đã gửi tới +84 903 452 128 · {a("change-number", "text-label-l text-primary hover:underline", "Đổi số")}</p>
+          <h2 class="text-headline-s">Nhập mã 6 số</h2>
+          <p class="mt-2 text-body-m text-on-surface-variant">Gửi tới 0903 452 128 · {a("change-number", "text-label-l text-primary hover:underline", "Đổi số")}</p>
           <div class="mt-5 flex justify-between">{boxes_filled}</div>
-          <p class="mt-4 text-body-m text-on-surface-variant">Gửi lại mã sau 45 giây</p>
+          <p class="mt-4 text-body-m text-on-surface-variant">Gửi lại sau 0:45</p>
         </div>
 
         <p class="px-4 text-center text-body-s text-on-surface-variant">Tiếp tục là bạn đồng ý với {a("terms", "text-primary hover:underline", "Điều khoản sử dụng")} và {a("privacy", "text-primary hover:underline", "Chính sách quyền riêng tư")} của ShopNexus.</p>
@@ -158,8 +173,25 @@ def my_row(kind, photo, title, price, stats):
 
 def setting_row(ic, title, value=None, last=False):
     v = f'<span class="block text-body-s text-on-surface-variant">{value}</span>' if value else ""
-    return (f'<div class="state flex min-h-[56px] items-center gap-4 bg-surface-container px-5 py-3">{icon(ic, 22, "text-on-surface-variant")}'
+    return (f'<div class="state flex {"min-h-[64px]" if value else "min-h-[48px]"} items-center gap-4 bg-surface-container px-5 py-2">{icon(ic, 22, "text-on-surface-variant")}'
             f'<span class="flex-1"><span class="block text-body-l text-on-surface">{title}</span>{v}</span>{icon("chevron-right-rounded", 22, "text-on-surface-variant")}</div>')
+
+
+# The address book (app: Địa chỉ của tôi). Communes after the 2025 merger, no district.
+ADDRESSES = [
+    ("home-outline-rounded", "Nhà", "12 Nguyễn Gia Trí", "Phường Bình Thạnh",
+     '<span class="rounded-sm bg-secondary-container px-1.5 text-label-m text-on-secondary-container">Mặc định</span>'),
+    ("work-outline-rounded", "Công ty", "Tầng 8, 2 Hải Triều", "Phường Sài Gòn", ""),
+]
+
+
+def with_dot(html):
+    """The 6 px error dot on the header avatar while ShopNexus has an unread reply (the app's Tôi tab dot).
+    Done on this page's copy of the header; the shared header() is unchanged."""
+    j = html.index('>', html.index('alt="Tài khoản"')) + 1
+    i = html.rindex('<img', 0, j)
+    return html[:i] + '<span class="relative ml-1 shrink-0">' + html[i:j].replace(' ml-1', '') + \
+        '<span class="absolute right-0 top-0.5 h-1.5 w-1.5 rounded-full bg-error ring-2 ring-surface-container-lowest" aria-label="Có trả lời mới"></span></span>' + html[j:]
 
 
 def account():
@@ -170,16 +202,25 @@ def account():
 </a>""" for k, ic, t, sub in [("listings", "sell-outline-rounded", "Tin của bạn", "6 đang bán · 1 nháp"), ("orders", "shopping-bag-outline-rounded", "Đơn hàng", "3 đơn mua"),
                               ("sales", "inventory-2-outline-rounded", "Đơn bán", "1 đơn chờ bạn"), ("saved", "favorite-outline-rounded", "Đã lưu", "12 tin"),
                               ("rep", "military-tech-outline-rounded", "Điểm uy tín", "Xuất sắc · 4,9"), ("plans", "workspace-premium-outline-rounded", "Gói người bán", "Cơ bản · miễn phí"),
-                              ("settings", "settings-outline-rounded", "Cài đặt", "Thông báo, khu vực")])
+                              ("settings", "settings-outline-rounded", "Cài đặt", "Thông báo, địa chỉ")])
     rows = "".join(my_row(*l) for l in MY_LISTINGS)
     theme = "".join(f'<span class="flex h-10 {"flex-[1.6]" if t == "Theo hệ thống" else "flex-1"} items-center justify-center gap-1 whitespace-nowrap text-label-l {"bg-secondary-container text-on-secondary-container" if t == "Theo hệ thống" else "bg-surface-container-high text-on-surface-variant"}">'
                     f'{icon("check-rounded", 16) if t == "Theo hệ thống" else ""}{t}</span>' for t in ["Theo hệ thống", "Sáng", "Tối"])
     todo = "".join(f'<li class="flex items-center gap-3 py-2.5">{icon(ic, 20, "text-on-surface-variant")}<span class="flex-1 text-body-m {"text-primary" if i == 0 else "text-on-surface"}">{t}</span>{icon("chevron-right-rounded", 20, "text-on-surface-variant")}</li>'
                    for i, (ic, t) in enumerate([("local-shipping-outline-rounded", "Thiết lập giao COD"), ("home-outline-rounded", "Địa chỉ nhận hàng"),
                                                 ("edit-note-rounded", "Giới thiệu bản thân"), ("location-on-outline-rounded", "Khu vực bán")]))
+    addresses = "".join(
+        f'<div class="state flex min-h-[64px] items-center gap-4 bg-surface-container px-5 py-2">'
+        f'<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface-container-highest text-on-surface-variant">{icon(ic, 22)}</span>'
+        f'<span class="min-w-0 flex-1"><span class="flex items-center gap-2 text-body-l text-on-surface">{kind}{tag}</span>'
+        f'<span class="block truncate text-body-s text-on-surface-variant">{street} · {commune}</span></span>{icon("chevron-right-rounded", 22, "text-on-surface-variant")}</div>'
+        for ic, kind, street, commune, tag in ADDRESSES) + (
+        f'<div class="state flex min-h-[48px] items-center gap-4 bg-surface-container px-5">'
+        f'<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-container text-on-primary-container">{icon("add-rounded", 22)}</span>'
+        f'<span class="text-body-l text-on-surface">Thêm địa chỉ</span></div>')
     body = f"""<body>
 <div class="min-h-screen bg-surface pb-2 font-sans text-on-surface">
-  {nav_active(header(quick="always"), None)}
+  {with_dot(nav_active(header(quick="always"), None))}
   <main class="mx-auto max-w-[1328px] px-6">
     <div class="mt-8 grid grid-cols-[1fr_400px] gap-8">
       <div class="min-w-0">
@@ -203,7 +244,14 @@ def account():
           <div class="mt-7 grid grid-cols-4 gap-3">{"".join(f'<div class="rounded-lg bg-surface-container-lowest p-4"><p class="text-headline-s text-on-surface">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>' for v, l in [("27", "đã bán"), ("8 phút", "thường trả lời"), ("0", "ghi nhận bị từ chối · 90 ngày"), ("0/11", "COD bị từ chối nhận")])}</div>
         </section>
 
-        <a id="waiting" href="#waiting" class="state mt-6 flex items-center gap-5 rounded-xl bg-surface-container-low p-5">
+        <a id="support-reply" href="support.html" class="state mt-6 flex items-center gap-4 rounded-xl bg-surface-container px-5 py-4">
+          <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary-container text-on-primary-container">{icon("support-agent-rounded", 26)}</span>
+          <span class="min-w-0 flex-1"><span class="block text-body-l text-on-surface">ShopNexus đã trả lời</span>
+            <span class="block truncate text-body-m text-primary">Báo chưa nhận hàng · Bạn chưa trả tiền nên không mất gì…</span></span>
+          <span class="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-primary px-1.5 text-label-s text-on-primary">1</span>
+        </a>
+
+        <a id="waiting" href="#waiting" class="state mt-3 flex items-center gap-5 rounded-xl bg-surface-container-low p-5">
           <img src="{img("1580480055273-228ff5388ef8", 128, 128)}" alt="" class="h-16 w-16 rounded-lg object-cover">
           <span class="flex-1"><span class="block text-label-l uppercase tracking-[0.1em] text-on-surface-variant">Đang chờ bạn</span><span class="mt-1 block text-title-l text-primary">Tạo đơn cho Đức Huy</span><span class="block text-body-m text-on-surface-variant">Ghế xoay vải be chân gỗ · đã gửi yêu cầu COD</span></span>
           <span class="flex h-11 items-center gap-1 rounded-full bg-secondary-container px-5 text-label-l text-on-secondary-container">Mở Đơn bán{icon("arrow-forward-rounded", 18)}</span>
@@ -240,7 +288,7 @@ def account():
         </section>
 
         <section>
-          <h3 class="px-2 text-title-s text-on-surface-variant">Giao diện</h3>
+          <h3 class="px-2 text-title-s text-primary">Giao diện</h3>
           <div class="mt-2 rounded-xl bg-surface-container p-5">
             <p class="text-body-l text-on-surface">Giao diện tối</p>
             <div class="seg mt-3 flex gap-0.5">{theme}</div>
@@ -248,15 +296,19 @@ def account():
         </section>
 
         <section>
-          <h3 class="px-2 text-title-s text-on-surface-variant">Tài khoản</h3>
+          <h3 class="px-2 text-title-s text-primary">Địa chỉ của tôi</h3>
+          <div class="grouped mt-2 flex flex-col gap-0.5">{addresses}</div>
+        </section>
+
+        <section>
+          <h3 class="px-2 text-title-s text-primary">Tài khoản</h3>
           <div class="grouped mt-2 flex flex-col gap-0.5">
             {setting_row("notifications-outline-rounded", "Thông báo")}
-            {setting_row("workspace-premium-outline-rounded", "Gói người bán", "Cơ bản · miễn phí")}
-            {setting_row("location-on-outline-rounded", "Khu vực", ME["area"])}
-            {setting_row("lock-outline-rounded", "Bảo mật")}
-            {setting_row("help-outline-rounded", "Trợ giúp và an toàn")}
+            {setting_row("storefront-outline-rounded", "Gói người bán", "Cơ bản · miễn phí")}
+            {setting_row("shield-outline-rounded", "Bảo mật và xác minh")}
+            {setting_row("help-outline-rounded", "Trợ giúp và an toàn", "2 yêu cầu đang xử lý")}
           </div>
-          <button type="button" class="state mt-3 flex h-14 w-full items-center gap-4 rounded-xl px-5 text-body-l text-error">{icon("logout-rounded", 22)}Đăng xuất</button>
+          <div class="grouped mt-3 flex flex-col"><button type="button" class="state flex min-h-[48px] w-full items-center gap-4 bg-surface-container px-5 text-body-l text-error">{icon("logout-rounded", 22)}Đăng xuất</button></div>
         </section>
       </aside>
     </div>
@@ -308,8 +360,28 @@ def notifications():
                     f'{icon("check-rounded", 18) if i == 0 else ""}{t}</button>' for i, t in enumerate(["Tất cả", "Giao dịch", "Giá và tin mới", "Tài khoản"]))
     groups = "".join(f'<section class="mt-8 first:mt-0"><h2 class="px-4 text-title-s text-on-surface-variant">{day}</h2><ul class="mt-2 flex flex-col gap-1">{"".join(note_row(*n) for n in items)}</ul></section>'
                      for day, items in NOTES)
-    prefs = "".join(f'<li class="flex h-12 items-center justify-between text-body-m text-on-surface">{t}<span class="relative h-8 w-[52px] rounded-full {"bg-primary" if on else "border-2 border-outline bg-surface-container-highest"}"><span class="absolute top-1/2 -translate-y-1/2 rounded-full {"right-1 h-6 w-6 bg-on-primary" if on else "left-1.5 h-4 w-4 bg-outline"}"></span></span></li>'
-                    for t, on in [("Trả giá và tin nhắn", True), ("Đơn COD", True), ("Giá giảm ở tin đã lưu", True), ("Tin mới khớp tìm kiếm", True), ("Gợi ý từ ShopNexus", False)])
+    def switch(on):
+        return (f'<span class="relative h-8 w-[52px] shrink-0 rounded-full {"bg-primary" if on else "border-2 border-outline bg-surface-container-highest"}">'
+                f'<span class="absolute top-1/2 -translate-y-1/2 rounded-full {"right-1 h-6 w-6 bg-on-primary" if on else "left-1.5 h-4 w-4 bg-outline"}"></span></span>')
+
+    def pref(ic, title, line=None, trail=None, dim=False):
+        sub = f'<span class="block text-body-s text-on-surface-variant">{line}</span>' if line else ""
+        return (f'<div class="state flex {"min-h-[64px]" if line else "min-h-[48px]"} items-center gap-4 bg-surface-container px-4 py-2 {"opacity-40" if dim else ""}">'
+                f'{icon(ic, 22, "text-on-surface-variant")}<span class="min-w-0 flex-1"><span class="block text-body-l text-on-surface">{title}</span>{sub}</span>{trail}</div>')
+
+    chev = icon("chevron-right-rounded", 22, "text-on-surface-variant")
+    time = lambda t: f'<span class="text-body-m text-on-surface-variant">{t}</span>'
+    groups_prefs = [
+        ("Giao dịch", [pref("chat-outline-rounded", "Tin nhắn", trail=switch(True)), pref("sell-outline-rounded", "Trả giá và chốt giá", trail=switch(True)),
+                       pref("local-shipping-outline-rounded", "Đơn hàng và giao hàng", trail=switch(True))]),
+        ("Giá và tin mới", [pref("trending-down-rounded", "Giảm giá ở tin đã lưu", trail=switch(True)), pref("storefront-outline-rounded", "Người bán bạn theo dõi", trail=switch(True)),
+                            pref("search-rounded", "Tìm kiếm đang theo dõi", "Bật chuông ở từng tìm kiếm trong Đã lưu", chev)]),
+        ("Tài khoản", [pref("star-outline-rounded", "Đánh giá mới", trail=switch(True))]),
+        ("Giờ yên lặng", [pref("bedtime-outline-rounded", "Tắt tiếng ban đêm", "Từ 22:00 đến 07:00", switch(True)),
+                          pref("schedule-outline-rounded", "Bắt đầu", trail=time("22:00")), pref("schedule-outline-rounded", "Kết thúc", trail=time("07:00"))]),
+    ]
+    prefs = "".join(f'<h3 class="mt-5 px-4 text-title-s text-primary first:mt-0">{t}</h3><div class="grouped mt-2 flex flex-col gap-0.5">{"".join(rows)}</div>'
+                    for t, rows in groups_prefs)
     body = f"""<body>
 <div class="min-h-screen bg-surface pb-2 font-sans text-on-surface">
   {nav_active(header(quick="always"), None)}
@@ -330,9 +402,9 @@ def notifications():
           <p class="mt-1 text-center text-body-m text-on-secondary-container">Bật thông báo trên trình duyệt hoặc tải app để nhận ngay khi có người trả giá.</p>
           <button type="button" class="state mt-5 h-11 w-full rounded-full bg-surface-container-lowest text-label-l text-primary">Bật thông báo trình duyệt</button>
         </div>
-        <div class="rounded-xl bg-surface-container-low p-6">
-          <h2 class="text-title-l">Nhận thông báo về</h2>
-          <ul class="mt-2">{prefs}</ul>
+        <div>
+          <h2 class="px-2 text-title-l">Cài đặt thông báo</h2>
+          <div class="mt-4">{prefs}</div>
         </div>
       </aside>
     </div>

@@ -8,7 +8,7 @@ from html import escape
 
 from build import OUT, a
 from build_c import ART, CSS, area_map, feed_card, footer, header
-from common import MONEY, head, icon, img, split_price
+from common import MONEY, head, icon, img, split_price, where
 
 PAGE_CSS = CSS + """
   .row-hover:hover { background: var(--md-surface-container-low); }
@@ -39,14 +39,14 @@ def stars(n, size=16):
 def seller():
     facts = "".join(f'<span class="flex items-center gap-1.5">{icon(ic, 18, "text-on-surface-variant")}{t}</span>' for ic, t in [
         ("location-on-outline-rounded", f"{SELLER['area']}, TP.HCM"), ("calendar-month-outline-rounded", f"Tham gia {SELLER['joined']}"),
-        ("verified-user-outline-rounded", "Đã xác minh số điện thoại")])
+        ("verified-user-outline-rounded", "Đã xác minh SĐT · CCCD")])
     stats = "".join(f'<div class="px-6 text-center {"border-l border-outline-variant" if i else ""}"><p class="text-display-s">{v}<span class="text-title-l text-on-surface-variant">{u}</span></p><p class="mt-1 text-body-m text-on-surface-variant">{l}</p></div>'
-                    for i, (v, u, l) in enumerate([("4,9", "/5", "32 đánh giá"), ("14", "", "đã bán"), ("10", " phút", "thường trả lời"), ("0", "", "ghi nhận bị từ chối · 90 ngày")]))
-    facts90 = "".join(f'<li class="flex items-center justify-between py-3 {"border-t border-outline-variant" if i else ""}"><span class="flex items-center gap-3 text-body-m">{icon(ic, 20, "text-on-surface-variant")}{t}</span><span class="text-title-m">{v}</span></li>'
-                      for i, (ic, t, v) in enumerate([("local-shipping-outline-rounded", "Đơn COD bị từ chối nhận", "0/9"),
-                                                       ("assignment-outline-rounded", "Ghi nhận sự cố", "1 · đã tự hoàn"),
-                                                       ("schedule-rounded", "Ghi nhận chưa trả lời", "0"),
-                                                       ("handshake-outline-rounded", "Giao dịch xong", "14")]))
+                    for i, (v, u, l) in enumerate([("4,9", "/5", "32 đánh giá"), ("14", "", "đã bán"), ("10", " phút", "thường trả lời")]))
+    # The tier's public facts, as the app's tier sheet lists them, including how incident records ended.
+    facts90 = "".join(f'<li class="flex items-center gap-3 py-3 text-body-m {"border-t border-outline-variant" if i else ""}">{icon(ic, 20, "text-on-surface-variant")}{t}</li>'
+                      for i, (ic, t) in enumerate([("handshake-outline-rounded", "14 giao dịch xong"), ("cancel-outline-rounded", "Chưa hủy đơn nào"),
+                                                   ("block-rounded", "0/9 đơn COD bị từ chối nhận"), ("report-outline-rounded", "1 ghi nhận sự cố · đã tự hoàn"),
+                                                   ("verified-user-outline-rounded", "CCCD gắn chip"), ("schedule-outline-rounded", "Trả lời trong khoảng 10 phút")]))
     cards = "".join(feed_card(it, i) for i, it in enumerate(SELLING))
     praise = "".join(f'<span class="rounded-full bg-surface-container-lowest px-3.5 py-1.5 text-label-l text-on-surface">{p}</span>' for p in ["Đúng mô tả", "Hẹn giờ đúng", "Gói hàng kỹ"])
     reviews = "".join(f"""<li class="flex gap-4 py-5 {"border-t border-outline-variant" if i else ""}">
@@ -58,7 +58,7 @@ def seller():
   </div>
 </li>""" for i, (n, p, st, ago, t, item, item_name) in enumerate(REVIEWS))
     tabs = "".join(f'<span class="flex h-12 items-center gap-2 px-1 text-title-s {"border-b-[3px] border-primary text-primary" if i == 0 else "text-on-surface-variant"}">{t}<span class="rounded-full {"bg-primary text-on-primary" if i == 0 else "bg-surface-container-high text-on-surface-variant"} px-2 text-label-m">{n}</span></span>'
-                   for i, (t, n) in enumerate([("Đang bán", "6"), ("Đã bán", "14"), ("Đánh giá", "32")]))
+                   for i, (t, n) in enumerate([("Đang bán", "6"), ("Đánh giá", "32")]))
     body = f"""<body>
 <div class="min-h-screen bg-surface pb-2 font-sans text-on-surface">
   {header()}
@@ -78,12 +78,18 @@ def seller():
           <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-body-m text-on-secondary-container">{facts}</div>
           <div class="mt-7 flex items-center gap-2">
             <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-label-l text-on-primary">{icon("person-add-outline-rounded", 20)}Theo dõi</button>
-            <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-surface-container-lowest px-5 text-label-l text-on-surface">{icon("chat-outline-rounded", 20)}Nhắn tin</button>
+            <button type="button" class="state grid h-12 w-12 place-items-center rounded-full bg-surface-container-lowest text-on-surface" aria-label="Nhắn tin cho {SELLER['name']}">{icon("chat-outline-rounded", 22)}</button>
             <button type="button" class="state grid h-12 w-12 place-items-center rounded-full bg-surface-container-lowest text-on-surface-variant" aria-label="Chia sẻ">{icon("share-outline-rounded", 20)}</button>
+            <span class="relative">
+              <button type="button" class="state grid h-12 w-12 place-items-center rounded-full bg-surface-container-lowest text-on-surface-variant" aria-label="Tùy chọn khác" aria-expanded="true">{icon("more-vert", 20)}</button>
+              <span role="menu" class="absolute left-0 top-14 z-10 w-[220px] rounded-lg bg-surface-container py-2 shadow-float">
+                <button type="button" role="menuitem" class="state flex h-12 w-full items-center gap-3 px-4 text-left text-body-l text-on-surface">{icon("flag-outline-rounded", 22, "text-on-surface-variant")}Chặn và báo cáo</button>
+              </span>
+            </span>
           </div>
         </div>
       </div>
-      <div class="relative mt-10 grid w-[880px] grid-cols-4 rounded-xl bg-surface-container-lowest py-6">{stats}</div>
+      <div class="relative mt-10 grid w-[680px] grid-cols-3 rounded-xl bg-surface-container-lowest py-6">{stats}</div>
     </section>
 
     <div class="mt-12 grid grid-cols-[1fr_400px] gap-10">
@@ -117,22 +123,17 @@ def seller():
         <div class="rounded-xl bg-surface-container-low p-6">
           <div class="flex items-center gap-4">
             <img src="{ART["tier_top"]}" alt="" class="h-16 w-16">
-            <div><p class="text-title-l">Bậc Xuất sắc</p><p class="text-body-s text-on-surface-variant">Tính từ hành vi 12 tháng gần đây</p></div>
+            <div><p class="text-title-l">Bậc Xuất sắc</p><p class="mt-0.5 flex items-center gap-1 text-body-s text-on-surface-variant">{icon("history-rounded", 16)}Tính từ 12 tháng gần nhất</p></div>
           </div>
           <ul class="mt-4">{facts90}</ul>
-          <p class="mt-3 text-body-s text-on-surface-variant">Số liệu 90 ngày tính khi có từ 5 đơn. Ghi nhận bị từ chối hiện ở đây cho mọi người cùng thấy.</p>
         </div>
         <div>
-          {area_map([(56, 44, "Khu vực của Kiệt", True)], you=(30, 72), h=280, guide=False, route=((30, 72), (56, 44), "cách bạn 2,1 km"))}
-          <p class="mt-3 text-body-m text-on-surface-variant">Gửi COD từ {SELLER['area']}. Món trên 5 triệu, hai bên có thể hẹn gặp xem trực tiếp trong khu vực này.</p>
+          {area_map([(56, 44, SELLER["area"], True)], you=(30, 72), h=280, guide=False, route=((30, 72), (56, 44), where("2,1 km", SELLER["area"])))}
+          <p class="mt-3 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("local-shipping-outline-rounded", 18)}Gửi COD từ {SELLER['area']}</p>
         </div>
         <div class="flex flex-col gap-2.5 rounded-xl border border-outline-variant p-5">
           <p class="flex gap-2 text-body-m text-on-surface-variant">{icon("account-balance-outline-rounded", 18, "mt-0.5")}<span>{MONEY["no_hold"]}</span></p>
           <p class="flex gap-2 text-body-m text-on-surface-variant">{icon("local-shipping-outline-rounded", 18, "mt-0.5")}<span>{MONEY["cod_buyer"]}</span></p>
-        </div>
-        <div class="flex gap-2">
-          {a("report-seller", "state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-label-l text-on-surface-variant", icon("flag-outline-rounded", 18) + "Báo cáo")}
-          {a("block-seller", "state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-label-l text-on-surface-variant", icon("block-rounded", 18) + "Chặn")}
         </div>
       </aside>
     </div>
@@ -165,7 +166,7 @@ def map_row(item, i):
   <div class="min-w-0 flex-1">
     <p class="text-title-m text-on-surface">{num}<span class="text-body-s text-on-surface-variant">{unit}</span></p>
     <h3 class="truncate text-body-m text-on-surface">{escape(title)}</h3>
-    <p class="mt-0.5 text-body-s text-on-surface-variant">{cond} · {area} · {km} · {icon("star-rounded", 12, "inline-block align-[-2px]")} {rating}</p>
+    <p class="mt-0.5 text-body-s text-on-surface-variant">{cond} · {area + " · " if where(km, area) == km else ""}{where(km, area)} · {icon("star-rounded", 12, "inline-block align-[-2px]")} {rating}</p>
     {note_html}
   </div>
 </article>"""

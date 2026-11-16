@@ -16,7 +16,7 @@ const [page, out] = args;
 
 const browser = spawn('/opt/thorium-browser-avx2/thorium', [
   '--headless=new', '--disable-gpu', '--remote-debugging-port=0', '--hide-scrollbars',
-  `--user-data-dir=${resolve('../tmp/browser-review-profile')}`, 'about:blank',
+  `--user-data-dir=${resolve(process.env.SHOOT_PROFILE || '../tmp/browser-review-profile')}`, 'about:blank',
 ], { stdio: ['ignore', 'ignore', 'pipe'] });
 const deadline = setTimeout(() => browser.kill('SIGTERM'), 60000);
 let ws;

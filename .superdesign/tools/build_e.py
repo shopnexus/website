@@ -9,12 +9,17 @@ import os
 from html import escape
 
 from build import OUT, a, money
-from build_c import footer as site_footer, header as site_header
-from common import LOGO, MONEY, crop, head, icon, img, split_price
+from build_c import feed_card, footer as site_footer, header as site_header
+from common import LOGO, MONEY, crop, head, icon, img, split_price, where
 
 CSS = """
   .caret { display: inline-block; width: 2px; height: 28px; margin-left: 2px; vertical-align: -6px; background: var(--md-primary); }
   .row-hover:hover { background: var(--md-surface-container-low); }
+  .lift { transition: transform 420ms var(--spatial); } .lift:hover { transform: translateY(-4px) rotate(-1deg); }
+  .feed-tab { color: var(--md-on-surface-variant); }
+  .feed-tab[aria-selected="true"] { color: var(--md-on-surface); }
+  .feed-tab[aria-selected="true"]::before { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 3px;
+    border-radius: 3px 3px 0 0; background: var(--md-primary); }
 """
 
 QUERY = "laptop cũ cho sinh viên thiết kế, dưới 8 triệu, gần Thủ Đức"
@@ -35,6 +40,25 @@ RESULTS = [
     ("1588872657578-7efd1f1555ed", "7.600.000 ₫", "ASUS ZenBook 14 OLED, Ryzen 5, 16 GB", "Như mới", "5,4 km", "Q.2 cũ", "4,9",
      ["16 GB RAM", "Màn OLED 100% DCI-P3", "Pin 95%"], None),
 ]
+
+# The feed under the results, in the app's three tabs. "Dành cho bạn" reaches every province, so near
+# and far listings mix; a card says the distance under 10 km and the seller's place beyond it.
+# photo, price, title, condition, km, area, rating, posted, AI price note
+FOR_YOU = [
+    ("1695048133142-1a20484d2569", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "1.140 km", "Hà Nội", "4,9", "40 phút", "Rẻ hơn 12%"),
+    ("1510557880182-3d4d3cba35a5", "3.900.000 ₫", "iPhone X 64GB, pin 86%, máy zin chưa sửa", "Đã dùng", "0,6 km", "Thủ Đức", "4,8", "12 phút", None),
+    ("1611186871348-b1ce696e52c9", "11,5 tr ₫", "MacBook Air M1 13 inch 8/256GB, sạc 92 lần", "Đã dùng", "3,4 km", "Q.2 cũ", "4,9", "1 giờ", None),
+    ("1516035069371-29a1b244cc32", "26,5 tr ₫", "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "Như mới", "610 km", "Đà Nẵng", "4,7", "1 ngày", "Rẻ hơn 18%"),
+    ("1542291026-7eec264c27ff", "1.290.000 ₫", "Giày Nike Free RN size 42, mới nguyên hộp", "Mới", "2,2 km", "Thủ Đức", "4,8", "20 phút", None),
+    ("1505740420928-5e560c06d30e", "3.200.000 ₫", "Tai nghe chống ồn Sony WH-1000XM4, fullbox", "Như mới", "170 km", "Cần Thơ", "4,6", "3 giờ", None),
+    ("1555041469-a586c61ea9bc", "4.800.000 ₫", "Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp", "Đã dùng", "6,8 km", "Bình Thạnh", "4,9", "5 giờ", None),
+    ("1526170375885-4d8ecf77b99f", "1.750.000 ₫", "Máy ảnh Polaroid OneStep 2, tặng 1 hộp film", "Như mới", "1,8 km", "Thủ Đức", "5,0", "2 giờ", None),
+    ("1586023492125-27b2c045efd7", "1.600.000 ₫", "Ghế bành bọc vải vàng mù tạt, khung gỗ sồi", "Đã dùng", "700 km", "Huế", "5,0", "6 giờ", None),
+    ("1580480055273-228ff5388ef8", "950.000 ₫", "Ghế xoay vải be chân gỗ, ngồi êm", "Như mới", "3,9 km", "Q.9 cũ", "4,5", "50 phút", None),
+]
+FEED_TABS = ["Dành cho bạn", "Gần bạn", "Mới nhất"]
+# The buyer's recent searches; a followed one counts the new listings since.
+RECENT = [("Sony A7 III dưới 25 triệu", "+2"), ("iPhone 13 pin trên 85%", None), ("xe đạp cho bé 8 tuổi", None)]
 
 
 def header(over=False):
@@ -61,11 +85,11 @@ def _header():
 
 def chip(label, ai=False, picker=False, add=False):
     if add:
-        return f'<button type="button" class="state flex h-9 items-center gap-1 rounded-full border border-dashed border-outline bg-surface-container-lowest px-3 text-label-l text-on-surface-variant">{icon("add-rounded", 18)}{label}</button>'
+        return f'<button type="button" class="state flex h-8 items-center gap-1 rounded-full border border-dashed border-outline bg-surface-container-lowest px-3 text-label-l text-on-surface-variant">{icon("add-rounded", 18)}{label}</button>'
     if picker:
-        return f'<button type="button" class="state flex h-9 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest pl-4 pr-2 text-label-l text-on-surface-variant">{label}{icon("keyboard-arrow-down-rounded", 18)}</button>'
+        return f'<button type="button" class="state flex h-8 items-center gap-1 rounded-full border border-outline-variant bg-surface-container-lowest pl-4 pr-2 text-label-l text-on-surface-variant">{label}{icon("keyboard-arrow-down-rounded", 18)}</button>'
     lead = icon("auto-awesome-rounded", 18, "text-primary") if ai else icon("check-rounded", 18)
-    return (f'<button type="button" class="state flex h-9 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container">'
+    return (f'<button type="button" class="state flex h-8 items-center gap-1.5 rounded-full bg-secondary-container pl-2.5 pr-2 text-label-l text-on-secondary-container">'
             f'{lead}{label}<span class="ml-1 grid h-6 w-6 place-items-center rounded-full">{icon("close-rounded", 16)}</span></button>')
 
 
@@ -95,7 +119,7 @@ def result_row(item, i):
       <h3 class="min-w-0 flex-1 text-title-m text-on-surface">{escape(title)}</h3>
       <p class="whitespace-nowrap text-title-l text-on-surface">{num}<span class="text-body-m text-on-surface-variant">{unit}</span></p>
     </div>
-    <p class="mt-1 text-body-m text-on-surface-variant">{cond} · {area} · {km}<span class="mx-1.5">·</span>{icon("star-rounded", 14, "inline-block align-[-2px]")} {rating}</p>
+    <p class="mt-1 text-body-m text-on-surface-variant">{cond} · {area}{" · " + km if where(km, area) == km else ""}<span class="mx-1.5">·</span>{icon("star-rounded", 14, "inline-block align-[-2px]")} {rating}</p>
     <div class="mt-2.5 flex flex-wrap gap-1.5">{facts_html}</div>
     {note_html}
   </div>
@@ -118,8 +142,15 @@ def footer():
 def home():
     chips = (chip("Laptop", ai=True) + chip("Dưới 8 triệu", ai=True) + chip("Gần Thủ Đức · 5 km", ai=True)
              + chip("Màn hình chuẩn màu", ai=True) + chip("Tình trạng", picker=True) + chip("Thêm điều kiện", add=True))
-    recent = "".join(a(f"recent-{i}", "state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-black/30 px-3 text-label-l text-white", icon("history-rounded", 16) + t)
-                     for i, t in enumerate(["iPhone 13 pin trên 85%", "xe đạp cho bé 8 tuổi"]))
+    recent = "".join(
+        f'<span class="flex h-8 items-center whitespace-nowrap rounded-full pl-3 text-label-l {"bg-surface-container-lowest text-on-surface" if n else "bg-black/30 text-white"}">'
+        + a(f"recent-{i}", "flex items-center gap-1.5", icon("notifications-active-outline-rounded" if n else "history-rounded", 16, "text-primary" if n else "")
+            + escape(q) + (f'<span class="rounded-full bg-tertiary px-1.5 text-label-s text-on-tertiary">{n}</span>' if n else ""))
+        + f'<button type="button" class="state grid h-8 w-8 place-items-center rounded-full {"text-on-surface-variant" if n else "text-white/80"}" aria-label="Xoá {escape(q)}">{icon("close-rounded", 16)}</button></span>'
+        for i, (q, n) in enumerate(RECENT))
+    tabs = "".join(f'<button type="button" role="tab" aria-selected="{str(i == 0).lower()}" class="feed-tab state relative h-12 rounded-t-md px-4 text-title-s">{t}</button>'
+                   for i, t in enumerate(FEED_TABS))
+    feed = "".join(feed_card(it, i) for i, it in enumerate(FOR_YOU))
     rows = "".join(result_row(it, i) for i, it in enumerate(RESULTS))
     why = [("Màn hình chuẩn màu", "Chỉ giữ máy có màn từ 100% sRGB hoặc P3 trở lên, hợp làm đồ họa."),
            ("Dưới 8 triệu", "38 tin khớp, mức giữa 7,3 triệu cho cấu hình này."),
@@ -138,7 +169,7 @@ def home():
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
       <div class="relative mx-auto max-w-[1328px] px-6 pb-14 pt-[176px]">
         <div class="mx-auto max-w-[920px]">
-          <p class="flex items-center justify-center gap-2 text-label-l text-white/85">{icon("near-me-rounded", 18)}Thủ Đức, TP.HCM · 2.418 món đang bán quanh bạn</p>
+          <p class="flex items-center justify-center gap-2 text-label-l text-white/85">{icon("sell-outline-rounded", 18)}48.210 món đang bán trên cả nước</p>
           <h1 class="mt-4 text-center text-display-l text-white">Bạn đang tìm gì?</h1>
           <p class="mt-3 text-center text-body-l text-white/85">Gõ như đang nhắn cho người bạn rành đồ cũ, hoặc chụp một tấm ảnh.</p>
           <div data-big-search class="mt-10 flex h-[76px] items-center gap-3 rounded-full bg-surface-container-lowest pl-7 pr-2.5 shadow-float">
@@ -149,11 +180,7 @@ def home():
             <button type="button" class="state h-14 rounded-full bg-primary px-8 text-label-l text-on-primary">Tìm</button>
           </div>
           <div class="mt-5 flex flex-wrap items-center justify-center gap-2">{chips}</div>
-          <div class="mt-8 flex items-center justify-center gap-1 border-t border-white/20 pt-5">
-            <span class="mr-2 whitespace-nowrap text-label-l text-white/80">Gần đây</span>{recent}
-            <span class="mx-3 h-5 w-px bg-white/25"></span>
-            {a("alert-a7", "state flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-container-lowest px-3 text-label-l text-on-surface", icon("notifications-active-outline-rounded", 16, "text-primary") + 'Sony A7 III dưới 25 triệu<span class="ml-1 whitespace-nowrap rounded-full bg-primary px-1.5 text-label-s text-on-primary">2 mới</span>')}
-          </div>
+          <div class="mt-8 flex items-center justify-center gap-2 border-t border-white/20 pt-5">{recent}</div>
         </div>
       </div>
     </section>
@@ -168,7 +195,7 @@ def home():
           </div>
         </div>
         <div class="mt-4 flex flex-col gap-1">{rows}</div>
-        <button type="button" class="state mt-4 h-12 w-full rounded-full bg-surface-container text-label-l text-on-surface">Xem thêm 32 tin</button>
+        <button type="button" class="state mt-4 h-10 w-full rounded-full bg-surface-container text-label-l text-on-surface">Xem thêm 32 tin</button>
       </div>
       <aside class="self-start">
         <div class="rounded-xl bg-surface-container-low p-6">
@@ -179,6 +206,12 @@ def home():
           <div class="mt-2.5 flex flex-wrap gap-2">{refine}</div>
         </div>
       </aside>
+    </section>
+
+    <section class="mx-auto mt-20 max-w-[1328px] px-6" aria-label="Tin đang bán">
+      <div role="tablist" class="flex gap-2 border-b border-outline-variant">{tabs}</div>
+      <div class="mt-6 grid grid-cols-5 gap-x-3 gap-y-8">{feed}</div>
+      <div class="mt-10 flex justify-center"><button type="button" class="state h-10 rounded-full bg-secondary-container px-8 text-label-l text-on-secondary-container">Xem thêm tin</button></div>
     </section>
   </main>
   {site_footer()}
