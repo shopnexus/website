@@ -36,31 +36,6 @@
           "currentVersion": 9,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         },
-        "7c73f97e-6027-4a5c-94bb-1593375b12e8": {
-          "title": "G · Trang chủ",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_g.py"
-        },
-        "6eed0ae2-51d6-451a-9a50-2ab582126c93": {
-          "title": "H · Trang chủ",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_h.py"
-        },
-        "b67a5c81-608b-4907-b8d0-555e7a87b93b": {
-          "title": "I · Trang chủ",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_i.py"
-        },
-        "5e19d62d-26c3-4861-9dc7-3c3a3b43e96f": {
-          "title": "J · Trang chủ",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 round 2 on G skeleton; builder tools/build_j.py"
-        },
-        "f5c340ed-810e-4118-a7fa-7526beecdf87": {
-          "title": "L · Trang chủ",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 round 2 on G skeleton; builder tools/build_l.py"
-        },
         "06ec18a8-1f11-4eb8-a3e3-c12397513c58": {
           "title": "Trang chủ · Chưa đăng nhập",
           "currentVersion": 2,
@@ -120,31 +95,6 @@
           "title": "Tìm kiếm",
           "currentVersion": 7,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
-        },
-        "0ba1c0eb-8f10-4c20-9b6e-677869b6cf5e": {
-          "title": "G · Tìm kiếm",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_g.py"
-        },
-        "d7f12503-e0a4-4fb2-ad91-30cba772c014": {
-          "title": "H · Tìm kiếm",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_h.py"
-        },
-        "c74c7b94-9003-4a44-b234-dfdc2542badf": {
-          "title": "I · Tìm kiếm",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_i.py"
-        },
-        "7eb66b45-3419-43f5-b003-3a1c254e711c": {
-          "title": "J · Tìm kiếm",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 round 2 on G skeleton; builder tools/build_j.py"
-        },
-        "8b99bcd4-bc39-4510-ad08-c05e179acaee": {
-          "title": "L · Tìm kiếm",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 round 2 on G skeleton; builder tools/build_l.py"
         }
       },
       "updatedAt": "2026-11-17",
@@ -178,21 +128,6 @@
           "title": "Danh mục · Điện thoại",
           "currentVersion": 7,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
-        },
-        "bb699a3b-2ed4-4a91-857b-1959bc1f9ede": {
-          "title": "G · Danh mục",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_g.py"
-        },
-        "ddb68b5c-8ff5-4c4e-a073-addebc1a4e0e": {
-          "title": "H · Danh mục",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_h.py"
-        },
-        "bff11caa-ceda-4b6d-969e-911fe240151e": {
-          "title": "I · Danh mục",
-          "currentVersion": 1,
-          "visualDirection": "2026-11-17 redesign candidate (flat header, denser, non-M3); builder tools/build_i.py"
         }
       },
       "updatedAt": "2026-11-17",
