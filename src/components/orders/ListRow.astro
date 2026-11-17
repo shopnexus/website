@@ -1,0 +1,23 @@
+---
+// A row in a panel: a round icon, a line and its sub line; the default slot holds the actions.
+import Icon from '../Icon.astro';
+
+interface Props {
+  icon: string;
+  main: string;
+  sub?: string;
+}
+
+const { icon, main, sub } = Astro.props;
+---
+
+<div class="flex min-h-[56px] items-center gap-3 py-2">
+  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+    <Icon name={icon} size={19} />
+  </span>
+  <span class="min-w-0 flex-1">
+    <span class="block text-body-medium text-ink">{main}</span>
+    {sub && <span class="block text-body-small text-on-surface-variant">{sub}</span>}
+  </span>
+  <slot />
+</div>

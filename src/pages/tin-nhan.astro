@@ -1,0 +1,377 @@
+---
+// Tin nhắn: three panes over the wash. The inbox; the open chat with its deal
+// chips, thread, deal console and composer; the listing and the money rules.
+// Tuấn Kiệt's and Thanh Lý 24h's chats open here; #scam, #report and #reported
+// open the warned chat, the report form and the sent state.
+import Icon from '../components/Icon.astro';
+import Seg from '../components/Seg.astro';
+import Bubbles from '../components/account/chat/Bubbles.astro';
+import ChatEvent from '../components/account/chat/ChatEvent.astro';
+import Composer from '../components/account/chat/Composer.astro';
+import DealCard from '../components/account/chat/DealCard.astro';
+import DealConsole from '../components/account/chat/DealConsole.astro';
+import InboxRow from '../components/account/chat/InboxRow.astro';
+import MoneyRules from '../components/account/chat/MoneyRules.astro';
+import PaneHead from '../components/account/chat/PaneHead.astro';
+import PriceMove from '../components/account/chat/PriceMove.astro';
+import ReportDialog from '../components/account/chat/ReportDialog.astro';
+import { DEALS, INBOX, SCAM_ITEM, SCAMMER, SELLER, THUMB } from '../data/account';
+import { MONEY } from '../data/common';
+import Layout from '../layouts/Layout.astro';
+import { R } from '../lib/routes';
+import { requireViewer } from '../lib/session';
+import { CONTENT } from '../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+
+const [iphone, airpods] = DEALS;
+const landmark = 'Ok bạn, chốt 5,1 tr nhé. Tối nay 19h gặp ở sảnh Landmark 81 xem máy nhé?';
+const asked = 'AirPods để mình xem lại rồi báo bạn nha.';
+const unread = INBOX.filter((c) => c.unread).length;
+
+const pane = 'flex min-h-0 flex-col overflow-hidden rounded-panel glass glass-edge shadow-soft h-[calc(100dvh-176px)] min-h-[560px] lg:h-auto';
+const thread = 'no-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4';
+const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
+const ink = 'state-layer flex h-10 items-center justify-center gap-2 rounded-full bg-ink px-6 text-label-large text-on-ink';
+const lead = 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant';
+const row = 'mt-1 flex items-baseline justify-between';
+const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden xl:flex';
+---
+
+<Layout title="Tin nhắn · ShopNexus" description="Tin nhắn mua bán trên ShopNexus." section={null} footer={false}>
+  <main class={CONTENT}>
+    <div
+      class="mt-4 grid grid-cols-1 gap-4 lg:h-[calc(100dvh-96px)] lg:min-h-[760px] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)_312px]"
+    >
+      <section class="glass glass-edge flex max-h-[70dvh] min-h-0 flex-col rounded-panel p-2 shadow-soft lg:max-h-none">
+        <div class="flex items-center justify-between px-2 pt-2">
+          <h1 class="text-j-26 text-ink">Tin nhắn</h1>
+          <button type="button" class={iconBtn} aria-label="Tìm trong tin nhắn"><Icon name="search-rounded" size={22} /></button>
+        </div>
+        <div class="mt-2 max-w-full overflow-x-auto px-1 no-scrollbar">
+          <Seg items={['Tất cả', 'Mua', 'Bán', `Chưa đọc ${unread}`]} class="bg-card/60" itemClass="text-label-medium" name="Lọc tin nhắn" />
+        </div>
+        <div class="no-scrollbar mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-inbox>
+          {INBOX.map((c) => <InboxRow c={c} selected={c.id === 'kiet'} />)}
+        </div>
+      </section>
+
+      <section data-conv="kiet" class={pane}>
+        <PaneHead title={iphone.title} name={SELLER.name} photo={SELLER.photo} verified thumb={THUMB}>
+          <div class="flex gap-2 overflow-x-auto px-4 pb-3 no-scrollbar" role="tablist" aria-label="Món đang thỏa thuận">
+            {
+              DEALS.map((d, i) => (
+                <button
+                  type="button"
+                  role="tab"
+                  data-deal={d.id}
+                  data-title={d.title}
+                  aria-selected={i === 0 ? 'true' : 'false'}
+                  class="state-layer flex h-8 shrink-0 items-center gap-2 rounded-full border border-outline-variant bg-card pl-1 pr-3 text-label-large text-on-surface-variant aria-selected:border-transparent aria-selected:bg-ink aria-selected:text-on-ink"
+                >
+                  <img src={d.chip} alt="" class="h-6 w-6 rounded-full object-cover" />
+                  {d.short}
+                </button>
+              ))
+            }
+          </div>
+        </PaneHead>
+        <div class={thread} data-thread>
+          <ChatEvent icon="shield-outline-rounded" text={MONEY.no_hold} />
+          <p class="pt-1 text-center text-label-medium text-on-surface-variant">Hôm nay</p>
+          <Bubbles side="mine" texts={['Máy còn không bạn?', 'Pin 88% là đo trong Cài đặt đúng không?']} time="13:52 · Đã xem" />
+          <Bubbles side="theirs" from={SELLER.name} texts={['Còn bạn nhé. Máy zin, pin 88% đo trong Cài đặt, chưa sửa gì.']} time="13:55" />
+          <PriceMove side="mine" amount="4.900.000 ₫" time="iPhone 13 Pro · 13:58" />
+          <Bubbles side="theirs" from={SELLER.name} texts={['4,9 thì hơi thấp bạn ơi. 5,1 mình bán liền, tặng thêm ốp.']} time="14:03" />
+          <PriceMove side="theirs" amount="5.100.000 ₫" time="iPhone 13 Pro · 14:03" />
+          <PriceMove side="mine" amount="5.100.000 ₫" time="iPhone 13 Pro · 14:05" kind="accept" />
+          <ChatEvent icon="handshake-outline-rounded" text="iPhone 13 Pro · Chốt 5,1 tr" />
+          <Bubbles side="theirs" from={SELLER.name} texts={[landmark]} time="14:06">
+            <a
+              slot="after"
+              href="https://maps.google.com/?q=Landmark+81"
+              target="_blank"
+              rel="noopener"
+              class="state-layer mt-1 inline-flex h-9 items-center gap-1.5 rounded-full border border-outline-variant bg-card px-3.5 text-label-large text-on-surface"
+            >
+              <Icon name="auto-awesome-rounded" size={16} class="text-primary" />Sảnh Landmark 81<Icon
+                name="map-outline-rounded"
+                size={16}
+                class="text-on-surface-variant"
+              />
+            </a>
+          </Bubbles>
+          <Bubbles side="mine" texts={['Ok, 19h mình qua.']} time="14:07 · Đã xem" quote={[SELLER.name, landmark]} />
+          <Bubbles side="mine" texts={['Bạn bán luôn AirPods Pro 2 không? Mình lấy cả hai.']} time="14:11" />
+          <PriceMove side="mine" amount={airpods.offer!} time="AirPods Pro 2 · 14:12" />
+          <Bubbles side="theirs" from={SELLER.name} texts={[asked]} time="14:13" />
+        </div>
+        <DealConsole current={1}>
+          <div class="flex flex-wrap items-center gap-3">
+            <span class={lead}><Icon name="handshake-outline-rounded" size={18} /></span>
+            <p class="flex flex-1 items-baseline text-on-surface tabular-nums">
+              <span class="text-headline-medium">5.100.000</span><span class="ml-1 text-title-large text-on-surface-variant">₫</span>
+            </p>
+            <a href={R.cod} class={ink}><Icon name="local-shipping-outline-rounded" size={20} />Chọn giao COD</a>
+          </div>
+          <p class="mt-1 flex items-center gap-2 text-body-medium text-on-surface-variant">
+            <Icon name="local-shipping-outline-rounded" size={18} />Giao COD · xem hàng rồi mới trả
+          </p>
+          <p class="mt-1 flex items-center gap-2 text-body-medium text-on-surface-variant">
+            <Icon name="group-outline-rounded" size={18} />{MONEY.meet_hint}
+          </p>
+        </DealConsole>
+        <Composer peer={SELLER.name}>
+          <div slot="strip" class="mb-2 flex items-center gap-3 rounded-lg bg-card/80 py-2 pl-3 pr-1" data-strip>
+            <span class="w-[3px] flex-none self-stretch rounded-full bg-primary"></span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-label-medium text-primary" data-strip-who>Trả lời {SELLER.name}</span>
+              <span class="block truncate text-body-small text-on-surface-variant" data-strip-text>{asked}</span>
+            </span>
+            <button type="button" class={iconBtn} aria-label="Bỏ trả lời" data-strip-close><Icon name="close-rounded" size={20} /></button>
+          </div>
+        </Composer>
+      </section>
+
+      <section data-conv="scam" class={pane} hidden>
+        <PaneHead title={SCAM_ITEM.title} name={SCAMMER.name} thumb={SCAM_ITEM.thumb} />
+        <div data-warning class="px-3 pt-3">
+          <button
+            type="button"
+            data-open-report
+            class="state-layer flex w-full items-center gap-3 rounded-tile border border-error/20 bg-error-container/60 py-3 pl-4 pr-3 text-left"
+            aria-haspopup="dialog"
+          >
+            <Icon name="gpp-maybe-outline-rounded" size={24} class="text-error" />
+            <span class="min-w-0 flex-1">
+              <span class="block text-title-small text-on-surface">Có thể là lừa đảo</span>
+              <span class="mt-0.5 flex items-center gap-1 text-body-small text-on-surface-variant">
+                <Icon name="auto-awesome-rounded" size={14} class="text-primary" />3 dấu hiệu · đừng chuyển tiền trước
+              </span>
+            </span>
+            <Icon name="chevron-right-rounded" size={24} class="text-on-surface-variant" />
+          </button>
+        </div>
+        <div class={thread} data-thread>
+          <ChatEvent icon="shield-outline-rounded" text={MONEY.no_hold} />
+          <p class="pt-1 text-center text-label-medium text-on-surface-variant">Hôm nay</p>
+          <Bubbles side="mine" texts={['Máy còn không bạn? Mình ở Bình Thạnh.']} time="13:35 · Đã xem" />
+          <Bubbles
+            side="theirs"
+            from={SCAMMER.name}
+            texts={['Còn bạn, nhiều người hỏi lắm.', 'Bạn chuyển cọc 500k qua số tài khoản này để mình giữ máy nhé.']}
+            time="13:41"
+          />
+        </div>
+        <div data-live>
+          <DealConsole current={0}>
+            <div class="flex flex-wrap items-center gap-3">
+              <span class={lead}><Icon name="sell-outline-rounded" size={18} /></span>
+              <p class="flex flex-1 items-baseline text-on-surface tabular-nums">
+                <span class="text-headline-medium">8.700.000</span><span class="ml-1 text-title-large text-on-surface-variant">₫</span>
+              </p>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  class="state-layer flex h-10 items-center justify-center gap-2 rounded-full bg-tertiary-fixed px-6 text-label-large text-on-tertiary-fixed-variant"
+                >
+                  <Icon name="sell-outline-rounded" size={20} />Trả giá
+                </button>
+                <button type="button" class={ink}><Icon name="handshake-outline-rounded" size={20} />Mua giá này</button>
+              </div>
+            </div>
+            <p class="mt-1 pl-11 text-body-small text-on-surface-variant">Giá đăng</p>
+          </DealConsole>
+          <Composer peer={SCAMMER.name} />
+        </div>
+        <div data-blocked hidden class="m-3 flex items-center gap-3 rounded-tile bg-card py-2 pl-4 pr-2">
+          <Icon name="block-rounded" size={20} class="text-on-surface-variant" />
+          <p class="min-w-0 flex-1 text-body-medium text-on-surface-variant">Bạn đã chặn và báo cáo {SCAMMER.name}</p>
+          <button type="button" data-unblock class="state-layer h-10 rounded-full px-3 text-label-large text-primary">Bỏ chặn</button>
+        </div>
+      </section>
+
+      <aside data-conv="kiet" class={side}>
+        <DealCard title={iphone.title} photo={iphone.photo} meta={iphone.meta} deal="iphone">
+          <div class={row}>
+            <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
+            <span class="text-body-medium text-on-surface-variant line-through tabular-nums">{iphone.listed}</span>
+          </div>
+          <div class={row}>
+            <span class="flex items-center gap-1 text-body-medium text-tertiary"><Icon name="handshake-outline-rounded" size={16} />Đã chốt</span>
+            <span class="text-title-large text-tertiary tabular-nums">{iphone.agreed}</span>
+          </div>
+        </DealCard>
+        <DealCard title={airpods.title} photo={airpods.photo} meta={airpods.meta} deal="airpods" hidden>
+          <div class={row}>
+            <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
+            <span class="text-body-medium text-on-surface-variant tabular-nums">{airpods.listed}</span>
+          </div>
+          <div class={row}>
+            <span class="flex items-center gap-1 text-body-medium text-on-surface-variant"
+              ><Icon name="hourglass-empty-rounded" size={16} />Chờ {SELLER.name}</span
+            >
+            <span class="text-title-large text-on-surface tabular-nums">{airpods.offer}</span>
+          </div>
+        </DealCard>
+        <MoneyRules />
+      </aside>
+      <aside data-conv="scam" class={side} hidden>
+        <DealCard title={SCAM_ITEM.title} photo={SCAM_ITEM.photo} meta={SCAM_ITEM.meta}>
+          <div class={row}>
+            <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
+            <span class="text-title-large text-on-surface tabular-nums">{SCAM_ITEM.listed}</span>
+          </div>
+        </DealCard>
+        <MoneyRules />
+      </aside>
+    </div>
+  </main>
+  <ReportDialog />
+</Layout>
+
+<script>
+  const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
+  const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
+  const dlg = $<HTMLDialogElement>('#report')!;
+
+  // Open one conversation: its panes show, its row turns white, its thread scrolls to the end.
+  const open = (id: string) => {
+    $$('[data-conv]').forEach((el) => (el.hidden = el.dataset.conv !== id));
+    $$('[data-open]').forEach((r) => {
+      const on = r.dataset.open === id;
+      r.classList.toggle('bg-card', on);
+      r.classList.toggle('shadow-soft', on);
+      r.classList.toggle('hover:bg-card/70', !on);
+      if (on) r.setAttribute('aria-current', 'true');
+      else r.removeAttribute('aria-current');
+    });
+    $$(`[data-conv="${id}"] [data-thread]`).forEach((t) => (t.scrollTop = t.scrollHeight));
+  };
+  const pane = (p: string) => $$('[data-pane]', dlg).forEach((el) => (el.hidden = el.dataset.pane !== p));
+  const blocked = (on: boolean) => {
+    $('[data-blocked]')!.hidden = !on;
+    $('[data-live]')!.hidden = on;
+    $('[data-warning]')!.hidden = on;
+    $('[data-open="scam"]')!.hidden = on;
+  };
+
+  $$('[data-open]').forEach((r) =>
+    r.addEventListener('click', (e) => {
+      e.preventDefault();
+      open(r.dataset.open!);
+      history.replaceState(null, '', `#${r.dataset.open}`);
+    }),
+  );
+  $('[data-open-report]')!.addEventListener('click', () => {
+    pane('signals');
+    dlg.showModal();
+  });
+  dlg.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    const go = t.closest<HTMLElement>('[data-go]');
+    if (go) {
+      pane(go.dataset.go!);
+      if (go.dataset.go === 'sent') blocked(true);
+    }
+    if (t.closest('[data-close]') || t === dlg) dlg.close();
+    if (t.closest('[data-hide-warning]')) {
+      $('[data-warning]')!.hidden = true;
+      dlg.close();
+    }
+  });
+  $$('[data-unblock]').forEach((b) =>
+    b.addEventListener('click', () => {
+      blocked(false);
+      dlg.close();
+      open('scam');
+    }),
+  );
+
+  // The chips switch the listing in the bar and on the side; the thread is the pair's and stays.
+  $$('[data-deal]').forEach((c) =>
+    c.addEventListener('click', () => {
+      $$('[data-deal]').forEach((x) => x.setAttribute('aria-selected', String(x === c)));
+      $$('[data-deal-card]').forEach((card) => (card.hidden = card.dataset.dealCard !== c.dataset.deal));
+      const title = $('[data-conv="kiet"] [data-pane-title]');
+      if (title) title.textContent = c.dataset.title ?? '';
+    }),
+  );
+
+  // The inbox filter: buying, selling, unread.
+  $('[aria-label="Lọc tin nhắn"]')?.addEventListener('seg-change', (e) => {
+    const i = (e as CustomEvent<{ index: number }>).detail.index;
+    $$('[data-inbox] > a').forEach((r) => {
+      const show = i === 0 || (i === 1 && r.dataset.role === 'buy') || (i === 2 && r.dataset.role === 'sell') || (i === 3 && 'unread' in r.dataset);
+      r.classList.toggle('hidden', !show);
+    });
+  });
+
+  // The console folds to its steps.
+  $$('[data-collapse]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const body = b.closest('div.mx-3')?.querySelector<HTMLElement>('[data-console-body]');
+      if (!body) return;
+      body.hidden = !body.hidden;
+      b.setAttribute('aria-expanded', String(!body.hidden));
+      b.classList.toggle('rotate-180', body.hidden);
+    }),
+  );
+
+  // Reply from a message's hover action; the strip names who and what.
+  $$<HTMLButtonElement>('[data-reply]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const conv = b.closest<HTMLElement>('[data-conv]')!;
+      const strip = $('[data-strip]', conv);
+      if (!strip) return;
+      strip.hidden = false;
+      $('[data-strip-who]', strip)!.textContent = `Trả lời ${b.dataset.reply}`;
+      $('[data-strip-text]', strip)!.textContent = b.parentElement?.querySelector('[data-text]')?.textContent ?? '';
+      $<HTMLInputElement>('[data-composer] input', conv)?.focus();
+    }),
+  );
+  $('[data-strip-close]')?.addEventListener('click', () => ($('[data-strip]')!.hidden = true));
+
+  // Sending adds the message to the end of the thread.
+  $$<HTMLFormElement>('[data-composer]').forEach((f) => {
+    const input = f.querySelector('input')!;
+    const send = f.querySelector<HTMLButtonElement>('[type=submit]')!;
+    input.addEventListener('input', () => (send.disabled = !input.value.trim()));
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      const conv = f.closest<HTMLElement>('[data-conv]')!;
+      const thread = $('[data-thread]', conv)!;
+      const mine = $$('[data-group="mine"]', thread).pop();
+      if (!mine) return;
+      const g = mine.cloneNode(true) as HTMLElement;
+      g.querySelectorAll('.group\\/msg').forEach((m, i) => i > 0 && m.remove());
+      const bubble = g.querySelector('.group\\/msg > div')!;
+      bubble.classList.remove('rounded-tr-xs', 'rounded-br-xs');
+      bubble.querySelector(':scope > span:not([data-text])')?.remove();
+      bubble.querySelector('[data-text]')!.textContent = text;
+      const now = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      g.querySelector('p:last-child')!.textContent = now;
+      thread.append(g);
+      thread.scrollTop = thread.scrollHeight;
+      input.value = '';
+      send.disabled = true;
+      const strip = $('[data-strip]', conv);
+      if (strip) strip.hidden = true;
+    });
+  });
+
+  const h = location.hash.slice(1);
+  open(h === 'scam' || h === 'report' || h === 'reported' ? 'scam' : 'kiet');
+  if (h === 'report') {
+    pane('form');
+    dlg.showModal();
+  }
+  if (h === 'reported') {
+    pane('sent');
+    blocked(true);
+    dlg.showModal();
+  }
+</script>

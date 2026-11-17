@@ -1,0 +1,15 @@
+---
+// n of five stars.
+import Icon from '../Icon.astro';
+
+interface Props {
+  n: number;
+  size?: number;
+}
+
+const { n, size = 15 } = Astro.props;
+---
+
+<span class="flex" role="img" aria-label={`${n}/5 sao`}>
+  {[0, 1, 2, 3, 4].map((i) => <Icon name="star-rounded" size={size} class={i < n ? 'text-star' : 'text-outline-variant'} />)}
+</span>

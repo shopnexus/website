@@ -1,0 +1,74 @@
+---
+// Đơn hàng: the buyer's COD orders with their steps, the open-order count
+// against the tier's limit, the month's sums and a sale waiting on them.
+import Icon from '../../components/Icon.astro';
+import MoneyLine from '../../components/MoneyLine.astro';
+import PageTitle from '../../components/PageTitle.astro';
+import Seg from '../../components/Seg.astro';
+import AccountFrame from '../../components/orders/AccountFrame.astro';
+import OrderRow from '../../components/orders/OrderRow.astro';
+import { BUYING, MONTH, OPEN_COD, ORDER_FILTERS, ORDERS } from '../../data/orders';
+import { R } from '../../lib/routes';
+import { requireViewer } from '../../lib/session';
+import { PANEL } from '../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+---
+
+<AccountFrame title="Đơn hàng" description="Đơn mua và đơn bán giao COD của bạn." active="orders">
+  <PageTitle title="Đơn hàng" meta="6 đơn mua · 3 đơn bán">
+    <Seg items={['Mua · 6', 'Bán · 3']} class="glass-edge bg-card/70" name="Mua hay bán" />
+  </PageTitle>
+  <div class="mt-5 overflow-x-auto no-scrollbar">
+    <Seg items={ORDER_FILTERS} class="bg-black/[.04]" itemClass="text-label-medium" name="Lọc đơn" />
+  </div>
+  <div class="mt-4 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
+    <section class="flex min-w-0 flex-col gap-3">
+      {BUYING.map((o) => <OrderRow o={o} href={ORDERS[o.id] ? R.order(o.id) : '#'} />)}
+    </section>
+    <aside class="flex flex-col gap-4 self-start xl:sticky xl:top-[84px]">
+      <div class:list={[PANEL, 'p-5']}>
+        <p class="text-title-small text-ink">Đơn COD đang mở</p>
+        <p class="mt-2">
+          <span class="grad-num text-j-44 tabular-nums">{OPEN_COD.open}</span><span class="text-title-large text-on-surface-variant"
+            >/{OPEN_COD.limit}</span
+          >
+        </p>
+        <div class="mt-3 flex gap-1.5">
+          {
+            Array.from({ length: OPEN_COD.limit }, (_, i) => (
+              <span
+                class:list={['h-2 flex-1 rounded-full', i < OPEN_COD.open ? 'bg-linear-to-r from-teal to-teal-light' : 'bg-surface-container-high']}
+              />
+            ))
+          }
+        </div>
+        <div class="mt-4 flex flex-col gap-2.5 border-t border-line pt-4">
+          <MoneyLine k="cod_buyer" icon="inventory-2-outline-rounded" />
+          <MoneyLine k="no_hold" icon="lock-outline-rounded" />
+        </div>
+      </div>
+      <div class:list={[PANEL, 'px-5 py-3']}>
+        <p class="py-1 text-label-medium text-on-surface-variant">{MONTH.label}</p>
+        {
+          MONTH.rows.map(([k, val], i) => (
+            <div class:list={['flex items-center justify-between py-2', i > 0 && 'border-t border-line']}>
+              <span class="text-body-medium text-on-surface-variant">{k}</span>
+              <span class="text-title-small text-ink tabular-nums">{val}</span>
+            </div>
+          ))
+        }
+      </div>
+      <div class="glass glass-edge flex items-center gap-3 rounded-panel p-4">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-linear-to-br from-teal to-teal-light text-white">
+          <Icon name="storefront-outline-rounded" size={20} />
+        </span>
+        <p class="min-w-0 flex-1 text-body-medium text-ink"><b class="font-semibold">1 đơn bán</b> chờ bạn tạo đơn</p>
+        <a href={R.sales} class="state-layer grid h-9 w-9 place-items-center rounded-full bg-card text-primary" aria-label="Mở đơn bán">
+          <Icon name="arrow-forward-rounded" size={18} />
+        </a>
+      </div>
+    </aside>
+  </div>
+</AccountFrame>

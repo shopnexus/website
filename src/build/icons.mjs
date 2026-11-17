@@ -1,4 +1,3 @@
-// @ts-check
 import { readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';

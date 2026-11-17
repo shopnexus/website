@@ -1,0 +1,208 @@
+---
+// Đăng nhập. A mock sign-in until the website is wired to the server: posting
+// the form (Google, or the phone code) sets the session cookie and goes back
+// to `tiep`. Signed in already, the page goes straight there.
+import GoogleG from '../components/GoogleG.astro';
+import Icon from '../components/Icon.astro';
+import Price from '../components/Price.astro';
+import Layout from '../layouts/Layout.astro';
+import { LOGIN_NEARBY } from '../data/flows';
+import { img, where } from '../lib/format';
+import { R } from '../lib/routes';
+import { SESSION_COOKIE, viewer } from '../lib/session';
+import { btnCls, CONTENT } from '../lib/ui';
+
+// Only paths on this site; "//host" would leave it.
+const raw = Astro.url.searchParams.get('tiep') ?? '';
+const next = raw.startsWith('/') && !raw.startsWith('//') ? raw : R.home;
+
+if (Astro.request.method === 'POST') {
+  Astro.cookies.set(SESSION_COOKIE, 'demo', { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 30 });
+  return Astro.redirect(next, 303);
+}
+if (viewer(Astro)) return Astro.redirect(next);
+
+// The page was opened because the session ended on another device.
+const ended = Astro.url.searchParams.has('het-phien');
+const promises = [
+  ['local-shipping-outline-rounded', 'Giao tận nơi, xem hàng rồi mới trả'],
+  ['photo-camera-outline-rounded', 'Ảnh chụp trong app'],
+  ['shield-outline-rounded', 'Không cọc trước'],
+];
+const stats = [
+  ['48.210', 'món đang bán'],
+  ['1.904', 'tin mới hôm nay'],
+  ['4,8★', 'điểm người bán trung bình'],
+];
+const code = ['2', '8', '4', '9', '', ''];
+---
+
+<Layout title="Đăng nhập · ShopNexus" description="Đăng nhập bằng Google hoặc số điện thoại.">
+  <main class={CONTENT}>
+    <div class="mt-6 grid grid-cols-1 gap-8 lg:mt-8 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_480px] xl:gap-10">
+      <section class="order-2 min-w-0 lg:order-1 lg:pt-4">
+        <h1 class="max-w-[640px] text-j-40 text-ink md:text-j-48 xl:text-j-56">
+          Đồ cũ giá tốt,<br /><span class="grad-text">xem hàng</span> rồi mới trả.
+        </h1>
+        <div class="mt-6 flex flex-wrap gap-2">
+          {
+            promises.map(([icon, t]) => (
+              <span class="glass glass-edge flex h-10 items-center gap-2 rounded-full pl-3 pr-4 text-label-large text-ink">
+                <Icon name={icon} size={18} class="text-primary" />
+                {t}
+              </span>
+            ))
+          }
+        </div>
+        <div class="mt-7 flex flex-wrap gap-x-10 gap-y-4">
+          {
+            stats.map(([v, l], i) => (
+              <div>
+                <p class:list={['text-j-28 tabular-nums', i === 0 ? 'grad-num' : 'text-ink']}>{v}</p>
+                <p class="text-body-small text-on-surface-variant">{l}</p>
+              </div>
+            ))
+          }
+        </div>
+        <div class="mt-8 flex items-baseline justify-between gap-4">
+          <h2 class="text-title-medium font-semibold text-ink">Đang bán quanh Bình Thạnh</h2>
+          <span class="text-body-small text-on-surface-variant">cập nhật 2 phút trước</span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
+          {
+            LOGIN_NEARBY.map((it) => (
+              <a href={R.listing(it.id)} class="lift block min-w-0 rounded-lg-plus border border-line bg-card p-1.5">
+                <div class="relative overflow-hidden rounded-[15px]" style="aspect-ratio: 4 / 3">
+                  <img src={img(it.photo, 360, 270)} alt={it.title} loading="lazy" class="h-full w-full object-cover" />
+                  <span class="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-white/85 px-2 py-0.5 text-label-small text-photo-ink backdrop-blur">
+                    <Icon name="near-me-outline-rounded" size={12} />
+                    {where(it.km, it.area)}
+                  </span>
+                </div>
+                <p class="px-1.5 pt-2">
+                  <Price vnd={it.price} size="text-j-16" />
+                </p>
+                <p class="truncate px-1.5 pb-1 text-body-small text-on-surface-variant">{it.title}</p>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="glass glass-edge order-1 self-start rounded-xl p-5 shadow-soft md:p-7 lg:order-2">
+        {
+          ended && (
+            <div role="alert" class="mb-6 flex items-start gap-3 rounded-tile bg-white/70 p-3.5" data-ended>
+              <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+                <Icon name="devices-off-outline-rounded" size={18} />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-title-small text-ink">Bạn đã được đăng xuất</p>
+                <p class="text-body-small text-on-surface-variant">Phiên này đã kết thúc từ một thiết bị khác. Đăng nhập lại để tiếp tục.</p>
+              </div>
+              <button
+                type="button"
+                class="state-layer h-8 shrink-0 rounded-full px-2.5 text-label-large text-primary"
+                onclick="this.closest('[data-ended]').remove()"
+              >
+                Đã hiểu
+              </button>
+            </div>
+          )
+        }
+        <h2 class="text-j-28 text-ink">Đăng nhập</h2>
+        <form method="post" data-login>
+          <button name="cach" value="google" class:list={[btnCls('line', 'lg'), 'mt-5 !h-12 w-full gap-3']}>
+            <GoogleG />
+            Tiếp tục với Google
+          </button>
+          <div class="my-5 flex items-center gap-3 text-body-small text-on-surface-variant">
+            <span class="h-px flex-1 bg-line"></span>hoặc<span class="h-px flex-1 bg-line"></span>
+          </div>
+          <label for="so-dien-thoai" class="block text-label-medium text-on-surface-variant">Số điện thoại</label>
+          <div
+            class="mt-1.5 flex h-12 items-center gap-2 rounded-full border border-line bg-card px-1.5 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10"
+          >
+            <span class="flex h-9 items-center rounded-full bg-surface-container-low px-3 text-label-large text-ink">+84</span>
+            <input
+              id="so-dien-thoai"
+              name="so-dien-thoai"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel-national"
+              value="903 452 128"
+              class="min-w-0 flex-1 bg-transparent text-body-large text-ink tabular-nums outline-none"
+            />
+            <button type="button" class="state-layer h-9 shrink-0 rounded-full bg-ink px-4 text-label-large text-on-ink" data-send>Gửi mã</button>
+          </div>
+          <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p class="flex items-center gap-1.5 text-body-small text-on-surface-variant">
+              <Icon name="visibility-off-outline-rounded" size={16} />Người khác không thấy số của bạn.
+            </p>
+            <button type="button" class="state-layer flex h-8 items-center gap-1 rounded-full px-2 text-label-large text-primary">
+              <Icon name="mail-outline-rounded" size={16} />Dùng email
+            </button>
+          </div>
+          <div class="mt-5 border-t border-line pt-5">
+            <div class="flex items-baseline justify-between">
+              <h3 class="text-title-medium font-semibold text-ink">Nhập mã 6 số</h3>
+              <span class="text-body-small text-on-surface-variant tabular-nums">Gửi lại sau 0:45</span>
+            </div>
+            <p class="mt-0.5 text-body-small text-on-surface-variant">
+              Gửi tới 0903 452 128 · <a href="#so-dien-thoai" class="text-label-medium text-primary hover:underline">Đổi số</a>
+            </p>
+            <fieldset class="mt-3 flex justify-between gap-1.5" aria-label="Mã 6 số">
+              {
+                code.map((d, i) => (
+                  <input
+                    name="ma"
+                    value={d}
+                    inputmode="numeric"
+                    autocomplete={i === 0 ? 'one-time-code' : 'off'}
+                    aria-label={`Số ${i + 1}`}
+                    autofocus={i === 4}
+                    class="h-14 w-12 min-w-0 rounded-field border border-line bg-card text-center text-j-24 text-ink caret-primary tabular-nums outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+                    data-digit
+                  />
+                ))
+              }
+            </fieldset>
+          </div>
+        </form>
+        <p class="mt-5 text-center text-body-small text-on-surface-variant">
+          Tiếp tục là bạn đồng ý với <a href={R.terms} class="text-primary hover:underline">Điều khoản sử dụng</a> và <a
+            href={R.privacy}
+            class="text-primary hover:underline">Chính sách quyền riêng tư</a
+          > của ShopNexus.
+        </p>
+        <a href={next} class="state-layer mx-auto mt-2 flex h-10 w-fit items-center gap-1.5 rounded-full px-4 text-label-large text-primary">
+          Xem trước, đăng nhập sau<Icon name="arrow-forward-rounded" size={18} />
+        </a>
+      </section>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  // The code boxes: a digit moves to the next box, Backspace to the one before,
+  // a pasted code fills them all, and the sixth digit signs in.
+  const form = document.querySelector<HTMLFormElement>('[data-login]');
+  const boxes = [...document.querySelectorAll<HTMLInputElement>('[data-digit]')];
+  const full = () => boxes.every((b) => /^\d$/.test(b.value));
+  boxes.forEach((b, i) => {
+    b.addEventListener('input', () => {
+      const digits = b.value.replace(/\D/g, '');
+      if (digits.length > 1) {
+        digits.split('').slice(0, boxes.length - i).forEach((d, k) => (boxes[i + k].value = d));
+      } else {
+        b.value = digits;
+      }
+      if (b.value) boxes[Math.min(i + digits.length, boxes.length - 1)].focus();
+      if (full()) form?.requestSubmit();
+    });
+    b.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !b.value && i > 0) boxes[i - 1].focus();
+    });
+  });
+  document.querySelector('[data-send]')?.addEventListener('click', () => boxes.find((b) => !b.value)?.focus());
+</script>

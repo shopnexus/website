@@ -1,0 +1,62 @@
+---
+// A saved listing: the filled heart to unsave, a price cut or the AI's note on
+// the photo; sold ones go grey with a link to similar listings.
+import type { SavedItem } from '../../data/orders';
+import { img, money, where } from '../../lib/format';
+import { R } from '../../lib/routes';
+import Icon from '../Icon.astro';
+import Price from '../Price.astro';
+
+interface Props {
+  it: SavedItem;
+}
+
+const { it } = Astro.props;
+const sold = it.change === 'sold';
+const note = typeof it.change === 'object' ? ('cut' in it.change ? { icon: 'arrow-downward-rounded', v: it.change.cut } : { icon: 'auto-awesome-rounded', v: it.change.ai }) : null;
+---
+
+<article class="lift min-w-0 rounded-card border border-line bg-card p-2">
+  <div class="relative overflow-hidden rounded-lg bg-surface-container-high" style="aspect-ratio: 1 / 1">
+    <img src={img(it.photo, 400, 400)} alt={it.title} loading="lazy" class:list={['h-full w-full object-cover', sold && 'opacity-60 grayscale']} />
+    <button
+      type="button"
+      class="state-layer absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/85 text-teal backdrop-blur"
+      aria-label="Bỏ lưu"
+      aria-pressed="true"
+    >
+      <Icon name="favorite-rounded" size={18} />
+    </button>
+    {sold && <span class="absolute left-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-label-medium text-white backdrop-blur">Đã bán</span>}
+    {
+      note && (
+        <span class="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-label-medium text-photo-accent backdrop-blur">
+          <Icon name={note.icon} size={13} />
+          {note.v}
+        </span>
+      )
+    }
+  </div>
+  <div class="px-1.5 pb-1 pt-2">
+    {
+      sold ? (
+        <span class="text-j-16 text-on-surface-variant line-through tabular-nums">{money(it.price, true)}</span>
+      ) : (
+        <Price vnd={it.price} size="text-j-16" class="block" />
+      )
+    }
+    <h3 class:list={['line-clamp-1 text-body-medium', sold ? 'text-on-surface-variant' : 'text-ink']}>{it.title}</h3>
+    <p class="text-body-small text-on-surface-variant">{it.condition} · {where(it.km, it.area)}</p>
+    {
+      sold && (
+        <a
+          href={`${R.search}?q=${encodeURIComponent(it.title)}`}
+          class="mt-1 inline-flex items-center gap-1 text-label-large text-primary hover:underline"
+        >
+          <Icon name="search-rounded" size={15} />
+          Xem đồ tương tự
+        </a>
+      )
+    }
+  </div>
+</article>

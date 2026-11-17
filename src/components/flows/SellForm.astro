@@ -1,0 +1,364 @@
+---
+// The Đăng tin form as the mockup draws it (sell.html): photos, the item, the
+// price with its guide, the deal, and on the right what buyers will see.
+// The web has no posting endpoint yet, so nothing here submits; signed out,
+// "Đăng tin" leads to Đăng nhập first.
+import Field from '../Field.astro';
+import Icon from '../Icon.astro';
+import ListingCard from '../ListingCard.astro';
+import MoneyLine from '../MoneyLine.astro';
+import Price from '../Price.astro';
+import Seg from '../Seg.astro';
+import Switch from '../Switch.astro';
+import { SELL } from '../../data/flows';
+import { crop, decimal, group } from '../../lib/format';
+import { R } from '../../lib/routes';
+import { viewer } from '../../lib/session';
+import { btnCls, PANEL } from '../../lib/ui';
+
+const me = viewer(Astro);
+const { guide, soldBins } = SELL;
+const [lo, hi] = guide.axis;
+const at = (v: number) => `${(((v - lo) / (hi - lo)) * 100).toFixed(2)}%`;
+const peak = Math.max(...soldBins);
+const tr = (v: number) => decimal(v / 1_000_000);
+const [cover, ...rest] = SELL.photos;
+const picks = [
+  { icon: 'bolt-outline-rounded', title: 'Bán nhanh', price: 4_500_000, time: '~2 ngày', on: false },
+  { icon: 'balance-rounded', title: 'Giá thị trường', price: 4_800_000, time: '~1 tuần', on: true },
+];
+const ready = ['4 ảnh, có ảnh bìa', 'Tiêu đề và tình trạng', 'Giá 4.800.000 ₫', 'Giao COD bằng GHTK'];
+const preview = {
+  id: 'nhap',
+  photo: SELL.photo,
+  price: SELL.price,
+  title: SELL.title,
+  condition: 'Đã dùng',
+  km: 1.2,
+  area: 'Bình Thạnh',
+  rating: 4.9,
+  facts: ['64 GB', 'Pin 81%'],
+};
+const deal = [
+  { icon: 'local-shipping-outline-rounded', title: 'COD, xem hàng trước', sub: 'Người mua xem hàng rồi mới trả', on: true },
+  { icon: 'check-rounded', title: 'GHTK của bạn', sub: 'Có đơn thì tạo vận đơn ngay', action: R.codSetup },
+  { icon: 'location-on-outline-rounded', title: 'Bình Thạnh', sub: 'Chỉ hiện quận', action: R.addresses },
+];
+const badge = 'grid shrink-0 place-items-center rounded-full bg-linear-140 from-teal to-teal-light text-white';
+const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.url.pathname)}`;
+---
+
+<div class="flex flex-wrap items-end justify-between gap-4 pt-8">
+  <div>
+    <p class="text-label-large text-primary">Bán đồ</p>
+    <h1 class="text-j-40 text-ink lg:text-j-44">Đăng tin</h1>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <span class="flex items-center gap-1 text-body-small text-on-surface-variant">
+      <Icon name="draft-outline-rounded" size={15} />Nháp giữ 30 ngày từ lần sửa cuối, tối đa 20 nháp
+    </span>
+    <button type="button" class={btnCls('line', 'lg')}>Lưu nháp</button>
+    <a href={R.home} class="state-layer flex h-11 items-center rounded-full px-4 text-label-large text-on-surface-variant">Hủy</a>
+  </div>
+</div>
+
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_340px]">
+  <div class="flex min-w-0 flex-col gap-4">
+    <section class:list={[PANEL, 'p-4 md:p-6']}>
+      <div class="flex items-center gap-3">
+        <span class:list={[badge, 'h-8 w-8 text-title-small tabular-nums']}>1</span>
+        <h2 class="flex-1 text-j-20 text-ink">Ảnh</h2>
+        <span class="rounded-full bg-surface-container-low px-2.5 py-0.5 text-label-medium text-on-surface-variant tabular-nums">4/10</span>
+      </div>
+      <div class="mt-4 grid h-[300px] grid-cols-2 grid-rows-3 gap-2.5 md:h-[260px] md:grid-cols-[1.6fr_1fr_1fr] md:grid-rows-2">
+        <div class="relative col-span-2 overflow-hidden rounded-tile bg-surface-container-high md:col-span-1 md:row-span-2">
+          <img src={crop(cover[0], 900, cover[1], cover[2], cover[3])} alt={`Ảnh bìa: ${cover[4]}`} class="h-full w-full object-cover" />
+          <span class="absolute left-3 top-3 rounded-full bg-white/85 px-2.5 py-0.5 text-label-medium text-photo-ink backdrop-blur">Ảnh bìa</span>
+        </div>
+        {
+          rest.map(([id, fx, fy, z, alt]) => (
+            <button type="button" class="state-layer relative overflow-hidden rounded-lg bg-surface-container-high" title="Đặt làm ảnh bìa">
+              <img src={crop(id, 480, fx, fy, z)} alt={alt} class="h-full w-full object-cover" />
+              <span class="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white backdrop-blur" aria-label="Bỏ ảnh">
+                <Icon name="close-rounded" size={14} />
+              </span>
+            </button>
+          ))
+        }
+        <label
+          class="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-[1.5px] border-dashed border-primary/40 bg-secondary-container/40 text-center"
+        >
+          <input type="file" accept="image/*" multiple class="sr-only" />
+          <Icon name="add-photo-alternate-outline-rounded" size={26} class="text-primary" />
+          <span class="text-label-large text-ink">Thêm ảnh</span>
+          <span class="text-body-small text-on-surface-variant">Kéo thả vào đây</span>
+        </label>
+      </div>
+      <p class="mt-3 flex flex-wrap items-center justify-between gap-2 text-body-small text-on-surface-variant">
+        <span class="flex items-center gap-1.5"><Icon name="upload-rounded" size={15} />Ảnh tải lên</span>
+        <span>Bấm một ảnh để đặt làm ảnh bìa</span>
+      </p>
+    </section>
+
+    <section class:list={[PANEL, 'p-4 md:p-6']}>
+      <div class="flex items-center gap-3">
+        <span class:list={[badge, 'h-8 w-8 text-title-small tabular-nums']}>2</span>
+        <h2 class="flex-1 text-j-20 text-ink">Món đồ</h2>
+      </div>
+      <div class="mt-4 flex flex-col gap-4">
+        <Field label="Tiêu đề" ai>
+          <input name="title" value={SELL.title} maxlength="80" class="min-w-0 flex-1 bg-transparent outline-none" />
+          <span slot="trail" class="text-body-small text-on-surface-variant tabular-nums">{SELL.title.length}/80</span>
+        </Field>
+        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <Field label="Danh mục" ai>
+            Điện thoại › iPhone
+            <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="text-on-surface-variant" />
+          </Field>
+          <Field label="Màu" ai><input value="Trắng" class="min-w-0 flex-1 bg-transparent outline-none" /></Field>
+          <Field label="Dung lượng">
+            64 GB
+            <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="text-on-surface-variant" />
+          </Field>
+          <Field label="Pin">
+            <input value="81" inputmode="numeric" class="min-w-0 flex-1 bg-transparent outline-none" />
+            <span slot="trail" class="text-on-surface-variant">%</span>
+          </Field>
+        </div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1.4fr]">
+          <div>
+            <p class="mb-1.5 flex items-center gap-1 text-label-large text-on-surface-variant">
+              Tình trạng<Icon name="auto-awesome-rounded" size={14} class="text-primary" />
+            </p>
+            <Seg items={['Mới', 'Như mới', 'Đã dùng']} selected={2} class="flex w-full bg-surface-container-low" itemClass="flex-1 text-label-large" name="Tình trạng" />
+            <p class="mt-1.5 text-body-small text-on-surface-variant">Có vết thấy rõ hoặc lỗi nhỏ</p>
+          </div>
+          <div>
+            <p class="mb-1.5 text-label-large text-on-surface-variant">
+              Tin ghi <span class="font-normal">· người mua kiểm những điều này khi nhận hàng</span>
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              {
+                SELL.claims.map((c) => (
+                  <span class="flex h-8 items-center gap-1 rounded-full bg-secondary-container/70 pl-3 pr-1.5 text-label-large text-on-secondary-container">
+                    {c}
+                    <button type="button" class="grid h-5 w-5 place-items-center rounded-full" aria-label={`Bỏ ${c}`}>
+                      <Icon name="close-rounded" size={14} />
+                    </button>
+                  </span>
+                ))
+              }
+              <button
+                type="button"
+                class="state-layer flex h-8 items-center gap-1 rounded-full border border-dashed border-outline-variant px-3 text-label-large text-on-surface-variant"
+              >
+                <Icon name="add-rounded" size={16} />Thêm điều bạn ghi
+              </button>
+            </div>
+          </div>
+        </div>
+        <Field label="Mô tả" ai tall>
+          <textarea name="description" rows="3" class="min-w-0 flex-1 resize-none bg-transparent outline-none">{SELL.description}</textarea>
+        </Field>
+      </div>
+    </section>
+
+    <section class:list={[PANEL, 'p-4 md:p-6']}>
+      <div class="flex items-center gap-3">
+        <span class:list={[badge, 'h-8 w-8 text-title-small tabular-nums']}>3</span>
+        <h2 class="flex-1 text-j-20 text-ink">Giá</h2>
+      </div>
+      <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-[1.25fr_1fr]">
+        <div class="min-w-0">
+          <button type="button" class="state-layer -mx-2 flex items-center gap-1 rounded-full px-2 py-1 text-title-small text-tertiary">
+            <Icon name="auto-awesome-rounded" size={16} />Giá tham khảo {tr(guide.low)} – {tr(guide.high)} tr ₫<Icon
+              name="chevron-right-rounded"
+              size={18}
+            />
+          </button>
+          <div class="relative mt-3">
+            <div class="flex h-[84px] items-end gap-1.5" role="img" aria-label="Số tin đã bán theo giá">
+              {
+                soldBins.map((n, i) => (
+                  <span
+                    class:list={['flex-1 rounded-sm', i >= 1 && i <= 4 ? 'bg-primary' : 'bg-outline-variant/60']}
+                    style={`height:${Math.round((Math.max(n, 0.4) / peak) * 100)}%`}
+                  />
+                ))
+              }
+            </div>
+            <span class="absolute -top-1 bottom-0 w-0.5 -translate-x-1/2 rounded-full bg-tertiary" style={`left:${at(SELL.price)}`}></span>
+          </div>
+          <div class="relative mt-2 h-1.5 rounded-full bg-surface-container-high">
+            <span class="absolute inset-y-0 rounded-full bg-tertiary-fixed" style={`left:${at(guide.low)};right:calc(100% - ${at(guide.high)})`}></span>
+            <span
+              class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-tertiary shadow-soft"
+              style={`left:${at(SELL.price)}`}></span>
+          </div>
+          <div class="mt-1.5 flex justify-between text-body-small text-on-surface-variant">
+            <span>{tr(lo)} tr</span><span>giữa {tr(guide.median)} tr</span><span>{tr(hi)} tr</span>
+          </div>
+          <p class="mt-2 text-body-small text-on-surface-variant">Từ {guide.sold} tin đã bán và {guide.live} tin đang bán giống món này</p>
+          <div class="mt-4 grid grid-cols-1 gap-2.5 md:grid-cols-2">
+            {
+              picks.map((p) => (
+                <button
+                  type="button"
+                  class:list={[
+                    'state-layer flex items-center gap-3 rounded-tile px-4 py-3 text-left',
+                    p.on ? 'bg-card ring-2 ring-primary' : 'bg-surface-container-low',
+                  ]}
+                >
+                  <span
+                    class:list={[
+                      'grid h-9 w-9 shrink-0 place-items-center rounded-full',
+                      p.on ? 'bg-linear-140 from-teal to-teal-light text-white' : 'bg-card text-on-surface-variant',
+                    ]}
+                  >
+                    <Icon name={p.icon} size={18} />
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block whitespace-nowrap text-body-small text-on-surface-variant">
+                      {p.title} · {p.time}
+                    </span>
+                    <Price vnd={p.price} short={false} />
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+        </div>
+        <div class="flex flex-col justify-center gap-2.5">
+          <label class="block">
+            <span class="mb-1.5 block text-label-large text-on-surface-variant">Giá bán</span>
+            <span class="flex h-12 items-center justify-between gap-3 rounded-field bg-card px-4 ring-2 ring-primary">
+              <input name="price" value={group(SELL.price)} inputmode="numeric" class="min-w-0 flex-1 bg-transparent text-j-22 text-ink tabular-nums outline-none" />
+              <span class="text-on-surface-variant">₫</span>
+            </span>
+          </label>
+          <p class="-mt-1 flex items-center gap-1 text-label-medium text-tertiary">
+            <Icon name="auto-awesome-rounded" size={14} />Rẻ hơn 8/12 tin đang bán · bán trong ~1 tuần
+          </p>
+          <div class="flex h-11 items-center gap-3 rounded-full bg-surface-container-low pl-4 pr-1.5">
+            <Icon name="sell-outline-rounded" size={18} class="text-on-surface-variant" />
+            <span class="flex-1 text-label-large text-ink">Cho phép trả giá</span>
+            <Switch label="Cho phép trả giá" />
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 grid grid-cols-3 gap-3 border-t border-line pt-5 xl:grid-cols-[repeat(3,1fr)_1.3fr]">
+        {
+          SELL.similar.map(([id, fx, fy, z, p, cond, w]) => (
+            <button type="button" class="state-layer min-w-0 rounded-lg text-left" title="So với tin của bạn">
+              <img src={crop(id, 320, fx, fy, z)} alt="" class="aspect-square w-full rounded-lg object-cover" />
+              <span class="mt-1.5 block">
+                <Price vnd={p} size="text-j-15" short={false} />
+              </span>
+              <span class="block truncate text-body-small text-on-surface-variant">
+                {cond} · {w}
+              </span>
+            </button>
+          ))
+        }
+        <div class="col-span-3 flex flex-col justify-between gap-3 rounded-tile bg-linear-to-br from-mint-wash to-peach-wash p-4 xl:col-span-1">
+          <div>
+            <p class="text-title-small text-ink">Tin giống bạn</p>
+            <p class="text-body-small text-on-surface-variant">Cùng danh mục và tình trạng</p>
+            <div class="mt-2">
+              <Seg items={['Đang bán · 3', 'Đã bán · 3']} class="bg-white/60" itemClass="text-label-medium !h-7 !px-2.5" name="Tin giống bạn" />
+            </div>
+          </div>
+          <dl class="grid grid-cols-2 gap-2">
+            <div class="rounded-field bg-white/70 px-3 py-2">
+              <dt class="text-body-small text-on-surface-variant">Mức giữa</dt>
+              <dd class="text-j-16 text-ink tabular-nums">4,9 tr ₫</dd>
+            </div>
+            <div class="rounded-field bg-white/70 px-3 py-2">
+              <dt class="text-body-small text-on-surface-variant">Vừa bán</dt>
+              <dd class="text-j-16 text-ink tabular-nums">4,5 tr ₫</dd>
+            </div>
+          </dl>
+          <p class="flex items-start gap-2 text-body-small text-ink">
+            <Icon name="notifications-active-outline-rounded" size={16} class="mt-px shrink-0 text-primary" />
+            <span><b class="font-semibold">{guide.waiting} người</b> đang theo dõi một tìm kiếm khớp với tin này ở giá bạn đặt</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class:list={[PANEL, 'p-4 md:p-6']}>
+      <div class="flex items-center gap-3">
+        <span class:list={[badge, 'h-8 w-8 text-title-small tabular-nums']}>4</span>
+        <h2 class="flex-1 text-j-20 text-ink">Giao dịch</h2>
+      </div>
+      <div class="mt-4 grid grid-cols-1 gap-2.5 xl:grid-cols-3">
+        {
+          deal.map((d) => (
+            <div class="flex items-center gap-3 rounded-tile bg-surface-container-low p-3">
+              <span
+                class:list={[
+                  'grid h-10 w-10 shrink-0 place-items-center rounded-full',
+                  d.on ? 'bg-linear-140 from-teal to-teal-light text-white' : 'bg-card text-on-surface-variant',
+                ]}
+              >
+                <Icon name={d.icon} size={20} />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-title-small text-ink">{d.title}</span>
+                <span class="block text-body-small text-on-surface-variant">{d.sub}</span>
+              </span>
+              {d.action && (
+                <a href={d.action} class="state-layer rounded-full px-3 py-1 text-label-large text-primary">
+                  Đổi
+                </a>
+              )}
+            </div>
+          ))
+        }
+      </div>
+      <div class="mt-4 flex flex-col gap-2">
+        <MoneyLine k="cod_seller" icon="account-balance-outline-rounded" />
+        <MoneyLine k="return_leg" icon="undo-rounded" />
+      </div>
+    </section>
+  </div>
+
+  <aside class="self-start lg:sticky lg:top-[84px]">
+    <div class="flex flex-col gap-3">
+      <p class="px-1 text-label-large text-on-surface-variant">Người mua sẽ thấy</p>
+      <div class="max-lg:max-w-[340px]"><ListingCard item={preview} ratio="4 / 4.4" /></div>
+      <div class:list={[PANEL, 'p-5']}>
+        <div class="flex items-center justify-between">
+          <p class="text-title-small text-ink">Sẵn sàng đăng</p>
+          <span class="rounded-full bg-secondary-container px-2 py-0.5 text-label-medium text-on-secondary-container tabular-nums">4/4</span>
+        </div>
+        <ul class="mt-3 flex flex-col gap-2">
+          {
+            ready.map((t) => (
+              <li class="flex items-center gap-2.5 text-body-medium text-ink">
+                <Icon name="check-circle-rounded" size={18} class="text-primary" />
+                {t}
+              </li>
+            ))
+          }
+        </ul>
+        {
+          postHref ? (
+            <a href={postHref} class:list={[btnCls('ink', 'lg'), 'mt-4 !h-12 w-full']}>
+              <Icon name="send-rounded" size={18} />
+              Đăng tin
+            </a>
+          ) : (
+            <button type="button" class:list={[btnCls('ink', 'lg'), 'mt-4 !h-12 w-full']}>
+              <Icon name="send-rounded" size={18} />
+              Đăng tin
+            </button>
+          )
+        }
+        <button type="button" class:list={[btnCls('line', 'lg'), 'mt-2 w-full']}>
+          <Icon name="visibility-outline-rounded" size={18} />Xem trước trang tin
+        </button>
+      </div>
+    </div>
+  </aside>
+</div>

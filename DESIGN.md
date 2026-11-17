@@ -115,8 +115,9 @@ and no longer write mockups.
 
 ### Values outside the app's tokens
 
-J adds these, and `tokens.css` needs
-them before the pages are built:
+J adds these in `src/styles/j.css`, which `global.css` imports after
+`tokens.css`. The console shares `tokens.css`, so J stays out of it. Each
+value has a dark counterpart.
 
 | Name | Value | Use |
 |---|---|---|
@@ -126,6 +127,14 @@ them before the pages are built:
 | glass | white at 62 %, 18 px blur, saturate 1.4 | the header and floating panels |
 | card corner | 22 px | listing cards |
 | photo corner | 16 px | the photo inside a card, inset 8 px |
+
+In code they are `bg-page`, `text-ink`, `bg-ink text-on-ink`, `border-line`,
+`bg-card` (in place of `bg-white`, so dark mode works), `glass` with
+`glass-edge`, `rounded-card` 22, `rounded-panel` 24, `rounded-tile` 18,
+`rounded-field` 14, and `shadow-soft`, `shadow-glow` and `shadow-lift`. The
+display sizes are `text-j-15` to `text-j-64`, at weight 600 with the tight
+tracking below. Badges and buttons over a photo keep `bg-white/90` and use
+`text-photo-ink` in both themes.
 
 ### Wash
 
@@ -290,3 +299,24 @@ bán follows the app's plans and payment screens: Cơ bản is free, Plus and
 Cửa hàng are monthly, Đẩy tin is paid per push, and a plan cannot buy COD
 rights or a tier. Quy định đăng tin and Điều khoản share one layout: a
 sticky table of contents, the numbered text and a summary card.
+
+## Code
+
+The site renders the J mockups from mock data in `src/data`, the same people
+and listings as the mockups, until the server's public endpoints are wired.
+A cookie stands in for the session: "Đăng nhập" sets it, "Đăng xuất" clears
+it, and account pages send a signed-out visitor to Đăng nhập with `?tiep=`
+back to the page. "Giao diện tối" on Tôi is kept in a second cookie, so the
+server renders the chosen theme.
+
+| Mockup piece | Code |
+|---|---|
+| `page()`, `header()`, `footer()` in `j_kit.py` | `src/layouts/Layout.astro`, `Header.astro`, `Footer.astro`, and `BottomNav.astro` below 840 px |
+| the other `j_kit.py` pieces | the components at the top of `src/components/` |
+| a page group's own parts | `src/components/<group>/`: `home`, `public`, `flows`, `account`, `orders` |
+| `icon()` | `<Icon name>`, served from the names `src/build/icons.mjs` finds in `src/` |
+| the links in `HREF` | `R` in `src/lib/routes.ts`, Vietnamese paths such as `/tim-kiem` and `/tin/<id>` |
+
+An icon name has to appear in `src/` as a whole quoted string. A name built
+by joining strings is not found and renders nothing; the one exception is a
+known name with "-outline" removed, which the plugin adds for every name.

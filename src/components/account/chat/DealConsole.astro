@@ -1,0 +1,48 @@
+---
+// The deal under the thread: the four steps, then the price and what to do next (slot).
+import { PHASES } from '../../../data/common';
+import Icon from '../../Icon.astro';
+
+interface Props {
+  current: number;
+}
+
+const { current } = Astro.props;
+---
+
+<div class="mx-3 mt-2 rounded-lg-plus border border-line bg-card px-4 pb-3 pt-3">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center" role="img" aria-label={`Bước ${current + 1}/4 · ${PHASES[current].label}`}>
+      {
+        PHASES.map((p, i) => (
+          <>
+            {i < current ? (
+              <span class="grid h-8 w-8 place-items-center rounded-full bg-primary text-on-primary">
+                <Icon name={p.icon.replace('-outline', '')} size={18} />
+              </span>
+            ) : i === current ? (
+              <span class="grid h-[38px] w-[38px] place-items-center rounded-[38%] bg-primary-container text-on-primary-container">
+                <Icon name={p.icon} size={20} />
+              </span>
+            ) : (
+              <span class="grid h-8 w-8 place-items-center rounded-full bg-surface-container-highest text-on-surface-variant">
+                <Icon name={p.icon} size={18} />
+              </span>
+            )}
+            {i < 3 && <span class:list={['h-0.5 w-8', i < current ? 'bg-primary' : 'bg-surface-container-highest']} />}
+          </>
+        ))
+      }
+    </div>
+    <button
+      type="button"
+      class="state-layer grid h-8 w-8 place-items-center rounded-full bg-surface-container-highest text-on-surface-variant"
+      aria-label="Thu gọn"
+      aria-expanded="true"
+      data-collapse
+    >
+      <Icon name="keyboard-arrow-down-rounded" size={20} />
+    </button>
+  </div>
+  <div class="pt-2" data-console-body><slot /></div>
+</div>

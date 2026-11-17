@@ -14,6 +14,7 @@
   --j-glass: rgb(255 255 255 / 0.62);
   --j-glass-edge: rgb(255 255 255 / 0.7);
   --j-wash-opacity: 1;
+  --j-glow-ring: rgb(255 255 255 / 0.9);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +27,7 @@
     --j-glass: rgb(24 28 28 / 0.66);
     --j-glass-edge: rgb(255 255 255 / 0.06);
     --j-wash-opacity: 0.35;
+  --j-glow-ring: rgb(255 255 255 / 0.1);
   }
 }
 
@@ -38,6 +40,7 @@
   --j-glass: rgb(24 28 28 / 0.66);
   --j-glass-edge: rgb(255 255 255 / 0.06);
   --j-wash-opacity: 0.35;
+  --j-glow-ring: rgb(255 255 255 / 0.1);
 }
 
 /*
@@ -68,6 +71,9 @@
   --color-star: #e0a23b;
   --color-ghtk: #0a8f3c;
   --color-ghn: #f26522;
+  /* Text on the white/90 badges and buttons over photos, the same in both themes. */
+  --color-photo-ink: #121817;
+  --color-photo-accent: #773115;
 
   /* Corners: cards 22, panels 24, large panels and the footer rounded-xl (28). */
   --radius-2xs: 6px; /* checkbox, a chat bubble's tail */
@@ -79,7 +85,7 @@
   /* soft under panels and the sort bar, glow under the white search fields,
      lift on a hovered card, knob under a segmented thumb or switch. */
   --shadow-soft: 0 1px 2px rgb(18 24 23 / 0.04), 0 8px 24px -8px rgb(18 24 23 / 0.1);
-  --shadow-glow: 0 0 0 1px rgb(255 255 255 / 0.9), 0 12px 32px -10px rgb(6 80 73 / 0.3);
+  --shadow-glow: 0 0 0 1px var(--j-glow-ring), 0 12px 32px -10px rgb(6 80 73 / 0.3);
   --shadow-lift: 0 16px 32px -14px rgb(18 24 23 / 0.22);
   --shadow-knob: 0 1px 2px rgb(18 24 23 / 0.08), 0 2px 8px rgb(18 24 23 / 0.06);
 
@@ -190,8 +196,13 @@
   background: var(--j-glass);
   backdrop-filter: blur(18px) saturate(1.4);
 }
+/* It goes through Tailwind's inset-shadow slot, so shadow-soft or
+   shadow-float on the same element still adds its drop shadow. */
 @utility glass-edge {
-  box-shadow: inset 0 0 0 1px var(--j-glass-edge);
+  --tw-inset-shadow: inset 0 0 0 1px var(--j-glass-edge);
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);
 }
 
 /* One word of the Home headline, and the big counts. */

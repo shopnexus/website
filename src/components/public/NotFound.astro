@@ -1,0 +1,102 @@
+---
+// The 404. With `sold`: the listing sold, so a search field filled with its
+// name, the listing greyed out with "ĐÃ BÁN" and a switch to follow the
+// seller, then similar listings still for sale. Without: a page that does not
+// exist, with the search field and the newest listings nearby.
+import { LISTINGS } from '../../data/listings';
+import { PHOTO_MATCHES, SELLER } from '../../data/public';
+import { img, type Listing, priceParts } from '../../lib/format';
+import { R } from '../../lib/routes';
+import { CONTENT } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import ListingCard from '../ListingCard.astro';
+import SearchField from '../SearchField.astro';
+import SectionTitle from '../SectionTitle.astro';
+import Switch from '../Switch.astro';
+
+interface Props {
+  sold?: Listing;
+}
+
+const { sold } = Astro.props;
+const similar = [1, 2, 4, 5].map((i) => PHOTO_MATCHES[i]);
+const near = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 4);
+const [num, unit] = sold ? priceParts(sold.price, false) : ['', ''];
+const link = 'text-label-large text-primary hover:underline';
+---
+
+<main class={CONTENT}>
+  <section class:list={['grid grid-cols-1 items-center gap-10 pt-8 lg:pt-12', sold && 'lg:grid-cols-[1fr_400px]']}>
+    <div class="min-w-0">
+      <p class="glass glass-edge flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-label-medium text-ink">
+        <Icon name="link-off-rounded" size={15} class="text-primary" />Lỗi 404
+      </p>
+      <h1 class="mt-4 text-j-40 text-ink lg:text-j-52">{sold ? 'Tin này đã bán.' : 'Không có trang này.'}</h1>
+      <p class="mt-2 max-w-[560px] text-body-large text-on-surface-variant">
+        {
+          sold
+            ? 'Người bán đã đánh dấu đã bán lúc 14:20 hôm nay. Có 4 máy giống vậy đang bán quanh Bình Thạnh.'
+            : 'Tin có thể đã bị gỡ, hoặc link bị gõ sai. Tìm món bạn cần ở đây:'
+        }
+      </p>
+      <SearchField
+        class="mt-6 max-w-[720px]"
+        value={sold ? 'iPhone 13 Pro 128GB, Xanh Sierra' : undefined}
+        photo={sold?.photo}
+      />
+      <p class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-body-small text-on-surface-variant">
+        Link sai hoặc cũ?
+        <a href={R.home} class={link}>Về Khám phá</a>
+        <a href={R.categories} class={link}>Xem danh mục</a>
+        <a href={R.support} class={link}>Báo link hỏng</a>
+      </p>
+    </div>
+    {
+      sold && (
+        <article class="relative rounded-xl border border-line bg-card p-2">
+          <div class="relative overflow-hidden rounded-card" style="aspect-ratio: 4 / 3">
+            <img src={img(sold.photo, 800, 600)} alt="" class="h-full w-full object-cover opacity-70 grayscale-[.6]" />
+            <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-6 rounded-field border-2 border-white bg-ink/80 px-5 py-2 text-j-22 tracking-wide text-on-ink backdrop-blur">
+              ĐÃ BÁN
+            </span>
+          </div>
+          <div class="flex items-center justify-between gap-3 px-3 py-3">
+            <div class="min-w-0">
+              <p class="truncate text-body-large text-on-surface-variant line-through decoration-1">{sold.title}</p>
+              <p class="text-body-small text-on-surface-variant">
+                {SELLER.name} · {sold.area}
+              </p>
+            </div>
+            <span class="whitespace-nowrap text-j-20 text-on-surface-variant tabular-nums">
+              {num}
+              <span class="ml-0.5 text-body-small">{unit}</span>
+            </span>
+          </div>
+          <div class="mx-1 mb-1 flex items-center justify-between gap-3 rounded-tile bg-secondary-container px-3 py-2.5 text-on-secondary-container">
+            <span class="text-body-medium">Báo khi người này đăng máy mới</span>
+            <Switch on={false} label="Báo khi người này đăng máy mới" />
+          </div>
+        </article>
+      )
+    }
+  </section>
+
+  {
+    sold && (
+      <section class="mt-12">
+        <SectionTitle title="Giống tin này, còn bán" link="Xem 36 tin" href={`${R.search}?q=${encodeURIComponent('iPhone 13 Pro')}`} />
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
+          {similar.map((it) => (
+            <ListingCard item={it} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+  <section class:list={[sold ? 'mt-10' : 'mt-12']}>
+    <SectionTitle title="Vừa đăng quanh bạn" link="Xem tất cả" href={`${R.search}?sap-xep=moi`} />
+    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
+      {near.map((it) => <ListingCard item={it} />)}
+    </div>
+  </section>
+</main>

@@ -1,0 +1,13 @@
+---
+// Đăng tin: the same form as Cách đăng tin (sell.html). The web has no posting
+// endpoint yet; signed out, the form's "Đăng tin" leads to Đăng nhập.
+import SellForm from '../components/flows/SellForm.astro';
+import Layout from '../layouts/Layout.astro';
+import { CONTENT } from '../lib/ui';
+---
+
+<Layout fab={false} title="Đăng tin · ShopNexus" description="Tải vài tấm ảnh lên, AI điền giúp tên, tình trạng và giá.">
+  <main class={CONTENT}>
+    <SellForm />
+  </main>
+</Layout>

@@ -1,0 +1,198 @@
+---
+// Hoàn thiện hồ sơ: the steps left, counted from PROFILE_TASKS. Identity
+// verification needs NFC, so the page shows its steps and a code to open the app.
+import tierTrusted from '@brand/tier_trusted.webp';
+import Field from '../../components/Field.astro';
+import Icon from '../../components/Icon.astro';
+import Ring from '../../components/account/Ring.astro';
+import Row from '../../components/account/Row.astro';
+import SettingsFrame from '../../components/account/SettingsFrame.astro';
+import SideList from '../../components/account/SideList.astro';
+import { PHONE, SCORE, TIERS } from '../../data/account';
+import { ADDRESS_BOOK, MONEY, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
+import { R } from '../../lib/routes';
+import { requireViewer } from '../../lib/session';
+import { btnCls, LABEL, PANEL } from '../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+
+const left = PROFILE_TASKS.length - TASKS_DONE;
+const todo = PROFILE_TASKS.filter((t) => !t.done);
+const done = PROFILE_TASKS.filter((t) => t.done);
+const defaultAddress = ADDRESS_BOOK.find((a) => a.default) ?? ADDRESS_BOOK[0];
+const doneSub: Record<string, string> = {
+  phone: PHONE,
+  avatar: 'Đã thêm',
+  address: `${ADDRESS_BOOK.length} địa chỉ · ${defaultAddress?.label} là mặc định`,
+};
+const doneNames = done.map((t) => (t.key === 'address' ? 'địa chỉ' : t.title.toLowerCase())).join(', ').replace(/, ([^,]*)$/, ' và $1');
+const kycSteps = [
+  { icon: 'badge-outline-rounded', text: 'Chụp 2 mặt CCCD' },
+  { icon: 'nfc-rounded', text: 'Đọc chip trên thẻ' },
+  { icon: 'face-outline-rounded', text: 'Quét khuôn mặt' },
+];
+const unlocks = [
+  { icon: 'sell-outline-rounded', text: 'Đăng tin bán, sau khi xác minh và thiết lập COD' },
+  { icon: 'military-tech-outline-rounded', text: '+100 điểm uy tín khi xác minh danh tính' },
+  { icon: 'payments-outline-rounded', text: MONEY.cod_seller },
+];
+const next = TIERS.find(([, from]) => from > SCORE);
+
+// A drawn stand-in for the app link's QR code.
+const N = 11;
+const qr = Array.from({ length: N * N }, (_, i) => {
+  const x = i % N;
+  const y = Math.floor(i / N);
+  const corner = (x < 3 && y < 3) || (x > N - 4 && y < 3) || (x < 3 && y > N - 4);
+  return corner || (x * 7 + y * 3 + x * y) % 3 === 0;
+});
+---
+
+<SettingsFrame
+  title="Hoàn thiện hồ sơ"
+  page="Hoàn thiện hồ sơ"
+  meta={`${TASKS_DONE}/${PROFILE_TASKS.length} bước · ${doneNames} đã xong`}
+>
+  <div class:list={[PANEL, 'p-5']}>
+    <div class="flex items-center gap-5">
+      <Ring done={TASKS_DONE} total={PROFILE_TASKS.length} size={84} stroke={8} />
+      <div class="min-w-0 flex-1">
+        <p class="text-label-large text-on-surface-variant">Còn {left} bước</p>
+        <p class="text-j-24 text-ink md:text-j-26">Lên <span class="grad-text">Người bán tin cậy</span></p>
+        <p class="mt-1 text-body-medium text-on-surface-variant">Xác minh danh tính và thiết lập giao COD là đủ để đăng tin.</p>
+      </div>
+      <img src={tierTrusted.src} alt="" class="hidden h-20 w-20 md:block" />
+    </div>
+  </div>
+
+  <p class:list={[LABEL, 'mt-1']}>Cần làm · {todo.length}</p>
+
+  {
+    todo.map((t) =>
+      t.key === 'kyc' ? (
+        <div class:list={[PANEL, 'p-5 ring-2 ring-primary/30']}>
+          <div class="flex flex-wrap items-start gap-4">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-on-primary">
+              <Icon name={t.icon} size={22} />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="flex flex-wrap items-center gap-2 text-title-medium font-semibold text-ink">
+                {t.title}
+                <span class="rounded-full bg-primary/10 px-2 py-0.5 text-label-medium text-primary">+100 điểm uy tín</span>
+              </p>
+              <p class="mt-0.5 text-body-medium text-on-surface-variant">Cần để đăng tin · 2 phút · mã hóa</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                {kycSteps.map((s) => (
+                  <span class="flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-label-medium text-ink">
+                    <Icon name={s.icon} size={16} class="text-primary" />
+                    {s.text}
+                  </span>
+                ))}
+              </div>
+              <p class="mt-3 text-body-small text-on-surface-variant">
+                Cần CCCD gắn chip và điện thoại có NFC, nên bước này làm trên app: Tôi › Xác minh danh tính, hoặc quét mã.
+              </p>
+            </div>
+            <div class="shrink-0 rounded-tile border border-line bg-card p-2.5" role="img" aria-label="Mã mở app ShopNexus">
+              <div class="grid h-[104px] w-[104px] gap-[1.5px]" style={`grid-template-columns:repeat(${N},1fr)`}>
+                {qr.map((on) => <span class:list={['rounded-[2px]', on && 'bg-ink']} />)}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : t.key === 'cod' ? (
+        <a href={R.codSetup} class:list={['lift flex flex-wrap items-center gap-4 p-5', PANEL]}>
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+            <Icon name={t.icon} size={22} />
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-title-medium font-semibold text-ink">{t.title}</span>
+            <span class="block text-body-medium text-on-surface-variant">Cần để đăng tin · nhận tiền COD</span>
+          </span>
+          <span class={btnCls('ink')}>
+            Thiết lập
+            <Icon name="arrow-forward-rounded" size={16} />
+          </span>
+        </a>
+      ) : (
+        <form class:list={[PANEL, 'p-5']}>
+          <p class="flex items-center gap-2 text-title-medium font-semibold text-ink">
+            <Icon name={t.icon} size={20} class="text-on-surface-variant" />
+            {t.title}
+          </p>
+          <Field label="Vài dòng về bạn" tall class="mt-3">
+            <textarea
+              name="bio"
+              rows="3"
+              maxlength="150"
+              placeholder="VD: hay bán đồ công nghệ đã dùng kỹ, giao trong ngày ở Bình Thạnh"
+              class="min-w-0 flex-1 resize-none bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+              data-bio
+            />
+          </Field>
+          <p class="mt-1 px-1 text-right text-body-small text-on-surface-variant tabular-nums" data-bio-count>
+            0/150
+          </p>
+          <div class="mt-2 flex items-center justify-between">
+            <button type="button" class={btnCls('tonal')}>
+              <Icon name="auto-awesome-rounded" size={18} />
+              Viết giúp
+            </button>
+            <button type="submit" class={btnCls('ink')}>
+              Lưu
+            </button>
+          </div>
+        </form>
+      ),
+    )
+  }
+
+  <Fragment slot="side">
+    <SideList title={`Đã xong · ${TASKS_DONE}`}>
+      {
+        done.map((t) => (
+          <Row
+            icon={t.icon}
+            title={t.title}
+            sub={doneSub[t.key]}
+            href={t.key === 'address' ? R.addresses : undefined}
+            tone="bg-primary/10 text-primary"
+            class="-mx-2"
+          >
+            <Icon slot="trail" name="check-circle-rounded" size={20} class="text-primary" />
+          </Row>
+        ))
+      }
+    </SideList>
+    <div class:list={[PANEL, 'p-4']}>
+      <p class={LABEL}>Mỗi bước mở ra</p>
+      <ul class="mt-2 flex flex-col gap-2.5 px-1 text-body-medium text-ink">
+        {
+          unlocks.map((u) => (
+            <li class="flex gap-2">
+              <Icon name={u.icon} size={18} class="mt-0.5 text-primary" />
+              <span>{u.text}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <a href={R.reputation} class:list={['lift flex items-center gap-3 p-4', PANEL]}>
+      <span class="grad-num text-j-28 tabular-nums">{SCORE}</span>
+      <span class="flex-1 text-body-medium text-ink">
+        Điểm uy tín
+        {next && <span class="block text-body-small text-on-surface-variant">Còn {next[1] - SCORE} điểm lên {next[0]}</span>}
+      </span>
+      <Icon name="chevron-right-rounded" size={20} class="text-on-surface-variant" />
+    </a>
+  </Fragment>
+</SettingsFrame>
+
+<script>
+  const bio = document.querySelector<HTMLTextAreaElement>('[data-bio]');
+  const count = document.querySelector('[data-bio-count]');
+  bio?.addEventListener('input', () => {
+    if (count) count.textContent = `${bio.value.length}/150`;
+  });
+</script>

@@ -1,0 +1,23 @@
+---
+// The row under the header on Tìm kiếm and Tìm bằng ảnh: the conditions read
+// from the query as sparkle chips, a divider, the dropdowns, then "Xóa lọc".
+// Slot "chips" holds AiChips, the default slot the Drops.
+import { R } from '../../lib/routes';
+
+// An empty map in the slot still counts as a slot, so check what it renders.
+const chips = Astro.slots.has('chips') ? (await Astro.slots.render('chips')).trim() : '';
+---
+
+<div class="flex items-center gap-2 overflow-x-auto pt-4 no-scrollbar">
+  {
+    chips && (
+      <>
+        <Fragment set:html={chips} />
+        <span class="mx-1 h-5 shrink-0 border-l border-ink/10" />
+      </>
+    )
+  }
+  <slot />
+  <span class="flex-1"></span>
+  <a href={R.search} class="shrink-0 whitespace-nowrap pl-2 text-label-large text-primary hover:underline">Xóa lọc</a>
+</div>

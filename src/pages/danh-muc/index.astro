@@ -1,0 +1,91 @@
+---
+// Danh mục: every category. A search field, popular searches near the buyer,
+// 11 tiles and a twelfth for search by sentence or photo, then the newest
+// listings and "Đang được tìm nhiều".
+import Crumbs from '../../components/Crumbs.astro';
+import Icon from '../../components/Icon.astro';
+import MiniRow from '../../components/MiniRow.astro';
+import CategoryTile from '../../components/public/CategoryTile.astro';
+import SearchField from '../../components/SearchField.astro';
+import SectionTitle from '../../components/SectionTitle.astro';
+import Trending from '../../components/Trending.astro';
+import Layout from '../../layouts/Layout.astro';
+import { LISTINGS } from '../../data/listings';
+import { CATEGORY_INDEX } from '../../data/public';
+import { R } from '../../lib/routes';
+import { CONTENT } from '../../lib/ui';
+
+const popular: [string, string][] = [
+  ['iPhone', '1.986'],
+  ['Xe đạp', '964'],
+  ['Sofa', '312'],
+  ['Giày', '744'],
+  ['MacBook', '402'],
+  ['Tai nghe', '438'],
+  ['Xe đẩy', '187'],
+  ['Máy film', '96'],
+];
+const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
+---
+
+<Layout title="Danh mục · ShopNexus" description="Mọi danh mục đồ cũ trên ShopNexus, với số tin và tin mới hôm nay." section="categories">
+  <main class={CONTENT}>
+    <Crumbs parts={[['Khám phá', R.home], ['Danh mục']]} class="pt-4" />
+    <section class="mt-4 grid grid-cols-1 items-end gap-6 lg:grid-cols-[1fr_520px] lg:gap-8">
+      <div>
+        <h1 class="text-j-40 text-ink lg:text-j-56">Danh mục</h1>
+        <p class="mt-2 text-body-large text-on-surface-variant">
+          <b class="font-semibold text-ink tabular-nums">11</b> danh mục · <b class="font-semibold text-ink tabular-nums">1.904</b> món mới hôm nay
+        </p>
+      </div>
+      <SearchField placeholder="Tìm trong mọi danh mục: xe đẩy gấp gọn, dưới 1 triệu" />
+    </section>
+    <div class="mt-5 flex items-center gap-2 overflow-x-auto no-scrollbar lg:flex-wrap">
+      <span class="mr-1 flex shrink-0 items-center gap-1.5 text-label-large text-on-surface-variant">
+        <Icon name="location-on-outline-rounded" size={16} />Phổ biến quanh Bình Thạnh
+      </span>
+      {
+        popular.map(([t, n]) => (
+          <a
+            href={`${R.search}?q=${encodeURIComponent(t)}`}
+            class="glass glass-edge flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
+          >
+            {t}
+            <span class="text-label-small text-on-surface-variant tabular-nums">{n}</span>
+          </a>
+        ))
+      }
+    </div>
+
+    <section class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {CATEGORY_INDEX.map((c) => <CategoryTile c={c} />)}
+      <article class="flex flex-col justify-between rounded-panel bg-gradient-to-br from-teal to-teal-mid p-5 text-white">
+        <div>
+          <p class="text-j-16">Không chắc thuộc mục nào?</p>
+          <p class="mt-1 text-body-small text-white/80">Gõ một câu, hoặc chụp món đồ.</p>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <a href={R.search} class="state-layer flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-white text-label-large text-primary">
+            <Icon name="search-rounded" size={18} />Tìm bằng câu
+          </a>
+          <a
+            href={R.photoSearch}
+            class="state-layer flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-white/15 text-label-large text-white"
+          >
+            <Icon name="photo-camera-outline-rounded" size={18} />Bằng ảnh
+          </a>
+        </div>
+      </article>
+    </section>
+
+    <section class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
+      <div class="min-w-0">
+        <SectionTitle title="Vừa đăng trong mọi danh mục" link="Xem tất cả" href={`${R.search}?sap-xep=moi`} />
+        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {fresh.map((it) => <MiniRow item={it} />)}
+        </div>
+      </div>
+      <aside class="self-start rounded-panel border border-line bg-card p-3"><Trending n={5} /></aside>
+    </section>
+  </main>
+</Layout>

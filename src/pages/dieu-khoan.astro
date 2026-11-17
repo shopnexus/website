@@ -1,0 +1,32 @@
+---
+// Điều khoản: the terms in nine numbered sections, with what matters most beside them.
+import LinkRows from '../components/LinkRows.astro';
+import SummaryCard from '../components/SummaryCard.astro';
+import LegalPage from '../components/flows/LegalPage.astro';
+import Layout from '../layouts/Layout.astro';
+import { MONEY } from '../data/common';
+import { TERMS } from '../data/flows';
+import { R } from '../lib/routes';
+import { CONTENT, PANEL } from '../lib/ui';
+
+const points = [
+  { icon: 'shield-outline-rounded', text: MONEY.no_hold },
+  { icon: 'visibility-outline-rounded', text: 'Xem hàng rồi mới trả tiền cho shipper' },
+  { icon: 'undo-rounded', text: 'Không ưng thì từ chối nhận, không mất tiền' },
+  { icon: 'block-rounded', text: 'Đã trả thì ShopNexus không đòi lại được' },
+];
+const links = [
+  { icon: 'gavel-rounded', label: 'Quy định đăng tin', href: R.listingRules },
+  { icon: 'lock-outline-rounded', label: 'Chính sách bảo mật', href: R.privacy },
+  { icon: 'support-agent-rounded', label: 'Yêu cầu hỗ trợ', href: R.support },
+];
+---
+
+<Layout title="Điều khoản · ShopNexus" description={`Điều khoản sử dụng ShopNexus. ${MONEY.no_hold}`}>
+  <main class={CONTENT}>
+    <LegalPage title="Điều khoản" updated="28/10/2026" sections={TERMS}>
+      <SummaryCard title="Điều quan trọng nhất" points={points} icon="priority-high-rounded" />
+      <div class:list={[PANEL, 'p-2']}><LinkRows links={links} /></div>
+    </LegalPage>
+  </main>
+</Layout>

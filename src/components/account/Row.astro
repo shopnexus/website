@@ -1,0 +1,34 @@
+---
+// An icon in a circle, a title and a line; a link when href is given. The
+// "trail" slot replaces the chevron; chevron={false} drops it. The "title" slot
+// replaces the title text when it needs markup.
+import Icon from '../Icon.astro';
+
+interface Props {
+  icon: string;
+  title?: string;
+  sub?: string;
+  href?: string;
+  tone?: string;
+  chevron?: boolean;
+  class?: string;
+}
+
+const { icon, title, sub, href, tone = 'bg-surface-container-low text-on-surface-variant', chevron = true, class: cls } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag href={href} class:list={['state-layer flex items-center gap-3 rounded-field px-2 py-2', cls]}>
+  <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full', tone]}><Icon name={icon} size={20} /></span>
+  <span class="min-w-0 flex-1">
+    <span class="block truncate text-body-large text-ink"><slot name="title">{title}</slot></span>
+    {sub && <span class="block truncate text-body-small text-on-surface-variant">{sub}</span>}
+  </span>
+  {
+    Astro.slots.has('trail') ? (
+      <slot name="trail" />
+    ) : (
+      chevron && <Icon name="chevron-right-rounded" size={20} class="text-on-surface-variant" />
+    )
+  }
+</Tag>

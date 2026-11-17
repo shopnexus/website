@@ -1,0 +1,106 @@
+---
+// Quyền riêng tư: what others see next to a preview of the public page, then
+// what ShopNexus keeps and who receives it.
+import Icon from '../../components/Icon.astro';
+import Row from '../../components/account/Row.astro';
+import SettingsFrame from '../../components/account/SettingsFrame.astro';
+import SideList from '../../components/account/SideList.astro';
+import { PRIVACY } from '../../data/account';
+import { LISTINGS } from '../../data/listings';
+import { img } from '../../lib/format';
+import { R } from '../../lib/routes';
+import { requireViewer } from '../../lib/session';
+import { LABEL, PANEL } from '../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+
+const seen = ['Tên và ảnh đại diện', `Khu vực: ${v.area}`, 'Hạng uy tín và đánh giá', 'Các tin bạn đăng'];
+const hidden = ['Số điện thoại', 'Địa chỉ nhà, công ty', 'CCCD và ảnh khuôn mặt'];
+const thumbs = [LISTINGS[5], LISTINGS[9], LISTINGS[4]].map((l) => l.photo);
+---
+
+<SettingsFrame title="Quyền riêng tư" page="Quyền riêng tư" meta="Cập nhật 28/10/2026">
+  <div class:list={[PANEL, 'p-5']}>
+    <h2 class="text-j-20 text-ink">Người khác thấy gì</h2>
+    <div class="mt-4 grid grid-cols-1 items-start gap-5 md:grid-cols-2 xl:grid-cols-[1fr_1fr_280px]">
+      <div>
+        <p class="mb-2 text-label-large text-primary">Người mua và người bán thấy</p>
+        <ul class="flex flex-col gap-2">
+          {
+            seen.map((t) => (
+              <li class="flex items-center gap-2 text-body-medium text-ink">
+                <Icon name="visibility-outline-rounded" size={17} class="text-primary" />
+                {t}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div>
+        <p class="mb-2 text-label-large text-on-surface-variant">Họ không thấy</p>
+        <ul class="flex flex-col gap-2">
+          {
+            hidden.map((t) => (
+              <li class="flex items-center gap-2 text-body-medium text-ink">
+                <Icon name="visibility-off-outline-rounded" size={17} class="text-on-surface-variant" />
+                {t}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="rounded-lg-plus border border-line bg-card p-4 shadow-soft md:col-span-2 xl:col-span-1">
+        <div class="flex items-center gap-3">
+          <img src={img(v.photo, 120, 120)} alt="" class="h-12 w-12 rounded-full object-cover" />
+          <div class="min-w-0">
+            <p class="flex items-center gap-1 text-title-medium font-semibold text-ink">
+              {v.name}<Icon name="verified-rounded" size={16} class="text-primary" />
+            </p>
+            <p class="flex items-center gap-1 text-body-small text-on-surface-variant">
+              Bình Thạnh · <Icon name="star-rounded" size={12} class="text-star" />{v.rating} · Tin cậy
+            </p>
+          </div>
+        </div>
+        <div class="mt-3 grid grid-cols-3 gap-1.5">
+          {thumbs.map((p) => <img src={img(p, 200, 200)} alt="" class="aspect-square w-full rounded-md object-cover" />)}
+        </div>
+        <p class="mt-2 text-center text-body-small text-on-surface-variant">Trang của bạn, như người khác thấy</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    {
+      PRIVACY.map((p, i) => (
+        <section id={`p-${i}`} class:list={[PANEL, 'scroll-mt-24 p-5']}>
+          <span class="grid h-10 w-10 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+            <Icon name={p.icon} size={20} />
+          </span>
+          <h2 class="mt-3 text-title-medium font-semibold text-ink">{p.title}</h2>
+          <p class="mt-1 text-body-medium text-on-surface-variant">{p.text}</p>
+        </section>
+      ))
+    }
+  </div>
+
+  <Fragment slot="side">
+    <div class:list={[PANEL, 'p-3']}>
+      <p class={LABEL}>Trên trang này</p>
+      <nav class="mt-2 flex flex-col" aria-label="Trên trang này">
+        {
+          PRIVACY.map((p, i) => (
+            <a href={`#p-${i}`} class="flex items-center gap-2 rounded-full px-3 py-2 text-body-medium text-ink hover:bg-surface-container-low">
+              <Icon name={p.icon} size={18} class="text-on-surface-variant" />
+              {p.title}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+    <SideList title="Cài đặt liên quan">
+      <Row icon="shield-outline-rounded" title="Bảo mật" sub="Đăng nhập, thiết bị, xóa tài khoản" href={R.security} class="-mx-2" />
+      <Row icon="home-outline-rounded" title="Địa chỉ" sub="Chỉ shipper và người bán của đơn COD thấy" href={R.addresses} class="-mx-2" />
+    </SideList>
+  </Fragment>
+</SettingsFrame>

@@ -1,0 +1,120 @@
+---
+// Tìm kiếm with no match: how many conditions failed, ways to loosen the
+// search with the count each would show, "Báo khi có tin mới", and listings
+// close to the query. full: the mockup's query, with its loosen list and price.
+import { LISTINGS } from '../../data/listings';
+import { PHONES, PHOTO_MATCHES } from '../../data/public';
+import { R } from '../../lib/routes';
+import { CONTENT } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import ListingCard from '../ListingCard.astro';
+import SectionTitle from '../SectionTitle.astro';
+import Trending from '../Trending.astro';
+import RangeBar from './RangeBar.astro';
+
+interface Props {
+  q: string;
+  full: boolean;
+}
+
+const { q, full } = Astro.props;
+const s = (q: string) => `${R.search}?q=${encodeURIComponent(q)}`;
+const loosen = [
+  { t: 'Bỏ “512 GB”', d: '256 GB trở lên', n: 6, icon: 'memory-rounded', q: 'iPhone 13 Pro Max dưới 8 triệu ở Q.7' },
+  { t: 'Đến 12 triệu', d: 'giá giữa 11,4 tr cho 512 GB', n: 18, icon: 'payments-outline-rounded', q: 'iPhone 13 Pro Max 512GB dưới 12 triệu ở Q.7' },
+  { t: 'Mọi khu vực', d: 'gần nhất ở Q.4, 3,2 km', n: 4, icon: 'location-on-outline-rounded', q: 'iPhone 13 Pro Max 512GB dưới 8 triệu' },
+  { t: 'iPhone 13 Pro', d: 'cùng đời, màn nhỏ hơn', n: 42, icon: 'mobile-outline-rounded', q: 'iPhone 13 Pro' },
+];
+const close = full
+  ? [PHONES[1], PHONES[0], PHONES[5], PHONES[3], PHOTO_MATCHES[2], PHOTO_MATCHES[6], PHOTO_MATCHES[1], PHOTO_MATCHES[4]]
+  : LISTINGS.slice(0, 8);
+---
+
+<main class={CONTENT}>
+  <slot />
+  <section class="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_400px]">
+    <div class="min-w-0">
+      {
+        full ? (
+          <>
+            <h1 class="flex items-center gap-3 text-j-32 text-ink md:text-j-40">
+              <span class="text-on-surface-variant tabular-nums">0</span> tin khớp cả 4 điều kiện
+            </h1>
+            <p class="mt-1.5 text-body-medium text-on-surface-variant">
+              iPhone 13 Pro Max 512 GB đang bán quanh 11,4 tr ₫. Bỏ một điều kiện để thấy:
+            </p>
+            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {loosen.map((l) => (
+                <a href={s(l.q)} class="lift flex items-center gap-3 rounded-lg-plus border border-line bg-card p-3">
+                  <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+                    <Icon name={l.icon} size={20} />
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-title-small text-ink">{l.t}</span>
+                    <span class="block truncate text-body-small text-on-surface-variant">{l.d}</span>
+                  </span>
+                  <span class="shrink-0 rounded-full bg-primary px-2.5 py-1 text-label-medium text-on-primary tabular-nums">{l.n} tin</span>
+                </a>
+              ))}
+            </div>
+            <div class="mt-3 flex flex-col gap-3 rounded-lg-plus border border-line bg-card px-5 py-4 md:flex-row md:items-center md:gap-6">
+              <div class="shrink-0">
+                <p class="flex items-center gap-1.5 text-label-medium text-on-surface-variant">
+                  <Icon name="auto-awesome-rounded" size={14} class="text-primary" />
+                  Giá tham khảo · 512 GB · 30 ngày
+                </p>
+                <p class="mt-0.5 text-j-16 text-ink tabular-nums">10,6 – 12,4 tr ₫</p>
+              </div>
+              <div class="flex-1">
+                <RangeBar lo={10_600_000} hi={12_400_000} med={11_400_000} axis={[7_000_000, 13_500_000]} mark={8_000_000} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 class="flex items-center gap-3 text-j-32 text-ink md:text-j-40">
+              <span class="text-on-surface-variant tabular-nums">0</span> tin khớp
+            </h1>
+            <p class="mt-1.5 text-body-medium text-on-surface-variant">
+              Chưa có tin nào khớp “{q}”. Thử bớt một vài chữ, hoặc gõ tên món đồ ngắn hơn.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              {['iPhone', 'MacBook', 'Xe đạp', 'Sofa'].map((t) => (
+                <a href={s(t)} class="glass glass-edge flex h-9 items-center rounded-full px-3 text-label-large text-ink hover:bg-card">
+                  {t}
+                </a>
+              ))}
+            </div>
+          </>
+        )
+      }
+    </div>
+    <div class="flex flex-col gap-3">
+      <div class="rounded-panel bg-gradient-to-br from-teal to-teal-mid p-5 text-white">
+        <p class="flex items-center gap-2 text-j-16">
+          <Icon name="notifications-outline-rounded" size={20} />Báo khi có tin mới
+        </p>
+        <p class="mt-1 text-body-small text-white/80">
+          {
+            full
+              ? 'Có máy khớp cả 4 điều kiện, ShopNexus báo bạn ngay. Tháng trước có 2 máy như vậy.'
+              : 'Có tin khớp câu này, ShopNexus báo bạn ngay.'
+          }
+        </p>
+        <button type="button" class="state-layer mt-4 h-10 w-full rounded-full bg-white text-label-large text-primary">Bật báo tin</button>
+      </div>
+      <div class="rounded-panel border border-line bg-card p-3"><Trending n={3} /></div>
+    </div>
+  </section>
+
+  <section class="mt-10">
+    <SectionTitle
+      title={full ? 'Gần với câu này' : 'Vừa đăng quanh bạn'}
+      link={full ? 'Xem 42 tin iPhone 13 Pro' : 'Xem tất cả'}
+      href={full ? s('iPhone 13 Pro') : `${R.search}?sap-xep=moi`}
+    />
+    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
+      {close.map((it) => <ListingCard item={it} />)}
+    </div>
+  </section>
+</main>

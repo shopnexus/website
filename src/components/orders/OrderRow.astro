@@ -1,0 +1,66 @@
+---
+// One order on Đơn hàng: photo, title and price, the seller, the steps and the state.
+import type { OrderRow } from '../../data/orders';
+import { img } from '../../lib/format';
+import Icon from '../Icon.astro';
+import PhaseBar from '../PhaseBar.astro';
+import Price from '../Price.astro';
+import Face from './Face.astro';
+
+interface Props {
+  o: OrderRow;
+  href: string;
+}
+
+const { o, href } = Astro.props;
+const active = !o.muted && o.phase < 3;
+---
+
+<article
+  class:list={[
+    'lift relative flex items-center gap-3 rounded-card border border-line bg-card p-2 pr-3 md:gap-4 md:pr-4',
+    o.muted && 'opacity-60',
+  ]}
+>
+  <img src={img(o.photo, 200, 200)} alt="" class="h-16 w-16 shrink-0 rounded-lg object-cover md:h-[84px] md:w-[84px]" />
+  <div class="min-w-0 flex-1">
+    <div class="flex items-baseline gap-4">
+      <h3 class="min-w-0 flex-1 truncate text-title-small text-ink">
+        <a href={href} class="after:absolute after:inset-0 after:rounded-card">{o.title}</a>
+      </h3>
+      <Price vnd={o.price} size="text-j-16" />
+    </div>
+    <p class="mt-0.5 flex items-center gap-1.5 truncate text-body-small text-on-surface-variant">
+      <Face name={o.who} size={18} />{o.who}<span>·</span>COD<span>·</span>{o.when}
+    </p>
+    <div class="mt-2 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-1">
+      <PhaseBar current={o.phase} />
+      <span
+        class:list={[
+          'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-label-medium',
+          active ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant',
+        ]}
+      >
+        <Icon name={o.icon} size={15} class={o.star ? 'text-star' : ''} />{o.status}
+      </span>
+      <span class="flex-1"></span>
+      {
+        o.rate ? (
+          <div class="relative z-10 flex" role="radiogroup" aria-label={`Đánh giá ${o.who}`}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                type="button"
+                class="state-layer grid h-8 w-8 place-items-center rounded-full text-outline-variant hover:text-star"
+                aria-label={`${n} sao`}
+              >
+                <Icon name="star-rounded" size={22} />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <Icon name="chevron-right-rounded" size={22} class="hidden text-on-surface-variant md:block" />
+        )
+      }
+    </div>
+  </div>
+</article>

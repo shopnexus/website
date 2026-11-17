@@ -1,0 +1,35 @@
+---
+// The account pages' frame: the side nav, the page, and a side column on wide
+// windows. Below xl the side column moves under the page; below lg the nav hides.
+import AccountNav, { type AccountKey } from '../AccountNav.astro';
+import Layout from '../../layouts/Layout.astro';
+import { CONTENT } from '../../lib/ui';
+
+interface Props {
+  title: string;
+  description?: string;
+  active: AccountKey;
+  /** Push the side column down to line up with the page's first panel. */
+  sideOffset?: boolean;
+}
+
+const { title, description, active, sideOffset = false } = Astro.props;
+---
+
+<Layout title={title} description={description} section={null} footer>
+  <main class={CONTENT}>
+    <div class="grid grid-cols-1 gap-5 pt-6 lg:grid-cols-[232px_minmax(0,1fr)] xl:grid-cols-[232px_minmax(0,1fr)_340px]">
+      <AccountNav active={active} />
+      <div class="flex min-w-0 flex-col gap-4">
+        <slot />
+      </div>
+      {
+        Astro.slots.has('side') && (
+          <aside class:list={['flex min-w-0 flex-col gap-4 self-start lg:col-start-2 xl:col-start-auto', sideOffset && 'xl:pt-[72px]']}>
+            <slot name="side" />
+          </aside>
+        )
+      }
+    </div>
+  </main>
+</Layout>

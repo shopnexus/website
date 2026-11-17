@@ -1,0 +1,258 @@
+---
+// Bản đồ: listings around the buyer on a drawn map (no map library): price
+// pins, area clusters, the radius ring, a list of what is in view, then the
+// busiest areas.
+import Icon from '../components/Icon.astro';
+import Price from '../components/Price.astro';
+import BigMap from '../components/public/BigMap.astro';
+import SectionTitle from '../components/SectionTitle.astro';
+import Seg from '../components/Seg.astro';
+import Layout from '../layouts/Layout.astro';
+import { MONEY } from '../data/common';
+import { IN_VIEW } from '../data/public';
+import { img, where } from '../lib/format';
+import { R } from '../lib/routes';
+import { CONTENT } from '../lib/ui';
+
+const pins: [number, number, string, boolean][] = [
+  [45, 42, '5,2 tr', true],
+  [33, 58, '2,3 tr', false],
+  [49, 33, '4,8 tr', false],
+  [26, 40, '450 k', false],
+  [55, 52, '1,7 tr', false],
+  [37, 28, '11,5 tr', false],
+];
+const clusters: [number, number, string, string][] = [
+  [18, 34, '38', 'Phú Nhuận'],
+  [56, 20, '64', 'Q.3'],
+  [58, 74, '27', 'Q.1'],
+  [12, 72, '19', 'Gò Vấp'],
+];
+const labels: [number, number, string][] = [
+  [42, 66, 'BÌNH THẠNH'],
+  [70, 88, 'SÔNG SÀI GÒN'],
+  [3, 31, 'ĐIỆN BIÊN PHỦ'],
+];
+const chips = ['Tất cả', 'Điện thoại', 'Xe đạp', 'Nội thất', 'Dưới 2 triệu', 'Như mới'];
+const areas = [
+  { name: 'Bình Thạnh', count: '812', today: '64', tops: ['Điện thoại', 'Xe đạp', 'Nội thất'], mine: true, spark: [4, 6, 5, 8, 7, 10, 12] },
+  { name: 'Phú Nhuận', count: '438', today: '31', tops: ['Thời trang', 'Máy ảnh'], mine: false, spark: [5, 4, 6, 5, 7, 6, 8] },
+  { name: 'Q.1', count: '1.204', today: '97', tops: ['Điện thoại', 'Máy tính'], mine: false, spark: [7, 8, 7, 10, 9, 12, 14] },
+  { name: 'Thủ Đức', count: '967', today: '58', tops: ['Máy tính', 'Đồ cho bé'], mine: false, spark: [3, 5, 6, 6, 8, 9, 9] },
+];
+const ctrl = 'glass glass-edge shadow-soft';
+---
+
+<Layout title="Bản đồ · ShopNexus" description="Đồ cũ đang bán quanh bạn, trên bản đồ." section="map">
+  <main class={CONTENT}>
+    <section class="mt-4 overflow-hidden rounded-xl border border-line lg:relative lg:h-[720px]">
+      <div class="relative h-[520px] lg:absolute lg:inset-0 lg:h-auto">
+        <BigMap />
+        {
+          labels.map(([x, y, t]) => (
+            <span class="absolute text-label-medium tracking-[0.2em] text-secondary" style={`left:${x}%;top:${y}%`}>
+              {t}
+            </span>
+          ))
+        }
+        <span
+          class="absolute h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-primary/60 bg-primary/[.06]"
+          style="left:38%;top:46%"></span>
+        {
+          clusters.map(([x, y, n, label]) => (
+            <a
+              href={`${R.search}?q=${encodeURIComponent(label)}`}
+              class="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+              style={`left:${x}%;top:${y}%`}
+              aria-label={`${n} tin ở ${label}`}
+            >
+              <span class="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-teal to-teal-light text-title-small text-white ring-4 ring-white/80 tabular-nums">
+                {n}
+              </span>
+              <span class="glass mt-1 rounded-full px-2 text-label-medium text-ink">{label}</span>
+            </a>
+          ))
+        }
+        {
+          pins.map(([x, y, p, on], i) => (
+            <a href={R.listing(IN_VIEW[i].id)} class="absolute -translate-x-1/2 -translate-y-full" style={`left:${x}%;top:${y}%`}>
+              <span
+                class:list={[
+                  'flex items-center rounded-full px-3 py-1.5 text-label-large shadow-soft tabular-nums',
+                  on ? 'scale-110 bg-ink text-on-ink' : 'bg-card text-ink',
+                ]}
+              >
+                {p}
+              </span>
+              <span class:list={['mx-auto block h-2 w-2 -translate-y-1 rotate-45', on ? 'bg-ink' : 'bg-card']} />
+            </a>
+          ))
+        }
+        <span
+          class="absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-primary ring-[10px] ring-teal/18"
+          style="left:38%;top:46%"
+          aria-label="Bạn ở đây"></span>
+
+        <div class="absolute left-3 right-3 top-3 lg:left-5 lg:right-[444px] lg:top-5">
+          <form action={R.search} class="flex h-12 items-center gap-3 rounded-full bg-card pl-4 pr-1.5 shadow-glow md:h-14 md:pl-5 md:pr-2">
+            <Icon name="search-rounded" size={22} class="text-primary" />
+            <input
+              name="q"
+              placeholder="Tìm quanh đây, hoặc gõ cả câu"
+              aria-label="Tìm quanh đây"
+              class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+            />
+            <a href={R.photoSearch} class="state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Tìm bằng ảnh">
+              <Icon name="photo-camera-outline-rounded" size={20} />
+            </a>
+            <button class="state-layer h-9 shrink-0 rounded-full bg-primary px-5 text-label-large text-on-primary md:h-10 md:px-6">Tìm</button>
+          </form>
+          <div class="mt-3 flex gap-2 overflow-x-auto no-scrollbar lg:flex-wrap" data-pick>
+            {
+              chips.map((t, i) => (
+                <button
+                  type="button"
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                  class="state-layer glass glass-edge flex h-9 shrink-0 items-center rounded-full px-3.5 text-label-large text-ink aria-pressed:bg-ink aria-pressed:text-on-ink"
+                >
+                  {t}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class:list={[ctrl, 'absolute bottom-3 left-3 flex items-center gap-3 rounded-full py-1 pl-4 pr-1 lg:bottom-5 lg:left-5']}>
+          <span class="text-label-large text-ink">Bán kính</span>
+          <Seg items={['1 km', '3 km', '5 km', '10 km']} selected={1} class="bg-ink/[.05]" itemClass="text-label-large px-2.5! md:px-3.5!" name="Bán kính" />
+        </div>
+        <div class="absolute bottom-3 right-3 flex flex-col gap-2 lg:bottom-5 lg:right-[444px]">
+          <button type="button" class:list={[ctrl, 'state-layer grid h-11 w-11 place-items-center rounded-full text-ink']} aria-label="Về vị trí của bạn">
+            <Icon name="my-location-rounded" size={20} />
+          </button>
+          <div class:list={[ctrl, 'hidden flex-col overflow-hidden rounded-full md:flex']}>
+            <button type="button" class="state-layer grid h-11 w-11 place-items-center text-ink" aria-label="Phóng to">
+              <Icon name="add-rounded" size={20} />
+            </button>
+            <button type="button" class="state-layer grid h-11 w-11 place-items-center border-t border-ink/5 text-ink" aria-label="Thu nhỏ">
+              <Icon name="remove-rounded" size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="flex flex-col bg-card p-3 lg:glass lg:glass-edge lg:absolute lg:bottom-5 lg:right-5 lg:top-5 lg:w-[404px] lg:rounded-panel lg:shadow-soft">
+        <div class="flex items-center justify-between px-2 pt-1">
+          <div>
+            <h1 class="text-j-22 text-ink"><span class="grad-num tabular-nums">146</span> món trong 3 km</h1>
+            <p class="text-body-small text-on-surface-variant">quanh Bình Thạnh · gần nhất trước</p>
+          </div>
+          <button type="button" class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Sắp xếp">
+            <Icon name="swap-vert-rounded" size={20} />
+          </button>
+        </div>
+        <div class="mt-2 flex flex-1 flex-col gap-1 overflow-hidden no-scrollbar">
+          {
+            IN_VIEW.map((it, i) => (
+              <article
+                class:list={[
+                  'relative flex gap-3 rounded-tile p-2',
+                  i === 0 ? 'bg-card shadow-knob ring-1 ring-primary/30' : 'hover:bg-card/70',
+                ]}
+              >
+                <img src={img(it.photo, 200, 200)} alt={it.title} loading="lazy" class="h-[72px] w-[72px] shrink-0 rounded-field object-cover" />
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-baseline justify-between gap-2">
+                    <Price vnd={it.price} size="text-j-16" />
+                    {it.note && (
+                      <span class="flex items-center gap-1 text-label-medium text-tertiary">
+                        <Icon name="auto-awesome-rounded" size={13} />
+                        {it.note}
+                      </span>
+                    )}
+                  </div>
+                  <h3 class="truncate text-body-medium text-ink">
+                    <a href={R.listing(it.id)} class="after:absolute after:inset-0 after:rounded-tile">
+                      {it.title}
+                    </a>
+                  </h3>
+                  <p class="mt-0.5 flex items-center gap-1 text-body-small text-on-surface-variant">
+                    <Icon name="near-me-outline-rounded" size={12} />
+                    {it.condition} · {where(it.km, it.area)} ·
+                    <Icon name="star-rounded" size={12} class="text-star" />
+                    {it.rating.toLocaleString('vi-VN', { minimumFractionDigits: 1 })}
+                  </p>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+        <a
+          href={`${R.search}?q=${encodeURIComponent('quanh Bình Thạnh')}`}
+          class="state-layer mt-2 flex h-11 items-center justify-center gap-2 rounded-full bg-ink text-label-large text-on-ink"
+        >
+          <Icon name="view-list-outline-rounded" size={18} />Xem dạng danh sách
+        </a>
+      </aside>
+    </section>
+
+    <section class="mt-10">
+      <SectionTitle title="Khu vực đang sôi động" link="Tất cả khu vực" href={R.categories} />
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {
+          areas.map((a) => {
+            const mx = Math.max(...a.spark);
+            return (
+              <a
+                href={`${R.search}?q=${encodeURIComponent(a.name)}`}
+                class:list={['lift flex flex-col rounded-panel border border-line p-5', a.mine ? 'bg-secondary-container/60' : 'bg-card']}
+              >
+                <div class="flex items-start justify-between">
+                  <p class="text-j-22 text-ink">{a.name}</p>
+                  {a.mine && <span class="rounded-full bg-card px-2.5 py-0.5 text-label-medium text-primary">Bạn ở đây</span>}
+                </div>
+                <div class="mt-4 flex items-end justify-between gap-4">
+                  <p>
+                    <span class="text-j-30 text-ink tabular-nums">{a.count}</span>
+                    <span class="text-body-small text-on-surface-variant"> món</span>
+                    <br />
+                    <span class="text-body-small text-on-surface-variant">
+                      <b class="font-semibold text-primary tabular-nums">+{a.today}</b> mới hôm nay
+                    </span>
+                  </p>
+                  <div class="flex h-12 w-24 items-end gap-1" aria-hidden="true">
+                    {a.spark.map((v, j) => (
+                      <span
+                        class:list={['flex-1 rounded-full', j === a.spark.length - 1 ? 'bg-primary' : 'bg-primary/25']}
+                        style={`height:${Math.round((v / mx) * 100)}%`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                  {a.tops.map((t) => (
+                    <span class="rounded-full bg-card/80 px-2.5 py-0.5 text-label-medium text-on-surface-variant ring-1 ring-ink/5">{t}</span>
+                  ))}
+                </div>
+              </a>
+            );
+          })
+        }
+      </div>
+      <p class="mt-4 flex items-center gap-2 text-body-medium text-on-surface-variant">
+        <Icon name="group-outline-rounded" size={18} class="shrink-0" />{MONEY.meet_hint}
+      </p>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  // One choice per group of pills.
+  document.querySelectorAll<HTMLElement>('[data-pick]').forEach((g) =>
+    g.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('button');
+      if (!b) return;
+      g.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    }),
+  );
+</script>

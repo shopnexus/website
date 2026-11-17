@@ -1,0 +1,43 @@
+---
+// Steps done out of the total, as a teal ring with the count inside.
+interface Props {
+  done: number;
+  total: number;
+  size?: number;
+  stroke?: number;
+}
+
+const { done, total, size = 52, stroke = 5 } = Astro.props;
+const r = (size - stroke) / 2;
+const c = 2 * Math.PI * r;
+const id = `ring-${size}`;
+---
+
+<span
+  class="relative grid shrink-0 place-items-center"
+  style={`width:${size}px;height:${size}px`}
+  role="img"
+  aria-label={`${done}/${total} bước`}
+>
+  <svg viewBox={`0 0 ${size} ${size}`} class="absolute inset-0 -rotate-90" aria-hidden="true">
+    <defs>
+      <linearGradient id={id} x1="0" x2="1">
+        <stop offset="0" class="text-teal" stop-color="currentColor"></stop>
+        <stop offset="1" class="text-teal-light" stop-color="currentColor"></stop>
+      </linearGradient>
+    </defs>
+    <circle cx={size / 2} cy={size / 2} r={r} fill="none" class="stroke-surface-container-high" stroke-width={stroke}></circle>
+    <circle
+      cx={size / 2}
+      cy={size / 2}
+      r={r}
+      fill="none"
+      stroke={`url(#${id})`}
+      stroke-width={stroke}
+      stroke-linecap="round"
+      stroke-dasharray={`${((c * done) / total).toFixed(1)} ${c.toFixed(1)}`}></circle>
+  </svg>
+  <span class="relative text-title-medium font-semibold text-ink tabular-nums" aria-hidden="true"
+    >{done}<span class="text-body-small text-on-surface-variant">/{total}</span></span
+  >
+</span>

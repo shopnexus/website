@@ -1,0 +1,36 @@
+---
+// A radio row: white and outlined when picked, quiet otherwise. Slot "title"
+// replaces the plain title; slot "end" replaces the plain end figure.
+interface Props {
+  t?: string;
+  sub?: string;
+  end?: string;
+  on?: boolean;
+}
+
+const { t, sub, end, on = false } = Astro.props;
+---
+
+<label
+  class:list={[
+    'flex min-h-[52px] cursor-pointer items-center gap-3 rounded-lg border px-3.5 py-2',
+    on ? 'border-primary/40 bg-card ring-1 ring-primary/30' : 'border-line bg-card/60 hover:bg-card',
+  ]}
+  role="radio"
+  aria-checked={on ? 'true' : 'false'}
+>
+  <span
+    class:list={[
+      'grid h-5 w-5 shrink-0 place-items-center rounded-full border-2',
+      on ? 'border-primary' : 'border-outline-variant bg-card',
+    ]}
+  >
+    {on && <span class="h-2.5 w-2.5 rounded-full bg-primary" />}
+  </span>
+  <span class="min-w-0 flex-1">
+    <span class="block text-body-medium text-ink"><slot name="title">{t}</slot></span>
+    {sub && <span class="block text-body-small text-on-surface-variant">{sub}</span>}
+  </span>
+  {end && <span class="shrink-0 text-title-small text-ink tabular-nums">{end}</span>}
+  <slot name="end" />
+</label>

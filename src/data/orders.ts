@@ -1,0 +1,304 @@
+// Mock content for the orders and selling pages: Đơn hàng, an order, Đơn bán,
+// Tin của bạn, Đã lưu, Thiết lập giao COD and Hỗ trợ. It comes from
+// .superdesign/tools/build_j_orders.py and build_j_flows.py (support).
+
+import { R } from '../lib/routes';
+import { ADDRESS_BOOK, ME } from './common';
+
+/** People's faces by name. */
+export const FACE: Record<string, string> = {
+  'Hoàng Nam': '1500648767791-00dcc994a43e',
+  'Tuấn Kiệt': '1544723795-3fb6469f5b39',
+  'Ngọc Hân': '1438761681033-6461ffad8d80',
+  'Lan Anh': '1534528741775-53994a69daeb',
+  'Quốc Bảo': '1507003211169-0a1dd7228f2d',
+  'Gia Bảo': '1506794778202-cad84cf45f1d',
+  'Đức Huy': '1500648767791-00dcc994a43e',
+  'Minh Anh': '1544005313-94ddf0286df2',
+  'Khánh Linh': ME.photo,
+};
+
+/** The buyer's home address, where o1 is delivered and where Thiết lập giao COD picks up. */
+const HOME = ADDRESS_BOOK[0];
+export const HOME_LINE = `${HOME.street}, ${HOME.ward}`;
+
+// ------------------------------------------------------------- Đơn hàng --
+
+export interface OrderRow {
+  id: string;
+  photo: string;
+  title: string;
+  who: string;
+  price: number;
+  /** The step in progress, 0–3; 4 when every step is done. */
+  phase: number;
+  icon: string;
+  status: string;
+  when: string;
+  /** Received and not rated: the row shows five stars. */
+  rate?: boolean;
+  /** The status icon is the rating star. */
+  star?: boolean;
+  /** Cancelled or failed: the row is dimmed. */
+  muted?: boolean;
+}
+
+export const BUYING: OrderRow[] = [
+  { id: 'o1', photo: '1510557880182-3d4d3cba35a5', title: 'iPhone X 64GB, pin 86%', who: 'Hoàng Nam', price: 3_800_000, phase: 2,
+    icon: 'local-shipping-outline-rounded', status: 'Chờ giao hàng', when: 'GHTK · đến hôm nay' },
+  { id: 'o2', photo: '1632661674596-df8be070a5c5', title: 'iPhone 13 Pro 128GB Xanh Sierra, pin 88%', who: 'Tuấn Kiệt', price: 5_100_000, phase: 1,
+    icon: 'hourglass-top-rounded', status: 'Chờ người bán tạo đơn', when: 'Chốt giá 09:40' },
+  { id: 'o3', photo: '1505740420928-5e560c06d30e', title: 'Tai nghe chống ồn Sony WH-1000XM4, fullbox', who: 'Quốc Bảo', price: 3_100_000, phase: 3,
+    icon: 'package-2-outline-rounded', status: 'Đã nhận hàng · 12/10', when: 'Nhận 12/10', rate: true },
+  { id: 'o4', photo: '1526170375885-4d8ecf77b99f', title: 'Máy ảnh Polaroid OneStep 2, tặng 1 hộp film', who: 'Lan Anh', price: 1_650_000, phase: 4,
+    icon: 'star-rounded', status: '5 sao cho Lan Anh', when: 'Xong 02/10', star: true },
+  { id: 'o5', photo: '1580480055273-228ff5388ef8', title: 'Ghế xoay vải be chân gỗ, ngồi êm', who: 'Gia Bảo', price: 900_000, phase: 2,
+    icon: 'undo-rounded', status: 'Giao không thành', when: '28/09', muted: true },
+  { id: 'o6', photo: '1507035895480-2b3156c31fc8', title: 'Xe đạp fixed gear khung thép, vừa thay lốp', who: 'Ngọc Hân', price: 2_200_000, phase: 1,
+    icon: 'cancel-outline-rounded', status: 'Đã hủy đơn', when: '21/09', muted: true },
+];
+
+export const ORDER_FILTERS = ['Tất cả', 'Đang mở · 2', 'Chờ đánh giá · 1', 'Đã xong', 'Không thành'];
+
+/** Đơn COD đang mở: open orders out of the tier's limit. */
+export const OPEN_COD = { open: 2, limit: 5 };
+
+export const MONTH = {
+  label: 'Tháng 10',
+  rows: [
+    ['Đơn đã nhận', '3'],
+    ['Tiền hàng đã trả', '9.150.000 ₫'],
+    ['Phí ship', '64.000 ₫'],
+  ] as [string, string][],
+};
+
+// ------------------------------------------------------------- one order --
+
+export interface OrderDetail {
+  title: string;
+  short: string;
+  photo: string;
+  heading: string;
+  carrier: string;
+  service: string;
+  code: string;
+  ref: string;
+  eta: string;
+  /** PhaseTrack's step and times. */
+  phase: number;
+  times: string[];
+  /** What the listing says to check at the door. */
+  checks: string;
+  events: { title: string; sub: string; when: string; now?: boolean }[];
+  updated: string;
+  to: { line: string; who: string; window: string };
+  seller: { name: string; rating: string; sold: number };
+  price: number;
+  ship: number;
+}
+
+export const ORDERS: Record<string, OrderDetail> = {
+  o1: {
+    title: 'iPhone X 64GB, pin 86%',
+    short: 'iPhone X 64GB',
+    photo: '1510557880182-3d4d3cba35a5',
+    heading: 'Chờ giao hàng',
+    carrier: 'GHTK',
+    service: 'Giao nhanh',
+    code: 'S1.A1.17373471',
+    ref: 'SNX 5521 0937',
+    eta: 'Dự kiến hôm nay',
+    phase: 2,
+    times: ['Hôm qua 09:15', 'Hôm qua 10:02', 'Hôm nay', ''],
+    checks: 'Pin 86% · Bản quốc tế, đã mở mạng · Không trầy màn',
+    events: [
+      { title: 'Đang giao hàng', sub: 'Shipper Văn Tài · 09•• ••• 117', when: 'Hôm nay 08:05', now: true },
+      { title: 'Đến kho Bình Thạnh', sub: 'GHTK', when: 'Hôm qua 21:10' },
+      { title: 'Đã lấy hàng', sub: 'GHTK', when: 'Hôm qua 16:40' },
+      { title: 'Người bán tạo đơn', sub: 'Hoàng Nam · GHTK Giao nhanh', when: 'Hôm qua 10:02' },
+      { title: 'Chốt giá 3.800.000 ₫', sub: 'Từ 4.000.000 ₫, sau 3 lần trả giá', when: 'Hôm qua 09:15' },
+    ],
+    updated: 'GHTK cập nhật 08:05',
+    to: { line: HOME_LINE, who: 'Khánh Linh · 09•• ••• 812', window: 'Dự kiến hôm nay, 14:00–18:00' },
+    seller: { name: 'Hoàng Nam', rating: '4,7', sold: 12 },
+    price: 3_800_000,
+    ship: 22_000,
+  },
+};
+
+// --------------------------------------------------------------- Đơn bán --
+
+export const SALE = {
+  title: 'Ghế đôn gỗ cao',
+  photo: '1503602642458-232111445657',
+  buyer: 'Đức Huy',
+  buyerArea: 'Phường Cầu Kiệu',
+  since: '09:12',
+  price: 350_000,
+  ship: 22_000,
+  ref: 'SNX 8841 2207',
+  to: { line: '45 Phan Xích Long, Phường Cầu Kiệu, TP.HCM', who: 'Đức Huy · 09•• ••• 345' },
+  account: 'S55163',
+  services: [
+    { t: 'Giao nhanh', sub: '1–2 ngày', end: '22.000 ₫', on: true },
+    { t: 'Tiết kiệm', sub: '2–4 ngày', end: '16.000 ₫' },
+  ],
+  pickupWays: [
+    { t: 'Lấy tại nhà', sub: 'Shipper tới lấy', on: true },
+    { t: 'Gửi tại bưu cục', sub: 'Bạn mang ra bưu cục gần nhất' },
+  ],
+  /** The GHTK warehouse, then the seller's own addresses. */
+  pickupAt: [
+    { t: 'Kho Bình Thạnh', sub: '12 Nơ Trang Long, Phường Bình Thạnh', on: true },
+    ...ADDRESS_BOOK.map((a) => ({ t: a.label, sub: `${a.street}, ${a.ward.replace(', TP.HCM', '')}` })),
+  ] as { t: string; sub: string; on?: boolean }[],
+};
+
+// ----------------------------------------------------------- Tin của bạn --
+
+export interface MyListing {
+  photo: string;
+  title: string;
+  price: number;
+  views: number;
+  chats: number;
+  saves: number;
+  age: string;
+  /** price: a lower price is suggested; hidden; or a deal waiting on the seller. */
+  extra?: 'price' | 'hidden' | { icon: string; label: string; todo: boolean; href: string };
+  menu?: boolean;
+}
+
+export const ON_SALE: MyListing[] = [
+  { photo: '1510915361894-db8b60106cb1', title: 'Đàn guitar acoustic Yamaha F310, kèm bao', price: 1_900_000, views: 86, chats: 2, saves: 5, age: '12 ngày', extra: 'price' },
+  { photo: '1503602642458-232111445657', title: 'Ghế đôn gỗ thông cao 45 cm', price: 350_000, views: 24, chats: 1, saves: 1, age: '5 ngày',
+    extra: { icon: 'receipt-long-outline-rounded', label: 'Chờ bạn tạo đơn', todo: true, href: R.sales } },
+  { photo: '1505740420928-5e560c06d30e', title: 'Tai nghe chống ồn Sony WH-1000XM4, fullbox', price: 3_200_000, views: 58, chats: 3, saves: 2, age: '9 ngày',
+    extra: { icon: 'local-shipping-outline-rounded', label: 'Đang giao · Minh Thư', todo: false, href: '#' } },
+  { photo: '1510557880182-3d4d3cba35a5', title: 'iPhone X 64GB, pin 86%, máy zin chưa sửa', price: 3_900_000, views: 86, chats: 4, saves: 7, age: '6 ngày', menu: true },
+  { photo: '1586023492125-27b2c045efd7', title: 'Ghế bành bọc vải vàng mù tạt, khung gỗ sồi', price: 1_600_000, views: 31, chats: 0, saves: 2, age: '20 ngày', extra: 'hidden' },
+];
+
+export const LISTING_MENU = [
+  { icon: 'edit-outline-rounded', label: 'Sửa tin' },
+  { icon: 'sell-outline-rounded', label: 'Đánh dấu đã bán' },
+  { icon: 'visibility-off-outline-rounded', label: 'Ẩn tin' },
+  { icon: 'delete-outline-rounded', label: 'Xóa tin' },
+];
+
+export const LISTING_STATS = [
+  { icon: 'visibility-outline-rounded', n: '214', label: 'Lượt xem · 7 ngày', delta: '+18%' },
+  { icon: 'chat-outline-rounded', n: '9', label: 'Người hỏi · 7 ngày', delta: '+3' },
+  { icon: 'favorite-outline-rounded', n: '17', label: 'Lượt lưu · 7 ngày' },
+  { icon: 'payments-outline-rounded', n: '4,2 tr', label: 'Đã bán · tháng 10' },
+];
+
+export const DRAFTS = [
+  { photo: '1611186871348-b1ce696e52c9', title: 'MacBook Air M1 8/256GB', line: '4 ảnh · 11.500.000 ₫', icon: 'schedule-outline-rounded', label: 'Còn 2 ngày' },
+  { photo: '1603891128711-11b4b03bb138', title: 'iPhone 11 64GB Trắng, máy zin', line: '3 ảnh · chưa có giá', icon: 'cloud-off-outline-rounded', label: 'Chưa đồng bộ' },
+];
+
+/** rated: true (5 sao), false (waiting), null (sold outside ShopNexus). */
+export const RECENTLY_SOLD: { photo: string; title: string; who: string; when: string; rated: boolean | null }[] = [
+  { photo: '1526170375885-4d8ecf77b99f', title: 'Máy ảnh Polaroid OneStep 2', who: 'Minh Anh', when: 'Thứ Hai', rated: true },
+  { photo: '1593764592116-bfb2a97c642a', title: 'Fixie đen mờ size 50', who: 'Quốc Bảo', when: 'Hôm nay', rated: false },
+  { photo: '1585515320310-259814833e62', title: 'Máy xay sinh tố 2L', who: 'Người ngoài ShopNexus', when: '28/10', rated: null },
+];
+
+export const SOLD_COUNT = 14;
+
+// ---------------------------------------------------------------- Đã lưu --
+
+export interface SavedItem {
+  photo: string;
+  price: number;
+  title: string;
+  condition: string;
+  km: number;
+  area: string;
+  /** A price cut, the AI's judgment, or sold. */
+  change?: { cut: string } | { ai: string } | 'sold';
+}
+
+export const SAVED_GROUPS: { name: string; items: SavedItem[] }[] = [
+  { name: 'Xe đạp', items: [
+    { photo: '1505705694340-019e1e335916', price: 2_100_000, title: 'Xe đạp single speed trắng size 52', condition: 'Như mới', km: 1.2, area: 'Bình Thạnh', change: { cut: 'Giảm 300k' } },
+    { photo: '1529422643029-d4585747aaf2', price: 2_900_000, title: 'Giant Escape 3 size M', condition: 'Đã dùng', km: 2.5, area: 'Q.3', change: { ai: 'Rẻ hơn 9%' } },
+    { photo: '1571068316344-75bc76f77890', price: 2_600_000, title: 'Xe đạp cổ điển khung thép, yên da', condition: 'Đã dùng', km: 3.8, area: 'Q.2', change: 'sold' },
+  ] },
+  { name: 'Nội thất', items: [
+    { photo: '1586023492125-27b2c045efd7', price: 1_600_000, title: 'Ghế bành bọc vải vàng mù tạt', condition: 'Đã dùng', km: 5.5, area: 'Q.2' },
+    { photo: '1580480055273-228ff5388ef8', price: 950_000, title: 'Ghế xoay vải be chân gỗ', condition: 'Như mới', km: 3.9, area: 'Bình Thạnh' },
+  ] },
+  { name: 'Điện thoại', items: [
+    { photo: '1632661674596-df8be070a5c5', price: 5_200_000, title: 'iPhone 13 Pro 128GB', condition: 'Như mới', km: 1.6, area: 'Phú Nhuận', change: { cut: 'Giảm 400k' } },
+    { photo: '1616348436168-de43ad0db179', price: 6_900_000, title: 'iPhone 12 128GB', condition: 'Đã dùng', km: 0.8, area: 'Q.1' },
+    { photo: '1610945415295-d9bbf067e59c', price: 7_500_000, title: 'Galaxy S21 Ultra 256GB', condition: 'Đã dùng', km: 5.1, area: 'Tân Bình' },
+  ] },
+  { name: 'Đồ điện tử', items: [
+    { photo: '1526170375885-4d8ecf77b99f', price: 1_750_000, title: 'Máy ảnh Polaroid OneStep 2', condition: 'Như mới', km: 1.8, area: 'Phú Nhuận' },
+    { photo: '1546868871-7041f2a55e12', price: 4_500_000, title: 'Apple Watch Series 7 45mm', condition: 'Đã dùng', km: 1.6, area: 'Q.3' },
+    { photo: '1516035069371-29a1b244cc32', price: 26_500_000, title: 'Sony A7 III kèm lens 28-70 và 50mm f/1.8', condition: 'Đã dùng', km: 1140, area: 'Hà Nội' },
+  ] },
+  { name: 'Thời trang', items: [
+    { photo: '1542291026-7eec264c27ff', price: 1_290_000, title: 'Giày Nike Free RN size 42', condition: 'Mới', km: 2.2, area: 'Q.10' },
+    { photo: '1460353581641-37baddab0fa2', price: 850_000, title: 'Giày Nike Air Max size 41', condition: 'Đã dùng', km: 4.4, area: 'Q.5', change: { cut: 'Giảm 100k' } },
+  ] },
+];
+
+export const SAVED_SEARCHES = [
+  { q: 'xe đạp đi làm dưới 3 triệu', where: 'Bình Thạnh · 5 km', fresh: '4 tin mới' },
+  { q: 'iPhone 128GB dưới 8 triệu', where: 'TP.HCM', fresh: null },
+];
+
+/** So sánh 3 điện thoại: one column per phone; best is the winning column per row. */
+export const COMPARE = {
+  cols: [
+    { photo: '1632661674596-df8be070a5c5', name: 'iPhone 13 Pro', cells: ['5,2 tr', 'Như mới', '88%', '1,6 km', 'Xuất sắc'] },
+    { photo: '1616348436168-de43ad0db179', name: 'iPhone 12', cells: ['6,9 tr', 'Đã dùng', '84%', '0,8 km', 'Tin cậy'] },
+    { photo: '1610945415295-d9bbf067e59c', name: 'Galaxy S21 Ultra', cells: ['7,5 tr', 'Đã dùng', '81%', '5,1 km', 'Mới'] },
+  ],
+  rows: ['Giá', 'Tình trạng', 'Pin', 'Cách bạn', 'Người bán'],
+  best: [0, 0, 0, 1, 0],
+};
+
+// ---------------------------------------------------- Thiết lập giao COD --
+
+export const SENDER = { name: 'Nguyễn Khánh Linh', phone: '0912 345 812', shop: 'S55163' };
+
+// ---------------------------------------------------------------- Hỗ trợ --
+
+export const NO_ARBITRATION = 'ShopNexus không phân xử giữa người mua và người bán.';
+
+export const TICKET_KINDS = {
+  not_received: { icon: 'package-2-outline-rounded', name: 'Báo chưa nhận hàng' },
+  carrier_request: { icon: 'local-shipping-outline-rounded', name: 'Xin thêm hãng' },
+  other: { icon: 'chat-outline-rounded', name: 'Yêu cầu khác' },
+} as const;
+
+export const TICKETS: { kind: keyof typeof TICKET_KINDS; subject: string; last: string; when: string; open: boolean }[] = [
+  { kind: 'not_received', subject: 'iPhone X 64GB, pin 86%', last: 'Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà…', when: '09:05', open: true },
+  { kind: 'carrier_request', subject: 'Ninja Van', last: 'Bạn: Mình gửi Ninja Van vì gần nhà, phí rẻ hơn GHTK.', when: 'Hôm qua', open: true },
+  { kind: 'other', subject: 'Lọc theo khu vực hay nhảy về Q.1 dù mình đã chọn Bình Thạnh.', last: 'Cảm ơn bạn. Lỗi này đã sửa trong bản 2.4, bạn cập nhật app giúp mình nhé.', when: 'Thứ Hai', open: false },
+];
+
+export const REPORT = 'GHTK báo đã giao lúc 14:20 hôm qua nhưng mình chưa nhận được, nhà không ai ký nhận.';
+
+export const SUPPORT_REPLY = [
+  'Chào bạn, mình đã xem lịch trình GHTK của đơn: bưu tá báo giao lúc 14:20 tại 12 Nguyễn Gia Trí, Bình Thạnh.',
+  'Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà, mình cũng báo GHTK kiểm tra lại.',
+];
+
+export const SUPPORT_TRACK = [
+  { title: 'Đã lấy hàng', sub: 'Hôm kia, 16:40 · Gò Vấp', ok: true },
+  { title: 'Đang giao', sub: 'Hôm qua, 09:12 · Bình Thạnh', ok: true },
+  { title: 'Hãng báo đã giao', sub: 'Hôm qua, 14:20 · 12 Nguyễn Gia Trí', ok: true },
+  { title: 'Bạn báo chưa nhận', sub: 'Hôm nay, 08:12', ok: false },
+];
+
+export const QUICK_QUESTIONS = [
+  'Tôi có phải trả tiền trước không?',
+  'Mở ra thấy không đúng mô tả thì sao?',
+  'Hãng báo đã giao mà tôi chưa nhận?',
+  'Tôi hủy đơn được không?',
+];

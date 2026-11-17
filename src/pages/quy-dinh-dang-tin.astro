@@ -1,0 +1,31 @@
+---
+// Quy định đăng tin: what a listing may sell and how it must describe it.
+import LinkRows from '../components/LinkRows.astro';
+import SummaryCard from '../components/SummaryCard.astro';
+import LegalPage from '../components/flows/LegalPage.astro';
+import Layout from '../layouts/Layout.astro';
+import { LISTING_RULES } from '../data/flows';
+import { R } from '../lib/routes';
+import { CONTENT, PANEL } from '../lib/ui';
+
+const points = [
+  { icon: 'inventory-2-outline-rounded', text: 'Một tin bán một món của chính bạn' },
+  { icon: 'photo-camera-outline-rounded', text: 'Ảnh chụp món thật; người mua thấy ảnh nào chụp trong app' },
+  { icon: 'fact-check-outline-rounded', text: 'Mỗi Tin ghi được kiểm tại cửa' },
+  { icon: 'sell-outline-rounded', text: 'Giá ghi là giá thật' },
+];
+const links = [
+  { icon: 'help-outline-rounded', label: 'Trợ giúp và an toàn', href: R.help },
+  { icon: 'description-outline-rounded', label: 'Điều khoản', href: R.terms },
+  { icon: 'add-circle-outline-rounded', label: 'Đăng tin', href: R.post },
+];
+---
+
+<Layout title="Quy định đăng tin · ShopNexus" description="Mỗi tin bán một món của chính bạn, ảnh chụp món thật, giá ghi là giá thật.">
+  <main class={CONTENT}>
+    <LegalPage title="Quy định đăng tin" updated="28/10/2026" sections={LISTING_RULES}>
+      <SummaryCard title="Tóm tắt" points={points} />
+      <div class:list={[PANEL, 'p-2']}><LinkRows links={links} /></div>
+    </LegalPage>
+  </main>
+</Layout>

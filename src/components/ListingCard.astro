@@ -1,6 +1,6 @@
 ---
 // White card, 22 px, hairline; the photo at 16 px inside an 8 px inset. Lifts on hover.
-import { img, type Listing, where } from '../lib/format';
+import { type Listing, listingPhoto, where } from '../lib/format';
 import { R } from '../lib/routes';
 import Icon from './Icon.astro';
 import Price from './Price.astro';
@@ -18,12 +18,12 @@ const meta = [item.condition, where(item.km, item.area), item.posted].filter(Boo
 
 <article class="lift relative min-w-0 rounded-card border border-line bg-card p-2">
   <div class="relative overflow-hidden rounded-lg bg-surface-container-high" style={`aspect-ratio: ${ratio}`}>
-    <img src={img(item.photo, 480, 480)} alt={item.title} loading="lazy" class="h-full w-full object-cover" />
+    <img src={listingPhoto(item, 480)} alt={item.title} loading="lazy" class="h-full w-full object-cover" />
     <button
       type="button"
       class:list={[
         'state-layer absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/85 backdrop-blur',
-        saved ? 'text-primary' : 'text-on-surface',
+        saved ? 'text-teal' : 'text-photo-ink',
       ]}
       aria-label={saved ? 'Bỏ lưu tin' : 'Lưu tin'}
       aria-pressed={saved}
@@ -33,7 +33,7 @@ const meta = [item.condition, where(item.km, item.area), item.posted].filter(Boo
     </button>
     {
       item.note && (
-        <span class="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-label-medium text-tertiary backdrop-blur">
+        <span class="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-label-medium text-photo-accent backdrop-blur">
           <Icon name="auto-awesome-rounded" size={13} />
           {item.note}
         </span>

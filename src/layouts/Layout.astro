@@ -6,6 +6,7 @@ import favicon32 from '@brand/favicon-32.png';
 import BottomNav from '../components/BottomNav.astro';
 import Footer from '../components/Footer.astro';
 import Header, { type Section } from '../components/Header.astro';
+import { theme } from '../lib/session';
 
 interface Props {
   title: string;
@@ -16,14 +17,16 @@ interface Props {
   search?: { q: string; photo?: string };
   /** Tin nhắn's panes fill the window and leave the footer out. */
   footer?: boolean;
+  /** Hides the compact "Đăng tin" button on the posting pages. */
+  fab?: boolean;
   /** Open Graph image. */
   image?: string;
 }
 
-const { title, description, section = null, search, footer = true, image } = Astro.props;
+const { title, description, section = null, search, footer = true, fab = true, image } = Astro.props;
 ---
 
-<html lang="vi">
+<html lang="vi" data-theme={theme(Astro)}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,7 +42,7 @@ const { title, description, section = null, search, footer = true, image } = Ast
     <slot name="head" />
   </head>
   <body class="min-h-dvh font-sans text-body-medium">
-    <div class="relative min-h-dvh overflow-x-clip pb-20 lg:pb-0">
+    <div class="relative min-h-dvh overflow-x-clip pb-40 lg:pb-0">
       <div class="wash"></div>
       <div class="relative z-10">
         <Header section={section} search={search} />
@@ -47,6 +50,6 @@ const { title, description, section = null, search, footer = true, image } = Ast
         {footer && <Footer />}
       </div>
     </div>
-    <BottomNav section={section} />
+    <BottomNav section={section} fab={fab} />
   </body>
 </html>

@@ -17,6 +17,8 @@ export interface Listing {
   facts?: string[];
   /** The AI price note: "Rẻ hơn 13%". */
   note?: string;
+  /** A focal-point crop of the photo (fx, fy, zoom), for listings shown as crops of one shot. */
+  crop?: [number, number, number];
 }
 
 const NEAR_KM = 10;
@@ -50,3 +52,7 @@ export function img(id: string, w = 600, h?: number) {
 export function crop(id: string, size: number, fx = 0.5, fy = 0.5, zoom = 1) {
   return `https://images.unsplash.com/photo-${id}?w=${size}&h=${size}&fit=crop&crop=focalpoint&fp-x=${fx}&fp-y=${fy}&fp-z=${zoom}&q=80&auto=format`;
 }
+
+/** A listing's photo at w×h, cropped when the listing says so. */
+export const listingPhoto = (it: Pick<Listing, 'photo' | 'crop'>, w: number, h = w) =>
+  it.crop ? crop(it.photo, Math.max(w, h), ...it.crop) : img(it.photo, w, h);

@@ -1,0 +1,141 @@
+---
+// One COD order, from the buyer's side: the state and the four steps, what to
+// check at the door, the carrier's timeline, the waybill and the address,
+// and on the right what the buyer hands the shipper.
+import Crumbs from '../../components/Crumbs.astro';
+import Icon from '../../components/Icon.astro';
+import PhaseTrack from '../../components/PhaseTrack.astro';
+import Chip from '../../components/orders/Chip.astro';
+import HeroCard from '../../components/orders/HeroCard.astro';
+import IconBtn from '../../components/orders/IconBtn.astro';
+import ListRow from '../../components/orders/ListRow.astro';
+import SectionLabel from '../../components/orders/SectionLabel.astro';
+import SummaryAside from '../../components/orders/SummaryAside.astro';
+import Layout from '../../layouts/Layout.astro';
+import { MONEY } from '../../data/common';
+import { ORDERS } from '../../data/orders';
+import { money } from '../../lib/format';
+import { R } from '../../lib/routes';
+import { requireViewer } from '../../lib/session';
+import { btnCls, CONTENT, PANEL } from '../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+
+const o = ORDERS[Astro.params.id ?? ''];
+if (!o) return Astro.rewrite('/404');
+---
+
+<Layout title={`Đơn COD · ${o.short} · ShopNexus`} description={`${o.heading} · ${o.carrier} ${o.code}`} section={null}>
+  <main class:list={[CONTENT, 'pt-5']}>
+    <Crumbs parts={[['Tôi', R.me], ['Đơn hàng', R.orders], [o.short]]} />
+    <HeroCard photo={o.photo} heading={o.heading}>
+      <Fragment slot="chips">
+        <Chip icon="local-shipping-outline-rounded" label={`${o.carrier} · ${o.code}`}>
+          <IconBtn slot="end" label="Sao chép" icon="content-copy-outline-rounded" size="h-6 w-6" iconSize={16} />
+        </Chip>
+        <Chip icon="schedule-outline-rounded" label={o.eta} />
+      </Fragment>
+      <PhaseTrack current={o.phase} times={o.times} />
+    </HeroCard>
+
+    <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <div class="flex min-w-0 flex-col gap-4">
+        <a href={R.listing('l1')} class="flex items-center gap-4 rounded-panel border border-line bg-card p-4 hover:bg-surface-container-lowest">
+          <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+            <Icon name="fact-check-outline-rounded" size={22} />
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-body-small text-on-surface-variant">Tin ghi · xem kỹ khi shipper tới</span>
+            <span class="block text-title-small text-ink">{o.checks}</span>
+          </span>
+          <Icon name="chevron-right-rounded" size={22} class="text-on-surface-variant" />
+        </a>
+        <p class="flex items-center gap-2 rounded-panel bg-tertiary-fixed/60 px-4 py-2.5 text-body-medium text-on-tertiary-fixed-variant md:rounded-full">
+          <Icon name="undo-rounded" size={18} />{MONEY.refuse}
+        </p>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+          <section class:list={[PANEL, 'p-5']}>
+            <SectionLabel title="Hành trình">
+              <span class="flex items-center gap-1.5 text-label-medium text-primary">
+                <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>{o.updated}
+              </span>
+            </SectionLabel>
+            <ol class="mt-3">
+              {
+                o.events.map((e, i) => (
+                  <li class="relative flex gap-3 pb-4 last:pb-0">
+                    {i < o.events.length - 1 && <span class="absolute bottom-0 left-[7px] top-5 w-px bg-black/10" />}
+                    <span
+                      class:list={[
+                        'relative mt-1 h-[15px] w-[15px] shrink-0 rounded-full',
+                        e.now ? 'bg-primary ring-4 ring-primary/15' : 'border-2 border-outline-variant bg-card',
+                      ]}
+                    />
+                    <span class="min-w-0 flex-1">
+                      <span class:list={['block text-body-medium text-ink', e.now && 'font-medium']}>{e.title}</span>
+                      <span class="block text-body-small text-on-surface-variant">{e.sub}</span>
+                    </span>
+                    <span class="shrink-0 text-body-small text-on-surface-variant tabular-nums">{e.when}</span>
+                  </li>
+                ))
+              }
+            </ol>
+          </section>
+          <div class="flex flex-col gap-4">
+            <section class:list={[PANEL, 'px-5 py-3']}>
+              <SectionLabel title="Vận đơn" />
+              <ListRow icon="receipt-long-outline-rounded" main={`${o.carrier} · ${o.code}`} sub={`${o.service} · 1–2 ngày`}>
+                <a
+                  href={`https://i.ghtk.vn/${o.code}`}
+                  class="state-layer flex h-9 items-center rounded-full px-3 text-label-large text-primary"
+                  rel="noopener"
+                  target="_blank">Tra mã</a
+                >
+                <IconBtn label="Sao chép" icon="content-copy-outline-rounded" />
+              </ListRow>
+              <ListRow icon="tag-rounded" main={o.ref} sub="Mã đơn ShopNexus">
+                <IconBtn label="Sao chép" icon="content-copy-outline-rounded" />
+              </ListRow>
+            </section>
+            <section class:list={[PANEL, 'px-5 py-3']}>
+              <SectionLabel title="Giao đến" />
+              <ListRow icon="location-on-outline-rounded" main={o.to.line} sub={o.to.who}>
+                <IconBtn label="Sao chép" icon="content-copy-outline-rounded" />
+              </ListRow>
+              <ListRow icon="schedule-outline-rounded" main={o.to.window} sub="Shipper gọi trước khi tới" />
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <SummaryAside
+        photo={o.photo}
+        item={o.title}
+        itemPrice={`Giá chốt ${money(o.price)}`}
+        person={o.seller.name}
+        chatHref={R.messages}
+        totalLabel="Trả khi nhận"
+        total={o.price + o.ship}
+        lines={[
+          { k: 'Tiền hàng', v: money(o.price), deal: true },
+          { k: `Phí ship · ${o.carrier} ${o.service}`, v: money(o.ship) },
+        ]}
+        money={[
+          { k: 'pay_shipper', icon: 'payments-outline-rounded' },
+          { k: 'no_hold', icon: 'lock-outline-rounded' },
+        ]}
+      >
+        <Fragment slot="person">
+          {o.seller.rating}<Icon name="star-rounded" size={13} class="text-star" />· {o.seller.sold} đã bán
+        </Fragment>
+        <Fragment slot="actions">
+          <a href={R.support} class={btnCls('ghost')}><Icon name="help-outline-rounded" size={18} />Báo chưa nhận</a>
+          <button type="button" class:list={[btnCls('primary'), 'h-11 flex-1']}>
+            <Icon name="package-2-outline-rounded" size={18} />Đã nhận hàng
+          </button>
+        </Fragment>
+      </SummaryAside>
+    </div>
+  </main>
+</Layout>

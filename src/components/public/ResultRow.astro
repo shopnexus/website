@@ -1,0 +1,51 @@
+---
+// Tìm kiếm's list view: one listing as a row, photo, price, title, facts, place.
+import { type Listing, listingPhoto, where } from '../../lib/format';
+import { R } from '../../lib/routes';
+import Icon from '../Icon.astro';
+import Price from '../Price.astro';
+
+interface Props {
+  item: Listing;
+}
+
+const { item } = Astro.props;
+const meta = [item.condition, where(item.km, item.area), item.posted].filter(Boolean).join(' · ');
+---
+
+<article class="lift relative flex gap-4 rounded-card border border-line bg-card p-2 pr-4">
+  <div class="h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-surface-container-high md:h-32 md:w-32">
+    <img src={listingPhoto(item, 480)} alt={item.title} loading="lazy" class="h-full w-full object-cover" />
+  </div>
+  <div class="flex min-w-0 flex-1 flex-col justify-center py-1">
+    <div class="flex items-baseline justify-between gap-2">
+      <Price vnd={item.price} size="text-j-20" />
+      <span class="flex shrink-0 items-center gap-0.5 text-label-medium text-on-surface-variant">
+        <Icon name="star-rounded" size={13} class="text-star" />{item.rating.toLocaleString('vi-VN', { minimumFractionDigits: 1 })}
+      </span>
+    </div>
+    <h3 class="mt-0.5 line-clamp-2 text-body-large text-ink">
+      <a href={R.listing(item.id)} class="after:absolute after:inset-0 after:rounded-card">{item.title}</a>
+    </h3>
+    {
+      item.facts && (
+        <div class="mt-1.5 flex flex-wrap gap-1">
+          {item.facts.map((f) => (
+            <span class="rounded-full bg-surface-container-low px-2 py-0.5 text-label-small text-on-surface-variant">{f}</span>
+          ))}
+        </div>
+      )
+    }
+    <p class="mt-1.5 flex items-center gap-1 text-body-small text-on-surface-variant">
+      <Icon name="near-me-outline-rounded" size={13} />{meta}
+      {
+        item.note && (
+          <span class="ml-2 flex items-center gap-1 text-label-medium text-tertiary">
+            <Icon name="auto-awesome-rounded" size={13} />
+            {item.note}
+          </span>
+        )
+      }
+    </p>
+  </div>
+</article>

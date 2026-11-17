@@ -1,0 +1,81 @@
+---
+// A conversation with one person: the deal it opens on, +N for more deals, the
+// last message and a status tag. A scam warning is the error shield on a neutral tag.
+import type { Conversation } from '../../../data/account';
+import Icon from '../../Icon.astro';
+import Avatar from './Avatar.astro';
+
+interface Props {
+  c: Conversation;
+  selected?: boolean;
+}
+
+const { c, selected = false } = Astro.props;
+const unread = (c.unread ?? 0) > 0;
+const tag = 'mt-1.5 inline-flex h-6 items-center gap-1 rounded-full bg-surface-container-low px-2 text-label-medium text-on-surface-variant';
+const role = c.role ?? (c.item ? 'buy' : 'none');
+---
+
+<a
+  href={c.opens ? `#${c.id}` : '#'}
+  class:list={['flex gap-3 rounded-tile p-3', selected ? 'bg-card shadow-soft' : 'hover:bg-card/70']}
+  data-open={c.opens ? c.id : undefined}
+  data-role={role}
+  data-unread={unread ? '' : undefined}
+  aria-current={selected ? 'true' : undefined}
+>
+  {
+    c.item ? (
+      <span class="relative h-12 w-12 shrink-0">
+        <img src={c.thumb} alt="" class="h-12 w-12 rounded-md object-cover" />
+        <span class="absolute -bottom-1 -right-1">
+          <Avatar name={c.name} photo={c.photo} size={24} class="ring-2 ring-card" />
+        </span>
+      </span>
+    ) : (
+      <Avatar name={c.name} photo={c.photo} size={48} />
+    )
+  }
+  <span class="min-w-0 flex-1">
+    <span class="flex items-baseline gap-2">
+      <span class:list={['min-w-0 flex-1 truncate text-title-small text-ink', unread && 'font-bold']}>{c.name}</span>
+      <span class="text-body-small text-on-surface-variant">{c.time}</span>
+    </span>
+    {
+      c.item && (
+        <span class="mt-0.5 flex items-center gap-1 text-body-small text-on-surface-variant">
+          {c.role === 'sell' && <Icon name="storefront-outline-rounded" size={14} class="text-primary" />}
+          <span class="truncate">{c.item}</span>
+          {c.more && (
+            <span class="ml-1 shrink-0 rounded-sm bg-surface-container-high px-1.5 text-label-small text-on-surface-variant">+{c.more}</span>
+          )}
+        </span>
+      )
+    }
+    <span class="mt-0.5 flex items-center gap-2">
+      <span class:list={['min-w-0 flex-1 truncate text-body-medium', unread ? 'font-medium text-on-surface' : 'text-on-surface-variant']}>
+        {c.preview}
+      </span>
+      {
+        unread && (
+          <span class="grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-label-small text-on-primary">{c.unread}</span>
+        )
+      }
+    </span>
+    {
+      c.scam ? (
+        <span class={tag}>
+          <Icon name="gpp-maybe-outline-rounded" size={14} class="text-error" />
+          Nghi lừa đảo
+        </span>
+      ) : (
+        c.status && (
+          <span class={tag}>
+            <Icon name={c.status.icon} size={14} />
+            {c.status.text}
+          </span>
+        )
+      )
+    }
+  </span>
+</a>

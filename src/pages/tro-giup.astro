@@ -1,0 +1,177 @@
+---
+// Trợ giúp và an toàn: a question search over the answers below it, the answers
+// grouped as Mua hàng, Bán hàng and An toàn, the scam signs, and the way to
+// Hỗ trợ. The search filters the answers in the page; without JavaScript it
+// is a plain list.
+import Icon from '../components/Icon.astro';
+import LinkRows from '../components/LinkRows.astro';
+import Faq from '../components/flows/Faq.astro';
+import Layout from '../layouts/Layout.astro';
+import { HELP_POPULAR, HELP_SAFETY, HELP_TOPICS, SCAM_SIGNS } from '../data/flows';
+import { R } from '../lib/routes';
+import { viewer } from '../lib/session';
+import { btnCls, CONTENT, H2, PANEL } from '../lib/ui';
+
+const me = viewer(Astro);
+const q = Astro.url.searchParams.get('q') ?? '';
+const docs = [
+  { icon: 'gavel-rounded', label: 'Quy định đăng tin', href: R.listingRules },
+  { icon: 'description-outline-rounded', label: 'Điều khoản', href: R.terms },
+  { icon: 'lock-outline-rounded', label: 'Chính sách bảo mật', href: R.privacy },
+  { icon: 'school-outline-rounded', label: 'Cách mua bằng COD', href: R.how },
+];
+---
+
+<Layout title="Trợ giúp và an toàn · ShopNexus" description={HELP_SAFETY}>
+  <main class:list={[CONTENT, 'pt-8']}>
+    <section class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_440px] xl:gap-8">
+      <div class="min-w-0">
+        <h1 class="text-j-40 text-ink lg:text-j-44">Trợ giúp và an toàn</h1>
+        <form action={R.help} class="mt-5 flex h-14 items-center gap-3 rounded-full bg-card pl-5 pr-2 shadow-glow" role="search" data-help-search>
+          <Icon name="search-rounded" size={22} class="text-primary" />
+          <input
+            name="q"
+            value={q}
+            placeholder="Gõ câu hỏi, ví dụ: hủy đơn thế nào"
+            aria-label="Tìm câu hỏi"
+            autocomplete="off"
+            class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+          />
+          <button class={btnCls('primary')}>Tìm</button>
+        </form>
+        <div class="mt-3 flex flex-wrap gap-2">
+          {
+            HELP_POPULAR.map((t) => (
+              <a
+                href={`${R.help}?q=${encodeURIComponent(t)}`}
+                data-help-chip={t}
+                class="glass glass-edge flex h-9 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
+              >
+                <Icon name="help-outline-rounded" size={16} class="text-on-surface-variant" />
+                {t}
+              </a>
+            ))
+          }
+        </div>
+      </div>
+      <div class="rounded-xl bg-linear-140 from-primary to-teal-mid p-6 text-white">
+        <p class="flex items-center gap-2 text-label-large text-mint-on-teal">
+          <Icon name="shield-outline-rounded" size={18} />Một điều cần nhớ
+        </p>
+        <p class="mt-2 text-j-26">Xem hàng rồi mới trả tiền</p>
+        <p class="mt-2 text-body-medium text-white/85">{HELP_SAFETY}</p>
+      </div>
+    </section>
+
+    <p class="mt-8 hidden text-body-medium text-on-surface-variant" data-help-count aria-live="polite"></p>
+    <section class="mt-8 grid grid-cols-1 items-start gap-4 lg:grid-cols-3" data-help-topics>
+      {
+        HELP_TOPICS.map((t, ti) => (
+          <section class:list={[PANEL, 'p-2']} data-help-topic>
+            <p class="flex items-center gap-2 px-3 pb-1 pt-3 text-title-small text-ink">
+              <span class="grid h-8 w-8 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+                <Icon name={t.icon} size={18} />
+              </span>
+              {t.title}
+            </p>
+            {t.qs.map(([question, answer], qi) => (
+              <Faq q={question} answer={answer} open={qi === 0 && ti < 3} />
+            ))}
+          </section>
+        ))
+      }
+    </section>
+
+    <section class="mt-10">
+      <h2 class={H2}>Dấu hiệu lừa đảo</h2>
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {
+          SCAM_SIGNS.map((s) => (
+            <div class:list={[PANEL, 'p-4']}>
+              <span class="grid h-9 w-9 place-items-center rounded-full bg-error-container text-error">
+                <Icon name={s.icon} size={18} />
+              </span>
+              <p class="mt-3 text-title-small text-ink">{s.title}</p>
+              <p class="mt-0.5 text-body-small text-on-surface-variant">{s.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div class:list={[PANEL, 'flex flex-wrap items-center gap-4 p-5 md:flex-nowrap']} data-help-none>
+        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+          <Icon name="support-agent-rounded" size={24} />
+        </span>
+        <div class="min-w-[200px] flex-1">
+          <p class="text-title-medium font-semibold text-ink">Không có câu hỏi nào khớp?</p>
+          <p class="text-body-medium text-on-surface-variant">
+            Gửi yêu cầu, ShopNexus trả lời trong chat.{me && ' Bạn có 2 yêu cầu đang xử lý.'}
+          </p>
+        </div>
+        <a href={R.support} class={btnCls('ink', 'lg')}>Yêu cầu hỗ trợ</a>
+      </div>
+      <div class:list={[PANEL, 'grid grid-cols-1 gap-x-2 p-2 md:grid-cols-2']}>
+        <LinkRows links={docs} />
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  // Filters the answers as the buyer types: a question shows when every word of
+  // three letters or more is in its question or answer, accents ignored.
+  const fold = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .toLowerCase();
+
+  const form = document.querySelector<HTMLFormElement>('[data-help-search]');
+  const input = form?.querySelector<HTMLInputElement>('input[name="q"]');
+  const count = document.querySelector<HTMLElement>('[data-help-count]');
+  const none = document.querySelector<HTMLElement>('[data-help-none]');
+  const topics = [...document.querySelectorAll<HTMLElement>('[data-help-topic]')];
+  const items = topics.flatMap((t) => [...t.querySelectorAll<HTMLDetailsElement>('[data-faq]')]);
+  const wasOpen = items.map((d) => d.open);
+  const text = items.map((d) => fold(d.textContent ?? ''));
+
+  function apply(raw: string) {
+    const all = fold(raw).split(/\s+/).filter(Boolean);
+    const words = all.filter((w) => w.length >= 3).length ? all.filter((w) => w.length >= 3) : all;
+    let shown = 0;
+    items.forEach((d, i) => {
+      const hit = words.every((w) => text[i].includes(w));
+      d.hidden = !hit;
+      d.open = words.length ? hit : wasOpen[i];
+      if (hit) shown++;
+    });
+    topics.forEach((t) => (t.hidden = ![...t.querySelectorAll<HTMLDetailsElement>('[data-faq]')].some((d) => !d.hidden)));
+    if (count) {
+      count.hidden = !words.length;
+      count.classList.toggle('hidden', !words.length);
+      count.textContent = shown ? `${shown} câu trả lời cho “${raw.trim()}”` : `Không có câu trả lời cho “${raw.trim()}”.`;
+    }
+    none?.classList.toggle('ring-2', !!words.length && !shown);
+    none?.classList.toggle('ring-primary', !!words.length && !shown);
+  }
+
+  if (form && input) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      apply(input.value);
+    });
+    input.addEventListener('input', () => apply(input.value));
+    document.querySelectorAll<HTMLAnchorElement>('[data-help-chip]').forEach((a) =>
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        input.value = a.dataset.helpChip ?? '';
+        apply(input.value);
+      }),
+    );
+    if (input.value) apply(input.value);
+  }
+</script>

@@ -1,0 +1,130 @@
+---
+// Tìm bằng ảnh: the photo stands in for the query in the header field. The
+// conditions read from the photo are sparkle chips; a sticky column holds the
+// photo with its crop frame, "Đổi ảnh", "Chụp" and recent photos; the main
+// column has the count, the price range, the matches and other models.
+import AiChip from '../components/AiChip.astro';
+import Drop from '../components/Drop.astro';
+import Icon from '../components/Icon.astro';
+import ListingCard from '../components/ListingCard.astro';
+import FilterRow from '../components/public/FilterRow.astro';
+import RangeBar from '../components/public/RangeBar.astro';
+import { tr } from '../components/public/tr';
+import SectionTitle from '../components/SectionTitle.astro';
+import Seg from '../components/Seg.astro';
+import Layout from '../layouts/Layout.astro';
+import { MODELS, PHOTO_MATCHES, PHOTO_QUERY, PHOTO_SIMILAR, SIERRA } from '../data/public';
+import { img } from '../lib/format';
+import { R } from '../lib/routes';
+import { CONTENT, btnCls } from '../lib/ui';
+
+const chips = ['iPhone 13 Pro', 'Xanh Sierra', 'Điện thoại'];
+const without = (c: string) => `${R.search}?q=${encodeURIComponent(chips.filter((x) => x !== c).join(', '))}`;
+const recent = [SIERRA, '1505740420928-5e560c06d30e', '1507035895480-2b3156c31fc8', '1555041469-a586c61ea9bc'];
+const { lo, hi, med, n } = MODELS[0];
+---
+
+<Layout title="Tìm bằng ảnh · ShopNexus" description="Tìm tin giống ảnh của bạn trên ShopNexus." section="explore" search={{ q: PHOTO_QUERY, photo: SIERRA }}>
+  <div class={CONTENT}>
+    <FilterRow>
+      {chips.map((c) => <AiChip slot="chips" label={c} remove={without(c)} />)}
+      <Drop label="Dung lượng" />
+      <Drop label="Tình trạng" />
+      <Drop label="Trong 10 km" on />
+      <Drop label="Trả giá được" />
+    </FilterRow>
+  </div>
+  <main class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr]']}>
+    <aside class="flex flex-col gap-3 self-start md:flex-row lg:sticky lg:top-[84px] lg:flex-col">
+      <div class="rounded-xl border border-line bg-card p-2 md:flex-1 lg:flex-none">
+        <div class="relative overflow-hidden rounded-card" style="aspect-ratio: 1 / 1">
+          <img src={img(SIERRA, 640, 640)} alt="Ảnh bạn tải lên" class="h-full w-full object-cover" data-photo />
+          <span
+            class="absolute rounded-tile border-2 border-white shadow-[0_0_0_999px_rgb(0_0_0/.28)]"
+            style="left:24%;top:14%;width:52%;height:74%"></span>
+          <span class="absolute bottom-3 left-3 rounded-full bg-white/90 px-2.5 py-1 text-label-medium text-photo-ink backdrop-blur">Ảnh của bạn</span>
+        </div>
+        <form action={R.photoSearch} method="post" enctype="multipart/form-data" class="flex items-center gap-2 p-2">
+          <label class:list={[btnCls('line'), 'flex-1 cursor-pointer']}>
+            <Icon name="upload-rounded" size={18} />Đổi ảnh
+            <input type="file" name="anh" accept="image/*" class="sr-only" />
+          </label>
+          <label class:list={[btnCls('line'), 'flex-1 cursor-pointer']}>
+            <Icon name="photo-camera-outline-rounded" size={18} />Chụp
+            <input type="file" name="anh" accept="image/*" capture="environment" class="sr-only" />
+          </label>
+        </form>
+        <p class="px-2 pb-2 text-body-small text-on-surface-variant">Kéo ảnh khác vào trang, hoặc dán ảnh bằng Ctrl+V.</p>
+      </div>
+      <div class="rounded-panel border border-line bg-card p-4 md:self-start lg:self-auto">
+        <p class="text-label-medium text-on-surface-variant">Ảnh gần đây</p>
+        <div class="mt-2 grid grid-cols-4 gap-2" data-recent>
+          {
+            recent.map((p, i) => (
+              <button
+                type="button"
+                data-src={img(p, 640, 640)}
+                aria-pressed={i === 0 ? 'true' : 'false'}
+                aria-label={`Ảnh gần đây ${i + 1}`}
+                class="state-layer overflow-hidden rounded-field ring-primary ring-offset-2 ring-offset-card aria-pressed:ring-2"
+              >
+                <img src={img(p, 120, 120)} alt="" class="aspect-square w-full object-cover" />
+              </button>
+            ))
+          }
+        </div>
+      </div>
+    </aside>
+
+    <section class="min-w-0">
+      <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between xl:gap-6">
+        <div>
+          <h1 class="flex items-center gap-3 text-j-32 text-ink md:text-j-40">
+            <span class="grad-num tabular-nums">36</span> tin giống ảnh
+          </h1>
+          <p class="mt-1.5 text-body-medium text-on-surface-variant">Trong 10 km quanh Bình Thạnh · cùng đời máy và màu</p>
+        </div>
+        <div class="rounded-lg-plus border border-line bg-card px-4 py-3 xl:w-[340px]">
+          <div class="flex items-baseline justify-between">
+            <span class="flex items-center gap-1.5 text-label-medium text-on-surface-variant">
+              <Icon name="auto-awesome-rounded" size={14} class="text-primary" />Giá tham khảo · {n} tin
+            </span>
+            <span class="text-j-15 text-ink tabular-nums">{tr(lo)} – {tr(hi)} tr ₫</span>
+          </div>
+          <div class="mt-2"><RangeBar lo={lo} hi={hi} med={med} labels={false} /></div>
+        </div>
+      </div>
+      <div
+        class="glass glass-edge sticky top-[76px] z-20 mt-5 flex items-center justify-between gap-2 overflow-x-auto rounded-full py-1 pl-1 pr-1.5 shadow-soft no-scrollbar"
+      >
+        <Seg items={['Giống ảnh nhất', 'Rẻ hơn', 'Gần hơn', 'Mới đăng']} class="shrink-0 bg-ink/[.04]" name="Sắp xếp" />
+        <span class="shrink-0 pr-2 text-body-small text-on-surface-variant">1–8 trong 36</span>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
+        {PHOTO_MATCHES.map((it, i) => <ListingCard item={it} saved={i === 0} />)}
+      </div>
+      <SectionTitle class="mt-8" title="Cùng hãng, đời khác" link="Xem 214 tin" href={`${R.search}?q=iPhone`} />
+      <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
+        {PHOTO_SIMILAR.map((it) => <ListingCard item={it} />)}
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  // A recent photo takes the big frame. Choosing a new file previews it there.
+  const photo = document.querySelector<HTMLImageElement>('[data-photo]');
+  const recent = document.querySelector<HTMLElement>('[data-recent]');
+  recent?.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
+    if (!b || !photo) return;
+    photo.src = b.dataset.src!;
+    recent.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  document.querySelectorAll<HTMLInputElement>('input[name="anh"]').forEach((input) =>
+    input.addEventListener('change', () => {
+      const f = input.files?.[0];
+      if (f && photo) photo.src = URL.createObjectURL(f);
+    }),
+  );
+</script>

@@ -3,6 +3,7 @@
 // listings. Signed out: listings this browser viewed, ones like them, the price
 // of a recent search, and signing in to keep what they viewed.
 import { LISTINGS } from '../../data/listings';
+import { BUYING } from '../../data/orders';
 import { img } from '../../lib/format';
 import { R } from '../../lib/routes';
 import Icon from '../Icon.astro';
@@ -14,17 +15,18 @@ interface Props {
 const { signedIn } = Astro.props;
 const tile = 'lift flex items-center gap-3 rounded-panel border border-line bg-card p-4';
 const stack = 'h-12 w-12 rounded-field object-cover ring-2 ring-card';
-const order = LISTINGS[7];
+// The order on the way is Đơn hàng's o1.
+const order = BUYING.find((o) => o.id === 'o1')!;
 const offer = LISTINGS[5];
 const savedPhotos = [LISTINGS[3], LISTINGS[9], LISTINGS[4]].map((l) => l.photo);
 const seen = [LISTINGS[5], LISTINGS[9], LISTINGS[10]];
 ---
 
-<div class="mt-6 grid gap-3 md:grid-cols-2">
+<div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
   {
     signedIn ? (
       <>
-        <a href={R.order('o1')} class={tile}>
+        <a href={R.order(order.id)} class={tile}>
           <img src={img(order.photo, 160, 160)} alt="" class="h-16 w-16 shrink-0 rounded-lg object-cover" />
           <span class="min-w-0 flex-1">
             <span class="flex items-center gap-1.5 text-label-medium text-primary">

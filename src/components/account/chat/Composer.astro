@@ -1,0 +1,34 @@
+---
+// The message field. The "strip" slot holds the message being answered.
+import Icon from '../../Icon.astro';
+
+interface Props {
+  peer: string;
+}
+
+const { peer } = Astro.props;
+---
+
+<div class="px-3 pb-3 pt-2">
+  <slot name="strip" />
+  <form class="flex items-center gap-1" data-composer>
+    <button type="button" class="state-layer grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Gửi ảnh hoặc vị trí">
+      <Icon name="add-circle-outline-rounded" size={24} />
+    </button>
+    <input
+      name="text"
+      autocomplete="off"
+      placeholder="Nhắn tin"
+      aria-label={`Nhắn tin cho ${peer}`}
+      class="h-12 min-w-0 flex-1 rounded-full border border-line bg-card px-5 text-body-large text-ink outline-none placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary"
+    />
+    <button
+      type="submit"
+      class="grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant enabled:text-primary enabled:hover:bg-primary/10"
+      aria-label="Gửi"
+      disabled
+    >
+      <Icon name="send-rounded" size={22} />
+    </button>
+  </form>
+</div>

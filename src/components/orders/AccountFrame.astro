@@ -1,0 +1,22 @@
+---
+// An account page: the side nav on the left, the page on the right. Below
+// expanded the nav hides itself and the page takes the full width.
+import AccountNav, { type AccountKey } from '../AccountNav.astro';
+import Layout from '../../layouts/Layout.astro';
+import { CONTENT } from '../../lib/ui';
+
+interface Props {
+  title: string;
+  description?: string;
+  active: AccountKey;
+}
+
+const { title, description, active } = Astro.props;
+---
+
+<Layout title={`${title} · ShopNexus`} description={description} section={null}>
+  <main class:list={[CONTENT, 'grid grid-cols-1 gap-8 pt-6 lg:grid-cols-[232px_minmax(0,1fr)]']}>
+    <AccountNav active={active} />
+    <div class="min-w-0"><slot /></div>
+  </main>
+</Layout>

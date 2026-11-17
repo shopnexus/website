@@ -20,3 +20,12 @@ export function requireViewer(ctx: Pick<AstroGlobal, 'cookies' | 'url' | 'redire
   if (v) return v;
   return ctx.redirect(`${R.login}?tiep=${encodeURIComponent(ctx.url.pathname + ctx.url.search)}`);
 }
+
+/** "Giao diện tối" on Tôi: light or dark, or nothing to follow the system. A
+ * cookie, so the server renders the chosen theme and the page does not flash. */
+export const THEME_COOKIE = 'sn_theme';
+
+export function theme(ctx: Ctx): 'light' | 'dark' | undefined {
+  const t = ctx.cookies.get(THEME_COOKIE)?.value;
+  return t === 'light' || t === 'dark' ? t : undefined;
+}

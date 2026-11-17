@@ -1,0 +1,38 @@
+---
+// One question that opens to its answer. panel: a white card of its own (Cách mua);
+// otherwise a row inside a panel (Trợ giúp).
+import Icon from '../Icon.astro';
+
+interface Props {
+  q: string;
+  answer: string;
+  open?: boolean;
+  panel?: boolean;
+}
+
+const { q, answer, open = false, panel = false } = Astro.props;
+---
+
+<details
+  class:list={[
+    'group',
+    panel ? 'rounded-panel border border-line bg-card px-5 py-4' : 'rounded-tile px-3 py-2.5 hover:bg-surface-container-low',
+  ]}
+  open={open}
+  data-faq
+>
+  <summary
+    class:list={[
+      'flex cursor-pointer list-none items-center justify-between gap-4 text-ink [&::-webkit-details-marker]:hidden',
+      panel ? 'text-title-small' : 'text-body-large',
+    ]}
+  >
+    {q}
+    <Icon
+      name="keyboard-arrow-down-rounded"
+      size={panel ? 22 : 20}
+      class="shrink-0 text-on-surface-variant transition-transform duration-(--duration-spatial-default) ease-spatial group-open:rotate-180"
+    />
+  </summary>
+  <p class:list={['text-body-medium text-on-surface-variant', panel ? 'mt-2' : 'mt-1.5']}>{answer}</p>
+</details>

@@ -1,0 +1,76 @@
+---
+// Tìm kiếm. The query lives in the header's field (?q=). Mock rule until the
+// server's search is wired:
+// - no q: the default query (SEARCH_QUERY) and its results, as in j-search;
+// - q is the no-results mockup's query (EMPTY_QUERY): that page, search-empty;
+// - q shares no word of 3+ letters with any mock listing title: the generic
+//   no-results page;
+// - otherwise: the mock listings whose titles share a word with q, most shared first.
+import AiChip from '../components/AiChip.astro';
+import Drop from '../components/Drop.astro';
+import FilterRow from '../components/public/FilterRow.astro';
+import SearchEmpty from '../components/public/SearchEmpty.astro';
+import SearchResults from '../components/public/SearchResults.astro';
+import Layout from '../layouts/Layout.astro';
+import { EXTRA_RESULTS, QUERY_PHOTO, RESULTS, SEARCH_QUERY, SEARCH_RESULTS } from '../data/listings';
+import { ALL_LISTINGS, EMPTY_QUERY, PHONES } from '../data/public';
+import type { Listing } from '../lib/format';
+import { R } from '../lib/routes';
+
+const raw = (Astro.url.searchParams.get('q') ?? '').trim();
+const q = raw || SEARCH_QUERY;
+const isDefault = !raw || raw.toLowerCase() === SEARCH_QUERY.toLowerCase();
+const words = (s: string) => s.toLowerCase().normalize('NFC').split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 3);
+
+let items: Listing[] = [];
+if (isDefault) {
+  items = [...SEARCH_RESULTS, ...EXTRA_RESULTS];
+  while (items.length < 12) items = [...items, ...RESULTS];
+} else if (raw.toLowerCase() !== EMPTY_QUERY.toLowerCase()) {
+  const want = new Set(words(raw));
+  const seen = new Set<string>();
+  items = ALL_LISTINGS.filter((it) => !seen.has(it.title) && seen.add(it.title))
+    .map((it) => ({ it, hits: words(it.title).filter((w) => want.has(w)).length }))
+    .filter((x) => x.hits > 0)
+    .sort((a, b) => b.hits - a.hits)
+    .map((x) => x.it);
+}
+const empty = items.length === 0;
+const full = raw.toLowerCase() === EMPTY_QUERY.toLowerCase();
+const photo = isDefault ? QUERY_PHOTO : full ? PHONES[0].photo : undefined;
+
+// The default query's conditions, each removable: the search without it.
+const chips = isDefault ? ['Laptop', 'Dưới 8 triệu', 'Màn hình chuẩn màu'] : full ? ['iPhone 13 Pro Max', '512 GB', 'Dưới 8 triệu', 'Q.7'] : [];
+const without = (c: string) => `${R.search}?q=${encodeURIComponent(chips.filter((x) => x !== c).join(', '))}`;
+---
+
+<Layout
+  title={empty ? 'Không có kết quả · ShopNexus' : `${raw || 'Tìm kiếm'} · ShopNexus`}
+  description={`Tin đồ cũ khớp “${q}” trên ShopNexus.`}
+  section="explore"
+  search={{ q, photo }}
+>
+  {
+    empty ? (
+      <SearchEmpty q={raw} full={full}>
+        <FilterRow>
+          {chips.length > 0 && chips.map((c) => <AiChip slot="chips" label={c} remove={without(c)} />)}
+          <Drop label="Tình trạng" />
+          <Drop label="Trả giá được" />
+        </FilterRow>
+      </SearchEmpty>
+    ) : (
+      <SearchResults items={items} total={isDefault ? 126 : items.length} noun={isDefault ? 'laptop khớp' : 'tin khớp'} summary={isDefault}>
+        <FilterRow>
+          {chips.map((c) => (
+            <AiChip slot="chips" label={c} remove={without(c)} />
+          ))}
+          <Drop label="Tình trạng" count={isDefault ? 2 : undefined} />
+          <Drop label="Hãng" count={isDefault ? 2 : undefined} />
+          <Drop label="Mọi khu vực" />
+          <Drop label="Trả giá được" />
+        </FilterRow>
+      </SearchResults>
+    )
+  }
+</Layout>

@@ -1,0 +1,171 @@
+---
+// Tìm kiếm's results: count and summary, the filter panel, the sort bar with
+// the grid/list switch, the cards, "Báo khi có tin mới" after the eighth.
+import type { Listing } from '../../lib/format';
+import { CONTENT } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import ListingCard from '../ListingCard.astro';
+import Seg from '../Seg.astro';
+import ResultRow from './ResultRow.astro';
+import SearchFilters from './SearchFilters.astro';
+
+interface Props {
+  items: Listing[];
+  /** The headline count and noun: 126 "laptop khớp". */
+  total: number;
+  noun: string;
+  /** The default query's extra lines: "+9 hôm nay", the model's note, median and nearby count. */
+  summary?: boolean;
+}
+
+const { items, total, noun, summary = false } = Astro.props;
+const shown = items.slice(0, 12);
+---
+
+<div class={CONTENT}>
+  <slot />
+  <div class="mt-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+    <div>
+      <h1 class="flex flex-wrap items-center gap-x-3 gap-y-1 text-j-32 text-ink md:text-j-40">
+        <span class="grad-num tabular-nums">{total}</span>
+        {noun}
+        {
+          summary && (
+            <span class="rounded-full bg-card/80 px-2.5 py-1 text-label-medium font-medium tracking-normal text-primary">+9 hôm nay</span>
+          )
+        }
+      </h1>
+      {
+        summary && (
+          <p class="mt-1.5 flex items-center gap-1.5 text-body-medium text-on-surface-variant">
+            <Icon name="auto-awesome-rounded" size={15} class="text-primary" />
+            Ưu tiên RAM 16 GB cho Photoshop và Figma.
+          </p>
+        )
+      }
+    </div>
+    {
+      summary && (
+        <div class="flex items-center gap-4 pb-1 text-body-small text-on-surface-variant">
+          <span class="flex items-center gap-1.5">
+            <span class="h-2 w-2 rounded-full bg-primary" />
+            Giữa <b class="font-semibold text-ink tabular-nums">7,3 tr ₫</b>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="h-2 w-2 rounded-full bg-teal-light" />
+            <b class="font-semibold text-ink tabular-nums">38</b> tin trong 5 km
+          </span>
+        </div>
+      )
+    }
+  </div>
+</div>
+
+<main class:list={[CONTENT, 'mt-5 grid grid-cols-1 gap-8 lg:grid-cols-[264px_1fr]']}>
+  <div class="hidden lg:block"><SearchFilters /></div>
+  <section class="min-w-0" data-results>
+    <div
+      class="glass glass-edge sticky top-[76px] z-20 flex items-center justify-between gap-2 overflow-x-auto rounded-full py-1 pl-1 pr-1.5 shadow-soft no-scrollbar"
+    >
+      <div data-sort>
+        <Seg items={['Phù hợp nhất', 'Mới đăng', 'Giá thấp', 'Gần nhất']} class="bg-ink/[.04]" name="Sắp xếp" />
+      </div>
+      <div class="flex shrink-0 items-center gap-2">
+        <span class="hidden text-body-small text-on-surface-variant md:inline">1–{shown.length} trong {total}</span>
+        <div data-view>
+          <Seg
+            items={['grid-view-outline-rounded', 'view-list-outline-rounded']}
+            labels={['Dạng lưới', 'Dạng danh sách']}
+            icons
+            class="bg-ink/[.04]"
+            name="Cách xem"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" data-grid>
+      {
+        shown.map((it, i) => (
+          <div
+            class="grid min-w-0"
+            data-item
+            data-i={i}
+            data-price={it.price}
+            data-km={it.km}
+            style={i >= 8 ? 'order:2' : undefined}
+          >
+            <ListingCard item={it} saved={i === 1} />
+          </div>
+        ))
+      }
+      <div class="order-1 col-span-full flex flex-wrap items-center gap-4 rounded-panel border border-line bg-card p-3" data-alert>
+        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-teal to-teal-light text-white">
+          <Icon name="notifications-outline-rounded" size={22} />
+        </span>
+        <p class="min-w-0 flex-1 text-body-large text-ink">
+          <b class="font-semibold">Chưa thấy máy ưng?</b>{' '}
+          <span class="text-on-surface-variant">Có {noun.split(' ')[0]} mới khớp câu này, ShopNexus báo bạn.</span>
+        </p>
+        <button type="button" class="state-layer h-10 shrink-0 rounded-full bg-ink px-5 text-label-large text-on-ink">Báo khi có tin mới</button>
+      </div>
+    </div>
+
+    <div class="mt-4 hidden flex-col gap-3" data-list>
+      {shown.map((it) => <ResultRow item={it} />)}
+    </div>
+
+    <nav class="mt-8 flex items-center justify-center gap-1" aria-label="Trang">
+      {
+        ['1', '2', '3', '…', '11'].map((n) =>
+          n === '…' ? (
+            <span class="grid h-10 min-w-10 place-items-center text-label-large text-ink">…</span>
+          ) : (
+            <a
+              href={n === '1' ? '#' : `?trang=${n}`}
+              aria-current={n === '1' ? 'page' : undefined}
+              class="grid h-10 min-w-10 place-items-center rounded-full px-2 text-label-large text-ink tabular-nums hover:bg-card aria-[current=page]:bg-ink aria-[current=page]:text-on-ink"
+            >
+              {n}
+            </a>
+          ),
+        )
+      }
+      <a href="?trang=2" class="ml-2 flex h-10 items-center gap-1 rounded-full border border-line bg-card px-4 text-label-large text-ink">
+        Trang sau<Icon name="arrow-forward-rounded" size={16} />
+      </a>
+    </nav>
+  </section>
+</main>
+
+<script>
+  // Sort and view switch the results on the page; the server keeps the order
+  // it sent ("Phù hợp nhất"), so the first tab restores it.
+  const root = document.querySelector<HTMLElement>('[data-results]');
+  if (root) {
+    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
+    const list = root.querySelector<HTMLElement>('[data-list]')!;
+    const items = [...grid.querySelectorAll<HTMLElement>('[data-item]')];
+    const rows = [...list.children] as HTMLElement[];
+    const keys: ((el: HTMLElement) => number)[] = [
+      (el) => +el.dataset.i!,
+      (el) => +el.dataset.i!,
+      (el) => +el.dataset.price!,
+      (el) => +el.dataset.km!,
+    ];
+    root.querySelector('[data-sort]')!.addEventListener('seg-change', (e) => {
+      const key = keys[(e as CustomEvent).detail.index];
+      const order = [...items].sort((a, b) => key(a) - key(b));
+      order.forEach((el, n) => {
+        el.style.order = n < 8 ? '0' : '2';
+        rows[+el.dataset.i!].style.order = String(n);
+      });
+    });
+    root.querySelector('[data-view]')!.addEventListener('seg-change', (e) => {
+      const asList = (e as CustomEvent).detail.index === 1;
+      grid.classList.toggle('hidden', asList);
+      list.classList.toggle('hidden', !asList);
+      list.classList.toggle('flex', asList);
+    });
+  }
+</script>

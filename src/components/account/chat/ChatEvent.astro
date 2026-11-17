@@ -1,0 +1,13 @@
+---
+// A line in the thread that nobody typed: the no-hold rule, a price agreed.
+import Icon from '../../Icon.astro';
+
+interface Props {
+  icon: string;
+  text: string;
+}
+
+const { icon, text } = Astro.props;
+---
+
+<p class="flex items-center justify-center gap-1.5 text-center text-label-medium text-on-surface-variant"><Icon name={icon} size={16} />{text}</p>

@@ -1,0 +1,289 @@
+---
+// Người bán: the seller's name, tier and facts, the four figures, their
+// listings with a category filter, the tier panel, where they ship COD from,
+// and the reviews. The mock has one seller (SELLER.id); other ids are a 404.
+import Crumbs from '../../components/Crumbs.astro';
+import Drop from '../../components/Drop.astro';
+import Icon from '../../components/Icon.astro';
+import ListingCard from '../../components/ListingCard.astro';
+import MoneyLine from '../../components/MoneyLine.astro';
+import AreaMap from '../../components/public/AreaMap.astro';
+import Stars from '../../components/public/Stars.astro';
+import SectionTitle from '../../components/SectionTitle.astro';
+import Seg from '../../components/Seg.astro';
+import Layout from '../../layouts/Layout.astro';
+import { REVIEWS, SELLER, SELLING } from '../../data/public';
+import { img, where } from '../../lib/format';
+import { R } from '../../lib/routes';
+import { CONTENT, PANEL } from '../../lib/ui';
+import tierTop from '@brand/tier_top.webp';
+
+if (Astro.params.id !== SELLER.id) return new Response(null, { status: 404 });
+
+const facts: [string, string][] = [
+  ['location-on-outline-rounded', `${SELLER.area}, TP.HCM`],
+  ['calendar-month-outline-rounded', `Tham gia ${SELLER.joined}`],
+  ['verified-user-outline-rounded', 'Đã xác minh SĐT · CCCD'],
+];
+const stats: [string, string, string][] = [
+  ['4,9', '/5', '32 đánh giá'],
+  ['14', '', 'đã bán'],
+  ['10', ' phút', 'trả lời tin'],
+  ['0', '', 'đơn đã hủy'],
+];
+const tier: [string, string][] = [
+  ['handshake-outline-rounded', '14 giao dịch xong'],
+  ['cancel-outline-rounded', 'Chưa hủy đơn nào'],
+  ['block-rounded', '0/9 đơn COD bị từ chối nhận'],
+  ['report-outline-rounded', '1 ghi nhận sự cố · đã tự hoàn'],
+  ['verified-user-outline-rounded', 'CCCD gắn chip'],
+  ['schedule-outline-rounded', 'Trả lời trong khoảng 10 phút'],
+];
+const cats = ['Tất cả · 6', 'Điện thoại', 'Âm thanh', 'Gia dụng', 'Xe đạp'];
+// Each listing's category, for the filter pills.
+const catOf = ['Điện thoại', 'Gia dụng', 'Âm thanh', 'Âm thanh', 'Xe đạp', 'Gia dụng'];
+const praise: [string, string][] = [
+  ['Đúng mô tả', '21'],
+  ['Hẹn giờ đúng', '14'],
+  ['Gói hàng kỹ', '9'],
+];
+const bars: [number, number, number][] = [
+  [5, 88, 28],
+  [4, 9, 3],
+  [3, 3, 1],
+  [2, 0, 0],
+  [1, 0, 0],
+];
+const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border border-line bg-card text-on-surface-variant';
+---
+
+<Layout
+  title={`Người bán · ${SELLER.name}`}
+  description={`${SELLER.name}, ${SELLER.area}: 4,9/5 từ 32 đánh giá, 14 món đã bán. Xem tin đang bán.`}
+  image={img(SELLER.photo, 600, 600)}
+>
+  <main class={CONTENT}>
+    <Crumbs parts={[['Khám phá', R.home], ['Người bán']]} class="pt-4" />
+    <section class="mt-4 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
+        <div class="relative w-fit shrink-0">
+          <img src={img(SELLER.photo, 256, 256)} alt={SELLER.name} class="h-24 w-24 rounded-full object-cover ring-4 ring-white md:h-28 md:w-28" />
+          <img src={tierTop.src} alt="" class="absolute -bottom-1 -right-2 h-11 w-11" />
+        </div>
+        <div class="min-w-0">
+          <h1 class="flex items-center gap-2 text-j-40 text-ink md:text-j-48">
+            {SELLER.name}<Icon name="verified-rounded" size={30} class="text-primary" label="Đã xác minh" />
+          </h1>
+          <div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-body-medium text-on-surface-variant">
+            <a
+              href={R.reputation}
+              class="state-layer glass glass-edge flex h-8 items-center gap-1.5 rounded-full pl-1 pr-2.5 text-label-large text-ink"
+            >
+              <img src={tierTop.src} alt="" class="h-6 w-6" />Xuất sắc<Icon name="chevron-right-rounded" size={16} class="text-on-surface-variant" />
+            </a>
+            {
+              facts.map(([ic, t]) => (
+                <span class="flex items-center gap-1.5">
+                  <Icon name={ic} size={16} class="text-on-surface-variant" />
+                  {t}
+                </span>
+              ))
+            }
+          </div>
+          <div class="mt-4 flex items-center gap-2">
+            <button
+              type="button"
+              aria-pressed="false"
+              class="state-layer flex h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-label-large text-on-ink"
+              data-follow
+            >
+              <Icon name="person-add-outline-rounded" size={18} /><span>Theo dõi</span>
+            </button>
+            <a
+              href={`${R.messages}?nguoi=${SELLER.id}`}
+              class="state-layer flex h-10 items-center gap-1.5 rounded-full border border-line bg-card pl-3.5 pr-4 text-label-large text-ink"
+            >
+              <Icon name="chat-outline-rounded" size={18} />Nhắn tin
+            </a>
+            <button type="button" class={line} aria-label="Chia sẻ"><Icon name="share-outline-rounded" size={18} /></button>
+            <button type="button" class={line} aria-label="Tùy chọn khác" aria-expanded="false"><Icon name="more-vert" size={19} /></button>
+          </div>
+        </div>
+      </div>
+      <div class="glass glass-edge grid shrink-0 grid-cols-2 gap-y-4 rounded-xl py-5 shadow-soft md:grid-cols-4">
+        {
+          stats.map(([v, u, l], i) => (
+            <div class:list={['px-5', i % 2 === 1 && 'border-l border-line', i === 2 && 'md:border-l md:border-line']}>
+              <p class="text-j-34 text-ink tabular-nums">
+                {v}
+                <span class="text-title-medium font-medium tracking-normal text-on-surface-variant">{u}</span>
+              </p>
+              <p class="text-body-small text-on-surface-variant">{l}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
+      <div class="min-w-0">
+        <div
+          class="glass glass-edge sticky top-[76px] z-20 flex items-center gap-2 overflow-x-auto rounded-full py-1 pl-1 pr-1.5 shadow-soft no-scrollbar"
+        >
+          <div data-tabs class="shrink-0">
+            <Seg items={['Đang bán 6', 'Đánh giá 32']} class="bg-ink/[.04]" name="Tin và đánh giá" />
+          </div>
+          <span class="mx-1 h-5 shrink-0 border-l border-ink/10"></span>
+          <div class="flex gap-2" data-cats>
+            {
+              cats.map((t, i) => (
+                <button
+                  type="button"
+                  data-cat={i === 0 ? '' : t}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                  class="state-layer h-9 shrink-0 whitespace-nowrap rounded-full border border-line bg-card/70 px-3.5 text-label-large text-on-surface-variant aria-pressed:border-transparent aria-pressed:bg-ink aria-pressed:text-on-ink"
+                >
+                  {t}
+                </button>
+              ))
+            }
+          </div>
+          <span class="flex-1"></span>
+          <Drop label="Mới đăng" />
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4">
+          {
+            SELLING.map((it, i) => (
+              <div class="grid min-w-0" data-in={catOf[i]}>
+                <ListingCard item={it} />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <aside class="flex flex-col gap-4 self-start lg:sticky lg:top-[84px]">
+        <div class:list={[PANEL, 'px-5 pb-2 pt-5']}>
+          <div class="flex items-center gap-3">
+            <img src={tierTop.src} alt="" class="h-12 w-12" />
+            <div>
+              <p class="text-j-16 text-ink">Bậc Xuất sắc</p>
+              <p class="flex items-center gap-1 text-body-small text-on-surface-variant">
+                <Icon name="history-rounded" size={14} />Tính từ 12 tháng gần nhất
+              </p>
+            </div>
+          </div>
+          <ul class="mt-2">
+            {
+              tier.map(([ic, t], i) => (
+                <li class:list={['flex items-center gap-3 py-2.5 text-body-medium text-ink', i > 0 && 'border-t border-line']}>
+                  <Icon name={ic} size={18} class="text-on-surface-variant" />
+                  {t}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div class:list={[PANEL, 'p-2']}>
+          <AreaMap
+            height={200}
+            you={[30, 72]}
+            pins={[{ x: 56, y: 44, label: SELLER.area, on: true }]}
+            route={{ from: [30, 72], to: [56, 44], label: where(2.1, SELLER.area) }}
+          />
+          <div class="flex flex-col gap-1.5 px-3 pb-2 pt-3">
+            <p class="flex items-center gap-2 text-title-small text-ink">
+              <Icon name="local-shipping-outline-rounded" size={18} class="text-primary" />Gửi COD từ {SELLER.area}
+            </p>
+            <MoneyLine k="cod_buyer" icon="visibility-outline-rounded" small />
+            <MoneyLine k="no_hold" icon="account-balance-outline-rounded" small />
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="mt-10 scroll-mt-24" id="danh-gia">
+      <SectionTitle title="Người mua nói gì" link="Xem cả 32 đánh giá" href="#danh-gia" />
+      <div class="mt-4 grid grid-cols-1 gap-6 rounded-panel border border-line bg-card p-5 md:grid-cols-[240px_1fr]">
+        <div>
+          <p class="text-j-52 text-ink tabular-nums">
+            4,9<span class="text-title-large font-medium tracking-normal text-on-surface-variant">/5</span>
+          </p>
+          <p class="mt-1"><Stars n={5} size={18} /></p>
+          <div class="mt-4 flex flex-col gap-1.5">
+            {
+              bars.map(([s, w, c]) => (
+                <div class="flex items-center gap-2 text-body-small text-on-surface-variant">
+                  <span class="w-3">{s}</span>
+                  <span class="h-1.5 flex-1 rounded-full bg-surface-container-high">
+                    <span class="block h-full rounded-full bg-primary" style={`width:${w}%`} />
+                  </span>
+                  <span class="w-5 text-right tabular-nums">{c}</span>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="flex items-center gap-1 text-label-medium text-on-surface-variant">
+              <Icon name="auto-awesome-rounded" size={14} class="text-primary" />Hay được khen
+            </span>
+            {
+              praise.map(([p, n]) => (
+                <span class="flex items-center gap-1 rounded-full bg-secondary-container px-3 py-1 text-label-medium text-on-secondary-container">
+                  {p}
+                  <b class="font-semibold tabular-nums">{n}</b>
+                </span>
+              ))
+            }
+          </div>
+          <ul class="mt-1">
+            {
+              REVIEWS.map((r, i) => (
+                <li class:list={['flex gap-3 py-4', i > 0 && 'border-t border-line']}>
+                  <img src={img(r.photo, 80, 80)} alt="" class="h-10 w-10 shrink-0 rounded-full object-cover" />
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span class="text-title-small text-ink">{r.name}</span>
+                      <Stars n={r.stars} size={14} />
+                      <span class="text-body-small text-on-surface-variant">{r.ago}</span>
+                      <span class="flex items-center gap-1.5 rounded-full bg-surface-container-low py-0.5 pl-0.5 pr-2.5 text-body-small text-on-surface-variant md:ml-auto">
+                        <img src={img(r.item, 48, 48)} alt="" class="h-5 w-5 rounded-full object-cover" />
+                        Đã mua {r.itemName}
+                      </span>
+                    </div>
+                    <p class="mt-1 text-body-medium text-ink">{r.text}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  // The category pills filter the seller's listings; "Đánh giá" jumps to the reviews.
+  const pills = document.querySelector<HTMLElement>('[data-cats]');
+  pills?.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
+    if (!b) return;
+    pills.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll<HTMLElement>('[data-in]').forEach((el) => {
+      el.hidden = !!b.dataset.cat && el.dataset.in !== b.dataset.cat;
+    });
+  });
+  document.querySelector('[data-tabs]')?.addEventListener('seg-change', (e) => {
+    if ((e as CustomEvent).detail.index === 1) document.getElementById('danh-gia')?.scrollIntoView({ behavior: 'smooth' });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-follow]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(on));
+      b.querySelector('span')!.textContent = on ? 'Đang theo dõi' : 'Theo dõi';
+    }),
+  );
+</script>

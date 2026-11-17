@@ -1,0 +1,48 @@
+---
+// A Danh mục tile: photo, name, count and today's new listings, then up to
+// four subcategories with counts and "+N mục" for the rest.
+import type { Category } from '../../data/public';
+import { img } from '../../lib/format';
+import { R } from '../../lib/routes';
+import Icon from '../Icon.astro';
+
+interface Props {
+  c: Category;
+}
+
+const { c } = Astro.props;
+const href = R.category(c.slug);
+---
+
+<article class="lift flex flex-col rounded-panel border border-line bg-card p-2">
+  <a href={href} class="flex items-center gap-3 rounded-tile p-1.5 pr-2 hover:bg-surface-container-low">
+    <img src={img(c.photo, 160, 160)} alt="" loading="lazy" class="h-16 w-16 shrink-0 rounded-lg object-cover" />
+    <span class="min-w-0 flex-1">
+      <span class="flex items-center gap-1.5 text-j-16 text-ink"><Icon name={c.icon} size={18} class="text-primary" />{c.name}</span>
+      <span class="mt-0.5 block text-body-small text-on-surface-variant">
+        <b class="font-semibold text-ink tabular-nums">{c.count}</b> món · <span class="text-primary">+{c.today} hôm nay</span>
+      </span>
+    </span>
+    <Icon name="arrow-forward-rounded" size={18} class="text-on-surface-variant" />
+  </a>
+  <div class="flex flex-wrap gap-1 px-1.5 pb-1.5 pt-1">
+    {
+      c.subs.slice(0, 4).map((s) => (
+        <a
+          href={`${href}?muc=${encodeURIComponent(s.name)}`}
+          class="flex h-7 items-center gap-1 rounded-full bg-surface-container-low px-2.5 text-label-medium text-ink hover:bg-secondary-container"
+        >
+          {s.name}
+          <span class="text-label-small text-on-surface-variant tabular-nums">{s.count}</span>
+        </a>
+      ))
+    }
+    {
+      c.subs.length > 4 && (
+        <a href={href} class="flex h-7 items-center rounded-full px-2 text-label-medium text-primary hover:underline">
+          +{c.subs.length - 4} mục
+        </a>
+      )
+    }
+  </div>
+</article>

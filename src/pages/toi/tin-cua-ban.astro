@@ -1,0 +1,117 @@
+---
+// Tin của bạn: the seller's numbers for the week, their listings with what
+// waits on each, drafts, and what sold lately.
+import Icon from '../../components/Icon.astro';
+import PageTitle from '../../components/PageTitle.astro';
+import Seg from '../../components/Seg.astro';
+import AccountFrame from '../../components/orders/AccountFrame.astro';
+import Face from '../../components/orders/Face.astro';
+import ListingRow from '../../components/orders/ListingRow.astro';
+import SectionLabel from '../../components/orders/SectionLabel.astro';
+import { DRAFTS, FACE, LISTING_STATS, ON_SALE, RECENTLY_SOLD, SOLD_COUNT } from '../../data/orders';
+import { img } from '../../lib/format';
+import { R } from '../../lib/routes';
+import { requireViewer } from '../../lib/session';
+import { btnCls, PANEL } from '../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+---
+
+<AccountFrame title="Tin của bạn" description="Tin đang bán, nháp và tin đã bán của bạn." active="listings">
+  <PageTitle title="Tin của bạn" meta={`${ON_SALE.length} tin đang bán · ${DRAFTS.length} nháp · ${SOLD_COUNT} tin đã bán`}>
+    <a href={R.post} class={btnCls('line')}><Icon name="videocam-outline-rounded" size={18} />Quay video</a>
+    <a href={R.post} class={btnCls('ink')}><Icon name="photo-camera-outline-rounded" size={18} />Chụp ảnh đăng tin</a>
+  </PageTitle>
+
+  <div class="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+    {
+      LISTING_STATS.map((s) => (
+        <div class:list={[PANEL, 'flex items-center gap-3 p-4']}>
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-linear-to-br from-teal to-teal-light text-white">
+            <Icon name={s.icon} size={20} />
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="flex items-center gap-2">
+              <span class="text-j-24 text-ink tabular-nums">{s.n}</span>
+              {s.delta && (
+                <span class="rounded-full bg-secondary-container px-2 py-0.5 text-label-small text-on-secondary-container tabular-nums">
+                  {s.delta}
+                </span>
+              )}
+            </p>
+            <p class="text-body-small text-on-surface-variant">{s.label}</p>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <section class="min-w-0">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <Seg items={[`Đang bán · ${ON_SALE.length}`, `Nháp · ${DRAFTS.length}`, `Đã bán · ${SOLD_COUNT}`]} class="bg-black/[.04]" name="Tin của bạn" />
+        <Seg items={['Mới đăng', 'Nhiều người hỏi']} class="bg-black/[.04]" itemClass="text-label-medium" name="Sắp xếp" />
+      </div>
+      <div class="mt-3 flex flex-col gap-2.5">
+        {ON_SALE.map((it) => <ListingRow it={it} />)}
+      </div>
+    </section>
+    <aside class="flex min-w-0 flex-col gap-4 self-start">
+      <div class:list={[PANEL, 'px-5 py-4']}>
+        <SectionLabel title="Nháp"><span class="text-body-small text-on-surface-variant">Tự xóa sau 30 ngày</span></SectionLabel>
+        <ul>
+          {
+            DRAFTS.map((d, i) => (
+              <li class:list={['flex items-center gap-3 py-2.5', i > 0 && 'border-t border-line']}>
+                <img src={img(d.photo, 120, 120)} alt="" class="h-12 w-12 shrink-0 rounded-md object-cover" />
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-body-medium text-ink">{d.title}</p>
+                  <p class="truncate text-body-small text-on-surface-variant">{d.line}</p>
+                  <p class="flex items-center gap-1 whitespace-nowrap text-label-small text-tertiary">
+                    <Icon name={d.icon} size={12} />
+                    {d.label}
+                  </p>
+                </div>
+                <a href={R.post} class:list={[btnCls('tonal'), 'h-8 px-3']}>Tiếp tục</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class:list={[PANEL, 'px-5 py-4']}>
+        <SectionLabel title="Vừa bán"><a href="#" class="text-label-large text-primary hover:underline">Xem {SOLD_COUNT} tin</a></SectionLabel>
+        <ul>
+          {
+            RECENTLY_SOLD.map((s, i) => (
+              <li class:list={['flex items-center gap-3 py-2.5', i > 0 && 'border-t border-line']}>
+                <img src={img(s.photo, 120, 120)} alt="" class="h-12 w-12 shrink-0 rounded-md object-cover" />
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-body-medium text-ink">{s.title}</p>
+                  <p class="flex items-center gap-1.5 text-body-small text-on-surface-variant">
+                    {FACE[s.who] && <Face name={s.who} size={16} />}
+                    <span class="truncate">
+                      {s.who} · {s.when}
+                    </span>
+                  </p>
+                </div>
+                {s.rated === null ? (
+                  <span class="shrink-0 text-body-small text-on-surface-variant">Ngoài app</span>
+                ) : s.rated ? (
+                  <span class="flex shrink-0 items-center gap-0.5 text-label-medium text-ink">
+                    <Icon name="star-rounded" size={15} class="text-star" />5
+                  </span>
+                ) : (
+                  <span class="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-surface-container-low px-2 py-0.5 text-label-small text-on-surface-variant">
+                    <Icon name="hourglass-empty-rounded" size={12} />
+                    Chờ
+                  </span>
+                )}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </aside>
+  </div>
+</AccountFrame>

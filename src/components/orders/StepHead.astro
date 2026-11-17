@@ -1,0 +1,33 @@
+---
+// A setup step's heading: done (check), active (teal number) or next (flag);
+// the default slot sits at the right.
+import Icon from '../Icon.astro';
+
+interface Props {
+  n: number;
+  title: string;
+  state: 'done' | 'active' | 'next';
+}
+
+const { n, title, state } = Astro.props;
+---
+
+<div class="flex items-center gap-3">
+  {
+    state === 'done' ? (
+      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-on-primary" aria-label={`Bước ${n}: xong`}>
+        <Icon name="check-rounded" size={20} />
+      </span>
+    ) : state === 'active' ? (
+      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-linear-to-br from-teal to-teal-light text-title-small text-white ring-4 ring-primary/15 tabular-nums">
+        {n}
+      </span>
+    ) : (
+      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-container-high text-on-surface-variant">
+        <Icon name="flag-outline-rounded" size={18} />
+      </span>
+    )
+  }
+  <h2 class="flex-1 text-j-20 text-ink">{title}</h2>
+  <slot />
+</div>

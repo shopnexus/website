@@ -1,0 +1,13 @@
+---
+// Cách đăng tin: the Đăng tin form as the mockups draw it (sell.html, which
+// the footer's "Cách đăng tin" opens), filled with an example listing.
+import SellForm from '../components/flows/SellForm.astro';
+import Layout from '../layouts/Layout.astro';
+import { CONTENT } from '../lib/ui';
+---
+
+<Layout fab={false} title="Cách đăng tin · ShopNexus" description="Tải vài tấm ảnh lên, AI điền giúp tên, tình trạng và giá.">
+  <main class={CONTENT}>
+    <SellForm />
+  </main>
+</Layout>

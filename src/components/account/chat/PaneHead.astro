@@ -1,0 +1,38 @@
+---
+// The chat's bar: the listing the chat is on, the person, more actions. The
+// default slot holds the deal chips under it.
+import Icon from '../../Icon.astro';
+import Avatar from './Avatar.astro';
+
+interface Props {
+  title: string;
+  name: string;
+  photo?: string;
+  verified?: boolean;
+  thumb: string;
+  href?: string;
+}
+
+const { title, name, photo, verified = false, thumb, href = '#' } = Astro.props;
+---
+
+<div class="border-b border-line">
+  <div class="flex h-16 items-center gap-3 px-4">
+    <a href={href} class="state-layer flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2">
+      <span class="relative h-10 w-10 shrink-0">
+        <img src={thumb} alt="" class="h-10 w-10 rounded-md object-cover" />
+        <span class="absolute -bottom-1 -right-1"><Avatar name={name} photo={photo} size={20} class="ring-2 ring-card" /></span>
+      </span>
+      <span class="min-w-0">
+        <span class="block truncate text-title-medium text-ink" data-pane-title>{title}</span>
+        <span class="flex items-center gap-1 text-body-small text-on-surface-variant">
+          {name}{verified && <Icon name="verified-rounded" size={14} class="text-primary" />}
+        </span>
+      </span>
+    </a>
+    <button type="button" class="state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Tùy chọn khác">
+      <Icon name="more-vert" size={22} />
+    </button>
+  </div>
+  <slot />
+</div>

@@ -1,0 +1,214 @@
+---
+// Thiết lập giao COD: where the shipper picks up and who sends, then the
+// linked carrier account; the last card sums up what buyers will get. There
+// is no payout step: the carrier pays the COD into the seller's own account.
+import Icon from '../../components/Icon.astro';
+import MoneyLine from '../../components/MoneyLine.astro';
+import AccountFrame from '../../components/orders/AccountFrame.astro';
+import Face from '../../components/orders/Face.astro';
+import ListRow from '../../components/orders/ListRow.astro';
+import Option from '../../components/orders/Option.astro';
+import StepHead from '../../components/orders/StepHead.astro';
+import { ADDRESS_BOOK } from '../../data/common';
+import { HOME_LINE, SENDER } from '../../data/orders';
+import { R } from '../../lib/routes';
+import { requireViewer } from '../../lib/session';
+import { btnCls, PANEL } from '../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+
+const home = ADDRESS_BOOK[0];
+const steps = [
+  { name: 'Địa chỉ lấy hàng', d: `${home.label} · ${home.street}`, state: 'done' },
+  { name: 'Bên vận chuyển', d: `GHTK · ${SENDER.shop}`, state: 'active' },
+  { name: 'Sẵn sàng giao COD', d: 'Người mua chọn được COD', state: 'next' },
+] as const;
+const summary = [
+  { icon: 'location-on-outline-rounded', k: 'Lấy hàng tại', v: HOME_LINE },
+  { icon: 'local-shipping-outline-rounded', k: 'Bên vận chuyển', v: `GHTK · ${SENDER.shop}` },
+  { icon: 'call-outline-rounded', k: 'Shipper gọi', v: SENDER.phone },
+];
+const label = 'mb-2 text-label-large text-ink';
+---
+
+<AccountFrame title="Thiết lập giao COD" description="Địa chỉ lấy hàng và bên vận chuyển cho đơn COD." active="cod">
+  <section class="glass glass-edge rounded-xl p-5 shadow-soft md:p-6">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between xl:gap-8">
+      <div>
+        <p class="flex items-center gap-3 text-label-medium text-on-surface-variant">
+          <span class="flex items-center gap-1"><Icon name="timer-outline-rounded" size={15} />3 phút</span>
+          <span class="flex items-center gap-1"><Icon name="event-repeat-outline-rounded" size={15} />Làm một lần</span>
+          <a href={R.me} class="text-primary hover:underline">Để sau</a>
+        </p>
+        <h1 class="mt-1 text-j-32 text-ink lg:text-j-40">Thiết lập <span class="grad-text">giao COD</span></h1>
+      </div>
+      <div class="flex max-w-[420px] flex-col gap-1.5 xl:pt-1">
+        <MoneyLine k="cod_seller" icon="account-balance-outline-rounded" />
+        <MoneyLine k="no_hold" icon="lock-outline-rounded" />
+      </div>
+    </div>
+    <ol class="mt-5 flex flex-col gap-3 border-t border-white/70 pt-4 md:flex-row md:items-center md:gap-4">
+      {
+        steps.map((s, i) => (
+          <>
+            <li class="flex items-center gap-2.5">
+              <span
+                class:list={[
+                  'grid h-7 w-7 shrink-0 place-items-center rounded-full text-label-medium',
+                  s.state === 'done' && 'bg-primary text-on-primary',
+                  s.state === 'active' && 'bg-linear-to-br from-teal to-teal-light text-white',
+                  s.state === 'next' && 'bg-surface-container-high text-on-surface-variant',
+                ]}
+              >
+                {s.state === 'done' ? <Icon name="check-rounded" size={16} /> : s.state === 'next' ? <Icon name="flag-outline-rounded" size={15} /> : i + 1}
+              </span>
+              <span class="whitespace-nowrap">
+                <span class="block text-label-large text-ink">{s.name}</span>
+                <span class="block text-body-small text-on-surface-variant">{s.d}</span>
+              </span>
+            </li>
+            {i < 2 && <span class:list={['hidden h-[3px] min-w-10 flex-1 rounded-full md:block', i === 0 ? 'bg-primary' : 'bg-black/10']} />}
+          </>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class:list={[PANEL, 'mt-4 p-5']}>
+    <StepHead n={1} title="Địa chỉ lấy hàng" state="done">
+      <span class="text-body-small text-on-surface-variant">Xong · {home.label}</span>
+    </StepHead>
+    <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div>
+        <p class={label}>Lấy hàng tại</p>
+        <div class="flex flex-col gap-2" role="radiogroup" aria-label="Lấy hàng tại">
+          {
+            ADDRESS_BOOK.map((a, i) => (
+              <Option sub={`${a.street}, ${a.ward}`} on={i === 0}>
+                <span slot="title" class="flex items-center gap-1.5">
+                  <Icon name={a.icon} size={17} class="text-on-surface-variant" />
+                  {a.label}
+                </span>
+                {i === 0 && (
+                  <a slot="end" href={R.addresses} class:list={[btnCls('ghost'), 'h-8 px-2']}>
+                    <Icon name="edit-outline-rounded" size={18} />
+                    Sửa
+                  </a>
+                )}
+              </Option>
+            ))
+          }
+          <Option>
+            <span slot="title" class="flex items-center gap-1.5">
+              <Icon name="add-rounded" size={17} class="text-primary" />Địa chỉ mới
+            </span>
+          </Option>
+        </div>
+      </div>
+      <div>
+        <p class={label}>Người gửi</p>
+        <div class="rounded-tile border border-line bg-card px-4 py-1">
+          <div class="flex min-h-[56px] items-center gap-3 py-2">
+            <Face name="Khánh Linh" size={36} />
+            <span class="min-w-0 flex-1">
+              <span class="flex items-center gap-1 text-body-medium text-ink">
+                {SENDER.name}<Icon name="verified-rounded" size={15} class="text-primary" />
+              </span>
+              <span class="block text-body-small text-on-surface-variant">Tên trên CCCD</span>
+            </span>
+          </div>
+          <div class="border-t border-line">
+            <ListRow icon="call-outline-rounded" main={SENDER.phone} sub="Shipper gọi số này khi đến lấy">
+              <button type="button" class:list={[btnCls('ghost'), 'h-8 px-2']}><Icon name="edit-outline-rounded" size={18} />Sửa</button>
+            </ListRow>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-4 rounded-panel border border-white bg-card p-5 shadow-glow">
+    <StepHead n={2} title="Bên vận chuyển" state="active" />
+    <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div>
+        <p class={label}>Tài khoản đã liên kết</p>
+        <div class="relative flex min-h-[60px] items-center gap-3 rounded-tile border border-primary/40 bg-card px-3.5 py-2 ring-1 ring-primary/30" data-unlink>
+          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ghtk text-label-medium font-semibold text-white">GH</span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-body-medium text-ink">GHTK · {SENDER.shop}</span>
+            <span class="flex items-center gap-1 text-body-small text-primary">
+              <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Đã liên kết · 18 đơn đã gửi
+            </span>
+          </span>
+          <button type="button" class:list={[btnCls('line'), 'h-8 px-3']} aria-haspopup="dialog" aria-expanded="false" data-unlink-open>
+            Gỡ liên kết
+          </button>
+          <div
+            role="dialog"
+            aria-labelledby="unlink-title"
+            class="absolute right-0 top-[calc(100%+8px)] z-20 hidden w-[290px] max-w-full rounded-card bg-card/95 p-4 shadow-float ring-1 ring-line backdrop-blur"
+            data-unlink-dialog
+          >
+            <h3 id="unlink-title" class="text-title-small text-ink">Gỡ liên kết GHTK?</h3>
+            <p class="mt-1 text-body-medium text-on-surface-variant">Các đơn đã gửi vẫn giữ nguyên.</p>
+            <div class="mt-3 flex justify-end gap-1">
+              <button type="button" class={btnCls('ghost')} data-unlink-close>Giữ lại</button>
+              <button type="button" class:list={[btnCls('line'), 'text-error!']}>Gỡ liên kết</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class={label}>Liên kết thêm</p>
+        <div class="flex min-h-[60px] items-center gap-3 rounded-tile border border-line bg-card/60 px-3.5 py-2">
+          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ghn text-label-medium font-semibold text-white">GHN</span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-body-medium text-ink">GHN</span>
+            <span class="block text-body-small text-on-surface-variant">Dán mã API và mã cửa hàng</span>
+          </span>
+          <button type="button" class:list={[btnCls('tonal'), 'h-8 px-3']}>Kết nối GHN</button>
+        </div>
+        <button type="button" class:list={[btnCls('ghost'), '-ml-2 mt-1']}><Icon name="add-rounded" size={18} />Hãng của bạn chưa có?</button>
+      </div>
+    </div>
+    <div class="mt-5 flex justify-end border-t border-line pt-4">
+      <button type="button" class:list={[btnCls('primary'), 'h-11 px-7']}>Tiếp tục<Icon name="arrow-forward-rounded" size={18} /></button>
+    </div>
+  </section>
+
+  <section
+    class="mt-4 grid grid-cols-1 items-center gap-6 rounded-panel border border-dashed border-black/15 bg-card/50 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+  >
+    <div>
+      <StepHead n={3} title="Sẵn sàng giao COD" state="next" />
+      <p class="mt-2 pl-12 text-body-medium text-on-surface-variant">Người mua chọn được COD với mọi tin của bạn.</p>
+    </div>
+    <div class="rounded-tile border border-line bg-card px-4">
+      {
+        summary.map((r, i) => (
+          <div class:list={['flex items-center gap-3 py-2.5', i > 0 && 'border-t border-line']}>
+            <Icon name={r.icon} size={18} class="text-on-surface-variant" />
+            <span class="w-28 shrink-0 text-body-small text-on-surface-variant">{r.k}</span>
+            <span class="min-w-0 text-body-medium text-ink">{r.v}</span>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</AccountFrame>
+
+<script>
+  // "Gỡ liên kết" asks first in a small dialog under the button.
+  document.querySelectorAll<HTMLElement>('[data-unlink]').forEach((box) => {
+    const open = box.querySelector<HTMLButtonElement>('[data-unlink-open]')!;
+    const dialog = box.querySelector<HTMLElement>('[data-unlink-dialog]')!;
+    const set = (on: boolean) => {
+      dialog.classList.toggle('hidden', !on);
+      open.setAttribute('aria-expanded', String(on));
+    };
+    open.addEventListener('click', () => set(dialog.classList.contains('hidden')));
+    box.querySelector('[data-unlink-close]')!.addEventListener('click', () => set(false));
+    document.addEventListener('keydown', (e) => e.key === 'Escape' && set(false));
+  });
+</script>

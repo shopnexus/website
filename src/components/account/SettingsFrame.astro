@@ -1,0 +1,25 @@
+---
+// Tôi's settings pages: the account nav with Tôi selected, a breadcrumb from
+// Tôi, the title, the page and a side column. Slot "end" holds the title's actions.
+import Crumbs from '../Crumbs.astro';
+import PageTitle from '../PageTitle.astro';
+import { R } from '../../lib/routes';
+import AccountShell from './AccountShell.astro';
+
+interface Props {
+  title: string;
+  /** The breadcrumb's last part and the tab title. */
+  page: string;
+  meta?: string;
+  description?: string;
+}
+
+const { title, page, meta, description } = Astro.props;
+---
+
+<AccountShell title={`${page} · ShopNexus`} description={description} active="me" sideOffset>
+  <Crumbs parts={[['Tôi', R.me], [page]]} />
+  <PageTitle title={title} meta={meta}><slot name="end" /></PageTitle>
+  <slot />
+  <Fragment slot="side"><slot name="side" /></Fragment>
+</AccountShell>

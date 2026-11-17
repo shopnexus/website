@@ -1,0 +1,19 @@
+---
+// A round icon-only button.
+import Icon from '../Icon.astro';
+
+interface Props {
+  label: string;
+  icon: string;
+  class?: string;
+  /** Classes for the size; 36 px by default. */
+  size?: string;
+  iconSize?: number;
+}
+
+const { label, icon, class: cls = 'text-on-surface-variant', size = 'h-9 w-9', iconSize = 20 } = Astro.props;
+---
+
+<button type="button" class:list={['state-layer grid shrink-0 place-items-center rounded-full', size, cls]} aria-label={label}>
+  <Icon name={icon} size={iconSize} />
+</button>

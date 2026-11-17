@@ -1,0 +1,25 @@
+---
+// A price move: a 40 px pill on the side that made it; the line under it names the item.
+import Icon from '../../Icon.astro';
+
+interface Props {
+  side: 'mine' | 'theirs';
+  amount: string;
+  time: string;
+  kind?: 'offer' | 'accept';
+}
+
+const { side, amount, time, kind = 'offer' } = Astro.props;
+---
+
+<div class:list={['flex flex-col gap-1', side === 'mine' ? 'items-end' : 'items-start']}>
+  <span
+    class:list={[
+      'flex h-10 items-center gap-2 rounded-full pl-3 pr-4 text-title-small tabular-nums',
+      kind === 'offer' ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant' : 'bg-secondary-container text-on-secondary-container',
+    ]}
+  >
+    <Icon name={kind === 'offer' ? 'sell-outline-rounded' : 'check-rounded'} size={18} />{amount}
+  </span>
+  <p class="px-2 text-body-small text-on-surface-variant">{time}</p>
+</div>

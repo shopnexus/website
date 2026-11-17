@@ -1,0 +1,187 @@
+---
+// Gói người bán: Cơ bản is free, Plus and Cửa hàng are monthly, Đẩy tin is paid
+// per push. A plan cannot buy COD rights or a tier. The right column confirms
+// the chosen plan and how the fee is paid; the goods are still paid to the
+// shipper.
+import Icon from '../components/Icon.astro';
+import Price from '../components/Price.astro';
+import Layout from '../layouts/Layout.astro';
+import { FEE_NOTE, PAY_WAYS, PLANS, TIERS } from '../data/flows';
+import { R } from '../lib/routes';
+import { viewer } from '../lib/session';
+import { btnCls, CONTENT, PANEL } from '../lib/ui';
+
+const me = viewer(Astro);
+const chosen = 1;
+const confirmHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(R.plans)}`;
+---
+
+<Layout title="Gói người bán · ShopNexus" description="Thêm lượt đẩy và thống kê cho người bán thường xuyên. Gói Cơ bản miễn phí.">
+  <main class:list={[CONTENT, 'pt-8']}>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="text-j-40 text-ink lg:text-j-44">Gói người bán</h1>
+        <p class="mt-2 text-body-large text-on-surface-variant">Thêm lượt đẩy và thống kê cho người bán thường xuyên. Gói Cơ bản miễn phí.</p>
+      </div>
+      <p class="glass glass-edge flex items-center gap-2 rounded-full px-4 py-2 text-label-large text-ink">
+        <Icon name="workspace-premium-outline-rounded" size={18} class="text-primary" />Quyền COD và bậc uy tín không mua được
+      </p>
+    </div>
+
+    <section class="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_380px]">
+      <div class="min-w-0">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {
+            PLANS.map((p, i) => {
+              const on = i === chosen;
+              const current = p.current && !!me;
+              return (
+                <article
+                  class:list={[
+                    'lift flex flex-col rounded-panel bg-card p-5',
+                    on ? 'shadow-glow ring-2 ring-ink' : 'border border-line',
+                  ]}
+                >
+                  <div class="flex items-center justify-between">
+                    <p class="text-title-medium font-semibold text-ink">{p.name}</p>
+                    {current ? (
+                      <span class="rounded-full bg-secondary-container px-2.5 py-1 text-label-medium text-on-secondary-container">Đang dùng</span>
+                    ) : on ? (
+                      <span class="rounded-full bg-ink px-2.5 py-1 text-label-medium text-on-ink">Đã chọn</span>
+                    ) : null}
+                  </div>
+                  {p.unit ? (
+                    <p class="mt-3 flex items-baseline gap-1">
+                      <span class="text-j-34 text-ink tabular-nums">{p.amount}</span>
+                      <span class="text-body-medium text-on-surface-variant">{p.unit}</span>
+                    </p>
+                  ) : (
+                    <p class="mt-3 text-j-34 text-ink">{p.amount}</p>
+                  )}
+                  <ul class="mt-4 flex flex-1 flex-col gap-2">
+                    {p.perks.map((perk) => (
+                      <li class="flex gap-2 text-body-medium text-ink">
+                        <Icon name="check-rounded" size={18} class="mt-px shrink-0 text-primary" />
+                        {perk}
+                      </li>
+                    ))}
+                  </ul>
+                  {!p.current && (
+                    <button type="button" class:list={[btnCls(on ? 'ink' : 'line', 'lg'), 'mt-5 w-full']}>
+                      {on ? `Đã chọn ${p.name}` : `Chọn ${p.name}`}
+                    </button>
+                  )}
+                </article>
+              );
+            })
+          }
+        </div>
+        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class:list={[PANEL, 'p-5']}>
+            <p class="flex items-center gap-2 text-title-small text-ink">
+              <Icon name="trending-up-rounded" size={18} class="text-primary" />Đẩy tin theo lượt
+            </p>
+            <p class="mt-1 text-body-small text-on-surface-variant">Lên đầu mục Gần bạn quanh Bình Thạnh</p>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <div class="rounded-lg bg-surface-container-low p-3">
+                <p class="text-body-small text-on-surface-variant">1 ngày</p>
+                <Price vnd={15000} />
+              </div>
+              <div class="rounded-lg bg-surface-container-low p-3">
+                <p class="text-body-small text-on-surface-variant">3 ngày</p>
+                <Price vnd={35000} />
+              </div>
+            </div>
+          </div>
+          <div class:list={[PANEL, 'p-5']}>
+            <p class="flex items-center gap-2 text-title-small text-ink">
+              <Icon name="autorenew-rounded" size={18} class="text-primary" />Gia hạn và hủy
+            </p>
+            <p class="mt-2 text-body-medium text-on-surface-variant">Gia hạn mỗi tháng. Hủy lúc nào cũng được, gói chạy hết tháng đã trả.</p>
+            <p class="mt-2 flex gap-2 text-body-small text-on-surface-variant">
+              <Icon name="info-outline-rounded" size={16} class="mt-px shrink-0 text-primary" />{FEE_NOTE}
+            </p>
+          </div>
+        </div>
+        <div class:list={[PANEL, 'mt-4 p-5']}>
+          <div class="flex items-baseline justify-between gap-4">
+            <p class="text-title-small text-ink">Quyền theo bậc uy tín</p>
+            <a href={R.reputation} class="shrink-0 text-label-large text-primary hover:underline">Cách tính điểm</a>
+          </div>
+          <p class="mt-1 text-body-small text-on-surface-variant">
+            Bậc lên theo điểm uy tín 12 tháng: giao dịch xong, đánh giá, trả lời nhanh. Gói không đổi được bậc.
+          </p>
+          <ul class="mt-2 grid grid-cols-1 gap-x-8 md:grid-cols-2">
+            {
+              TIERS.map((t, i) => {
+                const mine = i === 1 && !!me;
+                return (
+                  <li class="flex items-center gap-3 py-2.5">
+                    <span
+                      class:list={[
+                        'grid h-9 w-9 shrink-0 place-items-center rounded-full text-label-medium tabular-nums',
+                        mine ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant',
+                      ]}
+                    >
+                      {t.points}
+                    </span>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-title-small text-ink">{t.name}</p>
+                      <p class="text-body-small text-on-surface-variant">{t.rights}</p>
+                    </div>
+                    {mine && (
+                      <span class="shrink-0 rounded-full bg-secondary-container px-2 py-0.5 text-label-small text-on-secondary-container">Bạn · 386</span>
+                    )}
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </div>
+      </div>
+
+      <aside class:list={[PANEL, 'p-5 lg:sticky lg:top-[84px]']}>
+        <p class="text-label-medium text-on-surface-variant">Xác nhận gói</p>
+        <div class="mt-1 flex items-baseline justify-between">
+          <p class="text-j-20 text-ink">{PLANS[chosen].name}</p>
+          <p class="flex items-baseline gap-1">
+            <Price vnd={49000} size="text-j-24" /><span class="text-body-small text-on-surface-variant">/tháng</span>
+          </p>
+        </div>
+        <p class="mt-4 text-label-large text-on-surface-variant">Trả bằng</p>
+        <div class="mt-1.5 flex flex-col gap-1" role="radiogroup" aria-label="Trả bằng">
+          {
+            PAY_WAYS.map((w) => (
+              <label class="group flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-surface-container-low has-[:checked]:bg-surface-container-low">
+                <input type="radio" name="tra-bang" value={w.name} checked={w.on} class="sr-only" />
+                <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-outline group-has-[:checked]:border-primary">
+                  <span class="hidden h-2.5 w-2.5 rounded-full bg-primary group-has-[:checked]:block" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-body-medium text-ink">{w.name}</span>
+                  <span class="block text-body-small text-on-surface-variant">{w.sub}</span>
+                </span>
+                {w.action && <span class="text-label-large text-primary">{w.action}</span>}
+              </label>
+            ))
+          }
+        </div>
+        <p class="mt-3 text-body-small text-on-surface-variant">
+          Dùng để trả phí đẩy tin và gói người bán. Tiền hàng vẫn trả cho shipper khi nhận.
+        </p>
+        {
+          confirmHref ? (
+            <a href={confirmHref} class:list={[btnCls('ink', 'lg'), 'mt-4 w-full']}>
+              Xác nhận
+            </a>
+          ) : (
+            <button type="button" class:list={[btnCls('ink', 'lg'), 'mt-4 w-full']}>
+              Xác nhận
+            </button>
+          )
+        }
+        <p class="mt-3 text-center text-body-small text-on-surface-variant">{FEE_NOTE}</p>
+      </aside>
+    </section>
+  </main>
+</Layout>

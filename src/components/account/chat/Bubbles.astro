@@ -1,0 +1,58 @@
+---
+// Consecutive messages from one side: 2 px apart, the corners on the sender's
+// side tucked, one time under the last. A message replies from its hover action.
+// The "after" slot sits between the bubbles and the time.
+import Icon from '../../Icon.astro';
+
+interface Props {
+  side: 'mine' | 'theirs';
+  texts: string[];
+  time: string;
+  /** The message this one answers: who said it and what. */
+  quote?: [string, string];
+  /** Who the reply action answers. */
+  from?: string;
+}
+
+const { side, texts, time, quote, from = '' } = Astro.props;
+const mine = side === 'mine';
+const n = texts.length;
+---
+
+<div class:list={['flex flex-col gap-0.5', mine ? 'items-end' : 'items-start']} data-group={side}>
+  {
+    texts.map((t, i) => (
+      <div class:list={['group/msg flex max-w-[80%] items-center gap-1', mine && 'flex-row-reverse']}>
+        <div
+          class:list={[
+            'rounded-lg-plus px-3 py-2 text-body-large',
+            mine ? 'bg-teal text-white' : 'bg-card text-ink ring-1 ring-inset ring-line',
+            i > 0 && (mine ? 'rounded-tr-xs' : 'rounded-tl-xs'),
+            i < n - 1 && (mine ? 'rounded-br-xs' : 'rounded-bl-xs'),
+          ]}
+        >
+          {quote && i === 0 && (
+            <span class:list={['-mx-1 -mt-0.5 mb-1.5 flex gap-2 rounded-md px-2 py-1.5', mine ? 'bg-white/14' : 'bg-surface-container-low']}>
+              <span class:list={['w-[3px] flex-none self-stretch rounded-full', mine ? 'bg-inverse-primary' : 'bg-primary']} />
+              <span class="min-w-0 flex-1">
+                <span class:list={['block text-label-medium', mine ? 'text-mint-on-teal' : 'text-primary']}>{quote[0]}</span>
+                <span class:list={['line-clamp-2 text-body-small', mine ? 'text-white/75' : 'text-on-surface-variant']}>{quote[1]}</span>
+              </span>
+            </span>
+          )}
+          <span data-text>{t}</span>
+        </div>
+        <button
+          type="button"
+          class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-container-high text-on-surface-variant opacity-0 transition-opacity group-focus-within/msg:opacity-100 group-hover/msg:opacity-100"
+          aria-label="Trả lời"
+          data-reply={mine ? 'Bạn' : from}
+        >
+          <Icon name="reply-rounded" size={18} />
+        </button>
+      </div>
+    ))
+  }
+  <slot name="after" />
+  <p class="mt-1 px-2 text-body-small text-on-surface-variant">{time}</p>
+</div>

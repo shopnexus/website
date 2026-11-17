@@ -7,9 +7,10 @@ import type { Section } from './Header.astro';
 
 interface Props {
   section: Section | null;
+  fab?: boolean;
 }
 
-const { section } = Astro.props;
+const { section, fab = true } = Astro.props;
 const path = Astro.url.pathname;
 const items = [
   { label: 'Khám phá', icon: 'explore-outline-rounded', href: R.home, on: section === 'explore' },
@@ -19,13 +20,13 @@ const items = [
 ];
 ---
 
-<a
+{fab && (<a
   href={R.post}
   class="state-layer fixed bottom-24 right-4 z-30 flex h-14 items-center gap-2 rounded-panel bg-ink pl-4 pr-5 text-label-large text-on-ink shadow-float lg:hidden"
 >
   <Icon name="add-rounded" size={22} />
   Đăng tin
-</a>
+</a>)}
 <nav class="glass fixed inset-x-0 bottom-0 z-30 grid h-20 grid-cols-4 lg:hidden" aria-label="Mục chính">
   {
     items.map((it) => (

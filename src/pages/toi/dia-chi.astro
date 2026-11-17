@@ -1,0 +1,164 @@
+---
+// Địa chỉ: the address book as cards, the one being edited in a form under them.
+import Field from '../../components/Field.astro';
+import Icon from '../../components/Icon.astro';
+import MoneyLine from '../../components/MoneyLine.astro';
+import Switch from '../../components/Switch.astro';
+import Row from '../../components/account/Row.astro';
+import SideList from '../../components/account/SideList.astro';
+import SettingsFrame from '../../components/account/SettingsFrame.astro';
+import { PHONE } from '../../data/account';
+import { ADDRESS_BOOK } from '../../data/common';
+import { requireViewer } from '../../lib/session';
+import { btnCls, LABEL, PANEL } from '../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+
+const main = ADDRESS_BOOK.find((a) => a.default) ?? ADDRESS_BOOK[0];
+const editing = ADDRESS_BOOK.find((a) => !a.default) ?? main;
+const kinds = [
+  { label: 'Nhà', icon: 'home-outline-rounded' },
+  { label: 'Công ty', icon: 'work-outline-rounded' },
+  { label: 'Khác', icon: 'location-on-outline-rounded' },
+];
+const recent = [
+  { title: 'Tai nghe Sony WH-1000XM4', sub: 'Giao tới Nhà', when: '09/10' },
+  { title: 'Kệ gỗ nhỏ 3 tầng', sub: 'Giao tới Công ty', when: '02/10' },
+  { title: 'Máy xay sinh tố 2L', sub: 'Giao tới Nhà', when: '21/09' },
+];
+const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none';
+const select = `${input} appearance-none cursor-pointer`;
+---
+
+<SettingsFrame title="Địa chỉ của tôi" page="Địa chỉ" meta={`${ADDRESS_BOOK.length} địa chỉ · ${main.label} là mặc định`}>
+  <button slot="end" type="button" class={btnCls('ink')}><Icon name="add-rounded" size={18} />Thêm địa chỉ</button>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    {
+      ADDRESS_BOOK.map((a) => (
+        <article class:list={[PANEL, 'p-4', a === editing && !a.default && 'ring-2 ring-primary/40']}>
+          <div class="flex items-start gap-3">
+            <span
+              class:list={[
+                'grid h-11 w-11 shrink-0 place-items-center rounded-full',
+                a.default ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant',
+              ]}
+            >
+              <Icon name={a.icon} size={22} />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="flex items-center gap-2 text-title-medium font-semibold text-ink">
+                {a.label}
+                {a.default && <span class="rounded-full bg-secondary-container px-2 py-0.5 text-label-medium text-on-secondary-container">Mặc định</span>}
+              </p>
+              <p class="mt-1 text-body-large text-ink">{a.street}</p>
+              <p class="text-body-medium text-on-surface-variant">{a.ward}</p>
+              <p class="mt-1 text-body-small text-on-surface-variant">
+                {v.name} · {PHONE} · {a.delivered}
+              </p>
+            </div>
+          </div>
+          <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+            <button type="button" class={btnCls('line')}>
+              <Icon name="edit-outline-rounded" size={18} />Sửa
+            </button>
+            {a.default ? (
+              <span class="px-2 text-body-small text-on-surface-variant">Đang là địa chỉ mặc định</span>
+            ) : (
+              <>
+                <button type="button" class={btnCls('ghost')}>Đặt làm mặc định</button>
+                <button
+                  type="button"
+                  class="state-layer ml-auto grid h-10 w-10 place-items-center rounded-full text-error"
+                  aria-label={`Xóa ${a.label}`}
+                >
+                  <Icon name="delete-outline-rounded" size={20} />
+                </button>
+              </>
+            )}
+          </div>
+        </article>
+      ))
+    }
+  </div>
+
+  <form class:list={[PANEL, 'p-5']} aria-labelledby="edit-title">
+    <div class="flex items-center justify-between">
+      <h2 id="edit-title" class="text-j-20 text-ink">Sửa địa chỉ {editing.label}</h2>
+      <button type="button" class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Đóng">
+        <Icon name="close-rounded" size={20} />
+      </button>
+    </div>
+    <div class="mt-4 flex flex-wrap gap-2" role="radiogroup" aria-label="Loại địa chỉ">
+      {
+        kinds.map((k) => (
+          <label
+            class="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-label-large text-ink has-checked:border-transparent has-checked:bg-ink has-checked:text-on-ink"
+          >
+            <input type="radio" name="kind" value={k.label} class="sr-only" checked={k.label === editing.label} />
+            <Icon name={k.icon} size={17} />
+            {k.label}
+          </label>
+        ))
+      }
+    </div>
+    <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+      <Field label="Người nhận"><input name="name" value={v.name} class={input} /></Field>
+      <Field label="Số điện thoại">
+        <input name="phone" value={PHONE} class={input} readonly />
+        <span slot="trail" class="text-label-medium text-primary">Đã xác minh</span>
+      </Field>
+      <Field label="Số nhà, đường" class="md:col-span-2"><input name="street" value={editing.street} class={input} /></Field>
+      <Field label="Phường, xã">
+        <select name="ward" class={select}>
+          <option>Phường Sài Gòn</option>
+          <option>Phường Bình Thạnh</option>
+          <option>Phường Bến Thành</option>
+        </select>
+        <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
+      </Field>
+      <Field label="Tỉnh, thành phố">
+        <select name="city" class={select}>
+          <option>TP.HCM</option>
+          <option>Hà Nội</option>
+          <option>Đà Nẵng</option>
+        </select>
+        <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
+      </Field>
+    </div>
+    <div class="mt-4 flex items-center justify-between gap-3 rounded-lg bg-surface-container-low px-4 py-3">
+      <span class="text-body-large text-ink">Đặt làm địa chỉ mặc định</span>
+      <Switch on={false} label="Đặt làm địa chỉ mặc định" />
+    </div>
+    <div class="mt-4 flex justify-end gap-2">
+      <button type="button" class={btnCls('line')}>Hủy</button>
+      <button type="submit" class={btnCls('ink')}>Lưu</button>
+    </div>
+  </form>
+
+  <Fragment slot="side">
+    <div class:list={[PANEL, 'p-4']}>
+      <p class="flex gap-2 text-body-medium text-ink">
+        <Icon name="lock-outline-rounded" size={18} class="mt-0.5 text-primary" />
+        <span>Chỉ shipper và người bán của đơn COD thấy địa chỉ. Tin gần bạn dùng vị trí của máy, không dùng địa chỉ.</span>
+      </p>
+    </div>
+    <SideList title="Giao gần đây">
+      {
+        recent.map((r) => (
+          <Row icon="receipt-long-outline-rounded" title={r.title} sub={r.sub} class="-mx-2">
+            <span slot="trail" class="text-body-small text-on-surface-variant tabular-nums">
+              {r.when}
+            </span>
+          </Row>
+        ))
+      }
+    </SideList>
+    <div class:list={[PANEL, 'p-4']}>
+      <p class={LABEL}>Khi mua bằng COD</p>
+      <p class="mt-2 px-1 text-body-medium text-on-surface-variant">Chạm một địa chỉ để giao đơn này đến đó. Địa chỉ mặc định không đổi.</p>
+      <div class="mt-3 px-1"><MoneyLine k="cod_buyer" icon="visibility-outline-rounded" small /></div>
+    </div>
+  </Fragment>
+</SettingsFrame>
