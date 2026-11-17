@@ -4,6 +4,7 @@ import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, envField } from 'astro/config';
 import Icons from 'unplugin-icons/vite';
+import iconSubset from './src/build/icons.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,9 +17,10 @@ export default defineConfig({
     // The mascot art, favicon and app icons live in the brand submodule
     // (shopnexus/brand), shared with the Android app: import '@brand/art_deal.webp'.
     resolve: { alias: { '@brand': decodeURIComponent(new URL('./brand/web', import.meta.url).pathname) } },
-    // Material Symbols Rounded, as in the app. Icons compile to React
-    // components, which render to plain SVG in .astro files and ship no JS.
-    plugins: [tailwindcss(), Icons({ compiler: 'jsx', jsx: 'react' })],
+    // Material Symbols Rounded, as in the app. React islands import icons as
+    // components (~icons/material-symbols/…); .astro files use <Icon name>,
+    // which reads the subset src/build/icons.mjs builds.
+    plugins: [tailwindcss(), Icons({ compiler: 'jsx', jsx: 'react' }), iconSubset()],
   },
   env: {
     schema: {

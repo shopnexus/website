@@ -1,0 +1,20 @@
+---
+// Rows of icon · label · chevron, each a link.
+import Icon from './Icon.astro';
+
+interface Props {
+  links: { icon: string; label: string; href: string }[];
+}
+
+const { links } = Astro.props;
+---
+
+{
+  links.map((l) => (
+    <a href={l.href} class="flex items-center gap-3 rounded-field px-3 py-2.5 hover:bg-surface-container-low">
+      <Icon name={l.icon} size={20} class="text-on-surface-variant" />
+      <span class="flex-1 text-body-medium text-ink">{l.label}</span>
+      <Icon name="chevron-right-rounded" size={18} class="text-on-surface-variant" />
+    </a>
+  ))
+}

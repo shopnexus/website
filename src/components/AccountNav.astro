@@ -1,0 +1,71 @@
+---
+// Every account page's side column: who you are, then the account's pages;
+// the current one is an ink pill. Hidden below expanded, where BottomNav's Tôi leads to it.
+import { ACCOUNT_NAV, ME } from '../data/common';
+import { img } from '../lib/format';
+import { R } from '../lib/routes';
+import Icon from './Icon.astro';
+
+export type AccountKey = (typeof ACCOUNT_NAV)[number]['key'];
+
+interface Props {
+  active: AccountKey;
+}
+
+const { active } = Astro.props;
+const HREF: Record<string, string> = {
+  me: R.me,
+  listings: R.myListings,
+  orders: R.orders,
+  sales: R.sales,
+  saved: R.saved,
+  messages: R.messages,
+  notifications: R.notifications,
+  cod: R.codSetup,
+  support: R.support,
+};
+---
+
+<aside class="hidden self-start lg:sticky lg:top-[84px] lg:block">
+  <a href={R.me} class="glass glass-edge flex items-center gap-3 rounded-panel p-3">
+    <img src={img(ME.photo, 176, 176)} alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-card" />
+    <span class="min-w-0">
+      <span class="flex items-center gap-1 truncate text-title-small text-ink">
+        {ME.name}<Icon name="verified-rounded" size={15} class="text-primary" />
+      </span>
+      <span class="flex items-center gap-1 text-body-small text-on-surface-variant">
+        <Icon name="star-rounded" size={13} class="text-star" />{ME.rating} · {ME.sold} đã bán
+      </span>
+    </span>
+  </a>
+  <nav class="mt-3 flex flex-col gap-0.5" aria-label="Tài khoản">
+    {
+      ACCOUNT_NAV.map((it) => {
+        const on = it.key === active;
+        return (
+          <a
+            href={HREF[it.key]}
+            aria-current={on ? 'page' : undefined}
+            class:list={[
+              'flex h-10 items-center gap-3 rounded-full px-3 text-label-large',
+              on ? 'bg-ink text-on-ink' : 'text-ink hover:bg-card/80',
+            ]}
+          >
+            <Icon name={on ? it.icon.replace('-outline', '') : it.icon} size={20} />
+            <span class="flex-1">{it.label}</span>
+            {it.count && (
+              <span
+                class:list={[
+                  'rounded-full px-2 text-label-small tabular-nums',
+                  on ? 'bg-white/20' : 'bg-surface-container-low text-on-surface-variant',
+                ]}
+              >
+                {it.count}
+              </span>
+            )}
+          </a>
+        );
+      })
+    }
+  </nav>
+</aside>

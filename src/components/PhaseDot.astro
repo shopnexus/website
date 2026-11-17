@@ -1,0 +1,35 @@
+---
+// One of the four deal steps as a dot: done (check), current (teal gradient), or to come.
+import { PHASES } from '../data/common';
+import Icon from './Icon.astro';
+
+interface Props {
+  i: number;
+  current: number;
+  size?: number;
+}
+
+const { i, current, size = 26 } = Astro.props;
+const { icon, label } = PHASES[i];
+const style = `width:${size}px;height:${size}px`;
+---
+
+{
+  i < current ? (
+    <span class="grid shrink-0 place-items-center rounded-full bg-primary text-on-primary" style={style} aria-label={`${label}: xong`}>
+      <Icon name="check-rounded" size={Math.round(size * 0.6)} />
+    </span>
+  ) : i === current ? (
+    <span
+      class="grid shrink-0 place-items-center rounded-full bg-linear-to-br from-teal to-teal-light text-white ring-4 ring-primary/15"
+      style={style}
+      aria-label={`Bước ${i + 1}/4 · ${label}`}
+    >
+      <Icon name={icon} size={Math.round(size * 0.58)} />
+    </span>
+  ) : (
+    <span class="grid shrink-0 place-items-center rounded-full bg-surface-container-high text-on-surface-variant" style={style} aria-label={label}>
+      <Icon name={icon} size={Math.round(size * 0.55)} />
+    </span>
+  )
+}

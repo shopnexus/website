@@ -1,0 +1,20 @@
+---
+// A condition the model read from the query: sparkle, removable.
+import Icon from './Icon.astro';
+
+interface Props {
+  label: string;
+  /** Where removing it goes: the same search without this condition. */
+  remove?: string;
+}
+
+const { label, remove = '#' } = Astro.props;
+---
+
+<span class="glass glass-edge flex h-9 shrink-0 items-center gap-1.5 rounded-full pl-3 pr-1.5 text-label-large text-ink">
+  <Icon name="auto-awesome-rounded" size={15} class="text-primary" />
+  {label}
+  <a href={remove} class="state-layer grid h-6 w-6 place-items-center rounded-full text-on-surface-variant" aria-label={`Bỏ ${label}`}>
+    <Icon name="close-rounded" size={14} />
+  </a>
+</span>

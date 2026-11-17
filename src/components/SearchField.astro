@@ -1,0 +1,56 @@
+---
+// The 56 px page search field (Danh mục, 404): a form to Tìm kiếm, the photo button, Tìm.
+import { img } from '../lib/format';
+import { R } from '../lib/routes';
+import Icon from './Icon.astro';
+
+interface Props {
+  placeholder?: string;
+  value?: string;
+  photo?: string;
+  class?: string;
+  /** 64 px, Home's. */
+  large?: boolean;
+}
+
+const { placeholder = 'Tìm trên ShopNexus', value, photo, class: cls, large = false } = Astro.props;
+---
+
+<form
+  action={R.search}
+  class:list={[
+    'flex items-center gap-3 rounded-full bg-card pr-2 shadow-glow',
+    large ? 'h-16 pl-6' : 'h-14 pl-4',
+    cls,
+  ]}
+>
+  {
+    photo ? (
+      <img src={img(photo, 72, 72)} alt="" class="h-9 w-9 rounded-full object-cover" />
+    ) : (
+      <Icon name="search-rounded" size={large ? 24 : 22} class="text-primary" />
+    )
+  }
+  <input
+    name="q"
+    value={value}
+    placeholder={placeholder}
+    aria-label="Tìm trên ShopNexus"
+    class:list={[
+      'min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-on-surface-variant',
+      large ? 'text-title-medium font-normal' : 'text-body-large',
+    ]}
+  />
+  <a
+    href={R.photoSearch}
+    class:list={['state-layer grid shrink-0 place-items-center rounded-full text-on-surface-variant', large ? 'h-11 w-11' : 'h-10 w-10']}
+    aria-label="Tìm bằng ảnh"
+  >
+    <Icon name="photo-camera-outline-rounded" size={large ? 22 : 20} />
+  </a>
+  <button
+    class:list={['state-layer shrink-0 rounded-full bg-primary text-label-large text-on-primary', large ? 'h-12 px-7' : 'h-10 px-6']}
+  >
+    Tìm
+  </button>
+</form>

@@ -1,0 +1,38 @@
+---
+// "Đang được tìm nhiều": ranked searches with count and median price.
+import { TRENDING } from '../data/common';
+import { R } from '../lib/routes';
+import Icon from './Icon.astro';
+
+interface Props {
+  n?: number;
+}
+
+const { n = 6 } = Astro.props;
+---
+
+<p class="flex items-center gap-1.5 px-2 pb-2 pt-1 text-title-small text-ink">
+  <Icon name="trending-up-rounded" size={18} class="text-primary" />Đang được tìm nhiều
+</p>
+<div class="flex flex-col">
+  {
+    TRENDING.slice(0, n).map((t, i) => (
+      <a
+        href={`${R.search}?q=${encodeURIComponent(t.q)}`}
+        class="flex items-center gap-3 rounded-field px-2 py-1.5 text-body-medium text-ink hover:bg-surface-container-low"
+      >
+        <span
+          class:list={[
+            'grid h-7 w-7 place-items-center rounded-full text-label-medium tabular-nums',
+            i < 3 ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant',
+          ]}
+        >
+          {i + 1}
+        </span>
+        <span class="flex-1">{t.q}</span>
+        <span class="text-body-small text-on-surface-variant tabular-nums">{t.count} tin</span>
+        <span class="w-14 text-right text-label-large text-ink tabular-nums">{t.median}</span>
+      </a>
+    ))
+  }
+</div>

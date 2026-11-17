@@ -3,13 +3,24 @@ import '../styles/global.css';
 import appleTouchIcon from '@brand/apple-touch-icon.png';
 import favicon from '@brand/favicon.svg';
 import favicon32 from '@brand/favicon-32.png';
+import BottomNav from '../components/BottomNav.astro';
+import Footer from '../components/Footer.astro';
+import Header, { type Section } from '../components/Header.astro';
 
 interface Props {
   title: string;
   description?: string;
+  /** The header's current section, or null outside the four. */
+  section?: Section | null;
+  /** Tìm kiếm puts its field in the header: the query text, and the photo it came from. */
+  search?: { q: string; photo?: string };
+  /** Tin nhắn's panes fill the window and leave the footer out. */
+  footer?: boolean;
+  /** Open Graph image. */
+  image?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, section = null, search, footer = true, image } = Astro.props;
 ---
 
 <html lang="vi">
@@ -21,8 +32,21 @@ const { title, description } = Astro.props;
     <link rel="apple-touch-icon" href={appleTouchIcon.src} />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {image && <meta property="og:image" content={image} />}
+    <meta property="og:site_name" content="ShopNexus" />
+    <slot name="head" />
   </head>
-  <body class="min-h-dvh bg-surface text-body-medium text-on-surface">
-    <slot />
+  <body class="min-h-dvh font-sans text-body-medium">
+    <div class="relative min-h-dvh overflow-x-clip pb-20 lg:pb-0">
+      <div class="wash"></div>
+      <div class="relative z-10">
+        <Header section={section} search={search} />
+        <slot />
+        {footer && <Footer />}
+      </div>
+    </div>
+    <BottomNav section={section} />
   </body>
 </html>

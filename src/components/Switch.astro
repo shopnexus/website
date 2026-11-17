@@ -1,0 +1,28 @@
+---
+// A switch. Clicking it flips aria-checked; the page reads that.
+interface Props {
+  on?: boolean;
+  label: string;
+}
+
+const { on = true, label } = Astro.props;
+---
+
+<button
+  type="button"
+  role="switch"
+  aria-checked={on ? 'true' : 'false'}
+  aria-label={label}
+  class="group relative h-7 w-12 shrink-0 rounded-full bg-surface-container-highest transition-colors duration-(--duration-effects-default) aria-checked:bg-primary"
+  data-switch
+>
+  <span
+    class="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-knob transition-transform duration-(--duration-spatial-fast) ease-spatial-fast group-aria-checked:translate-x-5"
+  ></span>
+</button>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-switch]').forEach((b) =>
+    b.addEventListener('click', () => b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true'))),
+  );
+</script>

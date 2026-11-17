@@ -1,0 +1,68 @@
+---
+// The segmented control: a white thumb slides under the selected item.
+// Items are labels, or icon names when `icons` is set. A click moves the thumb
+// and fires a "seg-change" event with detail { index } on the control.
+import Icon from './Icon.astro';
+
+interface Props {
+  items: string[];
+  selected?: number;
+  icons?: boolean;
+  /** Labels for icon items, for screen readers. */
+  labels?: string[];
+  class?: string;
+  /** Classes for each item: size, padding. */
+  itemClass?: string;
+  name?: string;
+}
+
+const { items, selected = 0, icons = false, labels, class: cls, itemClass = 'text-label-large', name } = Astro.props;
+---
+
+<div
+  class:list={['seg relative inline-flex rounded-full p-1', cls]}
+  role="tablist"
+  aria-label={name}
+  data-seg
+>
+  <span
+    class="seg-thumb pointer-events-none absolute bottom-1 top-1 rounded-full bg-card shadow-knob transition-[left,width] duration-(--duration-spatial-default) ease-spatial"
+  ></span>
+  {
+    items.map((it, i) => (
+      <button
+        type="button"
+        role="tab"
+        aria-selected={i === selected ? 'true' : 'false'}
+        aria-label={icons ? labels?.[i] : undefined}
+        class:list={[
+          'relative z-10 flex h-8 items-center justify-center whitespace-nowrap rounded-full px-3.5 text-on-surface-variant aria-selected:text-ink',
+          itemClass,
+        ]}
+      >
+        {icons ? <Icon name={it} size={18} /> : it}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  function setup(seg: HTMLElement) {
+    const thumb = seg.querySelector<HTMLElement>('.seg-thumb')!;
+    const btns = [...seg.querySelectorAll<HTMLButtonElement>('button')];
+    const put = (b: HTMLElement) => {
+      thumb.style.left = `${b.offsetLeft}px`;
+      thumb.style.width = `${b.offsetWidth}px`;
+    };
+    put(btns.find((b) => b.getAttribute('aria-selected') === 'true') ?? btns[0]);
+    btns.forEach((b, index) =>
+      b.addEventListener('click', () => {
+        btns.forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+        put(b);
+        seg.dispatchEvent(new CustomEvent('seg-change', { detail: { index }, bubbles: true }));
+      }),
+    );
+    new ResizeObserver(() => put(btns.find((b) => b.getAttribute('aria-selected') === 'true') ?? btns[0])).observe(seg);
+  }
+  document.querySelectorAll<HTMLElement>('[data-seg]').forEach(setup);
+</script>

@@ -1,0 +1,35 @@
+---
+// The deal steps with labels and times, across an order's hero card.
+import { PHASES } from '../data/common';
+import PhaseDot from './PhaseDot.astro';
+
+interface Props {
+  current: number;
+  /** One per step; empty for steps to come. */
+  times: string[];
+}
+
+const { current, times } = Astro.props;
+---
+
+<ol class="flex" aria-label="Tiến trình">
+  {
+    PHASES.map((p, i) => (
+      <li class="relative flex w-[112px] flex-col items-center text-center">
+        {i < 3 && (
+          <span
+            class:list={[
+              'absolute left-[calc(50%+22px)] right-[calc(-50%+22px)] top-[17px] h-[3px] rounded-full',
+              i < current ? 'bg-primary' : 'bg-surface-container-high',
+            ]}
+          />
+        )}
+        <span class="grid h-9 place-items-center">
+          <PhaseDot i={i} current={current} size={34} />
+        </span>
+        <span class:list={['mt-2 text-label-large', i <= current ? 'text-ink' : 'text-on-surface-variant']}>{p.label}</span>
+        <span class="h-4 text-body-small text-on-surface-variant tabular-nums">{times[i]}</span>
+      </li>
+    ))
+  }
+</ol>

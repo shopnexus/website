@@ -1,0 +1,22 @@
+---
+// A section's 26 px heading, with an optional link at the right.
+interface Props {
+  title: string;
+  link?: string;
+  href?: string;
+  class?: string;
+}
+
+const { title, link, href, class: cls } = Astro.props;
+---
+
+<div class:list={['flex items-baseline justify-between gap-4', cls]}>
+  <h2 class="text-j-24 text-ink lg:text-j-26">{title}</h2>
+  {
+    link && (
+      <a href={href} class="shrink-0 text-label-large text-primary hover:underline">
+        {link}
+      </a>
+    )
+  }
+</div>

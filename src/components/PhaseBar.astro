@@ -1,0 +1,21 @@
+---
+// The deal steps as dots on an order row.
+import PhaseDot from './PhaseDot.astro';
+
+interface Props {
+  current: number;
+}
+
+const { current } = Astro.props;
+---
+
+<div class="flex items-center gap-1" role="img" aria-label={`Bước ${Math.min(current + 1, 4)}/4`}>
+  {
+    [0, 1, 2, 3].map((i) => (
+      <>
+        <PhaseDot i={i} current={current} size={22} />
+        {i < 3 && <span class:list={['h-[3px] w-4 rounded-full', i < current ? 'bg-primary' : 'bg-surface-container-high']} />}
+      </>
+    ))
+  }
+</div>

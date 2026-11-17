@@ -1,21 +1,174 @@
 ---
-import IconSearch from '~icons/material-symbols/search-rounded';
+// Trang chủ. Signed in: the buyer's own deals (order on the way, offers,
+// saved, their listings). Signed out: what this browser already knows (recent
+// searches, viewed listings, the area from the IP), and signing in offered as
+// a way to keep them. Neither is a pitch.
+import Icon from '../components/Icon.astro';
+import ListingCard from '../components/ListingCard.astro';
+import Price from '../components/Price.astro';
+import SearchField from '../components/SearchField.astro';
+import Seg from '../components/Seg.astro';
+import Trending from '../components/Trending.astro';
+import HomeTiles from '../components/home/HomeTiles.astro';
 import Layout from '../layouts/Layout.astro';
+import { CATS, ME } from '../data/common';
+import { FOR_YOU, LISTINGS } from '../data/listings';
+import { img, where } from '../lib/format';
+import { R } from '../lib/routes';
+import { viewer } from '../lib/session';
+import { CONTENT } from '../lib/ui';
+
+const me = viewer(Astro);
+const hour = new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
+const greeting = +hour < 11 ? 'Chào buổi sáng' : +hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
+
+// Signed in: their searches, a followed one with its new listings. Signed out: this browser's.
+const recent = me
+  ? [
+      { q: 'Sony A7 III dưới 25 triệu', icon: 'notifications-outline-rounded', more: '+2' },
+      { q: 'iPhone 13 pin trên 85%', icon: 'history-rounded' },
+      { q: 'xe đạp cho bé 8 tuổi', icon: 'history-rounded' },
+      { q: 'sofa 3 chỗ Q.7', icon: 'history-rounded' },
+    ]
+  : [
+      { q: 'iPhone 13 pin trên 85%', icon: 'history-rounded' },
+      { q: 'sofa 3 chỗ', icon: 'history-rounded' },
+      { q: 'xe đạp cho bé 8 tuổi', icon: 'history-rounded' },
+    ];
+const lead = LISTINGS[1];
+const near = [LISTINGS[2], LISTINGS[3], LISTINGS[11]];
+const feed = [...FOR_YOU, ...LISTINGS.slice(0, 5)].slice(0, 12);
+const tabs = me ? ['Dành cho bạn', 'Gần bạn', 'Mới nhất'] : ['Gợi ý cho bạn', 'Gần bạn', 'Mới nhất'];
 ---
 
-<Layout title="ShopNexus" description="Đồ cũ giá tốt, xem hàng rồi mới trả.">
-  <main class="mx-auto max-w-7xl px-4 py-16 md:px-6">
-    <h1 class="text-headline-small">ShopNexus</h1>
-    <p class="mt-2 text-on-surface-variant">Đồ cũ giá tốt, xem hàng rồi mới trả</p>
-    <label
-      class="mt-8 flex h-14 max-w-xl items-center gap-3 rounded-full bg-surface-container-high px-4 text-on-surface-variant"
-    >
-      <IconSearch width="24" height="24" aria-hidden="true" />
-      <input
-        type="search"
-        placeholder="Tìm trên ShopNexus"
-        class="h-full flex-1 bg-transparent text-body-large text-on-surface outline-none placeholder:text-on-surface-variant"
-      />
-    </label>
+<Layout title="ShopNexus · Đồ cũ giá tốt" description="Đồ cũ giá tốt, xem hàng rồi mới trả." section="explore">
+  <main class={CONTENT}>
+    <section class="grid gap-8 pt-6 lg:grid-cols-[1fr_400px] lg:pt-10">
+      <div class="flex min-w-0 flex-col">
+        {
+          me ? (
+            <p class="text-label-large text-on-surface-variant">
+              {greeting}, {ME.name}
+            </p>
+          ) : (
+            <p class="flex items-center gap-1 text-label-large text-on-surface-variant">
+              <Icon name="location-on-outline-rounded" size={16} />
+              Gần Bình Thạnh, TP.HCM
+              <a href="#khu-vuc" class="ml-1 text-primary hover:underline">
+                Đổi
+              </a>
+            </p>
+          )
+        }
+        <h1 class="mt-1 text-j-34 text-ink lg:text-j-44">Hôm nay tìm gì?</h1>
+        <SearchField large class="mt-5" placeholder="Gõ như nhắn tin: laptop cho sinh viên thiết kế, dưới 8 triệu" />
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          {
+            recent.map((r) => (
+              <a
+                href={`${R.search}?q=${encodeURIComponent(r.q)}`}
+                class="glass glass-edge flex h-9 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
+              >
+                <Icon name={r.icon} size={16} class="text-on-surface-variant" />
+                {r.q}
+                {r.more && (
+                  <span class="grid h-5 min-w-5 place-items-center rounded-full bg-tertiary px-1 text-label-small text-on-tertiary">
+                    {r.more}
+                  </span>
+                )}
+              </a>
+            ))
+          }
+        </div>
+        <HomeTiles signedIn={!!me} />
+        <div class="mt-5 flex gap-2 overflow-x-auto no-scrollbar lg:flex-wrap">
+          {
+            CATS.map((c) => (
+              <a
+                href={R.categories}
+                class="state-layer flex h-11 shrink-0 items-center gap-2 rounded-full border border-line bg-card pl-1.5 pr-2 text-label-large text-ink"
+              >
+                <span class="grid h-8 w-8 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+                  <Icon name={c.icon} size={18} />
+                </span>
+                {c.name}
+                <span class="rounded-full bg-surface-container-low px-2 py-0.5 text-label-small text-on-surface-variant tabular-nums">
+                  {c.count}
+                </span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="glass glass-edge self-start rounded-xl p-3 shadow-soft">
+        <div class="flex items-center justify-between px-2 pb-2 pt-1">
+          <p class="text-title-small text-ink">{me ? 'Vừa đăng quanh bạn' : 'Vừa đăng quanh Bình Thạnh'}</p>
+          <a href={`${R.search}?sap-xep=moi`} class="text-label-large text-primary hover:underline">Xem tất cả</a>
+        </div>
+        <a href={R.listing(lead.id)} class="lift block overflow-hidden rounded-card bg-card">
+          <div class="relative overflow-hidden" style="aspect-ratio: 16 / 10">
+            <img src={img(lead.photo, 800, 500)} alt="" class="h-full w-full object-cover" />
+            <span class="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-label-medium text-[#121817] backdrop-blur">
+              {where(lead.km, lead.area)} · {lead.posted} trước
+            </span>
+          </div>
+          <div class="flex items-center justify-between gap-3 px-4 py-3">
+            <div class="min-w-0">
+              <h3 class="truncate text-body-large text-ink">{lead.title}</h3>
+              <p class="text-body-small text-on-surface-variant">{lead.condition} · {lead.area}</p>
+            </div>
+            <Price vnd={lead.price} size="text-j-22" />
+          </div>
+        </a>
+        <ul class="mt-2 flex flex-col">
+          {
+            near.map((it) => (
+              <li>
+                <a href={R.listing(it.id)} class="flex items-center gap-3 rounded-tile p-1.5 hover:bg-card/70">
+                  <img src={img(it.photo, 160, 160)} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-body-medium text-ink">{it.title}</span>
+                    <span class="block text-body-small text-on-surface-variant">
+                      {where(it.km, it.area)} · {it.posted} trước
+                    </span>
+                  </span>
+                  <Price vnd={it.price} size="text-j-15" />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="mt-10 grid gap-8 lg:grid-cols-[1fr_340px]">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <Seg items={tabs} class="bg-black/5" name="Bảng tin" />
+          <span class="text-body-small text-on-surface-variant">Mọi tỉnh thành · gần thì ghi km, xa thì ghi nơi bán</span>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
+          {feed.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} />)}
+        </div>
+        <div class="mt-6 flex justify-center">
+          <a href={R.search} class="state-layer flex h-11 items-center rounded-full border border-line bg-card px-6 text-label-large text-ink">
+            Xem thêm tin
+          </a>
+        </div>
+      </div>
+      <aside class="self-start rounded-panel border border-line bg-card p-3 lg:sticky lg:top-[84px]">
+        <Trending />
+        <div class="mt-3 rounded-tile bg-secondary-container p-4 text-on-secondary-container">
+          <p class="text-title-small">Có đồ không dùng nữa?</p>
+          <a
+            href={R.post}
+            class="state-layer mt-3 flex h-9 w-fit items-center gap-1.5 rounded-full bg-ink pl-3 pr-4 text-label-large text-on-ink"
+          >
+            <Icon name="add-rounded" size={18} />Đăng tin
+          </a>
+        </div>
+      </aside>
+    </section>
   </main>
 </Layout>

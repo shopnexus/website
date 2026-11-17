@@ -1,0 +1,33 @@
+---
+// A form field: label over a soft filled box, 14 px corners, no border.
+// ai: the model filled it (sparkle). The default slot is the value or an input;
+// slot "trail" sits at the right end.
+import Icon from './Icon.astro';
+
+interface Props {
+  label: string;
+  ai?: boolean;
+  tall?: boolean;
+  hint?: string;
+  class?: string;
+}
+
+const { label, ai = false, tall = false, hint, class: cls } = Astro.props;
+---
+
+<label class:list={['block', cls]}>
+  <span class="mb-1.5 flex items-center gap-1 text-label-large text-on-surface-variant">
+    {label}
+    {ai && <Icon name="auto-awesome-rounded" size={14} class="text-primary" />}
+  </span>
+  <span
+    class:list={[
+      'flex justify-between gap-3 rounded-field bg-surface-container-low px-4 text-body-large text-ink focus-within:bg-card focus-within:ring-2 focus-within:ring-primary',
+      tall ? 'min-h-[88px] items-start py-3' : 'h-12 items-center',
+    ]}
+  >
+    <slot />
+    <slot name="trail" />
+  </span>
+  {hint && <span class="mt-1 block px-1 text-body-small text-on-surface-variant">{hint}</span>}
+</label>

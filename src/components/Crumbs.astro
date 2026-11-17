@@ -1,0 +1,29 @@
+---
+// Breadcrumbs: every part but the last is a link. The default slot sits at the right end.
+import Icon from './Icon.astro';
+
+interface Props {
+  /** [label, href] pairs; the last one's href is ignored. */
+  parts: [string, string?][];
+  class?: string;
+}
+
+const { parts, class: cls } = Astro.props;
+const last = parts[parts.length - 1];
+---
+
+<nav class:list={['flex items-center gap-1 text-body-small text-on-surface-variant', cls]} aria-label="Đường dẫn">
+  {
+    parts.slice(0, -1).map(([label, href]) => (
+      <>
+        <a href={href} class="hover:text-ink">
+          {label}
+        </a>
+        <Icon name="chevron-right-rounded" size={16} class="text-outline" />
+      </>
+    ))
+  }
+  <span class="text-ink" aria-current="page">{last[0]}</span>
+  {Astro.slots.has('default') && <span class="flex-1" />}
+  <slot />
+</nav>
