@@ -6,6 +6,7 @@
 !/.env.example
 !/.github/
 !/.gitignore
+!/.gitmodules
 !/.superdesign/
 !/.vscode/
 !/AGENTS.md
@@ -15,6 +16,7 @@
 !/LICENSE
 !/README.md
 !/astro.config.mjs
+!/brand
 !/bun.lock
 !/package.json
 !/public/

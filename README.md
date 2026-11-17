@@ -7,10 +7,15 @@ The earlier Next.js site, built for the escrow model, is on the `escrow` branch.
 ## Development
 
 ```
+git submodule update --init
 bun install
 cp .env.example .env
 bun run dev
 ```
+
+`brand/` is the `shopnexus/brand` submodule, shared with the Android app. It
+holds the mascot art, the favicon and the app icons; pages import them as
+`@brand/<name>`, for example `@brand/art_deal.webp`.
 
 `API_URL` points at the Go server and defaults to `http://localhost:8080/v1`. Astro reads it at runtime, so one image runs in the dev and prod stacks.
 

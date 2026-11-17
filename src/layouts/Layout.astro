@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css';
+import appleTouchIcon from '@brand/apple-touch-icon.png';
+import favicon from '@brand/favicon.svg';
+import favicon32 from '@brand/favicon-32.png';
 
 interface Props {
   title: string;
@@ -13,7 +16,9 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={favicon.src} />
+    <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
+    <link rel="apple-touch-icon" href={appleTouchIcon.src} />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
   </head>
