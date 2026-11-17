@@ -1,4 +1,7 @@
-"""Direction E, "Hỏi là thấy": search-first. Home is one natural-language
+"""Superseded 2026-11-17: home-e.html are drawn in J by build_j.py (j-home.html, j-home-guest.html).
+This file still holds data and pieces the J builders import.
+
+Direction E, "Hỏi là thấy": search-first. Home is one natural-language
 question, the filters the model read from it, and the results beside a
 "why these" panel. Listing detail is built for deciding: price against
 similar listings, how this one fits the question, a side-by-side comparison.
@@ -45,7 +48,7 @@ RESULTS = [
 # and far listings mix; a card says the distance under 10 km and the seller's place beyond it.
 # photo, price, title, condition, km, area, rating, posted, AI price note
 FOR_YOU = [
-    ("1695048133142-1a20484d2569", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "1.140 km", "Hà Nội", "4,9", "40 phút", "Rẻ hơn 12%"),
+    ("1592899677977-9c10ca588bbd", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "1.140 km", "Hà Nội", "4,9", "40 phút", "Rẻ hơn 12%"),
     ("1510557880182-3d4d3cba35a5", "3.900.000 ₫", "iPhone X 64GB, pin 86%, máy zin chưa sửa", "Đã dùng", "0,6 km", "Thủ Đức", "4,8", "12 phút", None),
     ("1611186871348-b1ce696e52c9", "11,5 tr ₫", "MacBook Air M1 13 inch 8/256GB, sạc 92 lần", "Đã dùng", "3,4 km", "Q.2 cũ", "4,9", "1 giờ", None),
     ("1516035069371-29a1b244cc32", "26,5 tr ₫", "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "Như mới", "610 km", "Đà Nẵng", "4,7", "1 ngày", "Rẻ hơn 18%"),
@@ -358,7 +361,5 @@ def detail():
 
 
 if __name__ == "__main__":
-    for name, fn in [("home-e", home)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j.py")

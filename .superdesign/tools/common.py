@@ -100,7 +100,7 @@ LISTINGS = [
     ("1505740420928-5e560c06d30e", "3.200.000 ₫", "Tai nghe chống ồn Sony WH-1000XM4, fullbox", "Như mới", "4,0 km", "Thủ Đức", "4,6", "3 giờ", None),
     ("1555041469-a586c61ea9bc", "4.800.000 ₫", "Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp", "Đã dùng", "5,6 km", "Q.7", "4,9", "5 giờ", None),
     ("1542291026-7eec264c27ff", "1.290.000 ₫", "Giày Nike Free RN size 42, mới nguyên hộp", "Mới", "1,9 km", "Q.10", "4,8", "20 phút", None),
-    ("1695048133142-1a20484d2569", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", "Cao hơn 6%"),
+    ("1592899677977-9c10ca588bbd", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", "Cao hơn 6%"),
     ("1516035069371-29a1b244cc32", "26,5 tr ₫", "Sony A7 III kèm lens 28-70 và 50mm f/1.8", "Đã dùng", "1.140 km", "Hà Nội", "4,7", "1 ngày", None),
     ("1586023492125-27b2c045efd7", "1.600.000 ₫", "Ghế bành bọc vải vàng mù tạt, khung gỗ sồi", "Đã dùng", "3,8 km", "Q.2", "5,0", "6 giờ", None),
     ("1580480055273-228ff5388ef8", "950.000 ₫", "Ghế xoay vải be chân gỗ, ngồi êm", "Như mới", "1,4 km", "Bình Thạnh", "4,5", "50 phút", None),
@@ -121,7 +121,7 @@ def img(photo_id, w=600, h=None):
     return f"https://images.unsplash.com/photo-{photo_id}?{size}&q=80&auto=format&fit=crop"
 
 
-def crop(photo_id, size, fx=0.5, fy=0.5, zoom=1):
+def crop(photo_id, size, fx=0.5, fy=0.5, zoom: float = 1):
     return (f"https://images.unsplash.com/photo-{photo_id}?w={size}&h={size}&fit=crop&crop=focalpoint"
             f"&fp-x={fx}&fp-y={fy}&fp-z={zoom}&q=80&auto=format")
 

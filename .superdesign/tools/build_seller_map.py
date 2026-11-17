@@ -1,4 +1,7 @@
-"""Người bán (a seller's public page) and Bản đồ (the map page), in the chosen
+"""Superseded 2026-11-17: seller.html and map.html are drawn in J by build_j_public.py.
+This file still holds data and pieces the J builders import.
+
+Người bán (a seller's public page) and Bản đồ (the map page), in the chosen
 style: C's shell, 28 px containers, pills, cards for browsing, rows for results.
 
     python3 tools/build_seller_map.py        (run from .superdesign/)
@@ -274,7 +277,5 @@ def map_page():
 
 
 if __name__ == "__main__":
-    for name, fn in [("seller", seller), ("map", map_page)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j_public.py")

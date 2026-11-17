@@ -1,4 +1,7 @@
-"""Tin của bạn, Đã lưu and Thiết lập giao COD, in the chosen style (C's shell).
+"""Superseded 2026-11-17: my-listings.html, saved.html and cod-setup.html are drawn in J by build_j_orders.py.
+This file still holds data and pieces the J builders import.
+
+Tin của bạn, Đã lưu and Thiết lập giao COD, in the chosen style (C's shell).
 
     python3 tools/build_seller_tools.py        (run from .superdesign/)
 
@@ -446,7 +449,5 @@ def cod_setup():
 
 
 if __name__ == "__main__":
-    for name, fn in [("my-listings", my_listings), ("saved", saved), ("cod-setup", cod_setup)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j_orders.py")

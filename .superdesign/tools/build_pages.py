@@ -1,4 +1,7 @@
-"""Search and Category, in the chosen style: C's shell (floating pill header,
+"""Superseded 2026-11-17: search.html and category.html are drawn in J by build_j.py (search) and build_j_public.py (category).
+This file still holds data and pieces the J builders import.
+
+Search and Category, in the chosen style: C's shell (floating pill header,
 dark footer, 28 px containers, polaroid-like cards) with E's sentence search.
 
     python3 tools/build_pages.py        (run from .superdesign/)
@@ -164,7 +167,7 @@ PHONES = [
     ("1678911820864-e2c567c655d7", "14,5 tr ₫", "Galaxy S23 Ultra 256GB, kèm bút", "Như mới", "1.140 km", "Hà Nội", "4,9", "20 phút", None),
     ("1616348436168-de43ad0db179", "6.900.000 ₫", "iPhone 12 128GB, màn zin, pin 84%", "Đã dùng", "0,8 km", "Bình Thạnh", "4,6", "3 giờ", "Rẻ hơn 8%"),
     ("1598327105666-5b89351aff97", "3.400.000 ₫", "Galaxy A54 5G 128GB, còn bảo hành", "Như mới", "1,7 km", "Q.1", "4,7", "45 phút", None),
-    ("1695048133142-1a20484d2569", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", "Cao hơn 6%"),
+    ("1592899677977-9c10ca588bbd", "15,9 tr ₫", "iPhone 15 128GB, bảo hành Apple đến 03/2027", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", "Cao hơn 6%"),
     ("1580910051074-3eb694886505", "5.200.000 ₫", "iPhone 12 mini 64GB, pin 82%", "Đã dùng", "610 km", "Đà Nẵng", "4,7", "5 giờ", None),
     ("1510557880182-3d4d3cba35a5", "3.900.000 ₫", "iPhone X 64GB, pin 86%, máy zin chưa sửa", "Như mới", "1,2 km", "Bình Thạnh", "4,8", "12 phút", "Rẻ hơn 13%"),
 ]
@@ -271,7 +274,5 @@ def category():
 
 
 if __name__ == "__main__":
-    for name, fn in [("search", search), ("category", category)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j.py")

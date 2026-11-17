@@ -1,4 +1,7 @@
-"""Orders, in the chosen style: Đơn hàng (one row per order), Đơn COD (the
+"""Superseded 2026-11-17: orders.html, order.html and ship.html are drawn in J by build_j_orders.py.
+This file still holds data and pieces the J builders import.
+
+Orders, in the chosen style: Đơn hàng (one row per order), Đơn COD (the
 buyer's order while GHTK carries it) and Đơn bán (the seller creates the
 shipment on one screen). Follows the app's order flow of 2026-11-14
 (app/.superdesign/tools/build_cod_order.py, build_ship_order.py).
@@ -359,7 +362,5 @@ def ship():
 
 
 if __name__ == "__main__":
-    for name, fn in [("orders", orders), ("order", order), ("ship", ship)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j_orders.py")

@@ -38,7 +38,7 @@ SIMILAR = [
     ("1678911820864-e2c567c655d7", "14,5 tr ₫", "Galaxy S23 Ultra 256GB", "Như mới", "2,9 km", "Phú Nhuận", "4,9", "20 phút", None),
     ("1580910051074-3eb694886505", "5.200.000 ₫", "iPhone 12 mini 64GB", "Đã dùng", "1,9 km", "Q.1", "4,7", "5 giờ", "Giá tham khảo"),
     ("1510557880182-3d4d3cba35a5", "3.900.000 ₫", "iPhone X 64GB, pin 86%", "Như mới", "1,2 km", "Bình Thạnh", "4,8", "12 phút", None),
-    ("1695048133142-1a20484d2569", "15,9 tr ₫", "iPhone 15 128GB", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", None),
+    ("1592899677977-9c10ca588bbd", "15,9 tr ₫", "iPhone 15 128GB", "Như mới", "2,2 km", "Tân Bình", "4,9", "40 phút", None),
 ]
 
 

@@ -1,4 +1,7 @@
-"""Hỗ trợ in the chosen style (C's shell): the person's tickets on the left, the open ticket's chat on the right.
+"""Superseded 2026-11-17: support.html are drawn in J by build_j_flows.py.
+This file still holds data and pieces the J builders import.
+
+Hỗ trợ in the chosen style (C's shell): the person's tickets on the left, the open ticket's chat on the right.
 
     python3 tools/build_support.py        (run from .superdesign/)
 
@@ -126,6 +129,5 @@ def page():
 
 
 if __name__ == "__main__":
-    with open(os.path.join(OUT, "support.html"), "w") as f:
-        f.write(page())
-    print("wrote support")
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j_flows.py")

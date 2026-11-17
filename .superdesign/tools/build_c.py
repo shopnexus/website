@@ -1,4 +1,7 @@
-"""Direction C, "Chợ xóm": a warm, illustrated neighbourhood market led by the
+"""Superseded 2026-11-17: detail-c.html are drawn in J by build_j_public.py.
+This file still holds data and pieces the J builders import.
+
+Direction C, "Chợ xóm": a warm, illustrated neighbourhood market led by the
 app's mascot. Same tokens and deal model as A and B; a different composition.
 
     python3 tools/build_c.py        (run from .superdesign/)
@@ -452,7 +455,5 @@ def detail():
 
 
 if __name__ == "__main__":
-    for name, fn in [("detail-c", detail)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j_public.py")

@@ -26,7 +26,37 @@ listing card, the `MONEY` sentences and the copy rules all come from there.
 - Icons: Material Symbols Rounded, weight 400; outline when inactive, filled
   when selected.
 
-## Directions (2026-11-04)
+## Direction J, "Kính mờ" (chosen 2026-11-17, current)
+
+Every page follows J; the rules are in `website/DESIGN.md` under "Expanded
+layout". The user found the C pill header too close to the Tìm kiếm search
+bar, the pages too empty, and stock M3 dull. Round one drew G "Sạp báo"
+(editorial, flat header), H "Phố đêm" (dark masthead) and I "Chợ sticker"
+(riso, hard shadows); G came closest but read old and square. Round two kept
+G's frame and drew J (glass and mesh) and L (bento); a clay-3D K was dropped
+on request. J won.
+
+- Shared pieces: `tools/j_kit.py` (CSS, wash, `header`, `footer`, `card`,
+  `price`, `seg`, `account_nav`, `panel`, `btn`, `money_line`, `crumbs`,
+  `switch`, `drop`, `PHASES` and the steppers). Page builders import from it
+  and define only page-specific parts.
+- Builders: `build_j.py` (Tìm kiếm, Home signed in, Home signed out),
+  `build_j_public.py` (Danh mục, Chi tiết tin, Người bán, Bản đồ),
+  `build_j_flows.py` (Cách mua, Đăng tin, Giao COD, Hỗ trợ),
+  `build_j_account.py` (Đăng nhập, Tôi, Thông báo, Tin nhắn),
+  `build_j_orders.py` (Đơn hàng, Đơn COD, Đơn bán, Tin của bạn, Đã lưu,
+  Thiết lập giao COD). Run from `.superdesign/`.
+- Drafts: each page's existing draft carries J as its newest version; the
+  signed-out Home is its own draft. G, H, I, J and L candidates stay on the
+  canvas as separate drafts for reference.
+- The older builders (`build.py`, `build_c.py`, `build_e.py`,
+  `build_pages.py` and the rest) still hold the mock data the J builders
+  import; their `__main__` writes nothing.
+- Values outside the app's tokens (page `#F5F8F7`, ink `#121817`, the 7 %
+  line, glass, 22 px cards) are listed in `website/DESIGN.md` and need adding
+  to `tokens.css` before the pages are built.
+
+## Directions (2026-11-04, superseded by J)
 
 Chosen after six directions (A to F): Home from E "Hỏi là thấy"
 (`tools/build_e.py`) on a full-bleed photo hero as in F, Listing detail from

@@ -1,4 +1,7 @@
-"""Đăng tin and Cách mua, in the chosen style (C's shell).
+"""Superseded 2026-11-17: sell.html and how.html are drawn in J by build_j_flows.py.
+This file still holds data and pieces the J builders import.
+
+Đăng tin and Cách mua, in the chosen style (C's shell).
 
     python3 tools/build_sell_howto.py        (run from .superdesign/)
 
@@ -7,6 +10,7 @@ money sentences are the app's MONEY sentences, word for word.
 """
 import json
 import os
+from typing import Any
 
 from build import OUT, a
 from build_c import ART, CSS, footer, header
@@ -55,7 +59,7 @@ def label(text, ai=False, extra=""):
 
 
 # The price guide for this iPhone: the range, the sold prices behind it, the listings on sale, and the people waiting.
-GUIDE = dict(low=4_400_000, high=5_100_000, median=4_800_000, axis=(4_000_000, 5_600_000), sold=18, live=12, waiting=23)
+GUIDE: dict[str, Any] = dict(low=4_400_000, high=5_100_000, median=4_800_000, axis=(4_000_000, 5_600_000), sold=18, live=12, waiting=23)
 # Sold prices in eight equal bins over the axis (200.000 ₫ each), the bars over the strip.
 SOLD_BINS = [1, 2, 3, 5, 4, 2, 1, 0]
 PRICE = 4_800_000
@@ -359,7 +363,5 @@ def how():
 
 
 if __name__ == "__main__":
-    for name, fn in [("sell", sell), ("how", how)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j_flows.py")

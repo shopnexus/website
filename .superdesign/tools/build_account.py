@@ -1,4 +1,7 @@
-"""Đăng nhập, Tôi and Thông báo in the chosen style (C's shell).
+"""Superseded 2026-11-17: login.html, account.html and notifications.html are drawn in J by build_j_account.py.
+This file still holds data and pieces the J builders import.
+
+Đăng nhập, Tôi and Thông báo in the chosen style (C's shell).
 
     python3 tools/build_account.py        (run from .superdesign/)
 """
@@ -417,7 +420,5 @@ def notifications():
 
 
 if __name__ == "__main__":
-    for name, fn in [("login", login), ("account", account), ("notifications", notifications)]:
-        with open(os.path.join(OUT, f"{name}.html"), "w") as f:
-            f.write(fn())
-        print("wrote", name)
+    # Writing would put the old look back over the J pages.
+    print("superseded: run build_j_account.py")

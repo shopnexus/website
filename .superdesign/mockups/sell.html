@@ -31,256 +31,226 @@ tailwind.config = { theme: { extend: {
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
-  .tilt-l { transform: rotate(-5deg); } .tilt-r { transform: rotate(4deg); } .tilt-s { transform: rotate(-2deg); }
-  .pin-pulse::before { content: ""; position: absolute; inset: -10px; border-radius: 9999px; background: var(--md-primary); opacity: .18; }
-  /* The ticket: three stacked parts with real notches cut by a mask, so the
-     page shows through and the shadow (a drop-shadow on the wrapper) follows
-     the notched outline instead of being painted over. */
-  .ticket { filter: drop-shadow(0 1px 2px rgb(0 0 0 / .22)) drop-shadow(0 4px 10px rgb(0 0 0 / .10)); }
-  .ticket > * { --n: 12px; background: var(--md-surface-container-lowest); padding: 24px; }
-  .ticket > :first-child { border-radius: 28px 28px 0 0; padding-bottom: 28px;
-    -webkit-mask: radial-gradient(circle var(--n) at 0 100%, #0000 98%, #000) 0 100% / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 100%, #0000 98%, #000) 100% 100% / 51% 51% no-repeat,
-                  linear-gradient(#000 0 0) 0 0 / 100% 50% no-repeat;
-            mask: radial-gradient(circle var(--n) at 0 100%, #0000 98%, #000) 0 100% / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 100%, #0000 98%, #000) 100% 100% / 51% 51% no-repeat,
-                  linear-gradient(#000 0 0) 0 0 / 100% 50% no-repeat; }
-  .ticket > :not(:first-child):not(:last-child) { padding-top: 28px; padding-bottom: 28px;
-    -webkit-mask: radial-gradient(circle var(--n) at 0 0, #0000 98%, #000) 0 0 / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 0, #0000 98%, #000) 100% 0 / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 0 100%, #0000 98%, #000) 0 100% / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 100%, #0000 98%, #000) 100% 100% / 51% 51% no-repeat;
-            mask: radial-gradient(circle var(--n) at 0 0, #0000 98%, #000) 0 0 / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 0, #0000 98%, #000) 100% 0 / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 0 100%, #0000 98%, #000) 0 100% / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 100%, #0000 98%, #000) 100% 100% / 51% 51% no-repeat; }
-  .ticket > :last-child { border-radius: 0 0 28px 28px; padding-top: 28px;
-    -webkit-mask: radial-gradient(circle var(--n) at 0 0, #0000 98%, #000) 0 0 / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 0, #0000 98%, #000) 100% 0 / 51% 51% no-repeat,
-                  linear-gradient(#000 0 0) 0 100% / 100% 50% no-repeat;
-            mask: radial-gradient(circle var(--n) at 0 0, #0000 98%, #000) 0 0 / 51% 51% no-repeat,
-                  radial-gradient(circle var(--n) at 100% 0, #0000 98%, #000) 100% 0 / 51% 51% no-repeat,
-                  linear-gradient(#000 0 0) 0 100% / 100% 50% no-repeat; }
-  /* the tear line sits between the notches, inset so it never touches the edge */
-  .ticket > :not(:first-child) { position: relative; }
-  .ticket > :not(:first-child)::before { content: ""; position: absolute; top: 0; left: 22px; right: 22px;
-    border-top: 2px dashed var(--md-outline-variant); }
-  .stamp { border: 2px solid currentColor; box-shadow: inset 0 0 0 4px var(--md-surface-container-lowest), inset 0 0 0 5px currentColor; }
-  .lift { transition: transform 420ms var(--spatial); } .lift:hover { transform: translateY(-4px) rotate(-1deg); }
-  .dash-line { background-image: linear-gradient(to right, var(--md-on-primary-container) 50%, transparent 0); background-size: 12px 2px; background-repeat: repeat-x; }
-  .stagger > :nth-child(even) { transform: translateY(28px); }
-
-  .seg > * { border-radius: 4px; }
-  .seg > :first-child { border-top-left-radius: 9999px; border-bottom-left-radius: 9999px; }
-  .seg > :last-child { border-top-right-radius: 9999px; border-bottom-right-radius: 9999px; }
-  .field { border-radius: 12px; border: 1px solid var(--md-outline-variant); background: var(--md-surface-container-lowest); }
-  .drop { border: 2px dashed var(--md-outline); }
-  details.faq > summary { list-style: none; cursor: pointer; }
-  details.faq > summary::-webkit-details-marker { display: none; }
-  details.faq[open] .chev { transform: rotate(180deg); }
-  .chev { transition: transform 412ms var(--spatial); }
+  :root { --bg: #F5F8F7; --ink: #121817; --line: rgb(18 24 23 / .07); --glass: rgb(255 255 255 / .62); }
+  html, body { background: var(--bg); }
+  .ink { color: var(--ink); }
+  .line { border-color: var(--line); }
+  .tight { letter-spacing: -0.02em; } .tighter { letter-spacing: -0.035em; }
+  .num { font-variant-numeric: tabular-nums; }
+  /* the wash: three soft blobs over the page colour, fading out below the fold */
+  .mesh { position: absolute; inset: 0 0 auto 0; height: 640px; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(42% 70% at 8% 0%, rgb(6 106 97 / .55), transparent 70%),
+      radial-gradient(38% 60% at 46% 10%, rgb(133 213 201 / .55), transparent 72%),
+      radial-gradient(34% 62% at 92% 4%, rgb(255 219 207 / .9), transparent 70%),
+      radial-gradient(40% 50% at 70% 40%, rgb(199 230 224 / .7), transparent 75%);
+    -webkit-mask: linear-gradient(#000 55%, transparent); mask: linear-gradient(#000 55%, transparent); }
+  .mesh::after { content: ""; position: absolute; inset: 0; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); opacity: .22; mix-blend-mode: overlay; }
+  .glass { background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+  .glass-edge { box-shadow: inset 0 0 0 1px rgb(255 255 255 / .7); }
+  .soft { box-shadow: 0 1px 2px rgb(18 24 23 / .04), 0 8px 24px -8px rgb(18 24 23 / .10); }
+  .glow { box-shadow: 0 0 0 1px rgb(255 255 255 / .9), 0 12px 32px -10px rgb(6 80 73 / .30); }
+  .grad-text { background: linear-gradient(100deg, #005049 0%, #0E8A7D 45%, #C0623E 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .grad-num { background: linear-gradient(160deg, #066A61, #5CC2B4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .card { transition: transform 420ms var(--spatial), box-shadow 300ms var(--effects); }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -14px rgb(18 24 23 / .22); }
+  .card img { transition: transform 600ms var(--spatial); } .card:hover img { transform: scale(1.04); }
+  /* segmented control: a white pill slides under the selected item */
+  .seg { position: relative; display: inline-flex; padding: 4px; border-radius: 9999px; }
+  .seg > .thumb { position: absolute; top: 4px; bottom: 4px; border-radius: 9999px; background: #fff;
+    box-shadow: 0 1px 2px rgb(18 24 23 / .08), 0 2px 8px rgb(18 24 23 / .06); transition: left 420ms var(--spatial), width 420ms var(--spatial); }
+  .seg > button { position: relative; z-index: 1; height: 32px; padding: 0 14px; white-space: nowrap; border-radius: 9999px; }
+  .seg > button[aria-selected="true"] { color: var(--ink); }
+  .nav-link[aria-current="page"] { color: var(--ink); background: rgb(255 255 255 / .85); box-shadow: 0 1px 2px rgb(18 24 23 / .06); }
 
 </style>
 </head>
 <body>
-<div class="min-h-screen bg-surface pb-2 font-sans text-on-surface">
-  <header class="sticky top-4 z-30 mx-auto mt-4 max-w-[1328px] px-6">
-  <div class="flex h-16 items-center gap-2 rounded-full bg-surface-container-lowest pl-3 pr-2 shadow-float">
-    <a id="brand-7" href="#home" class="flex items-center gap-2 pr-4"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium">ShopNexus</span></a>
-    <nav class="flex items-center gap-1"><a id="nav-0-3" href="#nav-0" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Khám phá</a><a id="nav-1-4" href="#nav-1" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Danh mục</a><a id="nav-2-5" href="#nav-2" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Bản đồ</a><a id="nav-3-6" href="#nav-3" class="state flex h-10 items-center rounded-full px-4 text-label-l text-on-surface-variant">Cách mua</a></nav>
+<div id="app" class="relative min-h-screen overflow-hidden font-sans ink">
+<div class="mesh"></div>
+<div class="relative z-10">
+<header class="glass sticky top-0 z-30">
+  <div class="mx-auto flex h-16 max-w-[1360px] items-center px-8">
+    <a id="brand-29" href="#home" class="flex items-center gap-2 pr-6"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-8 w-8"><span class="text-title-l font-semibold tight ink">ShopNexus</span></a>
+    <nav class="flex items-center gap-0.5"><a id="nav-0-24" href="#nav-0" class="nav-link flex h-9 items-center rounded-full px-3.5 text-label-l text-on-surface-variant hover:text-on-surface">Khám phá</a><a id="nav-1-25" href="#nav-1" class="nav-link flex h-9 items-center rounded-full px-3.5 text-label-l text-on-surface-variant hover:text-on-surface">Danh mục</a><a id="nav-2-26" href="#nav-2" class="nav-link flex h-9 items-center rounded-full px-3.5 text-label-l text-on-surface-variant hover:text-on-surface">Bản đồ</a><a id="nav-3-27" href="#nav-3" class="nav-link flex h-9 items-center rounded-full px-3.5 text-label-l text-on-surface-variant hover:text-on-surface">Cách mua</a></nav>
     <span class="flex-1"></span>
-    <button id="quick-search" type="button" class="quick  state flex h-10 items-center gap-2 whitespace-nowrap rounded-full bg-surface-container-high px-4 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:search-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Tìm nhanh<span class="ml-6 rounded-xs bg-surface-container-lowest px-1.5 text-label-s">/</span></button>
-    <a id="messages-8" href="#messages" class="state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:chat-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon><span class="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-error px-1 text-label-s text-on-error">3</span></a>
-    <button type="button" class="state flex h-12 items-center gap-2 rounded-full bg-secondary-container pl-4 pr-5 text-label-l text-on-secondary-container"><iconify-icon icon="material-symbols:add-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Đăng tin</button>
-    <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=96&h=96&q=80&auto=format&fit=crop" alt="Tài khoản" class="ml-1 h-11 w-11 rounded-full object-cover">
-  </div>
-</header>
-  <main class="mx-auto max-w-[1328px] px-6">
-    <div class="mt-8 flex items-end justify-between">
-      <div><p class="text-label-l uppercase tracking-[0.12em] text-primary">Bán đồ</p><h1 class="mt-2 text-display-m">Đăng tin</h1></div>
-      <div class="flex flex-col items-end gap-1.5">
-        <div class="flex items-center gap-2">
-          <button type="button" class="state h-12 rounded-full px-5 text-label-l text-primary">Lưu nháp</button>
-          <a id="cancel-sell-9" href="#cancel-sell" class="state flex h-12 items-center rounded-full border border-outline-variant px-5 text-label-l text-on-surface-variant">Hủy</a>
-        </div>
-        <p class="flex items-center gap-1 text-body-s text-on-surface-variant"><iconify-icon icon="material-symbols:draft-outline-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>Nháp giữ 30 ngày từ lần sửa cuối, tối đa 20 nháp</p>
-      </div>
+    <div class="flex items-center gap-1">
+      <a id="messages-28" href="#messages" class="state relative grid h-10 w-10 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:chat-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon><span class="absolute right-0.5 top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-error px-1 text-label-s text-on-error ring-2 ring-white">3</span></a>
+      <button type="button" class="state ml-2 flex h-10 items-center gap-1.5 rounded-full bg-[var(--ink)] pl-3.5 pr-4 text-label-l text-white"><iconify-icon icon="material-symbols:add-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Đăng tin</button>
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&q=80&auto=format&fit=crop" alt="Tài khoản" class="ml-2 h-9 w-9 rounded-full object-cover ring-2 ring-white">
     </div>
-    <div class="mt-8 grid grid-cols-[1fr_400px] gap-8">
-      <div class="flex flex-col gap-5"><section class="rounded-xl bg-surface-container-low p-8">
-  <div class="flex items-center gap-3">
-    <span class="grid h-9 w-9 place-items-center rounded-full bg-primary-container text-title-s text-on-primary-container">1</span>
-    <h2 class="flex-1 text-headline-s text-on-surface">Ảnh</h2><span class="text-body-m text-on-surface-variant">4/10</span>
   </div>
+</header><style>
+  details.faq > summary { list-style: none; cursor: pointer; }
+  details.faq > summary::-webkit-details-marker { display: none; }
+  details.faq[open] .chev { transform: rotate(180deg); }
+  .chev { transition: transform 420ms var(--spatial); }
+  .badge-grad { background: linear-gradient(140deg, #066A61, #5CC2B4); color: #fff; }
+</style>
+<main class="mx-auto max-w-[1360px] px-8">
+  <div class="flex items-end justify-between pt-8">
+    <div><p class="text-label-l text-primary">Bán đồ</p><h1 class="text-[44px] font-semibold leading-[48px] tighter ink">Đăng tin</h1></div>
+    <div class="flex items-center gap-3">
+      <span class="flex items-center gap-1 text-body-s text-on-surface-variant"><iconify-icon icon="material-symbols:draft-outline-rounded" width="15" height="15" class="block shrink-0 "></iconify-icon>Nháp giữ 30 ngày từ lần sửa cuối, tối đa 20 nháp</span>
+      <button type="button" class="state flex shrink-0 items-center justify-center whitespace-nowrap rounded-full text-label-l h-11 gap-2 px-5 border line bg-white ink">Lưu nháp</button>
+      <a id="cancel-sell-30" href="#cancel-sell" class="state flex h-11 items-center rounded-full px-4 text-label-l text-on-surface-variant">Hủy</a>
+    </div>
+  </div>
+  <div class="mt-6 grid grid-cols-[1fr_340px] gap-6">
+    <div class="flex flex-col gap-4"><section class="rounded-[24px] border line bg-white p-6">
+  <div class="flex items-center gap-3"><span class="badge-grad num grid h-8 w-8 place-items-center rounded-full text-title-s">1</span>
+    <h2 class="flex-1 text-[20px] font-semibold leading-7 tight ink">Ảnh</h2><span class="num rounded-full bg-surface-container-low px-2.5 py-0.5 text-label-m text-on-surface-variant">4/10</span></div>
   
-  <div class="mt-6 grid grid-cols-[1.35fr_1fr] gap-3">
-    <div class="relative overflow-hidden rounded-xl bg-surface-container-high" style="aspect-ratio: 4 / 3">
+  <div class="mt-4 grid h-[260px] grid-cols-[1.6fr_1fr_1fr] grid-rows-2 gap-2.5">
+    <div class="relative row-span-2 overflow-hidden rounded-[18px] bg-surface-container-high">
       <img src="https://images.unsplash.com/photo-1603891128711-11b4b03bb138?w=900&h=900&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.5&fp-z=1&q=80&auto=format" alt="Ảnh bìa: Mặt lưng" class="h-full w-full object-cover">
-      <span class="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-label-m text-white">Ảnh bìa</span>
+      <span class="absolute left-3 top-3 rounded-full bg-white/85 px-2.5 py-0.5 text-label-m ink backdrop-blur">Ảnh bìa</span>
     </div>
-    <div class="grid grid-cols-2 gap-3"><button type="button" class="state relative aspect-square overflow-hidden rounded-lg bg-surface-container-high" title="Đặt làm ảnh bìa">
+    <button type="button" class="state relative overflow-hidden rounded-[16px] bg-surface-container-high" title="Đặt làm ảnh bìa">
   <img src="https://images.unsplash.com/photo-1603891128711-11b4b03bb138?w=480&h=480&fit=crop&crop=focalpoint&fp-x=0.25&fp-y=0.25&fp-z=3&q=80&auto=format" alt="Cụm camera" class="h-full w-full object-cover">
-  <span class="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white" aria-label="Bỏ ảnh"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span>
-</button><button type="button" class="state relative aspect-square overflow-hidden rounded-lg bg-surface-container-high" title="Đặt làm ảnh bìa">
+  <span class="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white backdrop-blur" aria-label="Bỏ ảnh"><iconify-icon icon="material-symbols:close-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon></span>
+</button><button type="button" class="state relative overflow-hidden rounded-[16px] bg-surface-container-high" title="Đặt làm ảnh bìa">
   <img src="https://images.unsplash.com/photo-1603891128711-11b4b03bb138?w=480&h=480&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.62&fp-z=1.8&q=80&auto=format" alt="Logo và mặt lưng" class="h-full w-full object-cover">
-  <span class="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white" aria-label="Bỏ ảnh"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span>
-</button><button type="button" class="state relative aspect-square overflow-hidden rounded-lg bg-surface-container-high" title="Đặt làm ảnh bìa">
+  <span class="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white backdrop-blur" aria-label="Bỏ ảnh"><iconify-icon icon="material-symbols:close-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon></span>
+</button><button type="button" class="state relative overflow-hidden rounded-[16px] bg-surface-container-high" title="Đặt làm ảnh bìa">
   <img src="https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=480&h=480&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.5&fp-z=1.2&q=80&auto=format" alt="Mặt trước" class="h-full w-full object-cover">
-  <span class="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white" aria-label="Bỏ ảnh"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span>
-</button><label class="drop flex aspect-square cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg bg-surface-container-lowest text-center text-on-surface-variant">
-  <iconify-icon icon="material-symbols:add-photo-alternate-outline-rounded" width="30" height="30" class="block shrink-0 text-primary"></iconify-icon><span class="text-label-l text-on-surface">Thêm ảnh</span><span class="px-3 text-body-s">Kéo thả vào đây</span>
-</label></div>
-  </div>
-  <div class="mt-4 flex items-center justify-between text-body-s text-on-surface-variant">
-    <span class="flex items-center gap-1.5"><iconify-icon icon="material-symbols:upload-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>Ảnh tải lên</span>
-    <span>Bấm một ảnh để đặt làm ảnh bìa</span>
-  </div>
-</section><section class="rounded-xl bg-surface-container-low p-8">
-  <div class="flex items-center gap-3">
-    <span class="grid h-9 w-9 place-items-center rounded-full bg-primary-container text-title-s text-on-primary-container">2</span>
-    <h2 class="flex-1 text-headline-s text-on-surface">Món đồ</h2>
-  </div>
-  
-  <div class="mt-6 flex flex-col gap-6">
-    <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Tiêu đề<iconify-icon icon="material-symbols:auto-awesome-rounded" width="16" height="16" class="block shrink-0 text-primary "></iconify-icon></p><div class="field flex h-14 items-center justify-between px-4 text-body-l text-on-surface">iPhone 11 64GB Trắng, máy zin<span class="text-body-s text-on-surface-variant">29/80</span></div></div>
-    <div class="grid grid-cols-2 gap-4">
-      <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Danh mục<iconify-icon icon="material-symbols:auto-awesome-rounded" width="16" height="16" class="block shrink-0 text-primary "></iconify-icon></p><div class="field flex h-14 items-center justify-between px-4 text-body-l">Điện thoại › iPhone<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="22" height="22" class="block shrink-0 text-on-surface-variant"></iconify-icon></div></div>
-      <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Màu<iconify-icon icon="material-symbols:auto-awesome-rounded" width="16" height="16" class="block shrink-0 text-primary "></iconify-icon></p><div class="field flex h-14 items-center px-4 text-body-l">Trắng</div></div>
-      <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Dung lượng</p><div class="field flex h-14 items-center justify-between px-4 text-body-l">64 GB<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="22" height="22" class="block shrink-0 text-on-surface-variant"></iconify-icon></div></div>
-      <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Pin</p><div class="field flex h-14 items-center justify-between px-4 text-body-l">81<span class="text-on-surface-variant">%</span></div></div>
-    </div>
-    <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Tình trạng<iconify-icon icon="material-symbols:auto-awesome-rounded" width="16" height="16" class="block shrink-0 text-primary "></iconify-icon></p><div class="seg flex gap-0.5"><span class="flex h-11 flex-1 items-center justify-center gap-1 text-label-l bg-surface-container-lowest text-on-surface-variant">Mới</span><span class="flex h-11 flex-1 items-center justify-center gap-1 text-label-l bg-surface-container-lowest text-on-surface-variant">Như mới</span><span class="flex h-11 flex-1 items-center justify-center gap-1 text-label-l bg-secondary-container text-on-secondary-container"><iconify-icon icon="material-symbols:check-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Đã dùng</span></div><p class="mt-2 text-body-m text-on-surface-variant">Có vết thấy rõ hoặc lỗi nhỏ</p></div>
-    <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Tin ghi<span class="ml-1 text-body-s font-normal text-on-surface-variant">· người mua kiểm những điều này khi nhận hàng</span></p>
-      <div class="flex flex-wrap gap-2"><span class="flex h-9 items-center gap-1.5 rounded-full bg-surface-container-lowest pl-3 pr-2 text-label-l text-on-surface">Pin 81%<span class="grid h-6 w-6 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></span><span class="flex h-9 items-center gap-1.5 rounded-full bg-surface-container-lowest pl-3 pr-2 text-label-l text-on-surface">Bản VN/A<span class="grid h-6 w-6 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></span><span class="flex h-9 items-center gap-1.5 rounded-full bg-surface-container-lowest pl-3 pr-2 text-label-l text-on-surface">Chưa từng sửa<span class="grid h-6 w-6 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></span><span class="flex h-9 items-center gap-1.5 rounded-full bg-surface-container-lowest pl-3 pr-2 text-label-l text-on-surface">Kèm cáp sạc<span class="grid h-6 w-6 place-items-center rounded-full text-on-surface-variant"><iconify-icon icon="material-symbols:close-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon></span></span><button type="button" class="state flex h-9 items-center gap-1 rounded-full border border-dashed border-outline px-3 text-label-l text-on-surface-variant"><iconify-icon icon="material-symbols:add-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Thêm điều bạn ghi</button></div></div>
-    <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Mô tả<iconify-icon icon="material-symbols:auto-awesome-rounded" width="16" height="16" class="block shrink-0 text-primary "></iconify-icon></p><div class="field min-h-[112px] px-4 py-3 text-body-l text-on-surface">Máy dùng 3 năm, chưa sửa chữa hay thay linh kiện. Face ID và camera hoạt động tốt. Kèm cáp sạc.</div></div>
-  </div>
-</section><section class="rounded-xl bg-surface-container-low p-8">
-  <div class="flex items-center gap-3">
-    <span class="grid h-9 w-9 place-items-center rounded-full bg-primary-container text-title-s text-on-primary-container">3</span>
-    <h2 class="flex-1 text-headline-s text-on-surface">Giá</h2>
-  </div>
-  <div class="mt-6">
-  <button type="button" class="state -mx-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-title-s text-tertiary" aria-haspopup="dialog">
-    <iconify-icon icon="material-symbols:auto-awesome-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Giá tham khảo 4,4 – 5,1 tr ₫<iconify-icon icon="material-symbols:chevron-right-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon></button>
-  <div class="relative mt-4">
-    <div class="flex h-24 items-end gap-1.5 border-b border-outline-variant" role="img" aria-label="Số tin đã bán theo giá, nhiều nhất quanh 4,6 tr"><span class="flex h-full flex-1 items-end" title="1 tin bán 4–4,2 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:20%"></span></span><span class="flex h-full flex-1 items-end" title="2 tin bán 4,2–4,4 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:40%"></span></span><span class="flex h-full flex-1 items-end" title="3 tin bán 4,4–4,6 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:60%"></span></span><span class="flex h-full flex-1 items-end" title="5 tin bán 4,6–4,8 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:100%"></span></span><span class="flex h-full flex-1 items-end" title="4 tin bán 4,8–5 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:80%"></span></span><span class="flex h-full flex-1 items-end" title="2 tin bán 5–5,2 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:40%"></span></span><span class="flex h-full flex-1 items-end" title="1 tin bán 5,2–5,4 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:20%"></span></span><span class="flex h-full flex-1 items-end" title="0 tin bán 5,4–5,6 tr"><span class="block w-full rounded-t-[4px] bg-primary/80" style="height:0%"></span></span></div>
-    <span class="absolute top-0 h-24 w-0.5 -translate-x-1/2 bg-tertiary" style="left:50.0%" aria-hidden="true"></span>
-  </div>
-  <div class="relative h-12 cursor-grab" role="slider" aria-label="Giá bán" aria-valuemin="4000000" aria-valuemax="5600000" aria-valuenow="4800000" tabindex="0">
-    <span class="absolute inset-x-0 top-4 h-2 rounded-full bg-surface-container-highest"></span>
-    <span class="absolute top-4 h-2 rounded-full bg-tertiary-fixed" style="left:25.0%;right:31.25%"></span>
-    <span class="absolute top-3 h-4 w-0.5 -translate-x-1/2 rounded-full bg-on-surface-variant" style="left:50.0%"></span>
-    <span class="absolute top-2.5 h-5 w-5 -translate-x-1/2 rounded-full border-2 border-surface-container-low bg-tertiary shadow-float" style="left:50.0%"></span>
-    <span class="absolute left-0 top-8 text-body-s text-on-surface-variant">4 tr</span>
-    <span class="absolute top-8 -translate-x-1/2 text-body-s text-on-surface-variant" style="left:50.0%">giữa 4,8 tr</span>
-    <span class="absolute right-0 top-8 text-body-s text-on-surface-variant">5,6 tr</span>
-  </div>
-  <p class="mt-3 text-body-s text-on-surface-variant">Từ 18 tin đã bán và 12 tin đang bán giống món này</p>
-</div>
-  <div class="mt-6 flex gap-3"><button type="button" class="state flex flex-1 items-center gap-3 rounded-lg p-4 text-left bg-surface-container-lowest text-on-surface">
-  <iconify-icon icon="material-symbols:bolt-outline-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon><span class="flex-1"><span class="block text-label-l">Bán nhanh</span><span class="block text-title-l">4.500.000<span class="text-body-m"> ₫</span></span></span>
-  <span class="flex items-center gap-1 text-body-s"><iconify-icon icon="material-symbols:schedule-outline-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>~2 ngày</span>
-</button><button type="button" class="state flex flex-1 items-center gap-3 rounded-lg p-4 text-left bg-secondary-container text-on-secondary-container ring-2 ring-primary">
-  <iconify-icon icon="material-symbols:balance-rounded" width="24" height="24" class="block shrink-0 "></iconify-icon><span class="flex-1"><span class="block text-label-l">Giá thị trường</span><span class="block text-title-l">4.800.000<span class="text-body-m"> ₫</span></span></span>
-  <span class="flex items-center gap-1 text-body-s"><iconify-icon icon="material-symbols:schedule-outline-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>~1 tuần</span>
-</button></div>
-  <div class="mt-5 grid grid-cols-[1fr_auto] items-end gap-6">
-    <div><p class="mb-2 flex items-center gap-1.5 text-title-s text-on-surface">Giá bán</p><div class="field flex h-16 items-center justify-between px-5 text-headline-s text-on-surface ring-2 ring-primary">4.800.000<span class="text-title-m text-on-surface-variant">₫</span></div>
-      <p class="mt-2 flex items-center gap-1 text-label-l text-tertiary"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>Rẻ hơn 8/12 tin đang bán · bán trong ~1 tuần</p></div>
-    <label class="mb-7 flex h-16 items-center gap-4 rounded-lg bg-surface-container-lowest px-4">
-      <iconify-icon icon="material-symbols:sell-outline-rounded" width="22" height="22" class="block shrink-0 text-on-surface-variant"></iconify-icon><span class="text-label-l text-on-surface">Cho phép trả giá</span>
-      <span class="relative h-8 w-[52px] rounded-full bg-primary"><span class="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-on-primary"></span></span>
+  <span class="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white backdrop-blur" aria-label="Bỏ ảnh"><iconify-icon icon="material-symbols:close-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon></span>
+</button>
+    <label class="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-[16px] border-[1.5px] border-dashed border-primary/40 bg-secondary-container/40 text-center">
+      <iconify-icon icon="material-symbols:add-photo-alternate-outline-rounded" width="26" height="26" class="block shrink-0 text-primary"></iconify-icon><span class="text-label-l ink">Thêm ảnh</span><span class="text-body-s text-on-surface-variant">Kéo thả vào đây</span>
     </label>
   </div>
-  <div class="mt-8 border-t border-outline-variant pt-6">
-    <div class="flex items-baseline justify-between gap-4">
-      <h3 class="text-title-l text-on-surface">Tin giống bạn</h3>
-      <p class="text-body-s text-on-surface-variant">Cùng danh mục và tình trạng, đang bán hoặc đã bán gần đây</p>
-    </div>
-    <div class="mt-3 flex gap-2"><button type="button" class="state flex h-8 items-center gap-1 rounded-sm px-3 text-label-l bg-secondary-container text-on-secondary-container"><iconify-icon icon="material-symbols:check-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Đang bán · 3</button><button type="button" class="state flex h-8 items-center gap-1 rounded-sm px-3 text-label-l border border-outline-variant text-on-surface-variant">Đã bán · 3</button></div>
-    <div class="mt-4 flex gap-3"><button type="button" class="state w-[156px] rounded-lg text-left" aria-haspopup="dialog" title="So với tin của bạn">
-  <span class="relative block aspect-square overflow-hidden rounded-lg bg-surface-container-high"><img src="https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=320&h=320&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.5&fp-z=1&q=80&auto=format" alt="" class="h-full w-full object-cover"></span>
-  <span class="mt-2 block text-title-m text-on-surface">4.900.000<span class="text-body-m text-on-surface-variant"> ₫</span></span>
-  <span class="block text-body-s text-on-surface-variant">Như mới</span>
-  <span class="block text-body-s text-on-surface-variant">1,2 km</span>
-</button><button type="button" class="state w-[156px] rounded-lg text-left" aria-haspopup="dialog" title="So với tin của bạn">
-  <span class="relative block aspect-square overflow-hidden rounded-lg bg-surface-container-high"><img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=320&h=320&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.45&fp-z=1.2&q=80&auto=format" alt="" class="h-full w-full object-cover"></span>
-  <span class="mt-2 block text-title-m text-on-surface">4.400.000<span class="text-body-m text-on-surface-variant"> ₫</span></span>
-  <span class="block text-body-s text-on-surface-variant">Đã dùng</span>
-  <span class="block text-body-s text-on-surface-variant">2,5 km</span>
-</button><button type="button" class="state w-[156px] rounded-lg text-left" aria-haspopup="dialog" title="So với tin của bạn">
-  <span class="relative block aspect-square overflow-hidden rounded-lg bg-surface-container-high"><img src="https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=320&h=320&fit=crop&crop=focalpoint&fp-x=0.4&fp-y=0.35&fp-z=1.5&q=80&auto=format" alt="" class="h-full w-full object-cover"></span>
-  <span class="mt-2 block text-title-m text-on-surface">5.300.000<span class="text-body-m text-on-surface-variant"> ₫</span></span>
-  <span class="block text-body-s text-on-surface-variant">Đã dùng</span>
-  <span class="block text-body-s text-on-surface-variant">3,1 km</span>
-</button></div>
-  </div>
-  <div class="mt-6 flex items-center gap-4 rounded-lg bg-surface-container-lowest p-4">
-    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-container text-on-primary-container"><iconify-icon icon="material-symbols:notifications-active-outline-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></span>
-    <p class="flex-1"><span class="block text-title-s text-on-surface">23 người đang tìm món như của bạn</span>
-      <span class="block text-body-s text-on-surface-variant">Họ đang theo dõi một tìm kiếm khớp với tin này ở giá bạn đặt</span></p>
-  </div>
-</section><section class="rounded-xl bg-surface-container-low p-8">
-  <div class="flex items-center gap-3">
-    <span class="grid h-9 w-9 place-items-center rounded-full bg-primary-container text-title-s text-on-primary-container">4</span>
-    <h2 class="flex-1 text-headline-s text-on-surface">Giao dịch</h2>
-  </div>
+  <p class="mt-3 flex items-center justify-between text-body-s text-on-surface-variant"><span class="flex items-center gap-1.5"><iconify-icon icon="material-symbols:upload-rounded" width="15" height="15" class="block shrink-0 "></iconify-icon>Ảnh tải lên</span><span>Bấm một ảnh để đặt làm ảnh bìa</span></p>
+</section><section class="rounded-[24px] border line bg-white p-6">
+  <div class="flex items-center gap-3"><span class="badge-grad num grid h-8 w-8 place-items-center rounded-full text-title-s">2</span>
+    <h2 class="flex-1 text-[20px] font-semibold leading-7 tight ink">Món đồ</h2></div>
   
-  <div class="mt-6 flex flex-col gap-3">
-    <div class="flex items-center gap-4 rounded-lg bg-surface-container-lowest p-4">
-      <iconify-icon icon="material-symbols:local-shipping-outline-rounded" width="26" height="26" class="block shrink-0 text-on-surface-variant"></iconify-icon>
-      <span class="flex-1"><span class="block text-body-l">COD, xem hàng trước</span><span class="block text-body-s text-on-surface-variant">Người mua xem hàng rồi mới trả</span></span>
+  <div class="mt-4 flex flex-col gap-4">
+    <div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Tiêu đề<iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 text-primary"></iconify-icon></p><div class="flex h-12 items-center justify-between gap-3 rounded-[14px] bg-surface-container-low px-4 text-body-l ink ">iPhone 11 64GB Trắng, máy zin<span class="num text-body-s text-on-surface-variant">29/80</span></div></div>
+    <div class="grid grid-cols-4 gap-3">
+      <div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Danh mục<iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 text-primary"></iconify-icon></p><div class="flex h-12 items-center justify-between gap-3 rounded-[14px] bg-surface-container-low px-4 text-body-l ink ">Điện thoại › iPhone<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="20" height="20" class="block shrink-0 text-on-surface-variant"></iconify-icon></div></div><div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Màu<iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 text-primary"></iconify-icon></p><div class="flex h-12 items-center justify-between gap-3 rounded-[14px] bg-surface-container-low px-4 text-body-l ink ">Trắng</div></div><div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Dung lượng</p><div class="flex h-12 items-center justify-between gap-3 rounded-[14px] bg-surface-container-low px-4 text-body-l ink ">64 GB<iconify-icon icon="material-symbols:keyboard-arrow-down-rounded" width="20" height="20" class="block shrink-0 text-on-surface-variant"></iconify-icon></div></div><div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Pin</p><div class="flex h-12 items-center justify-between gap-3 rounded-[14px] bg-surface-container-low px-4 text-body-l ink ">81<span class="text-on-surface-variant">%</span></div></div>
     </div>
-    <div class="flex items-center gap-4 rounded-lg bg-surface-container-lowest p-4">
-      <span class="grid h-10 w-10 place-items-center rounded-full bg-secondary-container text-on-secondary-container"><iconify-icon icon="material-symbols:check-rounded" width="22" height="22" class="block shrink-0 "></iconify-icon></span>
-      <span class="flex-1"><span class="block text-body-l">Gửi bằng GHTK · tài khoản của bạn</span><span class="block text-body-s text-on-surface-variant">Có đơn thì bạn tạo vận đơn ngay trên ShopNexus</span></span>
-      <a id="change-carrier-1" href="#change-carrier" class="state flex h-10 items-center rounded-full px-4 text-label-l text-primary">Đổi</a>
+    <div class="grid grid-cols-[1fr_1.4fr] gap-4">
+      <div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Tình trạng<iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 text-primary"></iconify-icon></p>
+        <div class="seg w-full bg-surface-container-low"><span class="thumb"></span><button type="button" class="flex-1 text-label-l text-on-surface-variant" aria-selected="false">Mới</button><button type="button" class="flex-1 text-label-l text-on-surface-variant" aria-selected="false">Như mới</button><button type="button" class="flex-1 text-label-l text-on-surface-variant" aria-selected="true">Đã dùng</button></div>
+        <p class="mt-1.5 text-body-s text-on-surface-variant">Có vết thấy rõ hoặc lỗi nhỏ</p></div>
+      <div><p class="mb-1.5 text-label-l text-on-surface-variant">Tin ghi <span class="font-normal">· người mua kiểm những điều này khi nhận hàng</span></p>
+        <div class="flex flex-wrap gap-1.5"><span class="flex h-8 items-center gap-1 rounded-full bg-secondary-container/70 pl-3 pr-1.5 text-label-l text-on-secondary-container">Pin 81%<span class="grid h-5 w-5 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon></span></span><span class="flex h-8 items-center gap-1 rounded-full bg-secondary-container/70 pl-3 pr-1.5 text-label-l text-on-secondary-container">Bản VN/A<span class="grid h-5 w-5 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon></span></span><span class="flex h-8 items-center gap-1 rounded-full bg-secondary-container/70 pl-3 pr-1.5 text-label-l text-on-secondary-container">Chưa từng sửa<span class="grid h-5 w-5 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon></span></span><span class="flex h-8 items-center gap-1 rounded-full bg-secondary-container/70 pl-3 pr-1.5 text-label-l text-on-secondary-container">Kèm cáp sạc<span class="grid h-5 w-5 place-items-center rounded-full"><iconify-icon icon="material-symbols:close-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon></span></span><button type="button" class="state flex h-8 items-center gap-1 rounded-full border border-dashed border-outline-variant px-3 text-label-l text-on-surface-variant"><iconify-icon icon="material-symbols:add-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>Thêm điều bạn ghi</button></div></div>
     </div>
-    <div class="flex items-center gap-4 rounded-lg bg-surface-container-lowest p-4">
-      <iconify-icon icon="material-symbols:location-on-outline-rounded" width="26" height="26" class="block shrink-0 text-on-surface-variant"></iconify-icon>
-      <span class="flex-1"><span class="block text-body-l">Bình Thạnh</span><span class="flex items-center gap-1 text-body-s text-on-surface-variant"><iconify-icon icon="material-symbols:visibility-outline-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon>Chỉ hiện quận</span></span>
-      <a id="change-area-2" href="#change-area" class="state flex h-10 items-center rounded-full px-4 text-label-l text-primary">Đổi</a>
-    </div>
-    <div class="mt-2 flex flex-col gap-2.5">
-      <p class="flex gap-2 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:account-balance-outline-rounded" width="18" height="18" class="block shrink-0 mt-0.5"></iconify-icon><span>Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.</span></p>
-      <p class="flex gap-2 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:undo-rounded" width="18" height="18" class="block shrink-0 mt-0.5"></iconify-icon><span>Người mua từ chối nhận thì bạn trả phí ship cả chiều đi và chiều về.</span></p>
-    </div>
+    <div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Mô tả<iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 text-primary"></iconify-icon></p><div class="flex min-h-[88px] items-start py-3 justify-between gap-3 rounded-[14px] bg-surface-container-low px-4 text-body-l ink ">Máy dùng 3 năm, chưa sửa chữa hay thay linh kiện. Face ID và camera hoạt động tốt. Kèm cáp sạc.</div></div>
   </div>
-</section></div>
-      <aside class="self-start">
-        <div class="sticky top-[104px] flex flex-col gap-4">
-          <p class="text-label-l uppercase tracking-[0.12em] text-on-surface-variant">Người mua sẽ thấy</p>
-          <article class="rounded-xl bg-surface-container-lowest p-4 shadow-float">
-            <div class="relative overflow-hidden rounded-xl" style="aspect-ratio: 4 / 5">
-              <img src="https://images.unsplash.com/photo-1603891128711-11b4b03bb138?w=600&h=600&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.5&fp-z=1&q=80&auto=format" alt="" class="h-full w-full object-cover">
-              <span class="absolute bottom-3 left-3 rounded-full bg-surface-container-lowest px-3 py-1 text-title-m text-on-surface shadow-float">4.800.000<span class="text-body-s text-on-surface-variant"> ₫</span></span>
-              <span class="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-label-m text-white">Bình Thạnh</span>
-            </div>
-            <h3 class="mt-3 text-body-l text-on-surface">iPhone 11 64GB Trắng, máy zin</h3>
-            <p class="mt-1 text-body-s text-on-surface-variant">Đã dùng · 64 GB · Pin 81%</p>
-          </article>
-          <div class="rounded-xl bg-surface-container-low p-5">
-            <p class="text-title-m">Sẵn sàng đăng</p>
-            <ul class="mt-3 flex flex-col gap-2.5"><li class="flex items-center gap-3 text-body-m text-on-surface"><iconify-icon icon="material-symbols:check-circle-rounded" width="20" height="20" class="block shrink-0 text-primary"></iconify-icon>4 ảnh, có ảnh bìa</li><li class="flex items-center gap-3 text-body-m text-on-surface"><iconify-icon icon="material-symbols:check-circle-rounded" width="20" height="20" class="block shrink-0 text-primary"></iconify-icon>Tiêu đề và tình trạng</li><li class="flex items-center gap-3 text-body-m text-on-surface"><iconify-icon icon="material-symbols:check-circle-rounded" width="20" height="20" class="block shrink-0 text-primary"></iconify-icon>Giá 4.800.000 ₫</li><li class="flex items-center gap-3 text-body-m text-on-surface"><iconify-icon icon="material-symbols:check-circle-rounded" width="20" height="20" class="block shrink-0 text-primary"></iconify-icon>Giao COD bằng GHTK</li></ul>
-          </div>
-          <button type="button" class="state flex h-14 items-center justify-center gap-2 rounded-full bg-primary text-label-l text-on-primary"><iconify-icon icon="material-symbols:send-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Đăng tin</button>
-          <a id="preview-page-10" href="#preview-page" class="state flex h-12 items-center justify-center gap-2 rounded-full border border-outline-variant text-label-l text-on-surface"><iconify-icon icon="material-symbols:visibility-outline-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Xem trước trang tin</a>
-        </div>
-      </aside>
-    </div>
-  </main>
-  <footer class="mx-auto mt-24 max-w-[1328px] px-6 pb-6">
-  <div class="relative overflow-hidden rounded-xl bg-inverse-surface px-12 pb-10 pt-14">
-    <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
-      <div>
-        <div class="flex items-center gap-2"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium text-inverse-on-surface">ShopNexus</span></div>
-        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Đồ cũ giá tốt, xem hàng rồi mới trả. ShopNexus không giữ tiền và không nhận cọc.</p>
+</section><section class="rounded-[24px] border line bg-white p-6">
+  <div class="flex items-center gap-3"><span class="badge-grad num grid h-8 w-8 place-items-center rounded-full text-title-s">3</span>
+    <h2 class="flex-1 text-[20px] font-semibold leading-7 tight ink">Giá</h2></div>
+  
+  <div class="mt-4 grid grid-cols-[1.25fr_1fr] gap-6">
+    <div>
+      <button type="button" class="state -mx-2 flex items-center gap-1 rounded-full px-2 py-1 text-title-s text-tertiary"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="16" height="16" class="block shrink-0 "></iconify-icon>Giá tham khảo 4,4 – 5,1 tr ₫<iconify-icon icon="material-symbols:chevron-right-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button>
+      <div class="relative mt-3">
+        <div class="flex h-[84px] items-end gap-1.5" role="img" aria-label="Số tin đã bán theo giá"><span class="flex-1 rounded-[8px] bg-outline-variant/60" style="height:20%"></span><span class="flex-1 rounded-[8px] bg-primary" style="height:40%"></span><span class="flex-1 rounded-[8px] bg-primary" style="height:60%"></span><span class="flex-1 rounded-[8px] bg-primary" style="height:100%"></span><span class="flex-1 rounded-[8px] bg-primary" style="height:80%"></span><span class="flex-1 rounded-[8px] bg-outline-variant/60" style="height:40%"></span><span class="flex-1 rounded-[8px] bg-outline-variant/60" style="height:20%"></span><span class="flex-1 rounded-[8px] bg-outline-variant/60" style="height:8%"></span></div>
+        <span class="absolute -top-1 bottom-0 w-0.5 -translate-x-1/2 rounded-full bg-tertiary" style="left:50.0%"></span>
       </div>
-      <div><p class="text-title-s text-inverse-on-surface">Khám phá</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Khá-0-11" href="#f-Khá-0" class="hover:text-inverse-on-surface">Dành cho bạn</a></li><li><a id="f-Khá-1-12" href="#f-Khá-1" class="hover:text-inverse-on-surface">Bản đồ</a></li><li><a id="f-Khá-2-13" href="#f-Khá-2" class="hover:text-inverse-on-surface">Danh mục</a></li><li><a id="f-Khá-3-14" href="#f-Khá-3" class="hover:text-inverse-on-surface">Mới nhất</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Mua và bán</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Mua-0-15" href="#f-Mua-0" class="hover:text-inverse-on-surface">Cách mua bằng COD</a></li><li><a id="f-Mua-1-16" href="#f-Mua-1" class="hover:text-inverse-on-surface">Cách đăng tin</a></li><li><a id="f-Mua-2-17" href="#f-Mua-2" class="hover:text-inverse-on-surface">Gói người bán</a></li><li><a id="f-Mua-3-18" href="#f-Mua-3" class="hover:text-inverse-on-surface">Điểm uy tín</a></li></ul></div><div><p class="text-title-s text-inverse-on-surface">Hỗ trợ</p><ul class="mt-4 flex flex-col gap-3 text-body-m text-inverse-on-surface/70"><li><a id="f-Hỗ -0-19" href="#f-Hỗ -0" class="hover:text-inverse-on-surface">Trợ giúp và an toàn</a></li><li><a id="f-Hỗ -1-20" href="#f-Hỗ -1" class="hover:text-inverse-on-surface">Yêu cầu hỗ trợ</a></li><li><a id="f-Hỗ -2-21" href="#f-Hỗ -2" class="hover:text-inverse-on-surface">Quy định đăng tin</a></li><li><a id="f-Hỗ -3-22" href="#f-Hỗ -3" class="hover:text-inverse-on-surface">Điều khoản</a></li></ul></div>
+      <div class="relative mt-2 h-1.5 rounded-full bg-surface-container-high"><span class="absolute inset-y-0 rounded-full bg-tertiary-fixed" style="left:25.0%;right:31.25%"></span>
+        <span class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-tertiary soft" style="left:50.0%"></span></div>
+      <div class="mt-1.5 flex justify-between text-body-s text-on-surface-variant"><span>4 tr</span><span>giữa 4,8 tr</span><span>5,6 tr</span></div>
+      <p class="mt-2 text-body-s text-on-surface-variant">Từ 18 tin đã bán và 12 tin đang bán giống món này</p>
+      <div class="mt-4 grid grid-cols-2 gap-2.5"><button type="button" class="state flex items-center gap-3 rounded-[18px] px-4 py-3 text-left bg-surface-container-low">
+  <span class="grid h-9 w-9 place-items-center rounded-full bg-white text-on-surface-variant"><iconify-icon icon="material-symbols:bolt-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></span>
+  <span class="min-w-0 flex-1"><span class="block whitespace-nowrap text-body-s text-on-surface-variant">Bán nhanh · ~2 ngày</span><span class="num whitespace-nowrap font-semibold tight ink text-[18px] leading-6">4.500.000<span class="ml-0.5 text-body-s font-medium text-on-surface-variant">₫</span></span></span>
+</button><button type="button" class="state flex items-center gap-3 rounded-[18px] px-4 py-3 text-left bg-white ring-2 ring-primary">
+  <span class="grid h-9 w-9 place-items-center rounded-full badge-grad"><iconify-icon icon="material-symbols:balance-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></span>
+  <span class="min-w-0 flex-1"><span class="block whitespace-nowrap text-body-s text-on-surface-variant">Giá thị trường · ~1 tuần</span><span class="num whitespace-nowrap font-semibold tight ink text-[18px] leading-6">4.800.000<span class="ml-0.5 text-body-s font-medium text-on-surface-variant">₫</span></span></span>
+</button></div>
     </div>
-    <div class="mt-12 flex justify-between border-t border-inverse-on-surface/15 pt-6 text-body-s text-inverse-on-surface/60"><span>© 2026 ShopNexus</span><span>TP.HCM · Hà Nội · Đà Nẵng</span></div>
+    <div class="flex flex-col justify-center gap-2.5">
+      <div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Giá bán</p><div class="flex h-12 items-center justify-between gap-3 rounded-[14px] bg-surface-container-low px-4 text-body-l ink ring-2 ring-primary bg-white"><span class="num text-[22px] font-semibold tight">4.800.000</span><span class="text-on-surface-variant">₫</span></div></div>
+      <p class="-mt-1 flex items-center gap-1 text-label-m text-tertiary"><iconify-icon icon="material-symbols:auto-awesome-rounded" width="14" height="14" class="block shrink-0 "></iconify-icon>Rẻ hơn 8/12 tin đang bán · bán trong ~1 tuần</p>
+      <label class="flex h-11 items-center gap-3 rounded-full bg-surface-container-low pl-4 pr-1.5"><iconify-icon icon="material-symbols:sell-outline-rounded" width="18" height="18" class="block shrink-0 text-on-surface-variant"></iconify-icon><span class="flex-1 text-label-l ink">Cho phép trả giá</span>
+        <span class="relative h-8 w-[52px] rounded-full bg-primary"><span class="absolute right-1 top-1 h-6 w-6 rounded-full bg-white"></span></span></label>
+    </div>
   </div>
+  <div class="mt-5 grid grid-cols-[repeat(3,1fr)_1.3fr] gap-3 border-t line pt-5">
+    <button type="button" class="state min-w-0 rounded-[16px] text-left" title="So với tin của bạn">
+  <img src="https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=320&h=320&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.5&fp-z=1&q=80&auto=format" alt="" class="aspect-square w-full rounded-[16px] object-cover">
+  <span class="mt-1.5 block"><span class="num whitespace-nowrap font-semibold tight ink text-[15px] leading-5">4.900.000<span class="ml-0.5 text-body-s font-medium text-on-surface-variant">₫</span></span></span>
+  <span class="block truncate text-body-s text-on-surface-variant">Như mới · 1,2 km</span>
+</button><button type="button" class="state min-w-0 rounded-[16px] text-left" title="So với tin của bạn">
+  <img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=320&h=320&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=0.45&fp-z=1.2&q=80&auto=format" alt="" class="aspect-square w-full rounded-[16px] object-cover">
+  <span class="mt-1.5 block"><span class="num whitespace-nowrap font-semibold tight ink text-[15px] leading-5">4.400.000<span class="ml-0.5 text-body-s font-medium text-on-surface-variant">₫</span></span></span>
+  <span class="block truncate text-body-s text-on-surface-variant">Đã dùng · 2,5 km</span>
+</button><button type="button" class="state min-w-0 rounded-[16px] text-left" title="So với tin của bạn">
+  <img src="https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=320&h=320&fit=crop&crop=focalpoint&fp-x=0.4&fp-y=0.35&fp-z=1.5&q=80&auto=format" alt="" class="aspect-square w-full rounded-[16px] object-cover">
+  <span class="mt-1.5 block"><span class="num whitespace-nowrap font-semibold tight ink text-[15px] leading-5">5.300.000<span class="ml-0.5 text-body-s font-medium text-on-surface-variant">₫</span></span></span>
+  <span class="block truncate text-body-s text-on-surface-variant">Đã dùng · 3,1 km</span>
+</button>
+    <div class="flex flex-col justify-between gap-3 rounded-[18px] bg-gradient-to-br from-[#E3F2EF] to-[#FFF1EB] p-4">
+      <div><p class="text-title-s ink">Tin giống bạn</p><p class="text-body-s text-on-surface-variant">Cùng danh mục và tình trạng</p>
+        <div class="mt-2"><div class="seg bg-white/60"><span class="thumb"></span><button type="button" class="text-label-m !h-7 !px-2.5 text-on-surface-variant" aria-selected="true">Đang bán · 3</button><button type="button" class="text-label-m !h-7 !px-2.5 text-on-surface-variant" aria-selected="false">Đã bán · 3</button></div></div></div>
+      <dl class="grid grid-cols-2 gap-2">
+        <div class="rounded-[14px] bg-white/70 px-3 py-2"><dt class="text-body-s text-on-surface-variant">Mức giữa</dt><dd class="num text-title-m font-semibold ink">4,9 tr ₫</dd></div>
+        <div class="rounded-[14px] bg-white/70 px-3 py-2"><dt class="text-body-s text-on-surface-variant">Vừa bán</dt><dd class="num text-title-m font-semibold ink">4,5 tr ₫</dd></div>
+      </dl>
+      <p class="flex items-start gap-2 text-body-s ink"><iconify-icon icon="material-symbols:notifications-active-outline-rounded" width="16" height="16" class="block shrink-0 mt-px shrink-0 text-primary"></iconify-icon><span><b class="font-semibold">23 người</b> đang theo dõi một tìm kiếm khớp với tin này ở giá bạn đặt</span></p>
+    </div>
+  </div>
+</section><section class="rounded-[24px] border line bg-white p-6">
+  <div class="flex items-center gap-3"><span class="badge-grad num grid h-8 w-8 place-items-center rounded-full text-title-s">4</span>
+    <h2 class="flex-1 text-[20px] font-semibold leading-7 tight ink">Giao dịch</h2></div>
+  
+  <div class="mt-4 grid grid-cols-3 gap-2.5">
+    <div class="flex items-center gap-3 rounded-[18px] bg-surface-container-low p-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full badge-grad"><iconify-icon icon="material-symbols:local-shipping-outline-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon></span><span class="min-w-0 flex-1"><span class="block text-title-s ink">COD, xem hàng trước</span><span class="block text-body-s text-on-surface-variant">Người mua xem hàng rồi mới trả</span></span></div>
+    <div class="flex items-center gap-3 rounded-[18px] bg-surface-container-low p-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-on-surface-variant"><iconify-icon icon="material-symbols:check-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon></span><span class="min-w-0 flex-1"><span class="block text-title-s ink">GHTK của bạn</span><span class="block text-body-s text-on-surface-variant">Có đơn thì tạo vận đơn ngay</span></span><a id="chg-check--22" href="#chg-check-" class="state rounded-full px-3 py-1 text-label-l text-primary">Đổi</a></div>
+    <div class="flex items-center gap-3 rounded-[18px] bg-surface-container-low p-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-on-surface-variant"><iconify-icon icon="material-symbols:location-on-outline-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon></span><span class="min-w-0 flex-1"><span class="block text-title-s ink">Bình Thạnh</span><span class="block text-body-s text-on-surface-variant">Chỉ hiện quận</span></span><a id="chg-locati-23" href="#chg-locati" class="state rounded-full px-3 py-1 text-label-l text-primary">Đổi</a></div>
+  </div>
+  <div class="mt-4 flex flex-col gap-2"><p class="flex gap-2 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:account-balance-outline-rounded" width="17" height="17" class="block shrink-0 mt-0.5 shrink-0 text-primary"></iconify-icon><span>Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.</span></p><p class="flex gap-2 text-body-m text-on-surface-variant"><iconify-icon icon="material-symbols:undo-rounded" width="17" height="17" class="block shrink-0 mt-0.5 shrink-0 text-primary"></iconify-icon><span>Người mua từ chối nhận thì bạn trả phí ship cả chiều đi và chiều về.</span></p></div>
+</section></div>
+    <aside class="self-start">
+      <div class="sticky top-[84px] flex flex-col gap-3">
+        <p class="px-1 text-label-l text-on-surface-variant">Người mua sẽ thấy</p>
+        <article class="card min-w-0 rounded-[22px] border line bg-white p-2">
+  <div class="relative overflow-hidden rounded-[16px] bg-surface-container-high" style="aspect-ratio: 4 / 4.4">
+    <img src="https://images.unsplash.com/photo-1603891128711-11b4b03bb138?w=480&h=480&q=80&auto=format&fit=crop" alt="iPhone 11 64GB Trắng, máy zin" class="h-full w-full object-cover">
+    <button type="button" class="state absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/85 backdrop-blur text-on-surface" aria-label="Lưu tin"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button>
+    
+  </div>
+  <div class="px-1.5 pb-1.5 pt-2.5">
+    <div class="flex items-baseline justify-between gap-2"><span class="num whitespace-nowrap font-semibold tight ink text-[18px] leading-6">4.800.000<span class="ml-0.5 text-body-s font-medium text-on-surface-variant">₫</span></span><span class="flex shrink-0 items-center gap-0.5 text-label-m text-on-surface-variant"><iconify-icon icon="material-symbols:star-rounded" width="13" height="13" class="block shrink-0 text-[#E0A23B]"></iconify-icon>4,9</span></div>
+    <h3 class="mt-0.5 line-clamp-2 text-body-m ink">iPhone 11 64GB Trắng, máy zin</h3>
+    <div class="mt-1.5 flex flex-wrap gap-1"><span class="rounded-full bg-surface-container-low px-2 py-0.5 text-label-s text-on-surface-variant">64 GB</span><span class="rounded-full bg-surface-container-low px-2 py-0.5 text-label-s text-on-surface-variant">Pin 81%</span></div>
+    <p class="mt-1.5 flex items-center gap-1 text-body-s text-on-surface-variant"><iconify-icon icon="material-symbols:near-me-outline-rounded" width="13" height="13" class="block shrink-0 "></iconify-icon>Đã dùng · 1,2 km</p>
+  </div>
+</article>
+        <div class="rounded-[24px] border line bg-white p-5">
+          <div class="flex items-center justify-between"><p class="text-title-s ink">Sẵn sàng đăng</p><span class="num rounded-full bg-secondary-container px-2 py-0.5 text-label-m text-on-secondary-container">4/4</span></div>
+          <ul class="mt-3 flex flex-col gap-2"><li class="flex items-center gap-2.5 text-body-m ink"><iconify-icon icon="material-symbols:check-circle-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>4 ảnh, có ảnh bìa</li><li class="flex items-center gap-2.5 text-body-m ink"><iconify-icon icon="material-symbols:check-circle-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Tiêu đề và tình trạng</li><li class="flex items-center gap-2.5 text-body-m ink"><iconify-icon icon="material-symbols:check-circle-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Giá 4.800.000 ₫</li><li class="flex items-center gap-2.5 text-body-m ink"><iconify-icon icon="material-symbols:check-circle-rounded" width="18" height="18" class="block shrink-0 text-primary"></iconify-icon>Giao COD bằng GHTK</li></ul>
+          <button type="button" class="state flex shrink-0 items-center justify-center whitespace-nowrap rounded-full text-label-l h-11 gap-2 px-5 bg-[var(--ink)] text-white mt-4 w-full !h-12"><iconify-icon icon="material-symbols:send-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Đăng tin</button>
+          <a id="preview-page-31" href="#preview-page" class="state flex shrink-0 items-center justify-center whitespace-nowrap rounded-full text-label-l h-11 gap-2 px-5 border line bg-white ink mt-2 w-full"><iconify-icon icon="material-symbols:visibility-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon>Xem trước trang tin</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+<footer class="mx-auto mt-12 max-w-[1360px] px-8 pb-8">
+  <div class="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-10 rounded-[28px] border line bg-white px-10 py-9">
+    <div>
+      <div class="flex items-center gap-2"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="ShopNexus" class="h-8 w-8"><span class="text-title-l font-semibold tight ink">ShopNexus</span></div>
+      <p class="mt-3 max-w-[320px] text-body-m text-on-surface-variant">Đồ cũ giá tốt, xem hàng rồi mới trả. ShopNexus không giữ tiền và không nhận cọc.</p>
+    </div>
+    <div><p class="text-label-m text-on-surface-variant">Khám phá</p><ul class="mt-3 flex flex-col gap-2 text-body-m ink"><li><a id="f-Khá-0-32" href="#f-Khá-0" class="hover:text-primary">Dành cho bạn</a></li><li><a id="f-Khá-1-33" href="#f-Khá-1" class="hover:text-primary">Bản đồ</a></li><li><a id="f-Khá-2-34" href="#f-Khá-2" class="hover:text-primary">Danh mục</a></li><li><a id="f-Khá-3-35" href="#f-Khá-3" class="hover:text-primary">Mới nhất</a></li></ul></div><div><p class="text-label-m text-on-surface-variant">Mua và bán</p><ul class="mt-3 flex flex-col gap-2 text-body-m ink"><li><a id="f-Mua-0-36" href="#f-Mua-0" class="hover:text-primary">Cách mua bằng COD</a></li><li><a id="f-Mua-1-37" href="#f-Mua-1" class="hover:text-primary">Cách đăng tin</a></li><li><a id="f-Mua-2-38" href="#f-Mua-2" class="hover:text-primary">Gói người bán</a></li><li><a id="f-Mua-3-39" href="#f-Mua-3" class="hover:text-primary">Điểm uy tín</a></li></ul></div><div><p class="text-label-m text-on-surface-variant">Hỗ trợ</p><ul class="mt-3 flex flex-col gap-2 text-body-m ink"><li><a id="f-Hỗ -0-40" href="#f-Hỗ -0" class="hover:text-primary">Trợ giúp và an toàn</a></li><li><a id="f-Hỗ -1-41" href="#f-Hỗ -1" class="hover:text-primary">Yêu cầu hỗ trợ</a></li><li><a id="f-Hỗ -2-42" href="#f-Hỗ -2" class="hover:text-primary">Quy định đăng tin</a></li><li><a id="f-Hỗ -3-43" href="#f-Hỗ -3" class="hover:text-primary">Điều khoản</a></li></ul></div>
+  </div>
+  <div class="flex justify-between px-4 pt-4 text-body-s text-on-surface-variant"><span>© 2026 ShopNexus</span><span>TP.HCM · Hà Nội · Đà Nẵng</span></div>
 </footer>
 </div>
+</div>
+<script>
+// Slide each segmented control's thumb under its selected item, and move it on click.
+addEventListener('DOMContentLoaded', () => document.querySelectorAll('.seg').forEach(seg => {
+  const thumb = seg.querySelector('.thumb');
+  const put = b => { thumb.style.left = b.offsetLeft + 'px'; thumb.style.width = b.offsetWidth + 'px'; };
+  const btns = [...seg.querySelectorAll('button')];
+  put(btns.find(b => b.getAttribute('aria-selected') === 'true') || btns[0]);
+  btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x => x.setAttribute('aria-selected', x === b)); put(b); }));
+}));
+</script>
 </body>
 </html>

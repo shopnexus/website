@@ -70,7 +70,7 @@ The grid gap stays 12 at every size.
 
 **Navigation.** Compact and medium keep the app's four destinations (Khám
 phá, Danh mục, Tin nhắn, Tôi) in a bottom bar, with "Đăng tin" as the
-extended FAB. From expanded up, the site header is a floating pill (see
+extended FAB. From expanded up, the site header is a glass bar (see
 Expanded layout). The app shows its logo on the splash only; the web has no
 splash, and a page opened from a search result needs to say whose it is, so
 the mark sits at the start of the header.
@@ -100,105 +100,143 @@ spatial spring. Everything drops to an instant change under
 on `<html>`, as "Giao diện tối" does in the app. Material You is left out: a
 browser has no wallpaper to build a scheme from.
 
-## Expanded layout (chosen 2026-11-04)
+## Expanded layout (chosen 2026-11-17)
 
-Six directions were drawn on the Superdesign canvas (project "ShopNexus
-website"): A (M3 as drawn), B (M3 with web conventions), C "Chợ xóm"
-(illustrated neighbourhood), D "Tạp chí" (editorial), E "Hỏi là thấy"
-(search-first) and F "Chợ đêm" (dark). The site takes:
+The 2026-11-04 choice (Home from E, Listing detail and the floating pill
+header from C) was dropped on 2026-11-17. The pill header and the search field
+on Tìm kiếm were both white pills with a shadow, one under the other, and
+pages had large tinted blocks with little in them. Directions G to L were
+drawn on the Superdesign canvas (project "ShopNexus website"); the site takes
+J "Kính mờ". Its shared pieces are in `.superdesign/tools/j_kit.py`, and each
+page group has a builder: `build_j.py` (Tìm kiếm, both homes),
+`build_j_public.py`, `build_j_flows.py`, `build_j_account.py` and
+`build_j_orders.py`. The older builders still hold data the J builders import
+and no longer write mockups.
 
-- Home from E, on a full-bleed photo hero as in F
-  (`.superdesign/tools/build_e.py`, draft "Trang chủ · E. Hỏi là thấy").
-- Listing detail from C (`.superdesign/tools/build_c.py`, draft "Chi tiết
-  tin · C. Chợ xóm").
-- The site shell, header and footer, from C, on every page.
+### Values outside the app's tokens
 
-**Header.** A floating pill, `surfaceContainerLowest` with `shadow-float`,
-64 px tall, inset 16 px from the top and inside the 1328 px content box. Brand
-mark and "ShopNexus"; the section links Khám phá, Danh mục, Bản đồ, Cách mua
-(the current one on `secondaryContainer`); "Tìm nhanh" with its `/` shortcut;
-Tin nhắn with the `error` badge; "Đăng tin" as the page's one `primary`
-button; the avatar. Signed out, Tin nhắn and the avatar give way to a
-"Đăng nhập" text button. It is sticky, and on Home it floats over the hero photo.
+J adds these, and `tokens.css` needs
+them before the pages are built:
 
-**Footer.** A 28 px rounded block on `inverseSurface` inside the content box:
-brand, the tagline "Đồ cũ giá tốt, xem hàng rồi mới trả" and the `no_hold`
-sentence, then Khám phá, Mua và bán, Hỗ trợ, and a
-bottom line with the cities.
+| Name | Value | Use |
+|---|---|---|
+| page | `#F5F8F7` | the page background under the wash |
+| ink | `#121817` | text, "Đăng tin", the selected item in the account nav |
+| line | `#121817` at 7 % | 1 px borders on cards and panels |
+| glass | white at 62 %, 18 px blur, saturate 1.4 | the header and floating panels |
+| card corner | 22 px | listing cards |
+| photo corner | 16 px | the photo inside a card, inset 8 px |
 
-**Corners.** Large containers (hero, panels, the ticket, footer) use
-`rounded-xl` (28); cards and photos `rounded-lg` to `rounded-xl`; buttons,
-chips, the search field and pins are pills. Small badges use `rounded-sm`.
+### Wash
 
-**Type.** Page headlines use `text-display-large` (57/64); section titles
-`text-display-small`; the price on Listing detail `text-display-medium` with
-the ₫ at `text-title-large`.
+A mesh gradient behind the top 640 px of every page: `primary` at
+55 % from the top left, `inversePrimary` at 55 % near the middle,
+`tertiaryFixed` at 90 % at the top right and `secondaryContainer` at 70 %
+lower down, masked to fade out from 55 % of its height. A film grain (SVG
+fractal noise at 22 %, overlay blend) sits on it.
 
-**Home.** The hero is a full-bleed photo of the city at dusk under a black
-40 % layer and a black 60 % to transparent scrim, with the header floating on
-it. Centred on it: area and count, "Bạn đang tìm gì?", one 76 px search
-field that takes a whole sentence, with voice and photo search; the sentence
-read back as filter chips the model set (sparkle, removable), a condition
-picker and "Thêm điều kiện"; then recent searches and a saved alert. Under the
-hero, on `surface`: results in two columns, a dense list on the left (photo,
-title, condition, area, distance, rating, matched specs, the AI price note)
-with "Báo khi có tin mới" and a sort menu, and on the right "Cách đọc câu
-hỏi của bạn", a small map with price pins and follow-up refinements. Ranking
-carries no AI mark. Under the results, the feed in tabs as in the app (Dành
-cho bạn, Gần bạn, Mới nhất) on a grid of cards. Signed in there is no
-carousel; the count reads across the country.
+### Header
 
-**Listing detail.** Breadcrumbs. On the left, a mint stage with the main
-photo ("Chụp trong app" and "Xem 5 ảnh" on it) and the other photos as a
-fanned row, with the line counting the photos taken in the app. On the right,
-the ticket: three parts joined by a dashed tear line with real notches cut by
-a mask, and a drop-shadow that follows the notched outline. Part one: seller,
-rating, title, age and saves. Part two: price, the price strip against similar
-listings, "Nhắn tin" and "Trả giá", quick questions. Part three: the condition
-stamp with its meaning, the COD row with where it ships from ("Gửi từ Bình
-Thạnh") and its `MONEY` sentences. "Chặn và báo cáo" sits in the ⋮ menu. Below: "Kiểm 4 điều này khi shipper tới cửa" (Tin ghi with
-how to check each claim, the refusal sentence, the model's general tips marked
-as not the seller's promise) beside the mascot drawing; Lời người bán and
-Thông số; the seller with stats, a review and a map with the route and
-distance; similar listings.
+A glass bar, sticky, 64 px tall, inside a 1360 px content box,
+with no border and no shadow. Brand mark and "ShopNexus"; the section links
+Khám phá, Danh mục, Bản đồ, Cách mua as text, the current one on a white
+capsule; Tin nhắn with the `error` badge; "Đăng tin" as an ink pill; the
+avatar. Signed out, Tin nhắn and the avatar give way to a "Đăng nhập" text
+button. On Tìm kiếm the search field sits in the header and the page has no
+other search field; no page carries "Tìm nhanh" in the header.
 
-**Search results and browsing.** Search results (Home's results and the
-Tìm kiếm page) are a list: photo on the left, title, condition, area,
-distance and rating, the specs that match the query as chips, the AI price
-note, and the price in one right-aligned column, so a buyer compares rows at a
-glance. The Tìm kiếm page keeps a "Lưới" toggle for goods judged by their
-looks. Browsing surfaces (Danh mục, Vừa đăng, Tin tương tự, a seller's other
-listings) use cards, since the photo decides the click there. This departs on
-purpose from the app's rule that every browsed listing renders through the
-shared card; on compact windows the web follows the app and uses cards.
+### Footer
 
-**Tìm nhanh.** The header's "Tìm nhanh" is hidden on pages that have their
-own big search field (Home, Tìm kiếm, Danh mục) and slides in once that field
-has scrolled under the header; elsewhere it always shows.
+A white 28 px block with a 1 px line border inside the content
+box: brand, the tagline "Đồ cũ giá tốt, xem hàng rồi mới trả" and the
+`no_hold` sentence, then Khám phá, Mua và bán, Hỗ trợ, and a line with the
+cities under the block. Tin nhắn leaves the footer out because its panes fill
+the window.
 
-**Art.** The app's mascot and category drawings, plus drawings made with
-gpt-image-2.5 from the app's drawings as references (`.superdesign/tools/
-gen_art.py`, files in `.superdesign/art/`). Photos carry no capture time.
+### Corners
 
-**Tin nhắn.** A row is a conversation with one person and shows the deal the
-chat would open on, with a `+N` tag when the two have more; a conversation
-with no deal shows the person's avatar. In the chat, chips under the bar
-switch the deal. A message replies from a hover action instead of the app's
-swipe. A scam warning is the `error` shield on a neutral tag, and a banner in
-the chat; no scam surface uses `errorContainer`. "Chặn và báo cáo" is a
-dialog.
+Cards 22, photos 16, panels 24, large panels 28. Buttons, chips,
+search fields and segmented controls are pills.
 
-**Orders.** The four steps are Chốt giá, Tạo đơn, Nhận hàng, Đánh giá.
-Đơn bán creates the shipment on one screen through a linked carrier (GHTK,
-GHN) or "Tự gửi"; Thiết lập giao COD has two steps, Địa chỉ lấy hàng and Bên
-vận chuyển, and no payout step.
+### Type
 
-**Hỗ trợ.** A ticket is its own chat with ShopNexus (`tools/build_support.py`,
-draft "Hỗ trợ"): the tickets on the left, the open one's chat on the right,
-with the chat's own bubbles and composer. Tin nhắn holds buying and selling
-only.
+Display and title text use weight 600 with letter spacing −0.02 em
+(−0.035 em at 28 px and above), which departs from the app's weight 400. The
+signed-in Home headline is 44/52, page titles 40, section titles 26 to 28.
+Prices use tabular figures. The Home headline may carry one word in a
+`primary` to `tertiary` gradient.
 
-**Synced with the app (2026-11-16).** Every draft was redrawn after the app's
-changes from 2026-11-04 to 2026-11-16: the compact type scale, the place rule,
-the tabbed Home feed, sign-in with Google, a phone or an email code, the
-address book, the new order flow, the carrier links and support tickets.
+### Controls
+
+A segmented control with a white thumb that slides under the
+selected item (feed tabs, sort, Tình trạng, Mua/Bán). Filters on Tìm kiếm and
+Danh mục are pill dropdowns with a count badge. A card lifts 4 px on hover and
+its photo scales to 104 %.
+
+### Density
+
+Sections sit 32 to 40 px apart. A tinted block holds content or
+is removed; no half of a hero is left for a drawing. The mascot and category
+drawings are off the pages.
+
+### Home
+
+Two drafts, signed in and signed out, on the same frame. On the
+left: one line, "Hôm nay tìm gì?", the 64 px search field, chips, four tiles,
+the categories with counts. On the right: a glass panel of the newest
+listings near the buyer. Below: the feed in a segmented control next to
+"Đang được tìm nhiều" and "Đăng tin". Signed in, the line greets the buyer by
+name, the chips are their searches and alerts, and the tiles are their order
+on the way, their offers, their saved listings and their own listings. Signed
+out, the line is the area guessed from the IP with "Đổi", the chips are this
+browser's recent searches, and the tiles are the listings this browser
+viewed, listings like them, the price of a recent search, and "Giữ 3 tin bạn
+vừa xem trên mọi máy" with "Đăng nhập". The signed-out Home has no tagline,
+no trust figures and no four steps; the feed opens on "Gợi ý cho bạn".
+
+### Tìm kiếm
+
+The search field in the header, the sentence read back as
+removable sparkle chips, then pill dropdowns. A filter panel on the left
+(price histogram with the median, brands, Tình trạng, distance, a link to the
+map). Results are a grid of four cards by default with a list toggle, which
+reverses the 2026-11-04 rule that results are a list.
+
+### Listing detail
+
+The gallery on the left, then the seller's description
+and condition, then the specs as tiles. On the right, a sticky glass panel
+with title, price, the price strip, "Nhắn tin", "Trả giá" and quick
+questions, then the COD card with its route map, then the seller. Below, the
+four checks at the door with the refusal sentence, then similar listings. The
+ticket is gone.
+
+### Account pages
+
+Tôi, Tin của bạn, Đơn hàng, Đơn bán, Đã lưu, Tin nhắn,
+Thông báo, Thiết lập giao COD and Hỗ trợ share one side nav
+(`account_nav` in `j_kit.py`): a glass card with the buyer's avatar, name and
+rating, the items with counts, the current one as an ink pill.
+
+### Tin nhắn
+
+Three full-height glass panes over the wash. The rules for
+rows, deal chips, replies, the scam warning and "Chặn và báo cáo" are as
+before: a row is a conversation with one person showing the deal the chat
+opens on, with `+N` for more deals; chips under the bar switch the deal; a
+message replies from a hover action; the scam warning is the `error` shield
+on a neutral tag and a banner in the chat; "Chặn và báo cáo" is a dialog.
+
+### Orders
+
+The four steps are Chốt giá, Tạo đơn, Nhận hàng, Đánh giá
+(`PHASES` in `j_kit.py`). Đơn bán creates the shipment on one screen through
+a linked carrier (GHTK, GHN) or "Tự gửi"; Thiết lập giao COD has two steps,
+Địa chỉ lấy hàng and Bên vận chuyển, and no payout step.
+
+### Hỗ trợ
+
+A ticket is its own chat with ShopNexus: the tickets on the left,
+the open one's chat in the middle, the order in the ticket and its carrier
+timeline on the right. Support tickets stay out of Tin nhắn, which holds
+buying and selling chats.
