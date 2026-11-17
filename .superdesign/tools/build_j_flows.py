@@ -3,7 +3,8 @@
     python3 tools/build_j_flows.py        (run from .superdesign/)
 
 Writes mockups/how.html, sell.html, cod.html and support.html, replacing what
-build_sell_howto.py, build_chat_cod.py (cod) and build_support.py drew. The
+build_sell_howto.py, build_chat_cod.py (cod) and build_support.py drew, and the
+footer's info pages: help.html, plans.html, listing-rules.html, terms.html. The
 content and deal facts are theirs; MONEY sentences stay word for word.
 """
 import json
@@ -17,7 +18,7 @@ from build_sell_howto import CLAIMS, DESCRIPTION, GUIDE, PHOTO as SELL_PHOTO, PH
 from build_pages import tr
 from build_support import CARRIER, FEEDBACK, KINDS, NO_ARBITRATION, ORDER, REPORT
 from common import MONEY, crop, icon, img
-from j_kit import H2, PANEL, btn_cls, card, footer, header, money_line, page, price, seg, stepper
+from j_kit import H2, PANEL, btn_cls, card, crumbs, field, footer, header, link_rows, money_line, page, price, seg, stepper, summary_card
 
 ART = {**ART, **json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "art_sh.json")))}
 
@@ -33,14 +34,6 @@ EXTRA_CSS = """<style>
 
 
 # ------------------------------------------------------- shared in this file --
-def field(label, value, *, ai=False, trail="", tall=False, ring=False):
-    """A form field: label over a soft filled box, 14 px corners, no border."""
-    spark = icon("auto-awesome-rounded", 14, "text-primary") if ai else ""
-    box = (f'<div class="flex {"min-h-[88px] items-start py-3" if tall else "h-12 items-center"} justify-between gap-3 rounded-[14px] '
-           f'bg-surface-container-low px-4 text-body-l ink {"ring-2 ring-primary bg-white" if ring else ""}">{value}{trail}</div>')
-    return f'<div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">{label}{spark}</p>{box}</div>'
-
-
 # ---------------------------------------------------------------- Cách mua --
 FAQ = [("Tôi có phải trả tiền trước không?", MONEY["pay_shipper"] + " " + MONEY["no_hold"], True),
        ("Mở ra thấy không đúng mô tả thì sao?", MONEY["refuse"] + " Hàng quay về người bán.", True),
@@ -505,8 +498,277 @@ def support():
     return page("Hỗ trợ · ShopNexus", body)
 
 
+# ------------------------------------------------------------ Trợ giúp --
+HELP_SAFETY = "ShopNexus không giữ tiền và không nhận cọc. Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat."
+AFTER_PAY = "Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được. Nếu hàng có vấn đề, bạn mở ghi nhận trong chat."
+HELP_TOPICS = [
+    ("Mua hàng", "shopping-bag-outline-rounded", [
+        ("Xem hàng trước khi trả tiền thế nào?", MONEY["cod_buyer"] + " " + MONEY["refuse"]),
+        ("Hủy đơn được không?", MONEY["cancel"]),
+        ("Hàng có vấn đề sau khi đã nhận", AFTER_PAY),
+        ("Hãng báo đã giao mà tôi chưa nhận?", "Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.")]),
+    ("Bán hàng", "storefront-outline-rounded", [
+        ("Khi nào tôi nhận được tiền?", MONEY["cod_seller"]),
+        ("Người mua từ chối nhận hàng thì sao?", MONEY["return_leg"]),
+        ("Bật giao COD cho tin của tôi", "Liên kết tài khoản GHTK hoặc GHN đứng tên bạn trong Thiết lập giao COD. Tiền hàng về tài khoản ngân hàng bạn khai với hãng."),
+        ("Đẩy tin là gì?", "Tin lên đầu mục Gần bạn trong 1 ngày (15.000 ₫) hoặc 3 ngày (35.000 ₫). Gói Plus có 4 lượt đẩy mỗi tháng.")]),
+    ("An toàn", "verified-user-outline-rounded", [
+        ("Người bán đòi chuyển cọc trước", MONEY["no_hold"] + " Bạn đừng chuyển tiền trước khi xem hàng, và báo cáo cuộc trò chuyện trong menu của chat."),
+        ("Món đắt tiền", MONEY["meet_hint"]),
+        ("Báo cáo một tin", "Trong menu của tin, chọn “Báo cáo tin”. Người của ShopNexus xem hàng cấm, hàng giả và lừa đảo; tình trạng và giá là chuyện giữa người mua và người bán."),
+        ("Ai phân xử khi hai bên không đồng ý?", NO_ARBITRATION + " Ghi nhận và đánh giá hiện trên trang của người bán.")]),
+]
+SCAM_SIGNS = [("payments-outline-rounded", "Đòi cọc hoặc chuyển khoản trước", "Bạn chỉ trả cho shipper, sau khi xem hàng."),
+              ("link-off-rounded", "Gửi link thanh toán lạ", "ShopNexus không có trang thanh toán cho tiền hàng."),
+              ("password-rounded", "Hỏi mã đăng nhập", "ShopNexus không bao giờ hỏi mã gửi về điện thoại của bạn."),
+              ("trending-down-rounded", "Giá rẻ bất thường", "So với Giá tham khảo trong tin trước khi nhắn.")]
+
+
+def help_question(q, ans, opened):
+    return (f'<details class="faq rounded-[18px] px-3 py-2.5 hover:bg-surface-container-low"{" open" if opened else ""}>'
+            f'<summary class="flex items-center justify-between gap-3 text-body-l ink">{q}{icon("keyboard-arrow-down-rounded", 20, "chev shrink-0 text-on-surface-variant")}</summary>'
+            f'<p class="mt-1.5 text-body-m text-on-surface-variant">{ans}</p></details>')
+
+
+def help_page():
+    q_open = {(0, 0), (1, 0), (2, 0)}
+    topics = "".join(f"""<section class="{PANEL} p-2">
+  <p class="flex items-center gap-2 px-3 pb-1 pt-3 text-title-s ink"><span class="grid h-8 w-8 place-items-center rounded-full bg-secondary-container text-on-secondary-container">{icon(ic, 18)}</span>{t}</p>
+  {"".join(help_question(q, ans, (ti, qi) in q_open) for qi, (q, ans) in enumerate(qs))}
+</section>""" for ti, (t, ic, qs) in enumerate(HELP_TOPICS))
+    signs = "".join(f"""<div class="{PANEL} p-4"><span class="grid h-9 w-9 place-items-center rounded-full bg-error-container text-error">{icon(ic, 18)}</span>
+  <p class="mt-3 text-title-s ink">{t}</p><p class="mt-0.5 text-body-s text-on-surface-variant">{d}</p></div>""" for ic, t, d in SCAM_SIGNS)
+    popular = "".join(a(f"hq-{i}", "glass glass-edge flex h-9 items-center gap-1.5 rounded-full px-3 text-label-l ink hover:bg-white", f'{icon("help-outline-rounded", 16, "text-on-surface-variant")}{t}')
+                      for i, t in enumerate(["Hủy đơn", "Từ chối nhận hàng", "Khi nào nhận tiền", "Bị đòi cọc"]))
+    docs = link_rows([("gavel-rounded", "Quy định đăng tin", "listing-rules.html"), ("description-outline-rounded", "Điều khoản", "terms.html"),
+                      ("lock-outline-rounded", "Chính sách bảo mật", "#privacy"), ("school-outline-rounded", "Cách mua bằng COD", "how.html")], "doc")
+    body = f"""{header(active=None)}{EXTRA_CSS}
+<main class="mx-auto max-w-[1360px] px-8 pt-8">
+  <section class="grid grid-cols-[1fr_440px] items-start gap-8">
+    <div>
+      <h1 class="{H1}">Trợ giúp và an toàn</h1>
+      <div class="mt-5 flex h-14 items-center gap-3 rounded-full bg-white pl-5 pr-2 glow">
+        {icon("search-rounded", 22, "text-primary")}
+        <span class="flex-1 text-body-l text-on-surface-variant">Gõ câu hỏi, ví dụ: hủy đơn thế nào</span>
+        <button type="button" class="{btn_cls("primary")}">Tìm</button>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">{popular}</div>
+    </div>
+    <div class="rounded-[28px] p-6 text-white" style="background: linear-gradient(140deg, #005049, #0E8A7D)">
+      <p class="flex items-center gap-2 text-label-l text-[#B9EDE4]">{icon("shield-outline-rounded", 18)}Một điều cần nhớ</p>
+      <p class="mt-2 text-[26px] font-semibold leading-8 tighter">Xem hàng rồi mới trả tiền</p>
+      <p class="mt-2 text-body-m text-white/85">{HELP_SAFETY}</p>
+    </div>
+  </section>
+
+  <section class="mt-8 grid grid-cols-3 items-start gap-4">{topics}</section>
+
+  <section class="mt-10">
+    <h2 class="{H2}">Dấu hiệu lừa đảo</h2>
+    <div class="mt-4 grid grid-cols-4 gap-4">{signs}</div>
+  </section>
+
+  <section class="mt-10 grid grid-cols-2 gap-4">
+    <div class="{PANEL} flex items-center gap-4 p-5">
+      <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">{icon("support-agent-rounded", 24)}</span>
+      <div class="min-w-0 flex-1"><p class="text-title-m font-semibold ink">Không có câu hỏi nào khớp?</p>
+        <p class="text-body-m text-on-surface-variant">Gửi yêu cầu, ShopNexus trả lời trong chat. Bạn có 2 yêu cầu đang xử lý.</p></div>
+      {a("to-support", btn_cls("ink", "lg"), "Yêu cầu hỗ trợ", "support.html")}
+    </div>
+    <div class="{PANEL} grid grid-cols-2 gap-x-2 p-2">{docs}</div>
+  </section>
+</main>
+{footer()}"""
+    return page("Trợ giúp và an toàn · ShopNexus", body)
+
+
+# --------------------------------------------------------- Gói người bán --
+PLANS = [("Cơ bản", "Miễn phí", None, True, ["Số tin theo bậc uy tín", "Đẩy tin trả theo lượt, từ 15.000 ₫", "Thống kê 7 ngày"]),
+         ("Plus", "49.000", "₫/tháng", False, ["4 lượt đẩy mỗi tháng", "Thống kê 30 ngày, người xem đến từ đâu", "Trả lời mẫu cho câu hỏi hay gặp"]),
+         ("Cửa hàng", "199.000", "₫/tháng", False, ["Trang cửa hàng có tên riêng", "20 lượt đẩy mỗi tháng", "2 người cùng quản lý tin"])]
+TIERS = [("Mới", "0", "COD 2 đơn đang mở · 5 tin"), ("Tin cậy", "200", "COD 5 đơn đang mở · 20 tin"),
+         ("Uy tín", "500", "COD 10 đơn đang mở · ưu tiên ở Gần bạn"), ("Xuất sắc", "800", "COD 20 đơn đang mở · huy hiệu trên mọi tin · giảm 20% phí đẩy tin")]
+PAY_WAYS = [("MoMo", "•• 0912", True, None), ("ZaloPay", "Chưa liên kết", False, "Liên kết"),
+            ("Thẻ ngân hàng", "Visa, Mastercard, thẻ ATM", False, "Liên kết"), ("Chuyển khoản qua mã QR", "Quét mã mỗi lần trả", False, None)]
+FEE_NOTE = "Phí dịch vụ của ShopNexus, không hoàn."
+
+
+def plan_card(plan, chosen):
+    name, amount, unit, current, perks = plan
+    tag = ('<span class="rounded-full bg-secondary-container px-2.5 py-1 text-label-m text-on-secondary-container">Đang dùng</span>' if current
+           else '<span class="rounded-full bg-[var(--ink)] px-2.5 py-1 text-label-m text-white">Đã chọn</span>' if chosen else "")
+    figure = (f'<p class="mt-3 text-[34px] font-semibold leading-10 tighter ink">{amount}</p>' if not unit
+              else f'<p class="mt-3 flex items-baseline gap-1"><span class="num text-[34px] font-semibold leading-10 tighter ink">{amount}</span><span class="text-body-m text-on-surface-variant">{unit}</span></p>')
+    perks_html = "".join(f'<li class="flex gap-2 text-body-m ink">{icon("check-rounded", 18, "mt-px shrink-0 text-primary")}{p}</li>' for p in perks)
+    action = "" if current else f'<button type="button" class="{btn_cls("ink" if chosen else "line", "lg")} mt-5 w-full">{"Đã chọn " + name if chosen else "Chọn " + name}</button>'
+    return f"""<article class="card flex flex-col rounded-[24px] bg-white p-5 {"ring-2 ring-[var(--ink)] glow" if chosen else "border line"}">
+  <div class="flex items-center justify-between"><p class="text-title-m font-semibold ink">{name}</p>{tag}</div>
+  {figure}
+  <ul class="mt-4 flex flex-1 flex-col gap-2">{perks_html}</ul>
+  {action}
+</article>"""
+
+
+def plans():
+    cards = "".join(plan_card(p, i == 1) for i, p in enumerate(PLANS))
+    tiers = "".join(f"""<li class="flex items-center gap-3 py-2.5">
+  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full {"bg-primary text-on-primary" if i == 1 else "bg-surface-container-low text-on-surface-variant"} text-label-m num">{pts}</span>
+  <div class="min-w-0 flex-1"><p class="text-title-s ink">{t}</p><p class="text-body-s text-on-surface-variant">{r}</p></div>
+  {'<span class="rounded-full bg-secondary-container px-2 py-0.5 text-label-s text-on-secondary-container">Bạn · 386</span>' if i == 1 else ""}
+</li>""" for i, (t, pts, r) in enumerate(TIERS))
+    pays = "".join(f"""<label class="flex items-center gap-3 rounded-[16px] px-3 py-2.5 {"bg-surface-container-low" if on else "hover:bg-surface-container-low"}">
+  <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 {"border-primary" if on else "border-outline"}">{'<span class="h-2.5 w-2.5 rounded-full bg-primary"></span>' if on else ""}</span>
+  <span class="min-w-0 flex-1"><span class="block text-body-m ink">{t}</span><span class="block text-body-s text-on-surface-variant">{sub}</span></span>
+  {f'<span class="text-label-l text-primary">{act}</span>' if act else ""}
+</label>""" for t, sub, on, act in PAY_WAYS)
+    body = f"""{header(active=None)}{EXTRA_CSS}
+<main class="mx-auto max-w-[1360px] px-8 pt-8">
+  <div class="flex items-end justify-between gap-6">
+    <div><h1 class="{H1}">Gói người bán</h1>
+      <p class="mt-2 text-body-l text-on-surface-variant">Thêm lượt đẩy và thống kê cho người bán thường xuyên. Gói Cơ bản miễn phí.</p></div>
+    <p class="glass glass-edge flex items-center gap-2 rounded-full px-4 py-2 text-label-l ink">{icon("workspace-premium-outline-rounded", 18, "text-primary")}Quyền COD và bậc uy tín không mua được</p>
+  </div>
+
+  <section class="mt-6 grid grid-cols-[1fr_380px] items-start gap-6">
+    <div>
+      <div class="grid grid-cols-3 gap-4">{cards}</div>
+      <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="{PANEL} p-5">
+          <p class="flex items-center gap-2 text-title-s ink">{icon("trending-up-rounded", 18, "text-primary")}Đẩy tin theo lượt</p>
+          <p class="mt-1 text-body-s text-on-surface-variant">Lên đầu mục Gần bạn quanh Bình Thạnh</p>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <div class="rounded-[16px] bg-surface-container-low p-3"><p class="text-body-s text-on-surface-variant">1 ngày</p>{price("15.000 ₫")}</div>
+            <div class="rounded-[16px] bg-surface-container-low p-3"><p class="text-body-s text-on-surface-variant">3 ngày</p>{price("35.000 ₫")}</div>
+          </div>
+        </div>
+        <div class="{PANEL} p-5">
+          <p class="flex items-center gap-2 text-title-s ink">{icon("autorenew-rounded", 18, "text-primary")}Gia hạn và hủy</p>
+          <p class="mt-2 text-body-m text-on-surface-variant">Gia hạn mỗi tháng. Hủy lúc nào cũng được, gói chạy hết tháng đã trả.</p>
+          <p class="mt-2 flex gap-2 text-body-s text-on-surface-variant">{icon("info-outline-rounded", 16, "mt-px shrink-0 text-primary")}{FEE_NOTE}</p>
+        </div>
+      </div>
+      <div class="{PANEL} mt-4 p-5">
+        <div class="flex items-baseline justify-between"><p class="text-title-s ink">Quyền theo bậc uy tín</p>{a("rep", "text-label-l text-primary hover:underline", "Cách tính điểm")}</div>
+        <p class="mt-1 text-body-s text-on-surface-variant">Bậc lên theo điểm uy tín 12 tháng: giao dịch xong, đánh giá, trả lời nhanh. Gói không đổi được bậc.</p>
+        <ul class="mt-2 grid grid-cols-2 gap-x-8">{tiers}</ul>
+      </div>
+    </div>
+    <aside class="sticky top-[84px] {PANEL} p-5">
+      <p class="text-label-m text-on-surface-variant">Xác nhận gói</p>
+      <div class="mt-1 flex items-baseline justify-between"><p class="text-title-l font-semibold tight ink">Plus</p><p class="flex items-baseline gap-1">{price("49.000 ₫", "text-[24px] leading-8")}<span class="text-body-s text-on-surface-variant">/tháng</span></p></div>
+      <p class="mt-4 text-label-l text-on-surface-variant">Trả bằng</p>
+      <div class="mt-1.5 flex flex-col gap-1">{pays}</div>
+      <p class="mt-3 text-body-s text-on-surface-variant">Dùng để trả phí đẩy tin và gói người bán. Tiền hàng vẫn trả cho shipper khi nhận.</p>
+      <button type="button" class="{btn_cls("ink", "lg")} mt-4 w-full">Xác nhận</button>
+      <p class="mt-3 text-center text-body-s text-on-surface-variant">{FEE_NOTE}</p>
+    </aside>
+  </section>
+</main>
+{footer()}"""
+    return page("Gói người bán · ShopNexus", body)
+
+
+# ------------------------------------------------- legal pages, one frame --
+def legal_block(part):
+    """A paragraph, or a list when part is a list."""
+    if isinstance(part, list):
+        items = "".join(f'<li class="flex gap-2.5 text-body-l ink"><span class="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-primary"></span><span>{li}</span></li>' for li in part)
+        return f'<ul class="mt-3 flex flex-col gap-1.5">{items}</ul>'
+    return f'<p class="mt-3 text-body-l leading-6 ink">{part}</p>'
+
+
+def legal(title, updated, sections, aside, active_sec=0):
+    """A legal page: the title row, a sticky table of contents on the left, the
+    text in one readable column (numbered sections of short paragraphs and
+    lists), and a summary on the right. sections: (title, [paragraph or list])."""
+    toc = "".join(a(f"toc-{i}", f"flex gap-2.5 rounded-[14px] px-3 py-2 text-body-m {'bg-white ink shadow-sm' if i == active_sec else 'text-on-surface-variant hover:text-on-surface'}",
+                    f'<span class="num w-5 shrink-0 text-label-m {"text-primary" if i == active_sec else ""}">{i + 1:02d}</span>{t}', f"#s{i + 1}")
+                  for i, (t, _) in enumerate(sections))
+    text = "".join(f"""<section id="s{i + 1}" class="{"border-t line pt-6" if i else ""} pb-6">
+  <h2 class="flex items-baseline gap-3 text-[22px] font-semibold leading-7 tighter ink"><span class="grad-num num">{i + 1:02d}</span>{t}</h2>
+  {"".join(legal_block(p) for p in parts)}
+</section>""" for i, (t, parts) in enumerate(sections))
+    body = f"""{header(active=None)}{EXTRA_CSS}
+<main class="mx-auto max-w-[1360px] px-8 pt-6">
+  {crumbs("Trợ giúp và an toàn", title)}
+  <div class="mt-4 flex items-end justify-between gap-6">
+    <div><h1 class="{H1}">{title}</h1><p class="mt-2 text-body-m text-on-surface-variant">Cập nhật ngày {updated} · {len(sections)} mục</p></div>
+    <div class="flex gap-2"><button type="button" class="{btn_cls("line")}">{icon("print-outline-rounded", 18)}In</button><button type="button" class="{btn_cls("line")}">{icon("link-rounded", 18)}Sao chép link</button></div>
+  </div>
+  <div class="mt-6 grid grid-cols-[260px_1fr_320px] items-start gap-6">
+    <nav class="glass glass-edge sticky top-[84px] flex flex-col gap-0.5 rounded-[24px] p-2">{toc}</nav>
+    <article class="{PANEL} px-10 pt-8">{text}</article>
+    <aside class="sticky top-[84px] flex flex-col gap-4">{aside}</aside>
+  </div>
+</main>
+{footer()}"""
+    return page(f"{title} · ShopNexus", body)
+
+
+def listing_rules():
+    sections = [
+        ("Một tin, một món", ["Mỗi tin bán một món, mới hoặc đã dùng, của chính bạn. Bán nhiều món thì đăng nhiều tin.",
+                              "Số tin đang đăng theo bậc uy tín: Mới 5 tin, Tin cậy 20 tin. Gói người bán không đổi được số này."]),
+        ("Hàng không được đăng", ["Người của ShopNexus gỡ tin và có thể khóa tài khoản khi tin bán:",
+                                  ["Vũ khí, chất nổ, ma túy và chất cấm", "Thuốc kê đơn",
+                                   "Hàng giả, hàng nhái, hàng gắn nhãn hiệu không phải của nó", "Động vật hoang dã và sản phẩm từ chúng",
+                                   "Tài khoản, sim đã đăng ký, giấy tờ tùy thân", "Hàng ăn cắp hoặc không rõ chủ"]]),
+        ("Ảnh và video", ["Ảnh phải là món bạn đang bán. Người mua thấy ảnh nào chụp trong app, ví dụ “Cả 4 ảnh chụp trong app”.",
+                          "Ảnh lấy từ mạng hay ảnh của món khác làm tin bị hạ hiển thị khi có người báo cáo.",
+                          "AI đọc ảnh và video bạn chọn để điền tên, tình trạng và giá. Bạn sửa được mọi ô trước khi đăng."]),
+        ("Tình trạng và Tin ghi", ["Chọn một trong ba: Mới (chưa dùng), Như mới (không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần), Đã dùng (có vết dùng, ghi rõ trong mô tả).",
+                                   "Mỗi điều bạn ghi trong tin, như pin 86%, máy zin hay còn bảo hành, là một Tin ghi. Người mua kiểm từng Tin ghi khi shipper tới cửa. " + MONEY["refuse"]]),
+        ("Giá", ["Ghi giá bạn thật sự bán. Giá tối thiểu là 10.000 ₫.",
+                 "Không ghi giá ảo để kéo người xem rồi báo giá khác trong chat. Trả giá diễn ra trong chat của tin.",
+                 "Giá tham khảo trong tin do AI tính từ các tin cùng đời máy trong 30 ngày. Đó không phải lời hứa của người bán."]),
+        ("Báo cáo và xử lý", ["Người mua báo cáo một tin với một trong bốn lý do: Hàng cấm bán; Hàng giả, hàng nhái; Có dấu hiệu lừa đảo; Lý do khác.",
+                              "Người của ShopNexus chỉ xem hàng cấm, hàng giả và lừa đảo. Tình trạng và giá là chuyện giữa người mua và người bán.",
+                              "Vi phạm lặp lại làm mất quyền theo thứ tự: hạ hiển thị, giới hạn COD, mất COD, khóa tài khoản. Mỗi 30 ngày không vi phạm gỡ một bậc."]),
+        ("Bán xong", ["Bán qua COD thì tin chuyển sang Đã bán khi người mua nhận hàng.",
+                      "Bán ngoài app thì bấm “Đánh dấu đã bán”, để món vẫn tính vào điểm uy tín của bạn."]),
+    ]
+    aside = summary_card("Tóm tắt", [("inventory-2-outline-rounded", "Một tin bán một món của chính bạn"),
+                                     ("photo-camera-outline-rounded", "Ảnh chụp món thật; người mua thấy ảnh nào chụp trong app"),
+                                     ("fact-check-outline-rounded", "Mỗi Tin ghi được kiểm tại cửa"),
+                                     ("sell-outline-rounded", "Giá ghi là giá thật")]) + \
+        f'<div class="{PANEL} p-2">' + link_rows([("help-outline-rounded", "Trợ giúp và an toàn", "help.html"), ("description-outline-rounded", "Điều khoản", "terms.html"),
+                                                  ("add-circle-outline-rounded", "Đăng tin", "sell.html")], "rel") + "</div>"
+    return legal("Quy định đăng tin", "28/10/2026", sections, aside)
+
+
+def terms():
+    sections = [
+        ("ShopNexus là gì", ["ShopNexus là nơi người bán đăng món đồ, người mua tìm, nhắn và trả giá. ShopNexus không phải bên bán và không sở hữu món đồ nào.",
+                             NO_ARBITRATION]),
+        ("Tài khoản", ["Mỗi người một tài khoản, đăng nhập bằng số điện thoại hoặc Google. Bạn giữ mã đăng nhập cho riêng mình; ShopNexus không bao giờ hỏi mã đó.",
+                       "Người mua và người bán thấy tên, ảnh đại diện, khu vực, hạng uy tín, đánh giá và các tin bạn đăng. Họ không thấy số điện thoại, địa chỉ hay giấy tờ của bạn."]),
+        ("Tiền và giao hàng", [MONEY["no_hold"], "Cách giao trong app là COD có xem hàng:",
+                               [MONEY["cod_buyer"], MONEY["refuse"], MONEY["cancel"], MONEY["cod_seller"], MONEY["return_leg"]],
+                               "Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được."]),
+        ("Khi có vấn đề sau khi nhận", ["Bạn mở ghi nhận trong chat hoặc trong đơn, kèm ảnh. Người bán tự hoàn tiền cho bạn hoặc từ chối.",
+                                        "Ghi nhận bị từ chối hiện trên trang của người bán. ShopNexus không quyết định ai đúng."]),
+        ("Điểm uy tín và quyền", ["Điểm uy tín từ 0 đến 1000, tính trên 12 tháng, chỉ từ những việc app thấy: giao dịch xong, đánh giá, trả lời nhanh, xác minh danh tính.",
+                                  "Bậc uy tín quyết định số tin và số đơn COD đang mở. Tỷ lệ từ chối nhận và ghi nhận bị từ chối trong 90 ngày làm mất quyền, từng bậc."]),
+        ("Phí của ShopNexus", ["Đăng tin, nhắn tin và mua hàng miễn phí. ShopNexus thu phí đẩy tin (từ 15.000 ₫) và gói người bán (Plus 49.000 ₫/tháng, Cửa hàng 199.000 ₫/tháng).",
+                               FEE_NOTE + " Gói gia hạn mỗi tháng và hủy lúc nào cũng được."]),
+        ("Nội dung bạn đăng", ["Bạn chịu trách nhiệm về tin, ảnh và lời nhắn của mình. Tin phải theo Quy định đăng tin.",
+                               "ShopNexus hiển thị tin của bạn trên app, web và kết quả tìm kiếm để người mua tìm thấy."]),
+        ("Khóa và xóa tài khoản", ["ShopNexus khóa tài khoản khi bán hàng cấm, hàng giả, lừa đảo, hoặc khi mất hết quyền theo điểm uy tín.",
+                                   "Bạn xóa tài khoản trong Tôi › Bảo mật. Tin đăng và trang của bạn được gỡ ngay."]),
+        ("Liên hệ", ["Gửi yêu cầu trong Hỗ trợ. ShopNexus trả lời trong chat của yêu cầu đó."]),
+    ]
+    aside = summary_card("Điều quan trọng nhất", [("shield-outline-rounded", MONEY["no_hold"]),
+                                                  ("visibility-outline-rounded", "Xem hàng rồi mới trả tiền cho shipper"),
+                                                  ("undo-rounded", "Không ưng thì từ chối nhận, không mất tiền"),
+                                                  ("block-rounded", "Đã trả thì ShopNexus không đòi lại được")], "priority-high-rounded") + \
+        f'<div class="{PANEL} p-2">' + link_rows([("gavel-rounded", "Quy định đăng tin", "listing-rules.html"), ("lock-outline-rounded", "Chính sách bảo mật", "#privacy"),
+                                                  ("support-agent-rounded", "Yêu cầu hỗ trợ", "support.html")], "rel") + "</div>"
+    return legal("Điều khoản", "28/10/2026", sections, aside, active_sec=2)
+
+
 if __name__ == "__main__":
-    for name, fn in [("how", how), ("sell", sell), ("cod", cod), ("support", support)]:
+    for name, fn in [("how", how), ("sell", sell), ("cod", cod), ("support", support),
+                     ("help", help_page), ("plans", plans), ("listing-rules", listing_rules), ("terms", terms)]:
         with open(os.path.join(OUT, f"{name}.html"), "w") as f:
             f.write(fn())
         print("wrote", name)

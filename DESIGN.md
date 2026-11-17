@@ -240,3 +240,53 @@ A ticket is its own chat with ShopNexus: the tickets on the left,
 the open one's chat in the middle, the order in the ticket and its carrier
 timeline on the right. Support tickets stay out of Tin nhắn, which holds
 buying and selling chats.
+
+### Danh mục index
+
+The header's "Danh mục" opens a page of every category: a search field,
+popular searches near the buyer with counts, then 11 tiles in four columns.
+A tile has a photo, the item count, the listings added today and up to four
+subcategories with counts that add up to the category count. The twelfth
+tile offers search by sentence or by photo. Below the tiles sit "Vừa đăng
+trong mọi danh mục" and "Đang được tìm nhiều". Tiles use photos; the
+category drawings are off this page.
+
+### Tìm bằng ảnh
+
+The photo takes the place of the query in the header search field. The
+conditions read from the photo are removable sparkle chips, followed by the
+usual dropdowns. A sticky left column holds the photo with its crop frame,
+"Đổi ảnh", "Chụp" and recent photos; the main column shows the count, the
+price range and a grid of matches, then other models of the same brand.
+
+### Not found and no results
+
+A sold or removed listing opens a 404 page: when it sold, a search field
+filled with its name, the listing greyed out with "ĐÃ BÁN" and a switch to
+follow the seller, then similar listings still for sale. A search with no
+match keeps the Tìm kiếm frame, says how many conditions failed, lists ways
+to loosen the search with the number of listings each would show, offers
+"Báo khi có tin mới" and shows listings close to the query.
+
+### Account settings
+
+Địa chỉ, Bảo mật, Quyền riêng tư, Hoàn thiện hồ sơ and Điểm uy tín use the
+account nav with "Tôi" selected, a breadcrumb from Tôi and a side column.
+Địa chỉ edits the address book inline. Bảo mật lists sign-in methods,
+signed-in devices and "Xóa tài khoản". Quyền riêng tư shows what others see
+next to a preview of the public profile. Hoàn thiện hồ sơ counts its steps
+from one task list in `j_kit.py` (`PROFILE_TASKS`); the address step is done
+when the address book (`ADDRESS_BOOK`) has an address, so Tôi, Địa chỉ,
+Hoàn thiện hồ sơ and Thiết lập giao COD show the same state. Identity
+verification needs NFC and happens in the app; the web page shows its steps
+and a code to open the app. Điểm uy tín shows the score, the tier track, the
+buyer's limits, the penalty ladder and the history.
+
+### Help and legal pages
+
+Trợ giúp và an toàn has a question search, answers grouped as Mua hàng, Bán
+hàng and An toàn in the app's `MONEY` words, and the scam signs. Gói người
+bán follows the app's plans and payment screens: Cơ bản is free, Plus and
+Cửa hàng are monthly, Đẩy tin is paid per push, and a plan cannot buy COD
+rights or a tier. Quy định đăng tin and Điều khoản share one layout: a
+sticky table of contents, the numbered text and a summary card.

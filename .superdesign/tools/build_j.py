@@ -13,14 +13,11 @@ from build import OUT, a
 from build_e import FOR_YOU, RESULTS
 from build_pages import EXTRA, QUERY_PHOTO, SEARCH_QUERY, SEARCH_RESULTS
 from common import LISTINGS, LOGO, MONEY, head, icon, img, split_price, where
-from j_kit import ME, card, drop, footer, header, page, price, seg
+from j_kit import ME, ai_chip, card, drop, footer, header, page, price, seg, trending
 
 # ------------------------------------------------------------------- search --
 def search():
-    chip = lambda t: (f'<span class="glass glass-edge flex h-9 items-center gap-1.5 rounded-full pl-3 pr-1.5 text-label-l ink">'
-                      f'{icon("auto-awesome-rounded", 15, "text-primary")}{t}'
-                      f'<button type="button" class="state grid h-6 w-6 place-items-center rounded-full text-on-surface-variant" aria-label="Bỏ">{icon("close-rounded", 14)}</button></span>')
-    bar = (chip("Laptop") + chip("Dưới 8 triệu") + chip("Màn hình chuẩn màu")
+    bar = (ai_chip("Laptop") + ai_chip("Dưới 8 triệu") + ai_chip("Màn hình chuẩn màu")
            + '<span class="mx-1 h-5 border-l border-black/10"></span>'
            + drop("Tình trạng", 2) + drop("Hãng", 2) + drop("Mọi khu vực") + drop("Trả giá được"))
 
@@ -123,11 +120,6 @@ def home(signed_in=True):
         recent = "".join(a(f"recent-{i}", "glass glass-edge flex h-9 items-center gap-1.5 rounded-full px-3 text-label-l ink hover:bg-white",
                            f'{icon("history-rounded", 16, "text-on-surface-variant")}{t}')
                          for i, t in enumerate(["iPhone 13 pin trên 85%", "sofa 3 chỗ", "xe đạp cho bé 8 tuổi"]))
-    trend = "".join(a(f"trend-{i}", "flex items-center gap-3 rounded-[14px] px-2 py-1.5 text-body-m ink hover:bg-surface-container-low",
-                      f'<span class="num grid h-7 w-7 place-items-center rounded-full {"bg-primary text-on-primary" if i < 3 else "bg-surface-container-low text-on-surface-variant"} text-label-m">{i + 1}</span>'
-                      f'<span class="flex-1">{t}</span><span class="num text-body-s text-on-surface-variant">{n} tin</span><span class="num w-14 text-right text-label-l ink">{m}</span>')
-                    for i, (t, n, m) in enumerate([("iPhone 13 Pro", "412", "5,3 tr"), ("MacBook Air M1", "268", "11,2 tr"), ("Xe đạp trẻ em", "190", "850 k"),
-                                                   ("Sofa 3 chỗ", "143", "3,9 tr"), ("Máy ảnh film", "96", "1,6 tr"), ("Tai nghe Sony", "121", "2,9 tr")]))
     feed = FOR_YOU + LISTINGS[:5]
     lead = LISTINGS[1]
     search_box = f"""<div class="mt-7 flex h-16 items-center gap-3 rounded-full bg-white pl-6 pr-2 glow">
@@ -212,8 +204,7 @@ def home(signed_in=True):
       <div class="mt-6 flex justify-center"><button type="button" class="state h-11 rounded-full border line bg-white px-6 text-label-l ink">Xem thêm tin</button></div>
     </div>
     <aside class="sticky top-[84px] self-start rounded-[24px] border line bg-white p-3">
-      <p class="flex items-center gap-1.5 px-2 pb-2 pt-1 text-title-s ink">{icon("trending-up-rounded", 18, "text-primary")}Đang được tìm nhiều</p>
-      <div class="flex flex-col">{trend}</div>
+      {trending()}
       {nudge}
     </aside>
   </section>

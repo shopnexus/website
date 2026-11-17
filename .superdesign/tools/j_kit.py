@@ -70,21 +70,31 @@ addEventListener('DOMContentLoaded', () => document.querySelectorAll('.seg').for
 
 NAV = ["Khám phá", "Danh mục", "Bản đồ", "Cách mua"]
 
+# Where each link opens, among the mockups (the rest stay hash placeholders).
+HREF = {"Khám phá": "j-home.html", "Danh mục": "categories.html", "Bản đồ": "map.html", "Cách mua": "how.html",
+        "Cách mua bằng COD": "how.html", "Cách đăng tin": "sell.html", "Gói người bán": "plans.html", "Điểm uy tín": "reputation.html",
+        "Trợ giúp và an toàn": "help.html", "Yêu cầu hỗ trợ": "support.html", "Quy định đăng tin": "listing-rules.html",
+        "Điều khoản": "terms.html", "Chính sách bảo mật": "privacy.html", "Bảo mật và xác minh": "security.html",
+        "Địa chỉ": "addresses.html", "Hoàn thiện hồ sơ": "profile-tasks.html",
+        "me": "account.html", "listings": "my-listings.html", "orders": "orders.html", "sales": "ship.html", "saved": "saved.html",
+        "messages": "messages.html", "notifications": "notifications.html", "cod": "cod-setup.html", "support": "support.html"}
+
 
 def seg(items, sel=0, cls="", size="text-label-l"):
     btns = "".join(f'<button type="button" class="{size} text-on-surface-variant" aria-selected="{"true" if i == sel else "false"}">{t}</button>' for i, t in enumerate(items))
     return f'<div class="seg {cls}"><span class="thumb"></span>{btns}</div>'
 
 
-def header(active: int | None = 0, search: str | None = None, signed_in=True):
+def header(active: int | None = 0, search: str | None = None, signed_in=True, photo=QUERY_PHOTO):
     """Translucent, blurred, no border or shadow. active: index into NAV, or None
     on pages outside the four destinations. search: None (no field) or the query
-    text. signed_in=False drops Tin nhắn and the avatar for "Đăng nhập"."""
-    nav = "".join(a(f"nav-{i}", "nav-link flex h-9 items-center rounded-full px-3.5 text-label-l text-on-surface-variant hover:text-on-surface", t)
+    text; photo: the picture at the start of that field. signed_in=False drops
+    Tin nhắn and the avatar for "Đăng nhập"."""
+    nav = "".join(a(f"nav-{i}", "nav-link flex h-9 items-center rounded-full px-3.5 text-label-l text-on-surface-variant hover:text-on-surface", t, HREF[t])
                   .replace("<a ", '<a aria-current="page" ' if i == active else "<a ", 1) for i, t in enumerate(NAV))
     if search is not None:
         field = f"""<div class="mx-6 flex h-11 min-w-0 flex-1 items-center gap-2.5 rounded-full bg-white pl-1.5 pr-1.5 glow">
-      <img src="{img(QUERY_PHOTO, 64, 64)}" alt="" class="h-8 w-8 rounded-full object-cover">
+      <img src="{img(photo, 64, 64)}" alt="" class="h-8 w-8 rounded-full object-cover">
       <span class="min-w-0 flex-1 truncate text-body-l ink">{escape(search)}</span>
       <button type="button" class="state grid h-8 w-8 place-items-center rounded-full text-on-surface-variant" aria-label="Tìm bằng ảnh">{icon("photo-camera-outline-rounded", 20)}</button>
       <button type="button" class="state flex h-8 items-center gap-1 rounded-full bg-primary pl-3 pr-4 text-label-l text-on-primary">{icon("search-rounded", 18)}Tìm</button>
@@ -112,7 +122,7 @@ def footer():
     cols = [("Khám phá", ["Dành cho bạn", "Bản đồ", "Danh mục", "Mới nhất"]), ("Mua và bán", ["Cách mua bằng COD", "Cách đăng tin", "Gói người bán", "Điểm uy tín"]),
             ("Hỗ trợ", ["Trợ giúp và an toàn", "Yêu cầu hỗ trợ", "Quy định đăng tin", "Điều khoản"])]
     col_html = "".join(f'<div><p class="text-label-m text-on-surface-variant">{t}</p><ul class="mt-3 flex flex-col gap-2 text-body-m ink">'
-                       + "".join(f"<li>{a(f'f-{t[:3]}-{i}', 'hover:text-primary', l)}</li>" for i, l in enumerate(ls)) + "</ul></div>" for t, ls in cols)
+                       + "".join(f"<li>{a(f'f-{t[:3]}-{i}', 'hover:text-primary', l, HREF.get(l))}</li>" for i, l in enumerate(ls)) + "</ul></div>" for t, ls in cols)
     return f"""<footer class="mx-auto mt-12 max-w-[1360px] px-8 pb-8">
   <div class="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-10 rounded-[28px] border line bg-white px-10 py-9">
     <div>
@@ -302,7 +312,7 @@ def account_nav(active):
         on = k == active
         badge = f'<span class="num rounded-full {"bg-white/20" if on else "bg-surface-container-low text-on-surface-variant"} px-2 text-label-s">{n}</span>' if n else ""
         items.append(a(f"acc-{k}", f"flex h-10 items-center gap-3 rounded-full px-3 text-label-l {'bg-[var(--ink)] text-white' if on else 'ink hover:bg-white/80'}",
-                       f'{icon(ic.replace("-outline", "") if on else ic, 20)}<span class="flex-1">{t}</span>{badge}')
+                       f'{icon(ic.replace("-outline", "") if on else ic, 20)}<span class="flex-1">{t}</span>{badge}', HREF[k])
                      .replace("<a ", '<a aria-current="page" ' if on else "<a ", 1))
     return f"""<aside class="sticky top-[84px] self-start">
   <div class="glass glass-edge flex items-center gap-3 rounded-[24px] p-3">
@@ -312,3 +322,88 @@ def account_nav(active):
   </div>
   <nav class="mt-3 flex flex-col gap-0.5" aria-label="Tài khoản">{"".join(items)}</nav>
 </aside>"""
+
+
+# ------------------------------------------------------- the buyer's data --
+# One address book and one task list, so Tôi, Địa chỉ, Hoàn thiện hồ sơ and
+# Thiết lập giao COD agree. icon, label, street, ward, default, delivered.
+ADDRESS_BOOK = [("home-outline-rounded", "Nhà", "12 Nguyễn Gia Trí", "Phường Bình Thạnh, TP.HCM", True, "6 đơn đã giao"),
+                ("work-outline-rounded", "Công ty", "Tầng 8, 2 Hải Triều", "Phường Sài Gòn, TP.HCM", False, "2 đơn đã giao")]
+# key, icon, title, done. The address task is done once the book has an address.
+PROFILE_TASKS = [("phone", "phone-android-outline-rounded", "Số điện thoại", True),
+                 ("avatar", "account-circle-outline-rounded", "Ảnh đại diện", True),
+                 ("address", "home-outline-rounded", "Địa chỉ nhận hàng", bool(ADDRESS_BOOK)),
+                 ("kyc", "verified-user-outline-rounded", "Xác minh danh tính", False),
+                 ("cod", "local-shipping-outline-rounded", "Thiết lập giao COD", False),
+                 ("bio", "edit-note-rounded", "Giới thiệu bản thân", False)]
+TASKS_DONE = sum(1 for t in PROFILE_TASKS if t[3])
+
+
+# ------------------------------------------------------------ small parts --
+LABEL = "px-1 text-label-m uppercase tracking-[0.1em] text-on-surface-variant"
+
+
+def field(label, value, *, ai=False, trail="", tall=False, ring=False, hint=""):
+    """A form field: label over a soft filled box, 14 px corners, no border.
+    ai: the model filled it (sparkle). ring: focused. hint: a line under it."""
+    spark = icon("auto-awesome-rounded", 14, "text-primary") if ai else ""
+    box = (f'<div class="flex {"min-h-[88px] items-start py-3" if tall else "h-12 items-center"} justify-between gap-3 rounded-[14px] '
+           f'px-4 text-body-l ink {"bg-white ring-2 ring-primary" if ring else "bg-surface-container-low"}">{value}{trail}</div>')
+    tip = f'<p class="mt-1 px-1 text-body-s text-on-surface-variant">{hint}</p>' if hint else ""
+    return f'<div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">{label}{spark}</p>{box}{tip}</div>'
+
+
+def ai_chip(t):
+    """A read-back condition the model set: sparkle, removable."""
+    return (f'<span class="glass glass-edge flex h-9 items-center gap-1.5 rounded-full pl-3 pr-1.5 text-label-l ink">'
+            f'{icon("auto-awesome-rounded", 15, "text-primary")}{t}'
+            f'<button type="button" class="state grid h-6 w-6 place-items-center rounded-full text-on-surface-variant" aria-label="Bỏ">{icon("close-rounded", 14)}</button></span>')
+
+
+def search_field(text, cls="", photo=None):
+    """The 56 px page search field (Danh mục, 404): placeholder or query text, photo button, Tìm."""
+    lead = (f'<img src="{img(photo, 72, 72)}" alt="" class="h-9 w-9 rounded-full object-cover">' if photo
+            else icon("search-rounded", 22, "text-primary"))
+    return f"""<div class="flex h-14 items-center gap-3 rounded-full bg-white pl-4 pr-2 glow {cls}">
+  {lead}
+  <span class="min-w-0 flex-1 truncate text-body-l {"ink" if photo else "text-on-surface-variant"}">{escape(text)}</span>
+  {a("photo-search", "state grid h-10 w-10 place-items-center rounded-full text-on-surface-variant", icon("photo-camera-outline-rounded", 20), "photo-search.html")}
+  <button type="button" class="state h-10 rounded-full bg-primary px-6 text-label-l text-on-primary">Tìm</button>
+</div>"""
+
+
+def mini_row(it, i, pre="mini"):
+    """A compact listing link: thumb, price, title, place."""
+    return a(f"{pre}-{i}", "card flex items-center gap-3 rounded-[18px] border line bg-white p-1.5 pr-3",
+             f'<img src="{img(it[0], 120, 120)}" alt="" class="h-14 w-14 shrink-0 rounded-[12px] object-cover">'
+             f'<span class="min-w-0 flex-1">{price(it[1], "text-[15px] leading-5")}<span class="block truncate text-body-s ink">{escape(it[2])}</span>'
+             f'<span class="block truncate text-body-s text-on-surface-variant">{where(it[4], it[5])} · {it[7]} trước</span></span>')
+
+
+TRENDING = [("iPhone 13 Pro", "412", "5,3 tr"), ("MacBook Air M1", "268", "11,2 tr"), ("Xe đạp trẻ em", "190", "850 k"),
+            ("Sofa 3 chỗ", "143", "3,9 tr"), ("Máy ảnh film", "96", "1,6 tr"), ("Tai nghe Sony", "121", "2,9 tr")]
+
+
+def trending(n=6):
+    """"Đang được tìm nhiều": title, then ranked searches with count and median price."""
+    rows = "".join(a(f"trend-{i}", "flex items-center gap-3 rounded-[14px] px-2 py-1.5 text-body-m ink hover:bg-surface-container-low",
+                     f'<span class="num grid h-7 w-7 place-items-center rounded-full {"bg-primary text-on-primary" if i < 3 else "bg-surface-container-low text-on-surface-variant"} text-label-m">{i + 1}</span>'
+                     f'<span class="flex-1">{t}</span><span class="num text-body-s text-on-surface-variant">{c} tin</span><span class="num w-14 text-right text-label-l ink">{m}</span>')
+                   for i, (t, c, m) in enumerate(TRENDING[:n]))
+    return f'<p class="flex items-center gap-1.5 px-2 pb-2 pt-1 text-title-s ink">{icon("trending-up-rounded", 18, "text-primary")}Đang được tìm nhiều</p><div class="flex flex-col">{rows}</div>'
+
+
+def link_rows(links, prefix):
+    """Rows of icon · label · chevron, each a link: (icon, label, href)."""
+    return "".join(a(f"{prefix}-{i}", "flex items-center gap-3 rounded-[14px] px-3 py-2.5 hover:bg-surface-container-low",
+                     f'{icon(ic, 20, "text-on-surface-variant")}<span class="flex-1 text-body-m ink">{t}</span>{icon("chevron-right-rounded", 18, "text-on-surface-variant")}', href)
+                   for i, (ic, t, href) in enumerate(links))
+
+
+def summary_card(title, points, ic="summarize-outline-rounded"):
+    """The teal gradient card that sums a page up: (icon, sentence) points."""
+    items = "".join(f'<li class="flex gap-2.5 text-body-m text-white">{icon(pic, 18, "mt-px shrink-0 text-[#B9EDE4]")}<span>{t}</span></li>' for pic, t in points)
+    return f"""<div class="rounded-[24px] p-5 text-white" style="background: linear-gradient(150deg, #005049, #0E8A7D)">
+  <p class="flex items-center gap-2 text-label-l text-[#B9EDE4]">{icon(ic, 18)}{title}</p>
+  <ul class="mt-3 flex flex-col gap-2.5">{items}</ul>
+</div>"""

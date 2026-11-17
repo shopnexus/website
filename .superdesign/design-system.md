@@ -38,12 +38,17 @@ on request. J won.
 
 - Shared pieces: `tools/j_kit.py` (CSS, wash, `header`, `footer`, `card`,
   `price`, `seg`, `account_nav`, `panel`, `btn`, `money_line`, `crumbs`,
-  `switch`, `drop`, `PHASES` and the steppers). Page builders import from it
+  `switch`, `drop`, `PHASES` and the steppers, `field`, `ai_chip`,
+  `search_field`, `mini_row`, `trending`, `link_rows`, `summary_card`, `LABEL`,
+  the `HREF` link map, `ADDRESS_BOOK` and `PROFILE_TASKS`). Page builders import from it
   and define only page-specific parts.
 - Builders: `build_j.py` (Tìm kiếm, Home signed in, Home signed out),
-  `build_j_public.py` (Danh mục, Chi tiết tin, Người bán, Bản đồ),
-  `build_j_flows.py` (Cách mua, Đăng tin, Giao COD, Hỗ trợ),
-  `build_j_account.py` (Đăng nhập, Tôi, Thông báo, Tin nhắn),
+  `build_j_public.py` (Danh mục, Chi tiết tin, Người bán, Bản đồ, Danh mục
+  index, Tìm bằng ảnh, 404, Tìm kiếm with no results),
+  `build_j_flows.py` (Cách mua, Đăng tin, Giao COD, Hỗ trợ, Trợ giúp và an
+  toàn, Gói người bán, Quy định đăng tin, Điều khoản),
+  `build_j_account.py` (Đăng nhập, Tôi, Thông báo, Tin nhắn, Địa chỉ, Bảo
+  mật, Quyền riêng tư, Hoàn thiện hồ sơ, Điểm uy tín),
   `build_j_orders.py` (Đơn hàng, Đơn COD, Đơn bán, Tin của bạn, Đã lưu,
   Thiết lập giao COD). Run from `.superdesign/`.
 - Drafts: each page's existing draft carries J as its newest version; the

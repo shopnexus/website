@@ -37,6 +37,20 @@ DRAFTS = {
     "saved": "ac40ee5a-e804-4db6-8030-3abc9e385006",
     "cod-setup": "1d38ced3-110d-407e-a285-5e053e602871",
     "support": "72743100-5344-4813-a878-2b5a11b1edfe",
+    "home-guest": "06ec18a8-1f11-4eb8-a3e3-c12397513c58",
+    "categories": "a1ad86b1-ca66-453c-ae6b-64e54aad97ed",
+    "photo-search": "28a507c0-9855-4740-81ff-d950eec583db",
+    "not-found": "be194482-e06c-438e-9da6-9d4e8e035a78",
+    "search-empty": "c75ca368-f235-4027-8192-be9bb9b24f9f",
+    "help": "60be3f4a-2102-4fe4-af6e-d9db5d51f495",
+    "plans": "ea492d9d-66a1-44f1-b4e0-c21dd7ccaeeb",
+    "listing-rules": "41fdcdfd-6d1c-4b4f-a660-9b39ead0f652",
+    "terms": "d80ca0ed-56d0-4db4-b3f5-6e3fc7ee1563",
+    "addresses": "5aedec63-d086-4f26-a40c-14848af83031",
+    "security": "e1f6b964-3bcd-44a2-ac7b-03216aad93ed",
+    "privacy": "5471755e-1f9c-4704-a3d0-931ce9bb357f",
+    "profile-tasks": "59f9ca79-2682-4fe8-95d8-1c1953c5241d",
+    "reputation": "cca2daf2-da31-4fb3-b797-4ca4714ecf66",
 }
 
 LIGHT = {

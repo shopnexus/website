@@ -12,8 +12,8 @@ from build import DESCRIPTION, OUT, PHOTOS, PRICE, SIMILAR, SPECS, TITLE, a
 from build_c import ART, CLAIMS, area_map
 from build_pages import MODELS, PHONE_TIPS, PHONES, tr
 from build_seller_map import IN_VIEW, REVIEWS, SELLER, SELLING, big_map
-from common import MONEY, icon, img, split_price, where
-from j_kit import card, crumbs, drop, footer, header, money_line, page, panel, price, section_title, seg
+from common import LISTINGS, MONEY, crop, icon, img, split_price, where
+from j_kit import ai_chip, btn, card, crumbs, drop, footer, header, mini_row, money_line, page, panel, price, search_field, section_title, seg, switch, trending
 
 
 # ------------------------------------------------------------ page pieces --
@@ -407,8 +407,282 @@ def map_page():
     return page("Bản đồ · ShopNexus", body)
 
 
+# -------------------------------------------------- discovery: shared bits --
+# ------------------------------------------------------------ Danh mục index --
+# name, icon, photo, count, new today, subcategories with counts (they add up to the count)
+CATEGORY_INDEX = [
+    ("Điện thoại", "mobile-outline-rounded", "1632661674596-df8be070a5c5", "3.412", "218",
+     [("iPhone", "1.986"), ("Samsung", "742"), ("Xiaomi", "268"), ("OPPO", "171"), ("Khác", "245")]),
+    ("Máy tính", "laptop-chromebook-outline-rounded", "1611186871348-b1ce696e52c9", "2.108", "131",
+     [("Văn phòng", "518"), ("MacBook", "402"), ("Máy tính bảng", "312"), ("Linh kiện", "289"), ("Laptop gaming", "233"), ("PC", "178"), ("Màn hình", "176")]),
+    ("Thời trang", "apparel-outline-rounded", "1593030761757-71fae45fa0e7", "5.870", "402",
+     [("Nữ", "2.460"), ("Nam", "1.830"), ("Giày", "744"), ("Túi xách", "391"), ("Phụ kiện", "287"), ("Đồng hồ", "158")]),
+    ("Xe máy", "two-wheeler-outline-rounded", "1558981403-c5f9899a28bc", "1.530", "87",
+     [("Tay ga", "634"), ("Xe số", "512"), ("Côn tay", "214"), ("Phụ tùng", "170")]),
+    ("Xe đạp", "pedal-bike-outline-rounded", "1507035895480-2b3156c31fc8", "964", "64",
+     [("Thể thao", "286"), ("Fixed gear", "204"), ("Trẻ em", "190"), ("Xe đạp điện", "168"), ("Phụ tùng", "116")]),
+    ("Nội thất", "chair-outline-rounded", "1555041469-a586c61ea9bc", "1.247", "73",
+     [("Bàn", "428"), ("Sofa", "312"), ("Tủ, kệ", "274"), ("Giường", "156"), ("Đèn", "77")]),
+    ("Đồ gia dụng", "blender-outline-rounded", "1585515320310-259814833e62", "2.301", "156",
+     [("Đồ dùng nhỏ", "1.000"), ("Nhà bếp", "690"), ("Quạt", "210"), ("Tủ lạnh", "162"), ("Máy giặt", "141"), ("Điều hòa", "98")]),
+    ("Mẹ và bé", "child-care-outline-rounded", "1515488042361-ee00e0ddd4e4", "1.328", "95",
+     [("Quần áo bé", "612"), ("Đồ chơi", "455"), ("Xe đẩy", "187"), ("Ghế ăn", "74")]),
+    ("Âm thanh", "headphones-outline-rounded", "1505740420928-5e560c06d30e", "912", "48",
+     [("Tai nghe", "438"), ("Loa", "276"), ("Ampli", "110"), ("Đĩa than, cassette", "88")]),
+    ("Máy ảnh", "photo-camera-outline-rounded", "1516035069371-29a1b244cc32", "688", "39",
+     [("Mirrorless", "241"), ("DSLR", "156"), ("Ống kính", "133"), ("Máy film", "96"), ("Phụ kiện", "62")]),
+    ("Thể thao", "sports-tennis-outline-rounded", "1554068865-24cecd4e34b8", "944", "52",
+     [("Gym", "336"), ("Cầu lông, tennis", "289"), ("Bóng đá", "198"), ("Cắm trại", "121")]),
+]
+
+
+def category_tile(c, i):
+    name, ic, photo, count, new, subs = c
+    chips = "".join(a(f"sub-{i}-{j}", "flex h-7 items-center gap-1 rounded-full bg-surface-container-low px-2.5 text-label-m ink hover:bg-secondary-container",
+                      f'{t}<span class="num text-label-s text-on-surface-variant">{n}</span>') for j, (t, n) in enumerate(subs[:4]))
+    if len(subs) > 4:
+        chips += a(f"sub-{i}-more", "flex h-7 items-center rounded-full px-2 text-label-m text-primary hover:underline", f"+{len(subs) - 4} mục")
+    return f"""<article class="card flex flex-col rounded-[24px] border line bg-white p-2">
+  {a(f"cat-{i}", "flex items-center gap-3 rounded-[18px] p-1.5 pr-2 hover:bg-surface-container-low",
+     f'<img src="{img(photo, 160, 160)}" alt="" class="h-16 w-16 shrink-0 rounded-[16px] object-cover">'
+     f'<span class="min-w-0 flex-1"><span class="flex items-center gap-1.5 text-title-m font-semibold tight ink">{icon(ic, 18, "text-primary")}{name}</span>'
+     f'<span class="mt-0.5 block text-body-s text-on-surface-variant"><b class="num font-semibold ink">{count}</b> món · <span class="text-primary">+{new} hôm nay</span></span></span>'
+     + icon("arrow-forward-rounded", 18, "text-on-surface-variant"))}
+  <div class="flex flex-wrap gap-1 px-1.5 pb-1.5 pt-1">{chips}</div>
+</article>"""
+
+
+def categories():
+    popular = [("iPhone", "1.986"), ("Xe đạp", "964"), ("Sofa", "312"), ("Giày", "744"), ("MacBook", "402"), ("Tai nghe", "438"), ("Xe đẩy", "187"), ("Máy film", "96")]
+    pop = "".join(a(f"pop-{i}", "glass glass-edge flex h-9 items-center gap-1.5 rounded-full px-3 text-label-l ink hover:bg-white",
+                    f'{t}<span class="num text-label-s text-on-surface-variant">{n}</span>') for i, (t, n) in enumerate(popular))
+    tiles = "".join(category_tile(c, i) for i, c in enumerate(CATEGORY_INDEX))
+    other = f"""<article class="flex flex-col justify-between rounded-[24px] bg-gradient-to-br from-[#066A61] to-[#0E8A7D] p-5 text-white">
+  <div><p class="text-title-m font-semibold tight">Không chắc thuộc mục nào?</p>
+    <p class="mt-1 text-body-s text-white/80">Gõ một câu, hoặc chụp món đồ.</p></div>
+  <div class="mt-4 flex gap-2">
+    {a("cat-ask", "state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-white text-label-l text-primary", icon("search-rounded", 18) + "Tìm bằng câu")}
+    {a("cat-photo", "state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-white/15 text-label-l text-white", icon("photo-camera-outline-rounded", 18) + "Bằng ảnh", "#photo-search")}
+  </div>
+</article>"""
+    newest = [it for it in LISTINGS if it[7].endswith("phút")][:6]
+    fresh = "".join(mini_row(it, i, "fresh") for i, it in enumerate(newest))
+    body = f"""{header(active=1)}
+<main class="mx-auto max-w-[1360px] px-8">
+  {crumbs("Khám phá", "Danh mục", cls="pt-4")}
+  <section class="mt-4 grid grid-cols-[1fr_520px] items-end gap-8">
+    <div>
+      <h1 class="text-[56px] font-semibold leading-[60px] tighter ink">Danh mục</h1>
+      <p class="mt-2 text-body-l text-on-surface-variant"><b class="num font-semibold ink">11</b> danh mục · <b class="num font-semibold ink">1.904</b> món mới hôm nay</p>
+    </div>
+    {search_field("Tìm trong mọi danh mục: xe đẩy gấp gọn, dưới 1 triệu")}
+  </section>
+  <div class="mt-5 flex flex-wrap items-center gap-2"><span class="mr-1 flex items-center gap-1.5 text-label-l text-on-surface-variant">{icon("location-on-outline-rounded", 16)}Phổ biến quanh Bình Thạnh</span>{pop}</div>
+
+  <section class="mt-6 grid grid-cols-4 gap-4">{tiles}{other}</section>
+
+  <section class="mt-10 grid grid-cols-[1fr_340px] gap-8">
+    <div>
+      {section_title("Vừa đăng trong mọi danh mục", "Xem tất cả", "all-new")}
+      <div class="mt-4 grid grid-cols-3 gap-3">{fresh}</div>
+    </div>
+    <aside class="rounded-[24px] border line bg-white p-3">{trending(5)}</aside>
+  </section>
+</main>
+{footer()}"""
+    return page("Danh mục · ShopNexus", body)
+
+
+# ------------------------------------------------------------ Tìm bằng ảnh --
+PHOTO_QUERY = "iPhone 13 Pro, Xanh Sierra"
+SIERRA = "1632661674596-df8be070a5c5"
+# Same model and colour as the photo, from other sellers (crops of the detail photos stand in for their own).
+PHOTO_MATCHES = [
+    (SIERRA, "5.200.000 ₫", "iPhone 13 Pro 128GB Xanh Sierra, pin 88%", "Như mới", "2,1 km", "Bình Thạnh", "4,9", ["128 GB", "Pin 88%"], "Ngang giá thị trường"),
+    (SIERRA, "4.950.000 ₫", "iPhone 13 Pro 128GB Xanh, máy zin, có hộp", "Đã dùng", "3,4 km", "Phú Nhuận", "4,7", ["128 GB", "Pin 85%"], "Rẻ hơn 7%"),
+    (SIERRA, "5.600.000 ₫", "iPhone 13 Pro 256GB Xanh Sierra, pin 90%", "Như mới", "4,8 km", "Q.3", "4,8", ["256 GB", "Pin 90%"], None),
+    (SIERRA, "5.050.000 ₫", "iPhone 13 Pro 128GB, mặt lưng xanh, trầy nhẹ viền", "Đã dùng", "1,6 km", "Bình Thạnh", "4,6", ["128 GB", "Pin 84%"], None),
+    (SIERRA, "5.350.000 ₫", "iPhone 13 Pro 128GB Xanh Sierra, đủ hộp sạc", "Như mới", "5,2 km", "Gò Vấp", "4,8", ["128 GB", "Pin 92%"], None),
+    (SIERRA, "4.800.000 ₫", "iPhone 13 Pro 128GB, thay pin chính hãng", "Đã dùng", "6,0 km", "Q.10", "4,5", ["128 GB", "Pin 100%"], "Rẻ hơn 9%"),
+    (SIERRA, "5.900.000 ₫", "iPhone 13 Pro 256GB Xanh, bảo hành 3 tháng", "Như mới", "7,4 km", "Thủ Đức", "4,9", ["256 GB", "Pin 89%"], None),
+    (SIERRA, "5.150.000 ₫", "iPhone 13 Pro 128GB, ốp lưng sẵn, máy đẹp", "Như mới", "8,1 km", "Tân Bình", "4,7", ["128 GB", "Pin 87%"], None),
+]
+# Each other seller's photo is a different crop of the same shot (focus x, focus y, zoom).
+MATCH_CROPS = [None, (0.48, 0.42, 2.2), (0.52, 0.5, 1.5), (0.6, 0.56, 2.6), (0.45, 0.6, 1.8), (0.55, 0.4, 3.0), (0.5, 0.55, 1.25), (0.42, 0.48, 2.0)]
+PHOTO_SIMILAR = [p for p in PHONES if "13 Pro" not in p[2]][:4]
+
+
+def match_card(i, start=0, saved=False):
+    """card() for PHOTO_MATCHES[i], with its own crop of the shared photo."""
+    html = card(PHOTO_MATCHES[i], start + i, saved=saved)
+    if MATCH_CROPS[i]:
+        fx, fy, z = MATCH_CROPS[i]
+        html = html.replace(img(SIERRA, 480, 480), crop(SIERRA, 480, fx, fy, z), 1)
+    return html
+
+
+def photo_search():
+    bar = (ai_chip("iPhone 13 Pro") + ai_chip("Xanh Sierra") + ai_chip("Điện thoại")
+           + '<span class="mx-1 h-5 border-l border-black/10"></span>'
+           + drop("Dung lượng") + drop("Tình trạng") + drop("Trong 10 km", on=True) + drop("Trả giá được"))
+    recent = "".join(f'<button type="button" class="state overflow-hidden rounded-[14px] {"ring-2 ring-primary ring-offset-2" if i == 0 else ""}">'
+                     f'<img src="{img(p, 120, 120)}" alt="" class="aspect-square w-full object-cover"></button>'
+                     for i, p in enumerate([SIERRA, "1505740420928-5e560c06d30e", "1507035895480-2b3156c31fc8", "1555041469-a586c61ea9bc"]))
+    lo, hi, med, n = MODELS[0][1:]
+    side = f"""<aside class="sticky top-[84px] flex flex-col gap-3 self-start">
+  <div class="rounded-[28px] border line bg-white p-2">
+    <div class="relative overflow-hidden rounded-[22px]" style="aspect-ratio: 1 / 1">
+      <img src="{img(SIERRA, 640, 640)}" alt="Ảnh bạn tải lên" class="h-full w-full object-cover">
+      <span class="absolute rounded-[18px] border-2 border-white shadow-[0_0_0_999px_rgb(0_0_0/.28)]" style="left:24%;top:14%;width:52%;height:74%"></span>
+      <span class="absolute bottom-3 left-3 rounded-full bg-white/90 px-2.5 py-1 text-label-m ink backdrop-blur">Ảnh của bạn</span>
+    </div>
+    <div class="flex items-center gap-2 p-2">
+      {btn("Đổi ảnh", "upload-rounded", "line", "flex-1")}
+      {btn("Chụp", "photo-camera-outline-rounded", "line", "flex-1")}
+    </div>
+    <p class="px-2 pb-2 text-body-s text-on-surface-variant">Kéo ảnh khác vào trang, hoặc dán ảnh bằng Ctrl+V.</p>
+  </div>
+  <div class="rounded-[24px] border line bg-white p-4">
+    <p class="text-label-m text-on-surface-variant">Ảnh gần đây</p>
+    <div class="mt-2 grid grid-cols-4 gap-2">{recent}</div>
+  </div>
+</aside>"""
+    grid = "".join(match_card(i, saved=i == 0) for i in range(len(PHOTO_MATCHES)))
+    similar = "".join(card(it, i + 8) for i, it in enumerate(PHOTO_SIMILAR))
+    body = f"""{header(active=0, search=PHOTO_QUERY, photo=SIERRA)}
+<div class="mx-auto max-w-[1360px] px-8">
+  <div class="flex items-center gap-2 pt-4">{bar}<span class="flex-1"></span>{a("reset", "text-label-l text-primary hover:underline", "Xóa lọc")}</div>
+</div>
+<main class="mx-auto mt-6 grid max-w-[1360px] grid-cols-[320px_1fr] gap-8 px-8">
+  {side}
+  <section>
+    <div class="flex items-end justify-between gap-6">
+      <div>
+        <h1 class="flex items-center gap-3 text-[40px] font-semibold leading-[44px] tighter ink"><span class="grad-num num">36</span> tin giống ảnh</h1>
+        <p class="mt-1.5 text-body-m text-on-surface-variant">Trong 10 km quanh Bình Thạnh · cùng đời máy và màu</p>
+      </div>
+      <div class="w-[340px] rounded-[20px] border line bg-white px-4 py-3">
+        <div class="flex items-baseline justify-between"><span class="flex items-center gap-1.5 text-label-m text-on-surface-variant">{icon("auto-awesome-rounded", 14, "text-primary")}Giá tham khảo · {n} tin</span>
+          <span class="num text-title-s font-semibold ink">{tr(lo)} – {tr(hi)} tr ₫</span></div>
+        <div class="mt-2">{range_bar(lo, hi, med, labels=False)}</div>
+      </div>
+    </div>
+    <div class="glass glass-edge soft sticky top-[76px] z-20 mt-5 flex items-center justify-between rounded-full py-1 pl-1 pr-1.5">
+      {seg(["Giống ảnh nhất", "Rẻ hơn", "Gần hơn", "Mới đăng"], 0, "bg-black/[.04]")}
+      <span class="pr-2 text-body-s text-on-surface-variant">1–8 trong 36</span>
+    </div>
+    <div class="mt-4 grid grid-cols-4 gap-4">{grid}</div>
+    <div class="mt-8">{section_title("Cùng hãng, đời khác", "Xem 214 tin", "more-iphone")}</div>
+    <div class="mt-4 grid grid-cols-4 gap-4">{similar}</div>
+  </section>
+</main>
+{footer()}"""
+    return page("Tìm bằng ảnh · ShopNexus", body)
+
+
+# --------------------------------------------------------------------- 404 --
+SOLD = PHONES[1]
+
+
+def not_found():
+    similar = "".join(match_card(i) for i in (1, 2, 4, 5))
+    near = [it for it in LISTINGS if it[7].endswith("phút")][:4]
+    near_html = "".join(card(it, i + 4) for i, it in enumerate(near))
+    sold_num, sold_unit = split_price(SOLD[1])
+    body = f"""{header(active=None)}
+<main class="mx-auto max-w-[1360px] px-8">
+  <section class="grid grid-cols-[1fr_400px] items-center gap-10 pt-12">
+    <div>
+      <p class="glass glass-edge flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-label-m ink">{icon("link-off-rounded", 15, "text-primary")}Lỗi 404</p>
+      <h1 class="mt-4 text-[52px] font-semibold leading-[58px] tighter ink">Tin này đã bán.</h1>
+      <p class="mt-2 max-w-[560px] text-body-l text-on-surface-variant">Người bán đã đánh dấu đã bán lúc 14:20 hôm nay. Có 4 máy giống vậy đang bán quanh Bình Thạnh.</p>
+      {search_field("iPhone 13 Pro 128GB, Xanh Sierra", "mt-6 max-w-[720px]", photo=SIERRA)}
+      <p class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-body-s text-on-surface-variant">Link sai hoặc cũ?
+        {a("go-home", "text-label-l text-primary hover:underline", "Về Khám phá")}{a("go-cats", "text-label-l text-primary hover:underline", "Xem danh mục")}{a("go-help", "text-label-l text-primary hover:underline", "Báo link hỏng")}</p>
+    </div>
+    <article class="relative rounded-[28px] border line bg-white p-2">
+      <div class="relative overflow-hidden rounded-[22px]" style="aspect-ratio: 4 / 3">
+        <img src="{img(SOLD[0], 800, 600)}" alt="" class="h-full w-full object-cover grayscale-[.6] opacity-70">
+        <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-6 rounded-[14px] border-2 border-white bg-[var(--ink)]/80 px-5 py-2 text-title-l font-semibold tracking-wide text-white backdrop-blur">ĐÃ BÁN</span>
+      </div>
+      <div class="flex items-center justify-between gap-3 px-3 py-3">
+        <div class="min-w-0"><p class="truncate text-body-l text-on-surface-variant line-through decoration-1">{escape(SOLD[2])}</p>
+          <p class="text-body-s text-on-surface-variant">Tuấn Kiệt · {SOLD[5]}</p></div>
+        <span class="num whitespace-nowrap text-[20px] font-semibold tight text-on-surface-variant">{sold_num}<span class="ml-0.5 text-body-s">{sold_unit.strip()}</span></span>
+      </div>
+      <div class="mx-1 mb-1 flex items-center justify-between rounded-[18px] bg-secondary-container px-3 py-2.5 text-on-secondary-container">
+        <span class="text-body-m">Báo khi người này đăng máy mới</span>{switch(False)}
+      </div>
+    </article>
+  </section>
+
+  <section class="mt-12">
+    {section_title("Giống tin này, còn bán", "Xem 36 tin", "more-like")}
+    <div class="mt-4 grid grid-cols-4 gap-4">{similar}</div>
+  </section>
+  <section class="mt-10">
+    {section_title("Vừa đăng quanh bạn", "Xem tất cả", "more-near")}
+    <div class="mt-4 grid grid-cols-4 gap-4">{near_html}</div>
+  </section>
+</main>
+{footer()}"""
+    return page("Tin đã bán · ShopNexus", body)
+
+
+# ---------------------------------------------------- Tìm kiếm, no results --
+EMPTY_QUERY = "iPhone 13 Pro Max 512GB dưới 8 triệu ở Q.7"
+
+
+def search_empty():
+    bar = (ai_chip("iPhone 13 Pro Max") + ai_chip("512 GB") + ai_chip("Dưới 8 triệu") + ai_chip("Q.7")
+           + '<span class="mx-1 h-5 border-l border-black/10"></span>' + drop("Tình trạng") + drop("Trả giá được"))
+    loosen = [("Bỏ “512 GB”", "256 GB trở lên", "6", "memory-rounded"), ("Đến 12 triệu", "giá giữa 11,4 tr cho 512 GB", "18", "payments-outline-rounded"),
+              ("Mọi khu vực", "gần nhất ở Q.4, 3,2 km", "4", "location-on-outline-rounded"), ("iPhone 13 Pro", "cùng đời, màn nhỏ hơn", "42", "mobile-outline-rounded")]
+    loosen_html = "".join(a(f"loosen-{i}", "card flex items-center gap-3 rounded-[20px] border line bg-white p-3",
+                            f'<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">{icon(ic, 20)}</span>'
+                            f'<span class="min-w-0 flex-1"><span class="block text-title-s ink">{t}</span><span class="block truncate text-body-s text-on-surface-variant">{d}</span></span>'
+                            f'<span class="num shrink-0 rounded-full bg-primary px-2.5 py-1 text-label-m text-on-primary">{n} tin</span>')
+                          for i, (t, d, n, ic) in enumerate(loosen))
+    close = [PHONES[1], PHONES[0], PHONES[5], PHONES[3]]
+    close_html = "".join(card(it, i) for i, it in enumerate(close)) + "".join(match_card(i, 4) for i in (2, 6, 1, 4))
+    body = f"""{header(active=0, search=EMPTY_QUERY, photo=PHONES[0][0])}
+<div class="mx-auto max-w-[1360px] px-8">
+  <div class="flex items-center gap-2 pt-4">{bar}<span class="flex-1"></span>{a("reset", "text-label-l text-primary hover:underline", "Xóa lọc")}</div>
+</div>
+<main class="mx-auto max-w-[1360px] px-8">
+  <section class="mt-6 grid grid-cols-[1fr_400px] gap-8">
+    <div>
+      <h1 class="flex items-center gap-3 text-[40px] font-semibold leading-[44px] tighter ink"><span class="num text-on-surface-variant">0</span> tin khớp cả 4 điều kiện</h1>
+      <p class="mt-1.5 text-body-m text-on-surface-variant">iPhone 13 Pro Max 512 GB đang bán quanh 11,4 tr ₫. Bỏ một điều kiện để thấy:</p>
+      <div class="mt-4 grid grid-cols-2 gap-3">{loosen_html}</div>
+      <div class="mt-3 flex items-center gap-6 rounded-[20px] border line bg-white px-5 py-4">
+        <div class="shrink-0"><p class="flex items-center gap-1.5 text-label-m text-on-surface-variant">{icon("auto-awesome-rounded", 14, "text-primary")}Giá tham khảo · 512 GB · 30 ngày</p>
+          <p class="num mt-0.5 text-title-m font-semibold tight ink">10,6 – 12,4 tr ₫</p></div>
+        <div class="flex-1">{range_bar(10600000, 12400000, 11400000, axis=(7000000, 13500000), mark=8000000)}</div>
+      </div>
+    </div>
+    <div class="flex flex-col gap-3">
+      <div class="rounded-[24px] bg-gradient-to-br from-[#066A61] to-[#0E8A7D] p-5 text-white">
+        <p class="flex items-center gap-2 text-title-m font-semibold tight">{icon("notifications-outline-rounded", 20)}Báo khi có tin mới</p>
+        <p class="mt-1 text-body-s text-white/80">Có máy khớp cả 4 điều kiện, ShopNexus báo bạn ngay. Tháng trước có 2 máy như vậy.</p>
+        <button type="button" class="state mt-4 h-10 w-full rounded-full bg-white text-label-l text-primary">Bật báo tin</button>
+      </div>
+      <div class="rounded-[24px] border line bg-white p-3">{trending(3)}</div>
+    </div>
+  </section>
+
+  <section class="mt-10">
+    {section_title("Gần với câu này", "Xem 42 tin iPhone 13 Pro", "more-close")}
+    <div class="mt-4 grid grid-cols-4 gap-4">{close_html}</div>
+  </section>
+</main>
+{footer()}"""
+    return page("Không có kết quả · ShopNexus", body)
+
+
 if __name__ == "__main__":
-    for name, fn in [("category", category), ("detail-c", detail), ("seller", seller), ("map", map_page)]:
+    for name, fn in [("category", category), ("detail-c", detail), ("seller", seller), ("map", map_page),
+                     ("categories", categories), ("photo-search", photo_search), ("not-found", not_found), ("search-empty", search_empty)]:
         with open(os.path.join(OUT, f"{name}.html"), "w") as f:
             f.write(fn())
         print("wrote", name)

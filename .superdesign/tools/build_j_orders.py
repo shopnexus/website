@@ -12,7 +12,7 @@ from html import escape
 
 from build import OUT, a
 from common import MONEY, icon, img, split_price, where
-from j_kit import ME, PANEL, account_nav, btn, crumbs, footer, header, money_line, page, page_title, phase_bar, phase_track, price, seg, switch
+from j_kit import ADDRESS_BOOK, ME, PANEL, account_nav, btn, crumbs, footer, header, money_line, page, page_title, phase_bar, phase_track, price, seg, switch
 
 # ----------------------------------------------------------------- pieces --
 
@@ -526,8 +526,7 @@ def saved():
 NAME = "Nguyễn Khánh Linh"
 PHONE = "0912 345 812"
 SHOP_CODE = "S55163"
-BOOK = [("Nhà", "home-outline-rounded", "12 Nguyễn Gia Trí", "Phường Bình Thạnh, Hồ Chí Minh"),
-        ("Công ty", "work-outline-rounded", "Tầng 8, 2 Hải Triều", "Phường Sài Gòn, Hồ Chí Minh")]
+BOOK = [(kind, ic, street, ward) for ic, kind, street, ward, _default, _used in ADDRESS_BOOK]
 
 
 def step_head(n, t, state, end=""):
