@@ -179,7 +179,7 @@ def footer():
     <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-10">
       <div>
         <div class="flex items-center gap-2"><img src="{LOGO}" alt="ShopNexus" class="h-9 w-9"><span class="text-title-l font-medium text-inverse-on-surface">ShopNexus</span></div>
-        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Đồ cũ giá tốt, xem hàng rồi mới trả. {MONEY["no_hold"]}</p>
+        <p class="mt-4 max-w-[300px] text-body-m text-inverse-on-surface/70">Đồ cũ giá tốt, xem hàng rồi mới trả.</p>
       </div>
       {col_html}
     </div>
@@ -288,7 +288,6 @@ def home():
     <section class="mt-24 rounded-xl bg-primary-container px-12 pb-12 pt-14">
       <div class="flex items-end justify-between text-on-primary-container">
         <div><p class="text-label-l uppercase tracking-[0.12em]">Từ lúc nhắn đến lúc nhận</p><h2 class="mt-2 text-display-m text-white">Xem hàng tận tay<br>rồi mới trả tiền</h2></div>
-        <p class="max-w-[320px] text-body-l">{MONEY["no_hold"]}</p>
       </div>
       <div class="dash-line mx-24 mt-10 h-0.5 opacity-60"></div>
       <ol class="-mt-px grid grid-cols-4 gap-4 pt-8">{story_html}</ol>
@@ -408,7 +407,6 @@ def detail():
           {icon("local-shipping-outline-rounded", 24, "text-on-surface-variant")}
           <span class="flex-1"><span class="block text-body-l">COD, xem hàng trước</span><span class="block text-body-s text-on-surface-variant">Gửi từ Bình Thạnh</span></span>
         </div>
-        <div class="mt-4 flex flex-col gap-2.5">{money("meet_hint", "group-outline-rounded")}{money("no_hold", "account-balance-outline-rounded")}</div>
         </div>
       </aside>
     </div>

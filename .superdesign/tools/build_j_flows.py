@@ -35,12 +35,11 @@ EXTRA_CSS = """<style>
 
 # ------------------------------------------------------- shared in this file --
 # ---------------------------------------------------------------- Cách mua --
-FAQ = [("Tôi có phải trả tiền trước không?", MONEY["pay_shipper"] + " " + MONEY["no_hold"], True),
+FAQ = [("Tôi có phải trả tiền trước không?", MONEY["pay_shipper"], True),
        ("Mở ra thấy không đúng mô tả thì sao?", MONEY["refuse"] + " Hàng quay về người bán.", True),
        ("Hãng báo đã giao mà tôi chưa nhận?", "Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.", False),
        ("Tôi hủy đơn được không?", MONEY["cancel"], False),
-       ("Phí ship ai trả, bao nhiêu?", MONEY["cod_buyer"] + " Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.", False),
-       ("Món đắt tiền thì nên làm gì?", MONEY["meet_hint"] + " COD vẫn chọn được.", False)]
+       ("Phí ship ai trả, bao nhiêu?", MONEY["cod_buyer"] + " Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.", False)]
 
 
 def how():
@@ -90,8 +89,7 @@ def how():
           ("query-stats-rounded", "Đưa giá tham khảo", "So giá một tin với các tin giống nó đã bán và đang bán."),
           ("local-shipping-outline-rounded", "Tạo vận đơn qua hãng của người bán", "GHTK hoặc GHN báo đơn tới đâu, bạn xem ngay trong đơn."),
           ("support-agent-outline-rounded", "Nhận yêu cầu trong Hỗ trợ", "Chưa nhận được hàng hay cần hỏi gì, bạn gửi yêu cầu và ShopNexus trả lời trong chat.")]
-    dont = [("account-balance-outline-rounded", MONEY["no_hold"]),
-            ("gavel-rounded", "Không phân xử giữa người mua và người bán."),
+    dont = [("gavel-rounded", "Không phân xử giữa người mua và người bán."),
             ("payments-outline-rounded", "Không thu phí ship: bạn trả cho shipper, hãng chuyển tiền hàng cho người bán."),
             ("shield-outline-rounded", "Người thật chỉ xử lý ba việc: hàng cấm và hàng giả bị báo cáo, lừa đảo có dấu hiệu tổ chức, yêu cầu hợp lệ từ cơ quan.")]
     do_html = "".join(f'<li class="flex gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">{icon(ic, 20)}</span>'
@@ -110,13 +108,12 @@ def how():
     <div>
       <span class="glass glass-edge inline-flex items-center gap-2 rounded-full px-3 py-1 text-label-m ink"><span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Cách mua trên ShopNexus</span>
       <h1 class="mt-4 text-[60px] font-semibold leading-[64px] tighter ink">Xem hàng tận tay,<br>rồi mới trả tiền.</h1>
-      <p class="mt-4 max-w-[520px] text-body-l text-on-surface-variant">{MONEY["cod_buyer"]} {MONEY["no_hold"]}</p>
+      <p class="mt-4 max-w-[520px] text-body-l text-on-surface-variant">{MONEY["cod_buyer"]}</p>
       <div class="mt-6 flex gap-2">
         {a("start-search", btn_cls("ink", "lg"), icon("search-rounded", 18) + "Bắt đầu tìm")}
         {a("jump-faq", btn_cls("line", "lg"), "Câu hỏi thường gặp", "#faq")}
       </div>
-      <div class="mt-8 grid max-w-[560px] grid-cols-3 gap-2">
-        <div class="glass glass-edge rounded-[18px] px-4 py-3"><p class="num text-[24px] font-semibold leading-8 tight ink">0 ₫</p><p class="text-body-s text-on-surface-variant">tiền cọc</p></div>
+      <div class="mt-8 grid max-w-[560px] grid-cols-2 gap-2">
         <div class="glass glass-edge rounded-[18px] px-4 py-3"><p class="num text-[24px] font-semibold leading-8 tight ink">4 bước</p><p class="text-body-s text-on-surface-variant">chốt giá tới đánh giá</p></div>
         <div class="glass glass-edge rounded-[18px] px-4 py-3"><p class="num text-[24px] font-semibold leading-8 tight ink">GHTK · GHN</p><p class="text-body-s text-on-surface-variant">hãng của người bán</p></div>
       </div>
@@ -127,12 +124,6 @@ def how():
   <section class="mt-10">
     <div class="flex items-baseline justify-between"><h2 class="{H2}">Bốn bước, từ lúc chốt giá tới lúc đánh giá</h2><span class="text-body-s text-on-surface-variant">Mỗi đơn hiện đủ bốn bước</span></div>
     <ol class="mt-4 grid grid-cols-4 gap-4">{step_html}</ol>
-  </section>
-
-  <section class="mt-4 flex items-center gap-5 rounded-[24px] bg-gradient-to-r from-[#C7E6E0] via-[#E3F2EF] to-[#FFE9E1] py-3 pl-3 pr-6">
-    <img src="{ART["map-guide"]}" alt="" class="h-[88px] w-[88px] rounded-[18px] bg-white/60 object-contain p-1">
-    <div class="flex-1"><p class="text-label-m text-primary">Món giá cao</p><p class="text-[20px] font-semibold leading-7 tight ink">{MONEY["meet_hint"]}</p>
-      <p class="text-body-m text-on-surface-variant">Hai bên tự hẹn chỗ và giờ trong tin nhắn. Khi tin nhắn nhắc một địa điểm, ShopNexus gắn nút mở bản đồ. COD vẫn chọn được.</p></div>
   </section>
 
   <section class="mt-10 grid grid-cols-2 gap-4">
@@ -347,12 +338,6 @@ def cod():
         </div>
         <div class="flex flex-col gap-2 border-l line pl-6">{money_line("cod_buyer", "visibility-outline-rounded")}{money_line("refuse", "undo-rounded")}{money_line("cancel", "close-rounded")}</div>
       </section>
-
-      <section class="flex items-center gap-4 rounded-[24px] bg-gradient-to-r from-[#C7E6E0] via-[#E3F2EF] to-[#FFE9E1] p-3 pr-5">
-        <span class="grid h-11 w-11 place-items-center rounded-full bg-white text-primary">{icon("handshake-outline-rounded", 22)}</span>
-        <p class="flex-1 text-body-m ink"><b class="font-semibold">{MONEY["meet_hint"]}</b> <span class="text-on-surface-variant">Hẹn chỗ và giờ trong tin nhắn; COD vẫn chọn được.</span></p>
-        {a("meet", btn_cls("line", "lg") + " !h-10", icon("map-outline-rounded", 17) + "Hẹn gặp", "messages.html")}
-      </section>
     </div>
 
     <aside class="self-start">
@@ -373,7 +358,6 @@ def cod():
             <span class="mt-1.5 block h-1.5 rounded-full bg-white"><span class="block h-full rounded-full bg-gradient-to-r from-[#066A61] to-[#5CC2B4]" style="width:{open_cod / cap * 100:.0f}%"></span></span></span>
           {icon("chevron-right-rounded", 20, "text-on-surface-variant")}''', "account.html#rep")}
         <button type="button" class="{btn_cls("ink", "lg")} mt-4 w-full !h-12">{icon("send-rounded", 18)}Gửi yêu cầu COD</button>
-        <p class="mt-3 text-center text-body-s text-on-surface-variant">{MONEY["no_hold"]}</p>
       </div>
     </aside>
   </div>
@@ -499,7 +483,7 @@ def support():
 
 
 # ------------------------------------------------------------ Trợ giúp --
-HELP_SAFETY = "ShopNexus không giữ tiền và không nhận cọc. Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat."
+HELP_SAFETY = "Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat."
 AFTER_PAY = "Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được. Nếu hàng có vấn đề, bạn mở ghi nhận trong chat."
 HELP_TOPICS = [
     ("Mua hàng", "shopping-bag-outline-rounded", [
@@ -513,8 +497,7 @@ HELP_TOPICS = [
         ("Bật giao COD cho tin của tôi", "Liên kết tài khoản GHTK hoặc GHN đứng tên bạn trong Thiết lập giao COD. Tiền hàng về tài khoản ngân hàng bạn khai với hãng."),
         ("Đẩy tin là gì?", "Tin lên đầu mục Gần bạn trong 1 ngày (15.000 ₫) hoặc 3 ngày (35.000 ₫). Gói Plus có 4 lượt đẩy mỗi tháng.")]),
     ("An toàn", "verified-user-outline-rounded", [
-        ("Người bán đòi chuyển cọc trước", MONEY["no_hold"] + " Bạn đừng chuyển tiền trước khi xem hàng, và báo cáo cuộc trò chuyện trong menu của chat."),
-        ("Món đắt tiền", MONEY["meet_hint"]),
+        ("Người bán đòi chuyển cọc trước", "Bạn đừng chuyển tiền trước khi xem hàng, và báo cáo cuộc trò chuyện trong menu của chat."),
         ("Báo cáo một tin", "Trong menu của tin, chọn “Báo cáo tin”. Người của ShopNexus xem hàng cấm, hàng giả và lừa đảo; tình trạng và giá là chuyện giữa người mua và người bán."),
         ("Ai phân xử khi hai bên không đồng ý?", NO_ARBITRATION + " Ghi nhận và đánh giá hiện trên trang của người bán.")]),
 ]
@@ -742,7 +725,7 @@ def terms():
                              NO_ARBITRATION]),
         ("Tài khoản", ["Mỗi người một tài khoản, đăng nhập bằng số điện thoại hoặc Google. Bạn giữ mã đăng nhập cho riêng mình; ShopNexus không bao giờ hỏi mã đó.",
                        "Người mua và người bán thấy tên, ảnh đại diện, khu vực, hạng uy tín, đánh giá và các tin bạn đăng. Họ không thấy số điện thoại, địa chỉ hay giấy tờ của bạn."]),
-        ("Tiền và giao hàng", [MONEY["no_hold"], "Cách giao trong app là COD có xem hàng:",
+        ("Tiền và giao hàng", ["ShopNexus không giữ tiền hàng của bên nào. Cách giao trong app là COD có xem hàng:",
                                [MONEY["cod_buyer"], MONEY["refuse"], MONEY["cancel"], MONEY["cod_seller"], MONEY["return_leg"]],
                                "Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được."]),
         ("Khi có vấn đề sau khi nhận", ["Bạn mở ghi nhận trong chat hoặc trong đơn, kèm ảnh. Người bán tự hoàn tiền cho bạn hoặc từ chối.",
@@ -757,8 +740,7 @@ def terms():
                                    "Bạn xóa tài khoản trong Tôi › Bảo mật. Tin đăng và trang của bạn được gỡ ngay."]),
         ("Liên hệ", ["Gửi yêu cầu trong Hỗ trợ. ShopNexus trả lời trong chat của yêu cầu đó."]),
     ]
-    aside = summary_card("Điều quan trọng nhất", [("shield-outline-rounded", MONEY["no_hold"]),
-                                                  ("visibility-outline-rounded", "Xem hàng rồi mới trả tiền cho shipper"),
+    aside = summary_card("Điều quan trọng nhất", [("visibility-outline-rounded", "Xem hàng rồi mới trả tiền cho shipper"),
                                                   ("undo-rounded", "Không ưng thì từ chối nhận, không mất tiền"),
                                                   ("block-rounded", "Đã trả thì ShopNexus không đòi lại được")], "priority-high-rounded") + \
         f'<div class="{PANEL} p-2">' + link_rows([("gavel-rounded", "Quy định đăng tin", "listing-rules.html"), ("lock-outline-rounded", "Chính sách bảo mật", "#privacy"),

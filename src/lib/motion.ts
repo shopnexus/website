@@ -1,3 +1,5 @@
+import { animate } from 'motion';
+
 // The app's springs for motion's animate(), so JS animations move like the
 // CSS ones in tokens.css. The app gives each spring a damping ratio ζ and a
 // stiffness k at mass 1; motion takes the damping coefficient c = 2ζ√k.
@@ -27,3 +29,17 @@ export const SPRING = {
 };
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Scrolls a snapping row sideways to `left` on the spatial spring. Snap is
+    off while it moves, since it would fight the scripted scroll. */
+export function glide(track: HTMLElement, left: number) {
+  const max = track.scrollWidth - track.clientWidth;
+  const to = Math.min(max, Math.max(0, left));
+  if (reducedMotion()) return void (track.scrollLeft = to);
+  track.style.scrollSnapType = 'none';
+  animate(track.scrollLeft, to, {
+    ...SPRING.spatial,
+    onUpdate: (v) => (track.scrollLeft = v),
+    onComplete: () => (track.style.scrollSnapType = ''),
+  });
+}

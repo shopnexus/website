@@ -15,9 +15,8 @@ import SearchField from '../../components/SearchField.astro';
 import Seg from '../../components/Seg.astro';
 import Trending from '../../components/Trending.astro';
 import Layout from '../../layouts/Layout.astro';
-import { MONEY } from '../../data/common';
 import { LISTINGS } from '../../data/listings';
-import { CATEGORY_INDEX, MODELS, PHONE_TIPS, PHONES } from '../../data/public';
+import { CATEGORY_INDEX, MODELS, PHONES } from '../../data/public';
 import { img } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { CONTENT } from '../../lib/ui';
@@ -175,36 +174,6 @@ const s = (q: string) => `${R.search}?q=${encodeURIComponent(q)}`;
       </div>
       <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
         {items.slice(0, 4).map((it, i) => <ListingCard item={it} saved={i === 1} />)}
-        {
-          phones && (
-            <div class="col-span-full grid grid-cols-1 items-center gap-6 rounded-panel border border-line bg-card p-5 xl:grid-cols-[260px_1fr] xl:gap-8">
-              <div>
-                <p class="flex items-center gap-1.5 text-label-medium text-primary">
-                  <Icon name="auto-awesome-rounded" size={14} />
-                  Mẹo kiểm điện thoại · gợi ý chung
-                </p>
-                <p class="mt-1.5 text-j-22 text-ink">Kiểm 4 điều này khi shipper tới cửa</p>
-                <p class="mt-2 flex gap-1.5 text-body-small text-on-surface-variant">
-                  <Icon name="undo-rounded" size={16} class="mt-px shrink-0" />
-                  {MONEY.refuse}
-                </p>
-              </div>
-              <ul class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-                {PHONE_TIPS.map((t, i) => (
-                  <li class="flex items-start gap-3">
-                    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary-container text-label-large text-on-secondary-container tabular-nums">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <p class="text-title-small text-ink">{t.title}</p>
-                      <p class="mt-0.5 text-body-small text-on-surface-variant">{t.how}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        }
         {items.slice(4, 8).map((it) => <ListingCard item={it} loading="lazy" />)}
       </div>
       <div class="mt-6 flex justify-center">

@@ -87,8 +87,6 @@ TYPE = {
 RADII = {"xs": "4px", "sm": "8px", "md": "12px", "lg": "16px", "lg-plus": "20px", "xl": "28px", "xl-plus": "32px"}
 
 MONEY = dict(
-    no_hold="ShopNexus không giữ tiền và không nhận cọc.",
-    meet_hint="Món trên 5 triệu nên hẹn gặp xem trực tiếp.",
     cod_buyer="Xem hàng rồi mới trả tiền hàng và phí ship cho shipper.",
     cancel="Bạn hủy được đơn khi người bán chưa tạo đơn và không mất tiền.",
     refuse="Nếu không ưng, bạn từ chối nhận hàng và không mất tiền.",

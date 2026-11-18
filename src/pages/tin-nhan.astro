@@ -18,7 +18,6 @@ import PaneHead from '../components/account/chat/PaneHead.astro';
 import PriceMove from '../components/account/chat/PriceMove.astro';
 import ReportDialog from '../components/account/chat/ReportDialog.astro';
 import { DEALS, INBOX, SCAM_ITEM, SCAMMER, SELLER, THUMB } from '../data/account';
-import { MONEY } from '../data/common';
 import Layout from '../layouts/Layout.astro';
 import { requireViewer } from '../lib/session';
 import { CONTENT } from '../lib/ui';
@@ -79,7 +78,6 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
           </div>
         </PaneHead>
         <div class={thread} data-thread>
-          <ChatEvent icon="shield-outline-rounded" text={MONEY.no_hold} />
           <p class="pt-1 text-center text-label-medium text-on-surface-variant">Hôm nay</p>
           <Bubbles side="mine" texts={['Máy còn không bạn?', 'Pin 88% là đo trong Cài đặt đúng không?']} time="13:52 · Đã xem" />
           <Bubbles side="theirs" from={SELLER.name} texts={['Còn bạn nhé. Máy zin, pin 88% đo trong Cài đặt, chưa sửa gì.']} time="13:55" />
@@ -120,9 +118,6 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
           <p class="mt-1 flex items-center gap-2 text-body-medium text-on-surface-variant">
             <Icon name="local-shipping-outline-rounded" size={18} />Giao COD · xem hàng rồi mới trả
           </p>
-          <p class="mt-1 flex items-center gap-2 text-body-medium text-on-surface-variant">
-            <Icon name="group-outline-rounded" size={18} />{MONEY.meet_hint}
-          </p>
         </DealConsole>
         <Composer peer={SELLER.name}>
           <div slot="strip" class="mb-2 flex items-center gap-3 rounded-lg bg-card/80 py-2 pl-3 pr-1" data-strip>
@@ -156,7 +151,6 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
           </button>
         </div>
         <div class={thread} data-thread>
-          <ChatEvent icon="shield-outline-rounded" text={MONEY.no_hold} />
           <p class="pt-1 text-center text-label-medium text-on-surface-variant">Hôm nay</p>
           <Bubbles side="mine" texts={['Máy còn không bạn? Mình ở Bình Thạnh.']} time="13:35 · Đã xem" />
           <Bubbles

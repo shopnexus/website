@@ -7,7 +7,6 @@ import artDeal from '@brand/art_deal.webp';
 import artOrders from '@brand/art_orders.webp';
 import artReceived from '@brand/art_received.webp';
 import artReviews from '@brand/art_reviews.webp';
-import artSearch from '@brand/art_search.webp';
 import Icon from '../components/Icon.astro';
 import Price from '../components/Price.astro';
 import Stepper from '../components/Stepper.astro';
@@ -43,14 +42,13 @@ const steps: { art: ImageMetadata; title: string; text: string; keys: MoneyKey[]
   { art: artReviews, title: 'Đánh giá', text: 'Chấm sao cho người bán. Đánh giá tính vào điểm uy tín của họ.', keys: [], extra: 'stars' },
 ];
 const stats = [
-  ['0 ₫', 'tiền cọc'],
   ['4 bước', 'chốt giá tới đánh giá'],
   ['GHTK · GHN', 'hãng của người bán'],
 ];
 const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-teal-light text-title-small text-white tabular-nums';
 ---
 
-<Layout title="Cách mua · ShopNexus" description={`${MONEY.cod_buyer} ${MONEY.no_hold}`} section="how">
+<Layout title="Cách mua · ShopNexus" description={MONEY.cod_buyer} section="how">
   <main class={CONTENT}>
     <section class="grid grid-cols-1 items-center gap-8 pt-8 lg:grid-cols-[1fr_440px] lg:pt-10 xl:grid-cols-[1fr_520px] xl:gap-12">
       <div class="min-w-0">
@@ -60,12 +58,12 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
         <h1 class="mt-4 text-j-40 text-ink md:text-j-52 xl:text-j-60">
           Xem hàng tận tay,<br />rồi mới trả tiền.
         </h1>
-        <p class="mt-4 max-w-[520px] text-body-large text-on-surface-variant">{MONEY.cod_buyer} {MONEY.no_hold}</p>
+        <p class="mt-4 max-w-[520px] text-body-large text-on-surface-variant">{MONEY.cod_buyer}</p>
         <div class="mt-6 flex flex-wrap gap-2">
           <a href={R.search} class={btnCls('ink', 'lg')}><Icon name="search-rounded" size={18} />Bắt đầu tìm</a>
           <a href="#faq" class={btnCls('line', 'lg')}>Câu hỏi thường gặp</a>
         </div>
-        <div class="mt-8 grid max-w-[560px] grid-cols-1 gap-2 md:grid-cols-3">
+        <div class="mt-8 grid max-w-[560px] grid-cols-1 gap-2 md:grid-cols-2">
           {
             stats.map(([v, l]) => (
               <div class="glass glass-edge rounded-tile px-4 py-3">
@@ -156,17 +154,6 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
           ))
         }
       </ol>
-    </section>
-
-    <section class="mt-4 flex items-center gap-5 rounded-panel bg-linear-to-r from-secondary-container via-mint-wash to-peach-soft py-3 pl-3 pr-6">
-      <Photo src={artSearch} alt="" loading="lazy" class="hidden h-[88px] w-[88px] shrink-0 rounded-tile bg-white/60 object-contain p-1 md:block" />
-      <div class="min-w-0 flex-1 max-md:py-2 max-md:pl-2">
-        <p class="text-label-medium text-primary">Món giá cao</p>
-        <p class="text-j-20 text-ink">{MONEY.meet_hint}</p>
-        <p class="text-body-medium text-on-surface-variant">
-          Hai bên tự hẹn chỗ và giờ trong tin nhắn. Khi tin nhắn nhắc một địa điểm, ShopNexus gắn nút mở bản đồ. COD vẫn chọn được.
-        </p>
-      </div>
     </section>
 
     <section class="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2">

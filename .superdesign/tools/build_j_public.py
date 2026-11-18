@@ -9,11 +9,15 @@ import os
 from html import escape
 
 from build import DESCRIPTION, OUT, PHOTOS, PRICE, SIMILAR, SPECS, TITLE, a
-from build_c import ART, CLAIMS, area_map
-from build_pages import MODELS, PHONE_TIPS, PHONES, tr
+from build_c import ART, area_map
+from build_pages import MODELS, PHONES, tr
 from build_seller_map import IN_VIEW, REVIEWS, SELLER, SELLING, big_map
-from common import LISTINGS, MONEY, crop, icon, img, split_price, where
+from common import LISTINGS, crop, icon, img, split_price, where
 from j_kit import ai_chip, btn, card, crumbs, drop, footer, header, mini_row, money_line, page, panel, price, search_field, section_title, seg, switch, trending
+
+
+# What each condition on the scale means (the site's GRADE in tin/[id].astro).
+GRADE = {"Mới": "Chưa dùng", "Như mới": "Không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần", "Đã dùng": "Có vết dùng, người bán ghi trong mô tả"}
 
 
 # ------------------------------------------------------------ page pieces --
@@ -56,19 +60,7 @@ def category():
     bar = (drop("Mọi khu vực") + drop("Giá") + drop("Tình trạng", 1) + drop("Pin trên 85%") + drop("Trả giá được")
            + '<span class="flex-1"></span>' + seg(["Phù hợp nhất", "Mới đăng", "Giá thấp", "Gần nhất"], 0, "bg-black/[.04]"))
     items = PHONES
-    tips = "".join(f"""<li class="flex items-start gap-3">
-  <span class="num grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary-container text-label-l text-on-secondary-container">{i + 1}</span>
-  <div><p class="text-title-s ink">{t}</p><p class="mt-0.5 text-body-s text-on-surface-variant">{d}</p></div>
-</li>""" for i, (t, d) in enumerate(PHONE_TIPS))
-    check = f"""<div class="col-span-4 grid grid-cols-[260px_1fr] items-center gap-8 rounded-[24px] border line bg-white p-5">
-  <div>
-    <p class="flex items-center gap-1.5 text-label-m text-primary">{icon("auto-awesome-rounded", 14)}Mẹo kiểm điện thoại · gợi ý chung</p>
-    <p class="mt-1.5 text-[22px] font-semibold leading-7 tighter ink">Kiểm 4 điều này khi shipper tới cửa</p>
-    <p class="mt-2 flex gap-1.5 text-body-s text-on-surface-variant">{icon("undo-rounded", 16, "mt-px shrink-0")}{MONEY["refuse"]}</p>
-  </div>
-  <ul class="grid grid-cols-4 gap-5">{tips}</ul>
-</div>"""
-    grid = "".join(card(it, i, saved=i == 1) for i, it in enumerate(items[:4])) + check + "".join(card(it, i + 4) for i, it in enumerate(items[4:8]))
+    grid = "".join(card(it, i, saved=i == 1) for i, it in enumerate(items[:4])) + "".join(card(it, i + 4) for i, it in enumerate(items[4:8]))
     newest = sorted((it for it in items if it[7].endswith("phút")), key=lambda it: int(it[7].split()[0]))[:4]
     fresh = "".join(a(f"fresh-{i}", "card flex items-center gap-2.5 rounded-[18px] border line bg-white p-1.5 pr-3",
                       f'<img src="{img(it[0], 120, 120)}" alt="" class="h-11 w-11 shrink-0 rounded-[12px] object-cover">'
@@ -130,10 +122,6 @@ def detail():
                  for q in ["Máy còn không bạn?", "Xem máy ở đâu được?", "Có hộp và hóa đơn không?"])
     specs = "".join(f'<div class="rounded-[16px] bg-surface-container-low px-3 py-2"><dt class="text-body-s text-on-surface-variant">{k}</dt><dd class="truncate text-title-s ink">{v}</dd></div>'
                     for k, v in SPECS)
-    claims = "".join(f"""<li class="rounded-[20px] border line bg-white p-4">
-  <span class="grid h-8 w-8 place-items-center rounded-full bg-secondary-container text-on-secondary-container">{icon("check-rounded", 18)}</span>
-  <p class="mt-3 text-title-s ink">{c}</p><p class="mt-1 text-body-s text-on-surface-variant">{how}</p>
-</li>""" for c, how in CLAIMS)
     stats = "".join(f'<div class="rounded-[16px] bg-surface-container-low px-3 py-2"><p class="num text-title-m font-semibold tight ink">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>'
                     for v, l in [("4,9", "32 đánh giá"), ("14", "đã bán"), ("10 phút", "trả lời")])
     similar = "".join(card(it, i, saved=i == 2) for i, it in enumerate(SIMILAR[:5]))
@@ -164,7 +152,6 @@ def detail():
       <div class="flex-1"><p class="text-title-s ink">COD, xem hàng trước</p><p class="text-body-s text-on-surface-variant">Gửi từ Bình Thạnh · tới bạn 1–2 ngày</p></div>
     </div>
     <div class="mt-3">{j_map([(62, 38, "Tuấn Kiệt", True)], (28, 72), 150, route=((28, 72), (62, 38), where("2,1 km", "Bình Thạnh")))}</div>
-    <div class="mt-3 flex flex-col gap-1.5">{money_line("meet_hint", "group-outline-rounded", small=True)}{money_line("no_hold", "account-balance-outline-rounded", small=True)}</div>
   </div>
   <div class="rounded-[24px] border line bg-white p-4">
     <div class="flex items-center gap-3">
@@ -173,8 +160,6 @@ def detail():
       {a("seller-page", "state flex h-9 items-center rounded-full border line px-3.5 text-label-m ink", "14 tin khác")}
     </div>
     <div class="mt-3 grid grid-cols-3 gap-2">{stats}</div>
-    <blockquote class="mt-3 rounded-[16px] bg-surface-container-low p-3"><p class="text-body-s ink">“Máy đúng như mô tả, pin còn tốt. Anh bán hẹn giờ rất đúng.”</p>
-      <footer class="mt-1 flex items-center gap-2 text-body-s text-on-surface-variant"><span class="flex">{stars(5, 12)}</span>Minh Thư · 28/10/2026</footer></blockquote>
   </div>
 </aside>"""
     body = f"""{header(active=0)}
@@ -191,21 +176,14 @@ def detail():
         <div class="mt-2 grid grid-cols-5 gap-2">{thumbs}</div>
       </div>
       <div class="mt-4 flex flex-col gap-4">
-        {panel(f'''<div class="grid grid-cols-[260px_1fr] gap-6"><div><div class="flex items-center gap-3"><span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#066A61] to-[#5CC2B4] text-label-m font-semibold text-white">Như<br>mới</span>
-          <div><p class="text-title-s ink">Tình trạng: Như mới</p><p class="text-body-s text-on-surface-variant">Không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần</p></div></div></div>
-          <div class="border-l line pl-6"><p class="text-label-m text-on-surface-variant">Lời người bán</p><p class="mt-1 text-body-m ink">{DESCRIPTION}</p></div></div>''')}
+        {panel(f'''<p class="flex flex-wrap items-center gap-x-2.5 gap-y-1"><span class="inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-3 py-1 text-label-l text-on-secondary-container">{icon("check-circle-outline-rounded", 16)}Như mới</span>
+          <span class="text-body-s text-on-surface-variant">{GRADE["Như mới"]}</span></p>
+          <div class="mt-4 flex max-w-[680px] flex-col gap-3"><p class="text-body-l ink">{DESCRIPTION}</p></div>''')}
         {panel(f'<p class="text-title-s ink">Thông số</p><dl class="mt-3 grid grid-cols-4 gap-2">{specs}</dl>')}
       </div>
     </div>
     {buy}
   </div>
-
-  <section class="mt-10">
-    <div class="flex items-baseline justify-between"><h2 class="text-[26px] font-semibold leading-8 tighter ink">Kiểm 4 điều này khi shipper tới cửa</h2>
-      <span class="flex items-center gap-1.5 text-body-s text-on-surface-variant">{icon("auto-awesome-rounded", 14, "text-primary")}Mẹo kiểm iPhone · gợi ý chung, không phải điều {SELLER["name"]} cam kết</span></div>
-    <ul class="mt-4 grid grid-cols-4 gap-4">{claims}</ul>
-    <p class="mt-3 flex items-center gap-2 text-body-m ink">{icon("undo-rounded", 18, "text-primary")}{MONEY["refuse"]}</p>
-  </section>
 
   <section class="mt-10">
     {section_title("Tin tương tự", "Xem tất cả", "similar-all")}
@@ -287,7 +265,7 @@ def seller():
         {j_map([(56, 44, SELLER["area"], True)], (30, 72), 200, route=((30, 72), (56, 44), where("2,1 km", SELLER["area"])))}
         <div class="flex flex-col gap-1.5 px-3 pb-2 pt-3">
           <p class="flex items-center gap-2 text-title-s ink">{icon("local-shipping-outline-rounded", 18, "text-primary")}Gửi COD từ {SELLER['area']}</p>
-          {money_line("cod_buyer", "visibility-outline-rounded", small=True)}{money_line("no_hold", "account-balance-outline-rounded", small=True)}
+          {money_line("cod_buyer", "visibility-outline-rounded", small=True)}
         </div>
       </div>
     </aside>
@@ -400,7 +378,6 @@ def map_page():
   <section class="mt-10">
     {section_title("Khu vực đang sôi động", "Tất cả khu vực", "areas-all")}
     <div class="mt-4 grid grid-cols-4 gap-4">{area_html}</div>
-    <p class="mt-4 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("group-outline-rounded", 18)}{MONEY["meet_hint"]}</p>
   </section>
 </main>
 {footer()}"""

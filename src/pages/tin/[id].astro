@@ -2,20 +2,17 @@
 import Photo from '../../components/Photo.astro';
 // Chi tiết tin. Any id from the mock listing pools renders the detail mockup
 // (detail-c) with that listing's title, price, photo, condition and place; the
-// description, specs and the four checks are the mockup's iPhone and show only
-// for iPhone listings. A sold id (SOLD) renders the 404 with the sold listing;
+// description and specs are the mockup's iPhone and show only for iPhone
+// listings. A sold id (SOLD) renders the 404 with the sold listing;
 // an unknown id is a plain 404.
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
-import MoneyLine from '../../components/MoneyLine.astro';
 import AreaMap from '../../components/public/AreaMap.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import RangeBar from '../../components/public/RangeBar.astro';
-import Stars from '../../components/public/Stars.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Layout from '../../layouts/Layout.astro';
-import { MONEY } from '../../data/common';
 import { ALL_LISTINGS, DETAIL, SELLER, SIMILAR, SOLD } from '../../data/public';
 import { crop, group, img, where } from '../../lib/format';
 import { R } from '../../lib/routes';
@@ -54,6 +51,12 @@ const facts: [string, string][] = [
   ['schedule-outline-rounded', `${posted} trước`],
   ['visibility-outline-rounded', '318 lượt xem'],
 ];
+/** What each condition on the scale means. */
+const GRADE: Record<string, string> = {
+  'Mới': 'Chưa dùng',
+  'Như mới': 'Không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần',
+  'Đã dùng': 'Có vết dùng, người bán ghi trong mô tả',
+};
 const questions = ['Máy còn không bạn?', 'Xem máy ở đâu được?', 'Có hộp và hóa đơn không?'];
 const stats: [string, string][] = [
   ['4,9', '32 đánh giá'],
@@ -142,26 +145,17 @@ const ld = {
 
             <div class="mt-4 flex flex-col gap-4">
               <div class:list={[PANEL, 'p-5']}>
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-[260px_1fr] md:gap-6">
-                  <div class="flex items-center gap-3 self-start">
-                    <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-teal to-teal-light text-center text-label-medium font-semibold leading-4 text-white">
-                      <span>
-                        {it.condition.split(' ').map((w) => (
-                          <span class="block">{w}</span>
-                        ))}
-                      </span>
-                    </span>
-                    <div>
-                      <p class="text-title-small text-ink">Tình trạng: {it.condition}</p>
-                      <p class="text-body-small text-on-surface-variant">Không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần</p>
-                    </div>
-                  </div>
-                  <div class="border-line md:border-l md:pl-6">
-                    <p class="text-label-medium text-on-surface-variant">Lời người bán</p>
-                    {description.map((d, i) => (
-                      <p class:list={['text-body-medium text-ink', i === 0 ? 'mt-1' : 'mt-4']}>{d}</p>
-                    ))}
-                  </div>
+                <p class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-3 py-1 text-label-large text-on-secondary-container">
+                    <Icon name="check-circle-outline-rounded" size={16} />
+                    {it.condition}
+                  </span>
+                  {GRADE[it.condition] && <span class="text-body-small text-on-surface-variant">{GRADE[it.condition]}</span>}
+                </p>
+                <div class="mt-4 flex max-w-[680px] flex-col gap-3">
+                  {description.map((d) => (
+                    <p class="text-body-large text-ink">{d}</p>
+                  ))}
                 </div>
               </div>
               {iphone && (
@@ -274,10 +268,6 @@ const ld = {
                   route={{ from: [28, 72], to: [62, 38], label: place }}
                 />
               </div>
-              <div class="mt-3 flex flex-col gap-1.5">
-                <MoneyLine k="meet_hint" icon="group-outline-rounded" small />
-                <MoneyLine k="no_hold" icon="account-balance-outline-rounded" small />
-              </div>
             </div>
 
             <div class:list={[PANEL, 'p-4']}>
@@ -304,43 +294,9 @@ const ld = {
                   </div>
                 ))}
               </div>
-              <blockquote class="mt-3 rounded-lg bg-surface-container-low p-3">
-                <p class="text-body-small text-ink">“Máy đúng như mô tả, pin còn tốt. Anh bán hẹn giờ rất đúng.”</p>
-                <footer class="mt-1 flex items-center gap-2 text-body-small text-on-surface-variant">
-                  <Stars n={5} size={12} />
-                  Minh Thư · 28/10/2026
-                </footer>
-              </blockquote>
             </div>
           </aside>
         </div>
-
-        {iphone && (
-          <section class="mt-10">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h2 class="text-j-24 text-ink lg:text-j-26">Kiểm 4 điều này khi shipper tới cửa</h2>
-              <span class="flex items-center gap-1.5 text-body-small text-on-surface-variant">
-                <Icon name="auto-awesome-rounded" size={14} class="text-primary" />
-                Mẹo kiểm iPhone · gợi ý chung, không phải điều {SELLER.name} cam kết
-              </span>
-            </div>
-            <ul class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {DETAIL.claims.map(([c, how]) => (
-                <li class="rounded-lg-plus border border-line bg-card p-4">
-                  <span class="grid h-8 w-8 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
-                    <Icon name="check-rounded" size={18} />
-                  </span>
-                  <p class="mt-3 text-title-small text-ink">{c}</p>
-                  <p class="mt-1 text-body-small text-on-surface-variant">{how}</p>
-                </li>
-              ))}
-            </ul>
-            <p class="mt-3 flex items-center gap-2 text-body-medium text-ink">
-              <Icon name="undo-rounded" size={18} class="shrink-0 text-primary" />
-              {MONEY.refuse}
-            </p>
-          </section>
-        )}
 
         <section class="mt-10">
           <SectionTitle title="Tin tương tự" link="Xem tất cả" href={`${R.search}?q=${encodeURIComponent(iphone ? 'iPhone' : it.title)}`} />

@@ -473,26 +473,6 @@ export const MODELS = [
   }
 ];
 
-/** Mẹo kiểm điện thoại. */
-export const PHONE_TIPS = [
-  {
-    "title": "Tài khoản iCloud đã thoát",
-    "how": "Cài đặt › tên tài khoản: máy không còn đăng nhập của người bán"
-  },
-  {
-    "title": "Tình trạng pin",
-    "how": "Cài đặt › Pin › Tình trạng pin, so với Tin ghi"
-  },
-  {
-    "title": "IMEI khớp vỏ hộp",
-    "how": "Bấm *#06# rồi so với số in trên hộp"
-  },
-  {
-    "title": "Face ID, camera, loa",
-    "how": "Mở khóa 3 lần, chụp một tấm, gọi thử một cuộc"
-  }
-];
-
 /** The detail listing (PHONES[1]) as the seller wrote it. */
 export const DETAIL = {
   id: 'p2',
@@ -534,25 +514,6 @@ export const DETAIL = {
   [
     "Phụ kiện",
     "Cáp sạc, ốp lưng"
-  ]
-] as [string, string][],
-  /** The four checks at the door: claim, where to check it. */
-  claims: [
-  [
-    "Pin 88%",
-    "Cài đặt › Pin › Tình trạng pin"
-  ],
-  [
-    "Chưa từng sửa",
-    "Cài đặt › Cài đặt chung › Giới thiệu › Lịch sử linh kiện"
-  ],
-  [
-    "Bản VN/A",
-    "Cài đặt › Cài đặt chung › Giới thiệu › Kiểu máy"
-  ],
-  [
-    "Face ID nhạy",
-    "Khóa máy rồi mở bằng mặt 3 lần"
   ]
 ] as [string, string][],
   /** The gallery: focal-point crops of the photo (fx, fy, zoom). */

@@ -43,7 +43,6 @@ CSS = """
   .glass-edge { box-shadow: inset 0 0 0 1px rgb(255 255 255 / .7); }
   .soft { box-shadow: 0 1px 2px rgb(18 24 23 / .04), 0 8px 24px -8px rgb(18 24 23 / .10); }
   .glow { box-shadow: 0 0 0 1px rgb(255 255 255 / .9), 0 12px 32px -10px rgb(6 80 73 / .30); }
-  .ink { background: linear-gradient(160deg, #066A61, #5CC2B4); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .card { transition: transform 420ms var(--spatial), box-shadow 300ms var(--effects); }
   .card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -14px rgb(18 24 23 / .22); }
   .card img { transition: transform 600ms var(--spatial); } .card:hover img { transform: scale(1.04); }
@@ -126,7 +125,7 @@ def footer():
   <div class="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-10 rounded-[28px] border line bg-white px-10 py-9">
     <div>
       <div class="flex items-center gap-2"><img src="{LOGO}" alt="ShopNexus" class="h-8 w-8"><span class="text-title-l font-semibold tight ink">ShopNexus</span></div>
-      <p class="mt-3 max-w-[320px] text-body-m text-on-surface-variant">Đồ cũ giá tốt, xem hàng rồi mới trả. {MONEY["no_hold"]}</p>
+      <p class="mt-3 max-w-[320px] text-body-m text-on-surface-variant">Đồ cũ giá tốt, xem hàng rồi mới trả.</p>
     </div>
     {col_html}
   </div>

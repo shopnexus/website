@@ -135,7 +135,6 @@ def footer():
     return f"""<footer class="mt-24 border-t border-outline-variant">
   <div class="mx-auto flex max-w-[1328px] items-center gap-8 px-6 py-8 text-body-m text-on-surface-variant">
     <span class="flex items-center gap-2 whitespace-nowrap"><img src="{LOGO}" alt="ShopNexus" class="h-6 w-6">© 2026 ShopNexus</span>
-    <span class="whitespace-nowrap">{MONEY["no_hold"]}</span>
     <span class="flex-1"></span>
     <nav class="flex gap-6">{links}</nav>
   </div>
@@ -319,7 +318,7 @@ def detail():
           {icon("local-shipping-outline-rounded", 24, "text-on-surface-variant")}
           <span class="flex-1"><span class="block text-body-l">COD, xem hàng trước</span><span class="block text-body-s text-on-surface-variant">Gửi từ Thủ Đức · phí ship 16.000–30.000 ₫</span></span>
         </div>
-        <div class="mt-4 flex flex-col gap-2.5">{money("cod_buyer", "inventory-2-outline-rounded")}{money("meet_hint", "group-outline-rounded")}{money("no_hold", "account-balance-outline-rounded")}</div>
+        <div class="mt-4 flex flex-col gap-2.5">{money("cod_buyer", "inventory-2-outline-rounded")}</div>
       </section>
     </div>
 

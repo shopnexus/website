@@ -209,10 +209,9 @@ other search field; no page carries "Tìm nhanh" in the header.
 ### Footer
 
 A white 28 px block with a 1 px line border inside the content
-box: brand, the tagline "Đồ cũ giá tốt, xem hàng rồi mới trả" and the
-`no_hold` sentence, then Khám phá, Mua và bán, Hỗ trợ, and a line with the
-cities under the block. Tin nhắn leaves the footer out because its panes fill
-the window.
+box: brand and the tagline "Đồ cũ giá tốt, xem hàng rồi mới trả", then
+Khám phá, Mua và bán, Hỗ trợ, and a line with the cities under the block.
+Tin nhắn leaves the footer out because its panes fill the window.
 
 ### Corners
 
@@ -275,9 +274,8 @@ reverses the 2026-11-04 rule that results are a list.
 The gallery on the left, then the seller's description
 and condition, then the specs as tiles. On the right, a sticky glass panel
 with title, price, the price strip, "Nhắn tin", "Trả giá" and quick
-questions, then the COD card with its route map, then the seller. Below, the
-four checks at the door with the refusal sentence, then similar listings. The
-ticket is gone.
+questions, then the COD card with its route map, then the seller. Below,
+similar listings. The ticket is gone.
 
 ### Account pages
 

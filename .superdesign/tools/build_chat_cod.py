@@ -266,7 +266,6 @@ def kiet_pane():
               icon("auto-awesome-rounded", 16, "text-primary") + "Sảnh Landmark 81" + icon("map-outline-rounded", 16, "text-on-surface-variant"),
               "https://maps.google.com/?q=Landmark+81")
     thread = f"""
-      {event("shield-outline-rounded", MONEY["no_hold"])}
       <p class="pt-1 text-center text-label-m text-on-surface-variant">Hôm nay</p>
       {group("mine", ["Máy còn không bạn?", "Pin 88% là đo trong Cài đặt đúng không?"], "13:52 · Đã xem")}
       {group("theirs", ["Còn bạn nhé. Máy zin, pin 88% đo trong Cài đặt, chưa sửa gì."], "13:55")}
@@ -284,8 +283,7 @@ def kiet_pane():
     agreed = figure(lead_icon("handshake-outline-rounded"), "5.100.000",
                     a("choose-cod", FILLED, icon("local-shipping-outline-rounded", 20) + "Chọn giao COD", "cod.html"))
     body = f"""{agreed}
-          <p class="mt-1 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("local-shipping-outline-rounded", 18)}Giao COD · xem hàng rồi mới trả</p>
-          <p class="mt-1 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("group-outline-rounded", 18)}{MONEY["meet_hint"]}</p>"""
+          <p class="mt-1 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("local-shipping-outline-rounded", 18)}Giao COD · xem hàng rồi mới trả</p>"""
     strip = f"""
         <div class="reply-strip mb-2 flex items-center gap-3 rounded-lg bg-surface-container py-2 pl-3 pr-1">
           <span class="bar"></span>
@@ -308,7 +306,6 @@ def scam_pane():
         <span class="text-on-surface-variant">{icon("chevron-right-rounded", 24)}</span>
       </button>"""
     thread = f"""
-      {event("shield-outline-rounded", MONEY["no_hold"])}
       <p class="pt-1 text-center text-label-m text-on-surface-variant">Hôm nay</p>
       {group("mine", ["Máy còn không bạn? Mình ở Bình Thạnh."], "13:35 · Đã xem")}
       {group("theirs", ["Còn bạn, nhiều người hỏi lắm.", "Bạn chuyển cọc 500k qua số tài khoản này để mình giữ máy nhé."], "13:41")}
@@ -348,8 +345,7 @@ def price_row(label, value, cls="text-body-m text-on-surface-variant", vcls="tex
 def rules_card():
     """Chat's "Quy tắc tiền" sheet, kept open beside the thread on a wide window."""
     groups = [("COD, xem hàng trước", [("cod_buyer", "local-shipping-outline-rounded"), ("refuse", "undo-rounded"),
-                                       ("cancel", "cancel-outline-rounded"), ("meet_hint", "group-outline-rounded")]),
-              ("Mọi giao dịch", [("no_hold", "account-balance-outline-rounded")])]
+                                       ("cancel", "cancel-outline-rounded")])]
     out = "".join(f'<p class="{"mt-4 " if i else ""}text-title-s text-primary">{name}</p><ul class="mt-2 flex flex-col gap-2">'
                   + "".join(f'<li class="flex gap-2 text-body-m text-on-surface-variant">{icon(ic, 18, "mt-0.5")}<span>{MONEY[k]}</span></li>' for k, ic in notes)
                   + "</ul>" for i, (name, notes) in enumerate(groups))

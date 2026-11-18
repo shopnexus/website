@@ -5,8 +5,6 @@ export const ME = {"name": "Khánh Linh", "photo": "1494790108377-be9c29b29330",
 
 /** The app's MONEY sentences, word for word. A page quotes them, never rewords them. */
 export const MONEY = {
-  "no_hold": "ShopNexus không giữ tiền và không nhận cọc.",
-  "meet_hint": "Món trên 5 triệu nên hẹn gặp xem trực tiếp.",
   "cod_buyer": "Xem hàng rồi mới trả tiền hàng và phí ship cho shipper.",
   "cancel": "Bạn hủy được đơn khi người bán chưa tạo đơn và không mất tiền.",
   "refuse": "Nếu không ưng, bạn từ chối nhận hàng và không mất tiền.",

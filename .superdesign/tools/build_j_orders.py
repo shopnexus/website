@@ -139,7 +139,7 @@ def orders():
         <p class="text-title-s ink">Đơn COD đang mở</p>
         <p class="mt-2"><span class="num ink text-[44px] font-semibold leading-[48px] tighter">2</span><span class="text-title-l text-on-surface-variant">/5</span></p>
         <div class="mt-3 flex gap-1.5">{slots}</div>
-        <div class="mt-4 flex flex-col gap-2.5 border-t line pt-4">{money_line("cod_buyer", "inventory-2-outline-rounded")}{money_line("no_hold", "lock-outline-rounded")}</div>
+        <div class="mt-4 flex flex-col gap-2.5 border-t line pt-4">{money_line("cod_buyer", "inventory-2-outline-rounded")}</div>
       </div>
       <div class="{PANEL} px-5 py-3">
         <p class="py-1 text-label-m text-on-surface-variant">Tháng 10</p>
@@ -241,7 +241,7 @@ def order():
         "1510557880182-3d4d3cba35a5", "iPhone X 64GB, pin 86%", "Giá chốt 3.800.000 ₫", "Hoàng Nam",
         f'4,7{icon("star-rounded", 13, "text-[#E0A23B]")}· 12 đã bán', "chat-seller", "Trả khi nhận", 3_822_000,
         [("Tiền hàng", icon("handshake-outline-rounded", 16) + "3.800.000 ₫", "text-tertiary"), ("Phí ship · GHTK Giao nhanh", "22.000 ₫", "ink")],
-        [("pay_shipper", "payments-outline-rounded"), ("no_hold", "lock-outline-rounded")],
+        [("pay_shipper", "payments-outline-rounded")],
         actions=btn("Báo chưa nhận", "help-outline-rounded", "ghost") + btn("Đã nhận hàng", "package-2-outline-rounded", "primary", "h-11 flex-1"))
     inner = f"""
   {crumbs("Tôi", "Đơn hàng", "iPhone X 64GB")}
@@ -298,7 +298,7 @@ def ship():
         "1503602642458-232111445657", "Ghế đôn gỗ cao", "Giá chốt 350.000 ₫", "Đức Huy", "Phường Cầu Kiệu · giao COD", "chat-buyer",
         "Người mua trả shipper", 372_000,
         [("Tiền hàng COD", icon("handshake-outline-rounded", 16) + "350.000 ₫", "text-tertiary"), ("Phí ship người mua trả", "22.000 ₫", "ink")],
-        [("cod_seller", "local-shipping-outline-rounded"), ("return_leg", "undo-rounded"), ("no_hold", "lock-outline-rounded")],
+        [("cod_seller", "local-shipping-outline-rounded"), ("return_leg", "undo-rounded")],
         extra=cod_to,
         actions=f'<span class="flex items-center gap-1.5 pl-2 text-body-s text-on-surface-variant">{icon("tag-rounded", 15)}SNX 8841 2207</span><span class="flex-1"></span>'
                 + btn("Tạo đơn", "receipt-long-outline-rounded", "primary", "h-11 px-6"))
@@ -581,7 +581,7 @@ def cod_setup():
         <p class="flex items-center gap-3 text-label-m text-on-surface-variant"><span class="flex items-center gap-1">{icon("timer-outline-rounded", 15)}3 phút</span><span class="flex items-center gap-1">{icon("event-repeat-outline-rounded", 15)}Làm một lần</span>{a("later", "text-primary hover:underline", "Để sau")}</p>
         <h1 class="mt-1 text-[40px] font-semibold leading-[44px] tighter ink">Thiết lập giao COD</h1>
       </div>
-      <div class="flex max-w-[420px] flex-col gap-1.5 pt-1">{money_line("cod_seller", "account-balance-outline-rounded")}{money_line("no_hold", "lock-outline-rounded")}</div>
+      <div class="flex max-w-[420px] flex-col gap-1.5 pt-1">{money_line("cod_seller", "account-balance-outline-rounded")}</div>
     </div>
     <ol class="mt-5 flex items-center gap-4 border-t border-white/70 pt-4">{steps}</ol>
   </section>

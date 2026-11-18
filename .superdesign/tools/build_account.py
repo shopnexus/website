@@ -18,7 +18,6 @@ ART2 = {**json.load(open(os.path.join(HERE, "art_sh.json"))), **json.load(open(o
 
 # Verbatim from app/.superdesign/tools/common.py MONEY.
 MONEY = dict(
-    no_hold="ShopNexus không giữ tiền và không nhận cọc.",
     cod_seller="Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.",
     cod_buyer="Xem hàng rồi mới trả tiền hàng và phí ship cho shipper.",
 )

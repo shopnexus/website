@@ -55,11 +55,10 @@ const arrow =
 </section>
 
 <script>
-  import { animate } from 'motion';
-  import { SPRING, reducedMotion } from '../lib/motion';
+  import { glide } from '../lib/motion';
 
-  // The arrows page by the visible width, on the default spatial spring; the
-  // edges and the disabled arrows follow the scroll position.
+  // The arrows page by 85 % of the visible width; the edges and the disabled
+  // arrows follow the scroll position.
   document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((c) => {
     const track = c.querySelector<HTMLElement>('[data-track]')!;
     const prev = c.querySelector<HTMLButtonElement>('[data-prev]')!;
@@ -74,18 +73,7 @@ const arrow =
       track.toggleAttribute('data-at-start', start);
       track.toggleAttribute('data-at-end', end);
     };
-    const page = (dir: 1 | -1) => {
-      const max = track.scrollWidth - track.clientWidth;
-      const to = Math.min(max, Math.max(0, track.scrollLeft + dir * track.clientWidth * 0.85));
-      if (reducedMotion()) return void (track.scrollLeft = to);
-      // Snap would fight a scripted scroll, so it is off until the row settles.
-      track.style.scrollSnapType = 'none';
-      animate(track.scrollLeft, to, {
-        ...SPRING.spatial,
-        onUpdate: (v) => (track.scrollLeft = v),
-        onComplete: () => (track.style.scrollSnapType = ''),
-      });
-    };
+    const page = (dir: 1 | -1) => glide(track, track.scrollLeft + dir * track.clientWidth * 0.85);
     prev.addEventListener('click', () => page(-1));
     next.addEventListener('click', () => page(1));
     track.addEventListener('scroll', sync, { passive: true });

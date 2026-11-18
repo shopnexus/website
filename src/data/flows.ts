@@ -21,12 +21,11 @@ export const SELLER = { name: 'Tuấn Kiệt', photo: '1544723795-3fb6469f5b39' 
 
 /** [question, answer, open]. */
 export const FAQ: [string, string, boolean][] = [
-  ['Tôi có phải trả tiền trước không?', `${MONEY.pay_shipper} ${MONEY.no_hold}`, true],
+  ['Tôi có phải trả tiền trước không?', MONEY.pay_shipper, true],
   ['Mở ra thấy không đúng mô tả thì sao?', `${MONEY.refuse} Hàng quay về người bán.`, true],
   ['Hãng báo đã giao mà tôi chưa nhận?', 'Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.', false],
   ['Tôi hủy đơn được không?', MONEY.cancel, false],
   ['Phí ship ai trả, bao nhiêu?', `${MONEY.cod_buyer} Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.`, false],
-  ['Món đắt tiền thì nên làm gì?', `${MONEY.meet_hint} COD vẫn chọn được.`, false],
 ];
 
 export const HOW_DO = [
@@ -41,7 +40,6 @@ export const HOW_DO = [
 ];
 
 export const HOW_DONT = [
-  { icon: 'account-balance-outline-rounded', text: MONEY.no_hold },
   { icon: 'gavel-rounded', text: 'Không phân xử giữa người mua và người bán.' },
   { icon: 'payments-outline-rounded', text: 'Không thu phí ship: bạn trả cho shipper, hãng chuyển tiền hàng cho người bán.' },
   {
@@ -77,7 +75,7 @@ export const SELL = {
 
 // ---------------------------------------------------------------- Trợ giúp --
 
-export const HELP_SAFETY = 'ShopNexus không giữ tiền và không nhận cọc. Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat.';
+export const HELP_SAFETY = 'Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat.';
 const AFTER_PAY = 'Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được. Nếu hàng có vấn đề, bạn mở ghi nhận trong chat.';
 
 export const HELP_TOPICS: { title: string; icon: string; qs: [string, string][] }[] = [
@@ -110,9 +108,8 @@ export const HELP_TOPICS: { title: string; icon: string; qs: [string, string][] 
     qs: [
       [
         'Người bán đòi chuyển cọc trước',
-        `${MONEY.no_hold} Bạn đừng chuyển tiền trước khi xem hàng, và báo cáo cuộc trò chuyện trong menu của chat.`,
+        `Bạn đừng chuyển tiền trước khi xem hàng, và báo cáo cuộc trò chuyện trong menu của chat.`,
       ],
-      ['Món đắt tiền', MONEY.meet_hint],
       [
         'Báo cáo một tin',
         'Trong menu của tin, chọn “Báo cáo tin”. Người của ShopNexus xem hàng cấm, hàng giả và lừa đảo; tình trạng và giá là chuyện giữa người mua và người bán.',
@@ -254,8 +251,7 @@ export const TERMS: LegalSection[] = [
   [
     'Tiền và giao hàng',
     [
-      MONEY.no_hold,
-      'Cách giao trong app là COD có xem hàng:',
+      'ShopNexus không giữ tiền hàng của bên nào. Cách giao trong app là COD có xem hàng:',
       [MONEY.cod_buyer, MONEY.refuse, MONEY.cancel, MONEY.cod_seller, MONEY.return_leg],
       'Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được.',
     ],

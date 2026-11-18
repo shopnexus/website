@@ -4,7 +4,6 @@
 // what they pay the shipper, then sent. The app's bottom sheet, a dialog on
 // a wide window, like ReportDialog.
 import { DEAL, SELLER } from '../../../data/flows';
-import { MONEY } from '../../../data/common';
 import { crop } from '../../../lib/format';
 import Icon from '../../Icon.astro';
 import MoneyLine from '../../MoneyLine.astro';
@@ -90,7 +89,6 @@ const h3 = 'text-title-small text-ink';
     <button type="button" data-go="sent" class="state-layer mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-ink text-label-large text-on-ink">
       <Icon name="send-rounded" size={18} />Gửi yêu cầu COD
     </button>
-    <p class="mt-3 text-center text-body-small text-on-surface-variant">{MONEY.no_hold}</p>
   </div>
 
   <div data-pane="sent" hidden>

@@ -22,7 +22,6 @@ ART = {**ART, **json.load(open(os.path.join(HERE, "art_sh.json"))), **json.load(
 
 # Verbatim from app/.superdesign/tools/common.py MONEY.
 MONEY = dict(
-    no_hold="ShopNexus không giữ tiền và không nhận cọc.",
     cod_seller="Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.",
 )
 
@@ -401,7 +400,6 @@ def cod_setup():
       <h1 class="mt-2 text-display-m text-white">Thiết lập giao COD</h1>
       <div class="mt-4 flex max-w-[560px] flex-col gap-2 text-body-l">
         <p class="flex gap-2">{icon("account-balance-outline-rounded", 20, "mt-0.5")}{MONEY["cod_seller"]}</p>
-        <p class="flex gap-2">{icon("lock-outline-rounded", 20, "mt-0.5")}{MONEY["no_hold"]}</p>
       </div>
       <img src="{ART["art_cod_ready"]}" alt="" class="absolute -bottom-6 right-12 w-[260px]">
     </section>
@@ -440,7 +438,6 @@ def cod_setup():
             <h2 class="text-headline-m">Sẵn sàng giao COD</h2>
             <p class="mt-1 text-body-m text-on-surface-variant">Người mua chọn được COD với tin của bạn.</p>
             <div class="mt-4 rounded-lg bg-surface-container-low px-4">{summary}</div>
-            <div class="mt-3">{money("no_hold", "lock-outline-rounded")}</div>
           </div>
         </section>
       </div>

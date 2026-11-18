@@ -191,7 +191,7 @@ def orders():
           <p class="text-title-m">Đơn COD đang mở</p>
           <p class="mt-2"><span class="text-display-s">2</span><span class="text-title-l text-on-surface-variant">/5</span></p>
           <div class="mt-3 flex gap-1.5">{slots}</div>
-          <div class="mt-5 flex flex-col gap-2.5 border-t border-outline-variant pt-4">{money("cod_buyer", "inventory-2-outline-rounded")}{money("no_hold", "account-balance-outline-rounded")}</div>
+          <div class="mt-5 flex flex-col gap-2.5 border-t border-outline-variant pt-4">{money("cod_buyer", "inventory-2-outline-rounded")}</div>
         </div>
         <div class="flex items-center gap-4 overflow-hidden rounded-xl bg-secondary-container py-3 pl-3 pr-5">
           <img src="{ART["art_orders"]}" alt="" class="h-[104px] w-[104px] shrink-0">
@@ -261,7 +261,7 @@ def order():
             <p class="flex justify-between"><span class="text-on-surface-variant">Tiền hàng</span><span class="flex items-center gap-1.5 text-tertiary">{icon("handshake-outline-rounded", 18)}3.800.000 ₫</span></p>
             <p class="flex justify-between"><span class="text-on-surface-variant">Phí ship · GHTK Giao nhanh</span><span>22.000 ₫</span></p>
           </div>
-          <div class="mt-5 flex flex-col gap-2.5">{money("pay_shipper", "payments-outline-rounded")}{money("no_hold", "account-balance-outline-rounded")}</div>
+          <div class="mt-5 flex flex-col gap-2.5">{money("pay_shipper", "payments-outline-rounded")}</div>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" class="state flex h-12 shrink-0 items-center gap-2 rounded-full px-3 text-label-l text-primary">{icon("help-outline-rounded", 20)}Báo chưa nhận hàng</button>
@@ -350,7 +350,7 @@ def ship():
             {icon("account-balance-outline-rounded", 22, "text-on-surface-variant")}
             <span class="flex-1"><span class="block text-body-l">Tiền COD về tài khoản GHTK</span><span class="block text-body-s text-on-surface-variant">GHTK S55163 · đứng tên bạn</span></span>
           </div>
-          <div class="mt-4 flex flex-col gap-2.5">{money("cod_seller", "local-shipping-outline-rounded")}{money("return_leg", "undo-rounded")}{money("no_hold", "account-balance-outline-rounded")}</div>
+          <div class="mt-4 flex flex-col gap-2.5">{money("cod_seller", "local-shipping-outline-rounded")}{money("return_leg", "undo-rounded")}</div>
           <p class="mt-4 flex items-center gap-2 text-body-s text-on-surface-variant">{icon("tag-rounded", 16)}Mã đơn SNX 8841 2207</p>
         </div>
         <div>

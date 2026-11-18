@@ -189,9 +189,7 @@ def detail_m3():
           <button type="button" class="state flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-tertiary text-label-l text-on-tertiary">{icon("sell-outline-rounded", 20)}Trả giá</button>
         </div>
         <div class="mt-6 flex flex-col gap-3">
-          {money("meet_hint", "group-outline-rounded")}
           {money("cod_buyer", "local-shipping-outline-rounded")}
-          {money("no_hold")}
         </div>
         {grouped([
             f'<div class="flex items-center gap-4"><img src="{img(SELLER["photo"], 112, 112)}" alt="" class="h-14 w-14 rounded-full object-cover"><div class="flex-1"><p class="text-title-m">{SELLER["name"]}</p><p class="flex items-center gap-1 text-body-s text-on-surface-variant">{icon("verified-rounded", 16, "text-primary")}Đã xác minh danh tính</p></div>{icon("chevron-right-rounded", 24, "text-on-surface-variant")}</div>',
@@ -261,7 +259,7 @@ def footer():
   <div class="mx-auto grid max-w-[1328px] px-6 grid-cols-[1.4fr_1fr_1fr_1fr] gap-12 py-14">
     <div>
       <div class="flex items-center gap-2"><img src="{LOGO}" alt="ShopNexus" class="h-8 w-8"><span class="text-title-l font-medium">ShopNexus</span></div>
-      <p class="mt-4 max-w-[300px] text-body-m text-on-surface-variant">Giá tốt, gần bạn, chốt nhanh. {MONEY["no_hold"]}</p>
+      <p class="mt-4 max-w-[300px] text-body-m text-on-surface-variant">Giá tốt, gần bạn, chốt nhanh.</p>
     </div>
     {col("Danh mục", [c[0] for c in CATEGORIES[:6]], "f-cat")}
     {col("Mua và bán", ["Mua bằng COD xem hàng", "Cách đăng tin", "Gói người bán", "Điểm uy tín"], "f-deal")}
@@ -376,7 +374,6 @@ def detail_web():
             <button type="button" class="state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md text-label-l text-on-surface-variant">{icon("flag-outline-rounded", 20)}Báo cáo</button>
           </div>
           <div class="mt-5 flex flex-col gap-3 border-t border-outline-variant pt-5">
-            {money("meet_hint", "group-outline-rounded")}
             {money("cod_buyer", "local-shipping-outline-rounded")}
             {money("refuse", "undo-rounded")}
           </div>
