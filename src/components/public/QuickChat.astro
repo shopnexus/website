@@ -1,0 +1,277 @@
+---
+// Chat nhanh on a listing: "Nhắn tin", "Trả giá" and the question chips open
+// this box over the page instead of going to Tin nhắn. On a wide window it
+// docks bottom-right and the page stays usable; "Thu nhỏ" folds it into a
+// pill. On a phone it is a bottom sheet. The page marks its openers with
+// data-quickchat ("chat", "offer", or the question to send); they stay links
+// to Tin nhắn, so without the script they still work.
+import Icon from '../Icon.astro';
+import Photo from '../Photo.astro';
+import { group } from '../../lib/format';
+
+interface Props {
+  /** photo: the image URL. */
+  seller: { name: string; photo: string };
+  title: string;
+  /** The listing's photo URL. */
+  thumb: string;
+  price: number;
+  questions: string[];
+  /** The full chat on Tin nhắn. */
+  href: string;
+}
+
+const { seller, title, thumb, price, questions, href } = Astro.props;
+
+// Three quick cuts, about 4, 6 and 10 % off, on round steps.
+const unit = price >= 1_000_000 ? 100_000 : 10_000;
+const cuts = [...new Set([0.04, 0.06, 0.1].map((f) => Math.max(unit, Math.round((price * f) / unit) * unit)))];
+const cutLabel = (v: number) => (v >= 1_000_000 ? `−${(v / 1_000_000).toLocaleString('vi-VN')} tr` : `−${v / 1000}k`);
+const start = price - cuts[Math.min(1, cuts.length - 1)];
+const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-full text-on-surface-variant';
+---
+
+<dialog
+  class="quickchat fixed inset-x-0 bottom-0 top-auto m-0 flex h-[min(640px,88dvh)] w-full max-w-none flex-col overflow-hidden rounded-t-xl bg-page p-0 text-ink shadow-float backdrop:bg-black/30 lg:inset-x-auto lg:bottom-5 lg:right-6 lg:h-[520px] lg:w-[380px] lg:rounded-xl lg:bg-card lg:shadow-lift [&:not([open])]:hidden"
+  aria-label={`Chat với ${seller.name}`}
+  data-qc
+  data-price={price}
+>
+  <span class="mx-auto mt-2 h-1 w-8 shrink-0 rounded-full bg-on-surface-variant/40 lg:hidden"></span>
+  <div class="flex items-center gap-2.5 px-3 pt-3">
+    <span class="relative shrink-0">
+      <Photo src={seller.photo} width={80} height={80} alt="" loading="lazy" class="h-9 w-9 rounded-full object-cover" />
+      <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-ghtk ring-2 ring-card"></span>
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="flex items-center gap-1 text-title-small">{seller.name}<Icon name="verified-rounded" size={15} class="text-primary" /></p>
+      <p class="text-body-small text-on-surface-variant">Thường trả lời trong 10 phút</p>
+    </div>
+    <a href={href} class={iconBtn} aria-label="Mở ở trang Tin nhắn" title="Mở ở trang Tin nhắn"><Icon name="open-in-new-rounded" size={19} /></a>
+    <button type="button" class:list={[iconBtn, 'max-lg:hidden']} aria-label="Thu nhỏ" title="Thu nhỏ" data-qc-min><Icon name="remove-rounded" size={19} /></button>
+    <button type="button" class={iconBtn} aria-label="Đóng" title="Đóng" data-qc-close><Icon name="close-rounded" size={19} /></button>
+  </div>
+
+  <div class="mx-3 mt-2.5 flex items-center gap-2.5 rounded-lg bg-surface-container-low p-1.5 pr-3">
+    <Photo src={thumb} width={80} height={80} alt="" loading="lazy" class="h-10 w-10 rounded-md object-cover" />
+    <p class="min-w-0 flex-1 truncate text-body-medium">{title}</p>
+    <p class="text-j-15 tabular-nums">{group(price)}<span class="ml-0.5 text-body-small font-medium text-on-surface-variant">₫</span></p>
+  </div>
+
+  <div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-3" data-qc-thread>
+    <p class="m-auto max-w-[240px] text-center text-body-medium text-on-surface-variant" data-qc-empty>
+      Hỏi {seller.name} về món này. Tin nhắn cũng nằm trong Tin nhắn của bạn.
+    </p>
+  </div>
+
+  <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto px-3 pb-2" data-qc-chips>
+    {
+      questions.map((q) => (
+        <button type="button" class="state-layer h-8 shrink-0 rounded-full border border-line bg-card px-3 text-label-medium" data-qc-ask={q}>
+          {q}
+        </button>
+      ))
+    }
+  </div>
+
+  <form class="mx-3 mb-2 hidden shrink-0 rounded-lg-plus bg-tertiary-fixed/70 p-3" data-qc-tray>
+    <div class="flex items-center justify-between">
+      <label for="qc-amount" class="text-label-large text-on-tertiary-fixed-variant">Giá bạn trả</label>
+      <p class="text-body-small text-on-surface-variant">Giá đăng {group(price)} ₫</p>
+    </div>
+    <p class="mt-1 flex items-baseline">
+      <input
+        id="qc-amount"
+        name="amount"
+        inputmode="numeric"
+        autocomplete="off"
+        value={group(start)}
+        class="w-full min-w-0 bg-transparent text-j-28 tabular-nums outline-none"
+        data-qc-amount
+      />
+      <span class="ml-1 text-title-medium text-on-surface-variant">₫</span>
+    </p>
+    <div class="mt-2 flex gap-1.5">
+      {
+        cuts.map((c) => (
+          <button
+            type="button"
+            class="state-layer h-8 flex-1 rounded-full bg-card text-label-medium aria-pressed:bg-ink aria-pressed:text-on-ink"
+            aria-pressed={price - c === start ? 'true' : 'false'}
+            data-qc-cut={price - c}
+          >
+            {cutLabel(c)}
+          </button>
+        ))
+      }
+    </div>
+    <button type="submit" class="state-layer mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-full bg-tertiary text-label-large text-on-tertiary">
+      <Icon name="sell-outline-rounded" size={18} />Gửi giá
+    </button>
+  </form>
+
+  <form class="flex shrink-0 items-center gap-1.5 px-2 pb-[max(10px,env(safe-area-inset-bottom))]" data-qc-composer>
+    <button
+      type="button"
+      class="state-layer flex h-10 shrink-0 items-center gap-1 rounded-full bg-tertiary-fixed pl-2.5 pr-3 text-label-large text-on-tertiary-fixed-variant aria-expanded:bg-ink aria-expanded:text-on-ink"
+      aria-expanded="false"
+      data-qc-offer
+    >
+      <Icon name="sell-outline-rounded" size={18} />Trả giá
+    </button>
+    <input
+      name="text"
+      autocomplete="off"
+      placeholder={`Nhắn ${seller.name}`}
+      aria-label={`Nhắn tin cho ${seller.name}`}
+      class="h-10 min-w-0 flex-1 rounded-full border border-line bg-card px-4 text-body-medium outline-none placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary"
+    />
+    <button
+      type="submit"
+      class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant enabled:bg-primary enabled:text-on-primary"
+      aria-label="Gửi"
+      disabled
+    >
+      <Icon name="send-rounded" size={19} />
+    </button>
+  </form>
+</dialog>
+
+<button
+  type="button"
+  class="state-layer fixed bottom-5 right-6 z-40 hidden h-12 items-center gap-2 rounded-full bg-card pl-1.5 pr-4 text-label-large text-ink shadow-lift max-lg:!hidden"
+  data-qc-pill
+>
+  <Photo src={seller.photo} width={80} height={80} alt="" loading="lazy" class="h-9 w-9 rounded-full object-cover" />
+  {seller.name}
+</button>
+
+<template data-qc-mine>
+  <p class="max-w-[82%] self-end rounded-lg-plus bg-teal px-3 py-2 text-body-medium text-white"></p>
+</template>
+<template data-qc-price>
+  <p class="flex h-10 items-center gap-2 self-end rounded-full bg-tertiary-fixed pl-3 pr-4 text-title-small text-on-tertiary-fixed-variant tabular-nums">
+    <Icon name="sell-outline-rounded" size={18} /><span></span>
+  </p>
+</template>
+
+<script>
+  const box = document.querySelector<HTMLDialogElement>('[data-qc]');
+  if (box) {
+    const $ = <T extends Element = HTMLElement>(s: string) => box.querySelector<T>(s)!;
+    const pill = document.querySelector<HTMLButtonElement>('[data-qc-pill]')!;
+    const thread = $('[data-qc-thread]');
+    const tray = $<HTMLFormElement>('[data-qc-tray]');
+    const offerBtn = $<HTMLButtonElement>('[data-qc-offer]');
+    const composer = $<HTMLFormElement>('[data-qc-composer]');
+    const field = composer.querySelector<HTMLInputElement>('input')!;
+    const send = composer.querySelector<HTMLButtonElement>('[type=submit]')!;
+    const amount = $<HTMLInputElement>('[data-qc-amount]');
+    const price = Number(box.dataset.price);
+    const wide = matchMedia('(min-width: 64rem)');
+    const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
+    let status: HTMLElement | null = null;
+
+    const open = (offer = false) => {
+      pill.classList.add('hidden');
+      pill.classList.remove('flex');
+      if (!box.open) wide.matches ? box.show() : box.showModal();
+      setTray(offer);
+      (offer ? amount : field).focus({ preventScroll: true });
+    };
+    const close = () => box.close();
+    const fold = () => {
+      box.close();
+      pill.classList.remove('hidden');
+      pill.classList.add('flex');
+    };
+    const setTray = (on: boolean) => {
+      tray.classList.toggle('hidden', !on);
+      offerBtn.setAttribute('aria-expanded', String(on));
+    };
+    // Each sent line goes at the end with one "Đã gửi" under the last.
+    const post = (node: Node) => {
+      $('[data-qc-empty]')?.remove();
+      status?.remove();
+      thread.append(node);
+      status = document.createElement('p');
+      status.className = 'px-1 text-right text-body-small text-on-surface-variant';
+      status.textContent = 'Đã gửi';
+      thread.append(status);
+      thread.scrollTop = thread.scrollHeight;
+    };
+    const say = (text: string) => {
+      const t = document.querySelector<HTMLTemplateElement>('[data-qc-mine]')!.content.cloneNode(true) as DocumentFragment;
+      t.querySelector('p')!.textContent = text;
+      post(t);
+      // A question already asked leaves the chips.
+      box.querySelectorAll<HTMLElement>('[data-qc-ask]').forEach((b) => b.dataset.qcAsk === text && b.remove());
+    };
+
+    document.addEventListener('click', (e) => {
+      const a = (e.target as Element).closest<HTMLElement>('[data-quickchat]');
+      if (!a) return;
+      e.preventDefault();
+      const what = a.dataset.quickchat!;
+      if (what === 'offer') open(true);
+      else {
+        open();
+        if (what !== 'chat') say(what);
+      }
+    });
+    pill.addEventListener('click', () => open());
+    $('[data-qc-close]').addEventListener('click', close);
+    $('[data-qc-min]').addEventListener('click', fold);
+    // A non-modal dialog has no Esc of its own.
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !box.matches(':modal')) close();
+    });
+    // The sheet closes on a tap on its backdrop.
+    box.addEventListener('click', (e) => {
+      if (e.target === box && box.matches(':modal')) {
+        const r = box.getBoundingClientRect();
+        if (e.clientY < r.top) close();
+      }
+    });
+
+    box.querySelectorAll<HTMLButtonElement>('[data-qc-ask]').forEach((b) => b.addEventListener('click', () => say(b.dataset.qcAsk!)));
+    offerBtn.addEventListener('click', () => setTray(tray.classList.contains('hidden')));
+    field.addEventListener('input', () => (send.disabled = !field.value.trim()));
+    composer.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = field.value.trim();
+      if (!text) return;
+      say(text);
+      field.value = '';
+      send.disabled = true;
+    });
+
+    const cuts = [...box.querySelectorAll<HTMLButtonElement>('[data-qc-cut]')];
+    const mark = (v: number) => cuts.forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.qcCut) === v)));
+    cuts.forEach((c) =>
+      c.addEventListener('click', () => {
+        const v = Number(c.dataset.qcCut);
+        amount.value = fmt(v);
+        mark(v);
+      }),
+    );
+    amount.addEventListener('input', () => {
+      const v = Number(amount.value.replace(/\D/g, ''));
+      amount.value = v ? fmt(v) : '';
+      mark(v);
+    });
+    tray.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = Number(amount.value.replace(/\D/g, ''));
+      if (!v || v >= price) {
+        amount.focus();
+        return;
+      }
+      const t = document.querySelector<HTMLTemplateElement>('[data-qc-price]')!.content.cloneNode(true) as DocumentFragment;
+      t.querySelector('span')!.textContent = `${fmt(v)} ₫`;
+      post(t);
+      setTray(false);
+      field.focus();
+    });
+  }
+</script>

@@ -10,12 +10,14 @@ import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
 import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
+import QuickChat from '../../components/public/QuickChat.astro';
 import RangeBar from '../../components/public/RangeBar.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Layout from '../../layouts/Layout.astro';
 import { ALL_LISTINGS, DETAIL, SELLER, SIMILAR, SOLD } from '../../data/public';
 import { crop, group, img, where } from '../../lib/format';
 import { R } from '../../lib/routes';
+import { viewer } from '../../lib/session';
 import { CONTENT, PANEL } from '../../lib/ui';
 
 const id = Astro.params.id ?? '';
@@ -67,6 +69,9 @@ const crumbs: [string, string?][] = iphone
   ? [['Khám phá', R.home], ['Điện thoại', R.category('dien-thoai')], [main ? 'iPhone 13 Pro' : title]]
   : [['Khám phá', R.home], ['Danh mục', R.categories], [title]];
 const chat = `${R.messages}?tin=${it.id}`;
+// Signed in, the chat buttons open Chat nhanh on this page; signed out they go
+// to Tin nhắn, which asks to sign in first.
+const me = viewer(Astro);
 const ld = {
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -198,12 +203,13 @@ const ld = {
                 </div>
               </div>
               <div class="mt-4 grid grid-cols-2 gap-2">
-                <a href={chat} class="state-layer flex h-12 items-center justify-center gap-2 rounded-full bg-ink text-label-large text-on-ink">
+                <a href={chat} data-quickchat="chat" class="state-layer flex h-12 items-center justify-center gap-2 rounded-full bg-ink text-label-large text-on-ink">
                   <Icon name="chat-outline-rounded" size={19} />
                   Nhắn tin
                 </a>
                 <a
                   href={`${chat}&tra-gia=1`}
+                  data-quickchat="offer"
                   class="state-layer flex h-12 items-center justify-center gap-2 rounded-full bg-tertiary text-label-large text-on-tertiary"
                 >
                   <Icon name="sell-outline-rounded" size={19} />
@@ -214,6 +220,7 @@ const ld = {
                 {questions.map((q) => (
                   <a
                     href={`${chat}&hoi=${encodeURIComponent(q)}`}
+                    data-quickchat={q}
                     class="state-layer flex h-8 items-center rounded-full border border-line bg-card px-3 text-label-medium text-ink"
                   >
                     {q}
@@ -224,7 +231,7 @@ const ld = {
 
             <div class:list={[PANEL, 'p-4']}>
               <div class="flex items-center gap-3">
-                <Photo src={img(SELLER.photo, 160, 160)} width={160} height={160} alt="" loading="lazy" class="h-11 w-11 rounded-full object-cover" />
+                <Photo src={img(SELLER.photo, 160, 160)} width={160} height={160} alt="" class="h-11 w-11 rounded-full object-cover" />
                 <div class="min-w-0 flex-1">
                   <p class="flex items-center gap-1 text-title-small text-ink">
                     {SELLER.name}
@@ -261,6 +268,16 @@ const ld = {
           </div>
         </section>
       </main>
+      {me && (
+        <QuickChat
+          seller={{ name: SELLER.name, photo: img(SELLER.photo, 80, 80) }}
+          title={title}
+          thumb={crop(it.photo, 160, ...DETAIL.crops[0])}
+          price={it.price}
+          questions={questions}
+          href={chat}
+        />
+      )}
     </Layout>
   )
 }

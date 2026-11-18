@@ -990,6 +990,55 @@
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
         ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
+    },
+    "/p/[slug]#chat-nhanh": {
+      "targetKind": "new-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/common.py",
+        ".superdesign/tools/build.py",
+        ".superdesign/tools/build_c.py",
+        ".superdesign/tools/build_e.py",
+        ".superdesign/tools/build_pages.py",
+        ".superdesign/tools/art_urls.json"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
+        ".superdesign/tools/build_pages.py": "0999ade76956d0301cc05cfbbd38b4d35b2dc2251690fd8938868068d1c38734",
+        ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42"
+      },
+      "brandAssets": {
+        "logo": {
+          "assetKey": "website-public-favicon.svg"
+        }
+      },
+      "note": "Chosen: Home = E on a photo hero; Listing detail = C; header and footer from C. Other drafts deleted from the canvas 2026-11-04.",
+      "updatedAt": "2026-11-18",
+      "activeDraftId": "f8b43eab-4841-4b3f-bbb9-5cadcf2ec72e",
+      "drafts": {
+        "f8b43eab-4841-4b3f-bbb9-5cadcf2ec72e": {
+          "title": "Chat nhanh · A. Hộp nổi",
+          "currentVersion": 1,
+          "visualDirection": "J; mockups/quickchat-dock.html (tools/build_j_quickchat.py)"
+        },
+        "defc393b-1152-4fa0-90f0-0c49044dea29": {
+          "title": "Chat nhanh · B. Trong khung mua",
+          "currentVersion": 1,
+          "visualDirection": "J; mockups/quickchat-inline.html"
+        },
+        "7c356691-96b8-4901-8723-a6eb4c117374": {
+          "title": "Chat nhanh · A trên điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "J; mockups/quickchat-mobile.html"
+        }
+      }
     }
   }
 }
