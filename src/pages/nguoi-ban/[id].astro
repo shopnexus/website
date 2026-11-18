@@ -1,19 +1,17 @@
 ---
 import Photo from '../../components/Photo.astro';
 // Người bán: the seller's name, tier and facts, the four figures, their
-// listings with a category filter, the tier panel, where they ship COD from,
-// and the reviews. The mock has one seller (SELLER.id); other ids are a 404.
+// listings with a category filter, the tier panel and the reviews. The mock has one seller (SELLER.id); other ids are a 404.
 import Crumbs from '../../components/Crumbs.astro';
 import Drop from '../../components/Drop.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
-import AreaMap from '../../components/public/AreaMap.astro';
 import Stars from '../../components/public/Stars.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Seg from '../../components/Seg.astro';
 import Layout from '../../layouts/Layout.astro';
 import { REVIEWS, SELLER, SELLING } from '../../data/public';
-import { img, where } from '../../lib/format';
+import { img } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { CONTENT, PANEL } from '../../lib/ui';
 import tierTop from '@brand/tier_top.webp';
@@ -155,7 +153,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
           {
             SELLING.map((it, i) => (
               <div class="grid min-w-0" data-in={catOf[i]}>
-                <ListingCard item={it} loading={i < 6 ? 'eager' : 'lazy'} sellerLoading={i < 3 ? 'eager' : 'lazy'} />
+                <ListingCard item={it} loading={i < 6 ? 'eager' : 'lazy'} showSeller={false} />
               </div>
             ))
           }
@@ -183,19 +181,6 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
               ))
             }
           </ul>
-        </div>
-        <div class:list={[PANEL, 'p-2']}>
-          <AreaMap
-            height={200}
-            you={[30, 72]}
-            pins={[{ x: 56, y: 44, label: SELLER.area, on: true }]}
-            route={{ from: [30, 72], to: [56, 44], label: where(2.1, SELLER.area) }}
-          />
-          <div class="flex flex-col gap-1.5 px-3 pb-2 pt-3">
-            <p class="flex items-center gap-2 text-title-small text-ink">
-              <Icon name="local-shipping-outline-rounded" size={18} class="text-primary" />Gửi COD từ {SELLER.area}
-            </p>
-          </div>
         </div>
       </aside>
     </div>
