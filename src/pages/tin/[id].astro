@@ -8,7 +8,6 @@ import Photo from '../../components/Photo.astro';
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
-import AreaMap from '../../components/public/AreaMap.astro';
 import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import RangeBar from '../../components/public/RangeBar.astro';
@@ -220,26 +219,6 @@ const ld = {
                     {q}
                   </a>
                 ))}
-              </div>
-            </div>
-
-            <div class:list={[PANEL, 'p-4']}>
-              <div class="flex items-center gap-3">
-                <span class="grid h-10 w-10 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
-                  <Icon name="local-shipping-outline-rounded" size={20} />
-                </span>
-                <div class="flex-1">
-                  <p class="text-title-small text-ink">COD, xem hàng trước</p>
-                  <p class="text-body-small text-on-surface-variant">Gửi từ {it.area} · tới bạn 1–2 ngày</p>
-                </div>
-              </div>
-              <div class="mt-3">
-                <AreaMap
-                  height={150}
-                  you={[28, 72]}
-                  pins={[{ x: 62, y: 38, label: SELLER.name, on: true }]}
-                  route={{ from: [28, 72], to: [62, 38], label: place }}
-                />
               </div>
             </div>
 
