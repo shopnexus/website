@@ -32,7 +32,7 @@ const label = 'mb-2 text-label-large text-ink';
 ---
 
 <AccountFrame title="Thiết lập giao COD" description="Địa chỉ lấy hàng và bên vận chuyển cho đơn COD." active="cod">
-  <section class="glass glass-edge rounded-xl p-5 shadow-soft md:p-6">
+  <section class="border border-line bg-card rounded-card p-5 shadow-soft md:p-6">
     <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between xl:gap-8">
       <div>
         <p class="flex items-center gap-3 text-label-medium text-on-surface-variant">
@@ -40,7 +40,7 @@ const label = 'mb-2 text-label-large text-ink';
           <span class="flex items-center gap-1"><Icon name="event-repeat-outline-rounded" size={15} />Làm một lần</span>
           <a href={R.me} class="text-primary hover:underline">Để sau</a>
         </p>
-        <h1 class="mt-1 text-j-32 text-ink lg:text-j-40">Thiết lập giao COD</h1>
+        <h1 class="mt-1 text-j-32 text-ink lg:text-j-28">Thiết lập giao COD</h1>
       </div>
     </div>
     <ol class="mt-5 flex flex-col gap-3 border-t border-white/70 pt-4 md:flex-row md:items-center md:gap-4">
@@ -52,7 +52,7 @@ const label = 'mb-2 text-label-large text-ink';
                 class:list={[
                   'grid h-7 w-7 shrink-0 place-items-center rounded-full text-label-medium',
                   s.state === 'done' && 'bg-primary text-on-primary',
-                  s.state === 'active' && 'bg-linear-to-br from-teal to-teal-light text-white',
+                  s.state === 'active' && 'bg-brand text-white',
                   s.state === 'next' && 'bg-surface-container-high text-on-surface-variant',
                 ]}
               >

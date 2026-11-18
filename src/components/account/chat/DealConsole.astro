@@ -10,7 +10,7 @@ interface Props {
 const { current } = Astro.props;
 ---
 
-<div class="mx-3 mt-2 rounded-lg-plus border border-line bg-card px-4 pb-3 pt-3">
+<div class="mx-3 mt-2 rounded-card border border-line bg-card px-4 pb-3 pt-3">
   <div class="flex items-center justify-between">
     <div class="flex items-center" role="img" aria-label={`Bước ${current + 1}/4 · ${PHASES[current].label}`}>
       {

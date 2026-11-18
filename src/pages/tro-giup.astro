@@ -26,7 +26,7 @@ const docs = [
   <main class:list={[CONTENT, 'pt-8']}>
     <section class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_440px] xl:gap-8">
       <div class="min-w-0">
-        <h1 class="text-j-40 text-ink lg:text-j-44">Trợ giúp và an toàn</h1>
+        <h1 class="text-j-28 text-ink lg:text-j-30">Trợ giúp và an toàn</h1>
         <form action={R.help} class="mt-5 flex h-14 items-center gap-3 rounded-full bg-card pl-5 pr-2 shadow-glow" role="search" data-help-search>
           <Icon name="search-rounded" size={22} class="text-primary" />
           <input
@@ -45,7 +45,7 @@ const docs = [
               <a
                 href={`${R.help}?q=${encodeURIComponent(t)}`}
                 data-help-chip={t}
-                class="glass glass-edge flex h-9 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
+                class="border border-line bg-card flex h-9 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
               >
                 <Icon name="help-outline-rounded" size={16} class="text-on-surface-variant" />
                 {t}
@@ -54,7 +54,7 @@ const docs = [
           }
         </div>
       </div>
-      <div class="rounded-xl bg-linear-140 from-primary to-teal-mid p-6 text-white">
+      <div class="rounded-card bg-brand p-6 text-white">
         <p class="flex items-center gap-2 text-label-large text-mint-on-teal">
           <Icon name="shield-outline-rounded" size={18} />Một điều cần nhớ
         </p>

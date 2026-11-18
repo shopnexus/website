@@ -16,9 +16,11 @@ interface Props {
   ratio?: string;
   /** "lazy" when it sits below the first screen. */
   loading?: 'eager' | 'lazy';
+  /** The seller's face sits lower than the photo: "eager" only on the first row. */
+  sellerLoading?: 'eager' | 'lazy';
 }
 
-const { item, saved = false, ratio = '1 / 1', loading } = Astro.props;
+const { item, saved = false, ratio = '1 / 1', loading, sellerLoading = 'lazy' } = Astro.props;
 const seller = sellerOf(item.id);
 const meta = [item.condition, where(item.km, item.area)].join(' · ');
 ---
@@ -45,7 +47,7 @@ const meta = [item.condition, where(item.km, item.area)].join(' · ');
     <p class="mt-1.5 truncate text-body-small text-faint">{meta}</p>
     <div class="h-2.5 shrink-0"></div>
     <div class="mt-auto flex items-center gap-1.5 border-t border-line pt-2.5">
-      <Photo src={img(seller.photo, 48, 48)} width={48} height={48} alt="" loading={loading} class="h-[18px] w-[18px] rounded-full object-cover" />
+      <Photo src={img(seller.photo, 48, 48)} width={48} height={48} alt="" loading={sellerLoading} class="h-[18px] w-[18px] rounded-full object-cover" />
       <span class="min-w-0 flex-1 truncate text-body-small text-sub">
         {seller.name}
         <Icon name="star-rounded" size={11} class="mb-px ml-1 inline text-star" />

@@ -28,7 +28,7 @@ const HREF: Record<string, string> = {
 ---
 
 <aside class="hidden self-start lg:sticky lg:top-[84px] lg:block">
-  <a href={R.me} class="glass glass-edge flex items-center gap-3 rounded-panel p-3">
+  <a href={R.me} class="border border-line bg-card flex items-center gap-3 rounded-panel p-3">
     <Photo src={img(ME.photo, 176, 176)} width={176} height={176} alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-card" />
     <span class="min-w-0">
       <span class="flex items-center gap-1 truncate text-title-small text-ink">
@@ -48,17 +48,17 @@ const HREF: Record<string, string> = {
             href={HREF[it.key]}
             aria-current={on ? 'page' : undefined}
             class:list={[
-              'flex h-10 items-center gap-3 rounded-full px-3 text-label-large',
-              on ? 'bg-ink text-on-ink' : 'text-ink hover:bg-card/80',
+              'flex h-9 items-center gap-2.5 rounded-sm px-2.5 text-body-large',
+              on ? 'bg-mint font-medium text-on-mint' : 'text-ink hover:bg-hover',
             ]}
           >
-            <Icon name={on ? it.icon.replace('-outline', '') : it.icon} size={20} />
+            <Icon name={on ? it.icon.replace('-outline', '') : it.icon} size={17} class={on ? 'text-brand' : 'text-sub'} />
             <span class="flex-1">{it.label}</span>
             {it.count && (
               <span
                 class:list={[
-                  'rounded-full px-2 text-label-small tabular-nums',
-                  on ? 'bg-white/20' : 'bg-surface-container-low text-on-surface-variant',
+                  'text-body-small tabular-nums',
+                  on ? 'text-on-mint' : 'text-faint',
                 ]}
               >
                 {it.count}

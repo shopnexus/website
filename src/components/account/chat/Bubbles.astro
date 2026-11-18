@@ -25,7 +25,7 @@ const n = texts.length;
       <div class:list={['group/msg flex max-w-[80%] items-center gap-1', mine && 'flex-row-reverse']}>
         <div
           class:list={[
-            'rounded-lg-plus px-3 py-2 text-body-large',
+            'rounded-card px-3 py-2 text-body-large',
             mine ? 'bg-teal text-white' : 'bg-card text-ink ring-1 ring-inset ring-line',
             i > 0 && (mine ? 'rounded-tr-xs' : 'rounded-tl-xs'),
             i < n - 1 && (mine ? 'rounded-br-xs' : 'rounded-bl-xs'),

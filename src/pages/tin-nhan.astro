@@ -29,10 +29,10 @@ const landmark = 'Ok bạn, chốt 5,1 tr nhé. Tối nay 19h gặp ở sảnh L
 const asked = 'AirPods để mình xem lại rồi báo bạn nha.';
 const unread = INBOX.filter((c) => c.unread).length;
 
-const pane = 'flex min-h-0 flex-col overflow-hidden rounded-panel glass glass-edge shadow-soft h-[calc(100dvh-176px)] min-h-[560px] lg:h-auto';
+const pane = 'flex min-h-0 flex-col overflow-hidden rounded-panel border border-line bg-card shadow-soft h-[calc(100dvh-176px)] min-h-[560px] lg:h-auto';
 const thread = 'no-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4';
 const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
-const ink = 'state-layer flex h-10 items-center justify-center gap-2 rounded-full bg-ink px-6 text-label-large text-on-ink';
+const ink = 'state-layer flex h-10 items-center justify-center gap-2 rounded-control bg-brand px-6 text-label-large text-white';
 const lead = 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant';
 const row = 'mt-1 flex items-baseline justify-between';
 const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden xl:flex';
@@ -43,7 +43,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
     <div
       class="mt-4 grid grid-cols-1 gap-4 lg:h-[calc(100dvh-96px)] lg:min-h-[760px] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)_312px]"
     >
-      <section class="glass glass-edge flex max-h-[70dvh] min-h-0 flex-col rounded-panel p-2 shadow-soft lg:max-h-none">
+      <section class="border border-line bg-card flex max-h-[70dvh] min-h-0 flex-col rounded-panel p-2 shadow-soft lg:max-h-none">
         <div class="flex items-center justify-between px-2 pt-2">
           <h1 class="text-j-26 text-ink">Tin nhắn</h1>
           <button type="button" class={iconBtn} aria-label="Tìm trong tin nhắn"><Icon name="search-rounded" size={22} /></button>
@@ -67,7 +67,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
                   data-deal={d.id}
                   data-title={d.title}
                   aria-selected={i === 0 ? 'true' : 'false'}
-                  class="state-layer flex h-8 shrink-0 items-center gap-2 rounded-full border border-outline-variant bg-card pl-1 pr-3 text-label-large text-on-surface-variant aria-selected:border-transparent aria-selected:bg-ink aria-selected:text-on-ink"
+                  class="state-layer flex h-8 shrink-0 items-center gap-2 rounded-control border border-outline-variant bg-card pl-1 pr-3 text-label-large text-on-surface-variant aria-selected:border-transparent aria-selected:bg-brand aria-selected:text-white"
                 >
                   <Photo src={d.chip} width={72} height={72} alt="" class="h-6 w-6 rounded-full object-cover" />
                   {d.short}
@@ -91,7 +91,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
               href="https://maps.google.com/?q=Landmark+81"
               target="_blank"
               rel="noopener"
-              class="state-layer mt-1 inline-flex h-9 items-center gap-1.5 rounded-full border border-outline-variant bg-card px-3.5 text-label-large text-on-surface"
+              class="state-layer mt-1 inline-flex h-9 items-center gap-1.5 rounded-control border border-outline-variant bg-card px-3.5 text-label-large text-on-surface"
             >
               <Icon name="auto-awesome-rounded" size={16} class="text-primary" />Sảnh Landmark 81<Icon
                 name="map-outline-rounded"
@@ -166,7 +166,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
               <div class="flex gap-2">
                 <button
                   type="button"
-                  class="state-layer flex h-10 items-center justify-center gap-2 rounded-full bg-tertiary-fixed px-6 text-label-large text-on-tertiary-fixed-variant"
+                  class="state-layer flex h-10 items-center justify-center gap-2 rounded-control bg-tertiary-fixed px-6 text-label-large text-on-tertiary-fixed-variant"
                 >
                   <Icon name="sell-outline-rounded" size={20} />Trả giá
                 </button>
@@ -180,7 +180,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
         <div data-blocked hidden class="m-3 flex items-center gap-3 rounded-tile bg-card py-2 pl-4 pr-2">
           <Icon name="block-rounded" size={20} class="text-on-surface-variant" />
           <p class="min-w-0 flex-1 text-body-medium text-on-surface-variant">Bạn đã chặn và báo cáo {SCAMMER.name}</p>
-          <button type="button" data-unblock class="state-layer h-10 rounded-full px-3 text-label-large text-primary">Bỏ chặn</button>
+          <button type="button" data-unblock class="state-layer h-10 rounded-control px-3 text-label-large text-primary">Bỏ chặn</button>
         </div>
       </section>
 

@@ -33,7 +33,7 @@ const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
     <Crumbs parts={[['Khám phá', R.home], ['Danh mục']]} class="pt-4" />
     <section class="mt-4 grid grid-cols-1 items-end gap-6 lg:grid-cols-[1fr_520px] lg:gap-8">
       <div>
-        <h1 class="text-j-40 text-ink lg:text-j-56">Danh mục</h1>
+        <h1 class="text-j-28 text-ink lg:text-j-32">Danh mục</h1>
         <p class="mt-2 text-body-large text-on-surface-variant">
           <b class="font-semibold text-ink tabular-nums">11</b> danh mục
         </p>
@@ -48,7 +48,7 @@ const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
         popular.map(([t, n]) => (
           <a
             href={`${R.search}?q=${encodeURIComponent(t)}`}
-            class="glass glass-edge flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
+            class="border border-line bg-card flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
           >
             {t}
             <span class="text-label-small text-on-surface-variant tabular-nums">{n}</span>
@@ -59,7 +59,7 @@ const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
 
     <section class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       {CATEGORY_INDEX.map((c) => <CategoryTile c={c} />)}
-      <article class="flex flex-col justify-between rounded-panel bg-gradient-to-br from-teal to-teal-mid p-5 text-white">
+      <article class="flex flex-col justify-between rounded-panel bg-brand p-5 text-white">
         <div>
           <p class="text-j-16">Không chắc thuộc mục nào?</p>
           <p class="mt-1 text-body-small text-white/80">Gõ một câu, hoặc chụp món đồ.</p>

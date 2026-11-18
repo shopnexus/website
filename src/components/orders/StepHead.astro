@@ -19,7 +19,7 @@ const { n, title, state } = Astro.props;
         <Icon name="check-rounded" size={20} />
       </span>
     ) : state === 'active' ? (
-      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-linear-to-br from-teal to-teal-light text-title-small text-white ring-4 ring-primary/15 tabular-nums">
+      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand text-title-small text-white ring-4 ring-primary/15 tabular-nums">
         {n}
       </span>
     ) : (

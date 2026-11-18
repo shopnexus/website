@@ -93,7 +93,7 @@ const select = `${input} appearance-none cursor-pointer`;
       {
         kinds.map((k) => (
           <label
-            class="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-label-large text-ink has-checked:border-transparent has-checked:bg-ink has-checked:text-on-ink"
+            class="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-label-large text-ink has-checked:border-transparent has-checked:bg-mint has-checked:text-on-mint"
           >
             <input type="radio" name="kind" value={k.label} class="sr-only" checked={k.label === editing.label} />
             <Icon name={k.icon} size={17} />

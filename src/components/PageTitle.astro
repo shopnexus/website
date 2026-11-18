@@ -11,7 +11,7 @@ const { title, meta, class: cls } = Astro.props;
 
 <div class:list={['flex flex-wrap items-end justify-between gap-x-6 gap-y-3', cls]}>
   <div>
-    <h1 class="text-j-32 text-ink lg:text-j-40"><slot name="title">{title}</slot></h1>
+    <h1 class="text-j-32 text-ink lg:text-j-28"><slot name="title">{title}</slot></h1>
     {meta && <p class="mt-1.5 text-body-medium text-on-surface-variant">{meta}</p>}
     <slot name="meta" />
   </div>

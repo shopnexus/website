@@ -42,13 +42,13 @@ const code = ['2', '8', '4', '9', '', ''];
   <main class={CONTENT}>
     <div class="mt-6 grid grid-cols-1 gap-8 lg:mt-8 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_480px] xl:gap-10">
       <section class="order-2 min-w-0 lg:order-1 lg:pt-4">
-        <h1 class="max-w-[640px] text-j-40 text-ink md:text-j-48 xl:text-j-56">
+        <h1 class="max-w-[640px] text-j-28 text-ink md:text-j-32 xl:text-j-32">
           Đồ cũ giá tốt,<br />xem hàng rồi mới trả.
         </h1>
         <div class="mt-6 flex flex-wrap gap-2">
           {
             promises.map(([icon, t]) => (
-              <span class="glass glass-edge flex h-10 items-center gap-2 rounded-full pl-3 pr-4 text-label-large text-ink">
+              <span class="border border-line bg-card flex h-10 items-center gap-2 rounded-full pl-3 pr-4 text-label-large text-ink">
                 <Icon name={icon} size={18} class="text-primary" />
                 {t}
               </span>
@@ -72,7 +72,7 @@ const code = ['2', '8', '4', '9', '', ''];
         <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
           {
             LOGIN_NEARBY.map((it) => (
-              <a href={R.listing(it.id)} class="lift block min-w-0 rounded-lg-plus border border-line bg-card p-1.5">
+              <a href={R.listing(it.id)} class="lift block min-w-0 rounded-card border border-line bg-card p-1.5">
                 <div class="relative overflow-hidden rounded-[15px]" style="aspect-ratio: 4 / 3">
                   <Photo src={img(it.photo, 360, 270)} width={360} height={270} alt={it.title} class="h-full w-full object-cover" />
                   <span class="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-white/85 px-2 py-0.5 text-label-small text-photo-ink backdrop-blur">
@@ -90,7 +90,7 @@ const code = ['2', '8', '4', '9', '', ''];
         </div>
       </section>
 
-      <section class="glass glass-edge order-1 self-start rounded-xl p-5 shadow-soft md:p-7 lg:order-2">
+      <section class="border border-line bg-card order-1 self-start rounded-card p-5 shadow-soft md:p-7 lg:order-2">
         {
           ended && (
             <div role="alert" class="mb-6 flex items-start gap-3 rounded-tile bg-white/70 p-3.5" data-ended>
@@ -103,7 +103,7 @@ const code = ['2', '8', '4', '9', '', ''];
               </div>
               <button
                 type="button"
-                class="state-layer h-8 shrink-0 rounded-full px-2.5 text-label-large text-primary"
+                class="state-layer h-8 shrink-0 rounded-control px-2.5 text-label-large text-primary"
                 onclick="this.closest('[data-ended]').remove()"
               >
                 Đã hiểu
@@ -134,13 +134,13 @@ const code = ['2', '8', '4', '9', '', ''];
               value="903 452 128"
               class="min-w-0 flex-1 bg-transparent text-body-large text-ink tabular-nums outline-none"
             />
-            <button type="button" class="state-layer h-9 shrink-0 rounded-full bg-ink px-4 text-label-large text-on-ink" data-send>Gửi mã</button>
+            <button type="button" class="state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-label-large text-white" data-send>Gửi mã</button>
           </div>
           <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
             <p class="flex items-center gap-1.5 text-body-small text-on-surface-variant">
               <Icon name="visibility-off-outline-rounded" size={16} />Người khác không thấy số của bạn.
             </p>
-            <button type="button" class="state-layer flex h-8 items-center gap-1 rounded-full px-2 text-label-large text-primary">
+            <button type="button" class="state-layer flex h-8 items-center gap-1 rounded-control px-2 text-label-large text-primary">
               <Icon name="mail-outline-rounded" size={16} />Dùng email
             </button>
           </div>
@@ -175,7 +175,7 @@ const code = ['2', '8', '4', '9', '', ''];
             class="text-primary hover:underline">Chính sách quyền riêng tư</a
           > của ShopNexus.
         </p>
-        <a href={next} class="state-layer mx-auto mt-2 flex h-10 w-fit items-center gap-1.5 rounded-full px-4 text-label-large text-primary">
+        <a href={next} class="state-layer mx-auto mt-2 flex h-10 w-fit items-center gap-1.5 rounded-control px-4 text-label-large text-primary">
           Xem trước, đăng nhập sau<Icon name="arrow-forward-rounded" size={18} />
         </a>
       </section>

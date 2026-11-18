@@ -32,7 +32,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
 ---
 
 <dialog
-  class="quickchat fixed inset-x-0 bottom-0 top-auto m-0 flex h-[min(640px,88dvh)] w-full max-w-none flex-col overflow-hidden rounded-t-xl bg-page p-0 text-ink shadow-float backdrop:bg-black/30 lg:inset-x-auto lg:bottom-5 lg:right-6 lg:h-[520px] lg:w-[380px] lg:rounded-xl lg:bg-card lg:shadow-lift [&:not([open])]:hidden"
+  class="quickchat fixed inset-x-0 bottom-0 top-auto m-0 flex h-[min(640px,88dvh)] w-full max-w-none flex-col overflow-hidden rounded-t-xl bg-page p-0 text-ink shadow-float backdrop:bg-black/30 lg:inset-x-auto lg:bottom-5 lg:right-6 lg:h-[520px] lg:w-[380px] lg:rounded-card lg:bg-card lg:shadow-lift [&:not([open])]:hidden"
   aria-label={`Chat với ${seller.name}`}
   data-qc
   data-price={price}
@@ -67,7 +67,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
   <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto px-3 pb-2" data-qc-chips>
     {
       questions.map((q) => (
-        <button type="button" class="state-layer h-8 shrink-0 rounded-full border border-line bg-card px-3 text-label-medium" data-qc-ask={q}>
+        <button type="button" class="state-layer h-8 shrink-0 rounded-control border border-line bg-card px-3 text-label-medium" data-qc-ask={q}>
           {q}
         </button>
       ))
@@ -139,7 +139,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
 
 <button
   type="button"
-  class="state-layer fixed bottom-5 right-6 z-40 hidden h-12 items-center gap-2 rounded-full bg-card pl-1.5 pr-4 text-label-large text-ink shadow-lift max-lg:!hidden"
+  class="state-layer fixed bottom-5 right-6 z-40 hidden h-12 items-center gap-2 rounded-control bg-card pl-1.5 pr-4 text-label-large text-ink shadow-lift max-lg:!hidden"
   data-qc-pill
 >
   <Photo src={seller.photo} width={80} height={80} alt="" loading="lazy" class="h-9 w-9 rounded-full object-cover" />
@@ -147,7 +147,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
 </button>
 
 <template data-qc-mine>
-  <p class="max-w-[82%] self-end rounded-lg-plus bg-teal px-3 py-2 text-body-medium text-white"></p>
+  <p class="max-w-[82%] self-end rounded-card bg-teal px-3 py-2 text-body-medium text-white"></p>
 </template>
 <template data-qc-price>
   <p class="flex h-10 items-center gap-2 self-end rounded-full border border-brand/30 bg-mint pl-3 pr-4 text-title-small text-on-mint tabular-nums">

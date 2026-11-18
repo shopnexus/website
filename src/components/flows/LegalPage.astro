@@ -21,7 +21,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 <Crumbs parts={[['Trợ giúp và an toàn', R.help], [title]]} class="pt-6" />
 <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
   <div>
-    <h1 class="text-j-40 text-ink lg:text-j-44">{title}</h1>
+    <h1 class="text-j-28 text-ink lg:text-j-30">{title}</h1>
     <p class="mt-2 text-body-medium text-on-surface-variant">Cập nhật ngày {updated} · {sections.length} mục</p>
   </div>
   <div class="flex gap-2">
@@ -31,7 +31,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 </div>
 
 <div class="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[230px_1fr] xl:grid-cols-[260px_1fr_320px]">
-  <nav class="glass glass-edge hidden flex-col gap-0.5 rounded-panel p-2 lg:sticky lg:top-[84px] lg:flex" aria-label="Mục lục" data-toc>
+  <nav class="border border-line bg-card hidden flex-col gap-0.5 rounded-panel p-2 lg:sticky lg:top-[84px] lg:flex" aria-label="Mục lục" data-toc>
     {
       sections.map(([t], i) => (
         <a

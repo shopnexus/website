@@ -40,17 +40,17 @@ const stats = [
   ['4 bước', 'chốt giá tới đánh giá'],
   ['GHTK · GHN', 'hãng của người bán'],
 ];
-const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-teal-light text-title-small text-white tabular-nums';
+const badge = 'grid place-items-center rounded-full bg-brand text-title-small text-white tabular-nums';
 ---
 
 <Layout title="Cách mua · ShopNexus" description="Cách mua đồ cũ trên ShopNexus: chốt giá, tạo đơn COD, nhận hàng và đánh giá." section="how">
   <main class={CONTENT}>
     <section class="grid grid-cols-1 items-center gap-8 pt-8 lg:grid-cols-[1fr_440px] lg:pt-10 xl:grid-cols-[1fr_520px] xl:gap-12">
       <div class="min-w-0">
-        <span class="glass glass-edge inline-flex items-center gap-2 rounded-full px-3 py-1 text-label-medium text-ink">
+        <span class="border border-line bg-card inline-flex items-center gap-2 rounded-full px-3 py-1 text-label-medium text-ink">
           <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Cách mua trên ShopNexus
         </span>
-        <h1 class="mt-4 text-j-40 text-ink md:text-j-52 xl:text-j-60">
+        <h1 class="mt-4 text-j-28 text-ink md:text-j-32 xl:text-j-32">
           Xem hàng tận tay,<br />rồi mới trả tiền.
         </h1>
         <div class="mt-6 flex flex-wrap gap-2">
@@ -60,7 +60,7 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
         <div class="mt-8 grid max-w-[560px] grid-cols-1 gap-2 md:grid-cols-2">
           {
             stats.map(([v, l]) => (
-              <div class="glass glass-edge rounded-tile px-4 py-3">
+              <div class="border border-line bg-card rounded-tile px-4 py-3">
                 <p class="text-j-24 text-ink tabular-nums">{v}</p>
                 <p class="text-body-small text-on-surface-variant">{l}</p>
               </div>
@@ -157,16 +157,16 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
           }
         </ul>
       </div>
-      <div class="rounded-panel bg-ink p-6">
-        <h2 class="text-j-20 text-on-ink">ShopNexus không làm</h2>
+      <div class="rounded-panel border border-line bg-card p-6">
+        <h2 class="text-j-20 text-ink">ShopNexus không làm</h2>
         <ul class="mt-4 flex flex-col gap-4">
           {
             HOW_DONT.map((d) => (
               <li class="flex gap-3">
-                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-on-ink/10 text-inverse-primary">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-soft text-sub">
                   <Icon name={d.icon} size={20} />
                 </span>
-                <p class="pt-2 text-body-medium text-on-ink/85">{d.text}</p>
+                <p class="pt-2 text-body-medium text-sub">{d.text}</p>
               </li>
             ))
           }
@@ -180,12 +180,12 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
         <p class="text-body-medium text-on-surface-variant">
           Chưa thấy câu bạn cần? Gửi yêu cầu trong Hỗ trợ, ShopNexus trả lời trong chat.
         </p>
-        <div class="relative mt-auto overflow-hidden rounded-panel bg-linear-to-br from-teal to-teal-mid p-5 text-white">
+        <div class="relative mt-auto overflow-hidden rounded-panel bg-brand p-5 text-white">
           <p class="text-j-20">Có đồ cũ muốn bán?</p>
           <p class="mt-1 max-w-[200px] text-body-medium text-white/80">Tải vài tấm ảnh lên, AI điền giúp tên, tình trạng và giá.</p>
           <a
             href={R.post}
-            class="state-layer mt-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-label-large text-primary"
+            class="state-layer mt-4 inline-flex h-10 items-center gap-1.5 rounded-control bg-white px-4 text-label-large text-primary"
           >
             <Icon name="add-rounded" size={18} />Đăng tin
           </a>

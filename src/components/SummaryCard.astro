@@ -11,7 +11,7 @@ interface Props {
 const { title, points, icon = 'summarize-outline-rounded' } = Astro.props;
 ---
 
-<div class="rounded-panel bg-linear-150 from-primary to-teal-mid p-5 text-white">
+<div class="rounded-panel bg-brand p-5 text-white">
   <p class="flex items-center gap-2 text-label-large text-mint-on-teal"><Icon name={icon} size={18} />{title}</p>
   <ul class="mt-3 flex flex-col gap-2.5">
     {

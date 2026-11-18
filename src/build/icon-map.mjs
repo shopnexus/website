@@ -15,7 +15,7 @@ export const RI = {
   'apparel-outline-rounded': 't-shirt-line',
   'arrow-downward-rounded': 'arrow-down-line',
   'arrow-forward-rounded': 'arrow-right-line',
-  'auto-awesome-rounded': 'sparkling-line',
+  'auto-awesome-rounded': 'lightbulb-line',
   'autorenew-rounded': 'loop-right-line',
   'badge-outline-rounded': 'profile-line',
   'balance-rounded': 'scales-3-line',

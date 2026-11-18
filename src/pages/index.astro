@@ -64,7 +64,7 @@ const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], L
           <span class="hidden pb-2 text-body-small text-faint md:block">Gần thì ghi km, xa thì ghi nơi bán</span>
         </div>
         <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" aria-live="polite" data-feed-grid>
-          {feed.items.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} loading={i < 8 ? 'eager' : 'lazy'} />)}
+          {feed.items.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} loading={i < 8 ? 'eager' : 'lazy'} sellerLoading={i < 4 ? 'eager' : 'lazy'} />)}
         </div>
         <div class="mt-8 flex justify-center">
           <a

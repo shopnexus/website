@@ -30,7 +30,7 @@ if (v instanceof Response) return v;
       <div class:list={[PANEL, 'p-5']}>
         <p class="text-title-small text-ink">Đơn COD đang mở</p>
         <p class="mt-2">
-          <span class="text-j-44 text-ink tabular-nums" data-count>{OPEN_COD.open}</span><span class="text-title-large text-on-surface-variant"
+          <span class="text-j-30 text-ink tabular-nums" data-count>{OPEN_COD.open}</span><span class="text-title-large text-on-surface-variant"
             >/{OPEN_COD.limit}</span
           >
         </p>
@@ -38,7 +38,7 @@ if (v instanceof Response) return v;
           {
             Array.from({ length: OPEN_COD.limit }, (_, i) => (
               <span
-                class:list={['h-2 flex-1 rounded-full', i < OPEN_COD.open ? 'bg-linear-to-r from-teal to-teal-light' : 'bg-surface-container-high']}
+                class:list={['h-2 flex-1 rounded-full', i < OPEN_COD.open ? 'bg-brand' : 'bg-surface-container-high']}
               />
             ))
           }
@@ -55,8 +55,8 @@ if (v instanceof Response) return v;
           ))
         }
       </div>
-      <div class="glass glass-edge flex items-center gap-3 rounded-panel p-4">
-        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-linear-to-br from-teal to-teal-light text-white">
+      <div class="border border-line bg-card flex items-center gap-3 rounded-panel p-4">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-white">
           <Icon name="storefront-outline-rounded" size={20} />
         </span>
         <p class="min-w-0 flex-1 text-body-medium text-ink"><b class="font-semibold">1 đơn bán</b> chờ bạn tạo đơn</p>
