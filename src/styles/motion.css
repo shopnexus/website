@@ -352,18 +352,47 @@ details[data-faq] {
 }
 
 /* --------------------------------------------------------- the gallery -- */
-/* A thumbnail zooms a little on hover; page-motion.ts settles the big photo
-   in after a swap. */
-[data-gallery] [data-big] img {
+/* Gallery.astro: one photo per frame width, snapping one at a time. The side
+   arrows show on hover with a mouse and are gone on a touch screen, where the
+   row swipes. The dot in view stretches; thumbnails zoom a little on hover. */
+.gallery-track {
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  & > * {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+}
+.gallery-arrow {
+  opacity: 0;
+  transition:
+    opacity var(--duration-effects-default) var(--ease-effects),
+    scale var(--duration-spatial-fast) var(--ease-spatial-fast);
+}
+[data-gallery] .group:hover .gallery-arrow:not(:disabled),
+.gallery-arrow:focus-visible {
+  opacity: 1;
+}
+@media (pointer: coarse) {
+  .gallery-arrow {
+    display: none;
+  }
+}
+.gallery-dot {
+  transition:
+    width var(--duration-spatial-default) var(--ease-spatial),
+    background-color var(--duration-effects-default) var(--ease-effects);
+  &[data-on] {
+    width: 1rem;
+    background-color: #fff;
+  }
+}
+[data-gallery] [data-thumb] img {
   transition: scale var(--duration-spatial-default) var(--ease-spatial);
 }
-[data-gallery] [data-big]:hover img {
+[data-gallery] [data-thumb]:hover img {
   scale: 1.06;
-}
-[data-gallery] [data-big] {
-  transition:
-    opacity var(--duration-effects-fast) var(--ease-effects),
-    box-shadow var(--duration-spatial-fast) var(--ease-spatial-fast);
 }
 
 /* ------------------------------------------------------ smooth anchors -- */

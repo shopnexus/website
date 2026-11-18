@@ -1,6 +1,6 @@
 // The scripted micro-interactions, imported by Layout.astro on every page:
-// the save heart, figures counting up, share on a listing and the gallery
-// swap. src/styles/motion.css holds the rest, the parts CSS does without a script.
+// the save heart, figures counting up and share on a listing.
+// src/styles/motion.css holds the rest, the parts CSS does without a script.
 import { animate, inView } from 'motion';
 import { SPRING, reducedMotion } from '../lib/motion';
 import { R } from '../lib/routes';
@@ -70,22 +70,4 @@ document.addEventListener('click', async (e) => {
   } catch {
     snack({ text: 'Không sao chép được link', icon: 'error-outline-rounded', error: true });
   }
-});
-
-// A gallery thumbnail swaps the big photo once the new one has decoded, and
-// the photo settles in from a slight zoom.
-document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
-  const big = g.querySelector<HTMLImageElement>('[data-main]');
-  if (!big) return;
-  g.addEventListener('click', async (e) => {
-    const t = (e.target as Element).closest<HTMLButtonElement>('[data-big]');
-    if (!t || t.getAttribute('aria-pressed') === 'true') return;
-    g.querySelectorAll('[data-big]').forEach((x) => x.setAttribute('aria-pressed', String(x === t)));
-    const next = new Image();
-    next.src = t.dataset.big!;
-    await next.decode().catch(() => {});
-    big.removeAttribute('srcset');
-    big.src = next.src;
-    if (!reducedMotion()) animate(big, { opacity: [0.35, 1], scale: [1.03, 1] }, SPRING.spatial);
-  });
 });

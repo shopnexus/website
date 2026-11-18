@@ -9,6 +9,7 @@ import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
 import AreaMap from '../../components/public/AreaMap.astro';
+import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import RangeBar from '../../components/public/RangeBar.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
@@ -113,35 +114,7 @@ const ld = {
 
         <div class="mt-3 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
           <div class="min-w-0">
-            <div class="rounded-xl border border-line bg-card p-2" data-gallery>
-              <div class="relative overflow-hidden rounded-card" style="aspect-ratio: 16 / 10.5">
-                <Photo src={photos[0].big} width={1200} height={1200} alt={title} class="h-full w-full object-cover" data-main />
-                <span class="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
-                  <Icon name="photo-camera-outline-rounded" size={15} />
-                  Cả {photos.length} ảnh chụp trong app
-                </span>
-                <button
-                  type="button"
-                  class="state-layer absolute bottom-3 right-3 flex h-9 items-center gap-1.5 rounded-full bg-white/85 px-3.5 text-label-large text-photo-ink backdrop-blur"
-                >
-                  <Icon name="fullscreen-rounded" size={18} />
-                  Xem {photos.length} ảnh
-                </button>
-              </div>
-              <div class="mt-2 grid grid-cols-5 gap-2">
-                {photos.map((p, i) => (
-                  <button
-                    type="button"
-                    data-big={p.big}
-                    aria-pressed={i === 0 ? 'true' : 'false'}
-                    aria-label={`Ảnh ${i + 1}`}
-                    class="overflow-hidden rounded-lg opacity-90 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
-                  >
-                    <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            </div>
+            <Gallery photos={photos} title={title} />
 
             <div class="mt-4 flex flex-col gap-4">
               <div class:list={[PANEL, 'p-5']}>

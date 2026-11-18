@@ -63,7 +63,11 @@ const { title, description, section = null, search, footer = true, fab = true, i
         img.dataset.loaded = '';
         vt.finished.finally(() => (img.style.viewTransitionName = ''));
       };
-      const gallery = () => document.querySelector('[data-gallery] [data-main]');
+      // The gallery photo in view (Gallery.astro): the first one on arrival.
+      const gallery = () => {
+        const t = document.querySelector('[data-gallery] [data-slides]');
+        return t ? (t.children[Math.round(t.scrollLeft / Math.max(1, t.clientWidth))] ?? t.children[0]) : null;
+      };
       addEventListener('pageswap', (e) => {
         if (!e.viewTransition || !e.activation?.entry?.url) return;
         const to = new URL(e.activation.entry.url);

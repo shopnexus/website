@@ -132,8 +132,13 @@ every page.
 - Dialogs scale up from 96 % over a fading backdrop and leave the same way.
   The ⋮ menus and the "Gỡ liên kết" confirm drop in from their button. A FAQ
   answer slides open.
-- In the gallery a thumbnail zooms a little on hover, and the big photo
-  settles in from 103 % once the new one has decoded.
+- The listing gallery (`Gallery.astro`) is a row of every photo, one per
+  frame width. It swipes on a touch screen and pages with side arrows that
+  show on hover with a mouse; a counter, dots on a phone and thumbnails from
+  medium up follow it, and the arrow keys move it once it has focus. "Xem N
+  ảnh" opens a full-window viewer on the same photo, and closing it leaves
+  the gallery on the photo the viewer ended on. Going back from the listing
+  flies the photo in view, not the first one, into its card.
 - The header gets a 1 px `line` edge once the page has scrolled 48 px under
   it.
 - While a feed page is on its way, `ListingSkeleton` cards hold its place:
