@@ -28,14 +28,14 @@ const popular: [string, string][] = [
 const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
 ---
 
-<Layout title="Danh mục · ShopNexus" description="Mọi danh mục đồ cũ trên ShopNexus, với số tin và tin mới hôm nay." section="categories">
+<Layout title="Danh mục · ShopNexus" description="Mọi danh mục đồ cũ trên ShopNexus và số tin." section="categories">
   <main class={CONTENT}>
     <Crumbs parts={[['Khám phá', R.home], ['Danh mục']]} class="pt-4" />
     <section class="mt-4 grid grid-cols-1 items-end gap-6 lg:grid-cols-[1fr_520px] lg:gap-8">
       <div>
         <h1 class="text-j-40 text-ink lg:text-j-56">Danh mục</h1>
         <p class="mt-2 text-body-large text-on-surface-variant">
-          <b class="font-semibold text-ink tabular-nums">11</b> danh mục · <b class="font-semibold text-ink tabular-nums">1.904</b> món mới hôm nay
+          <b class="font-semibold text-ink tabular-nums">11</b> danh mục
         </p>
       </div>
       <SearchField placeholder="Tìm trong mọi danh mục: xe đẩy gấp gọn, dưới 1 triệu" />
