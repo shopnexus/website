@@ -16,9 +16,12 @@ interface Props {
   noun: string;
   /** The default query's extra lines: "+9 hôm nay", the model's note, median and nearby count. */
   summary?: boolean;
+  /** Quanh tôi: the distance asked for and the one shown (null: every distance). */
+  near?: { asked: number; shown: number | null };
 }
 
-const { items, total, noun, summary = false } = Astro.props;
+const { items, total, noun, summary = false, near } = Astro.props;
+const widened = near && near.shown !== near.asked;
 const shown = items.slice(0, 12);
 ---
 
@@ -84,6 +87,14 @@ const shown = items.slice(0, 12);
       </div>
     </div>
 
+    {
+      widened && (
+        <p class="mt-4 flex items-center gap-2 px-2 text-body-medium text-on-surface-variant">
+          <Icon name="near-me-outline-rounded" size={18} class="text-primary" />
+          Chưa có tin trong {near.asked} km · đang hiện {near.shown ? `tin trong ${near.shown} km` : 'tin ở mọi nơi'}
+        </p>
+      )
+    }
     <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" data-grid>
       {
         shown.map((it, i) => (
@@ -115,7 +126,7 @@ const shown = items.slice(0, 12);
       {shown.map((it) => <ResultRow item={it} />)}
     </div>
 
-    <nav class="mt-8 flex items-center justify-center gap-1" aria-label="Trang">
+    <nav class:list={['mt-8 flex items-center justify-center gap-1', total <= shown.length && 'hidden']} aria-label="Trang">
       {
         ['1', '2', '3', '…', '11'].map((n) =>
           n === '…' ? (

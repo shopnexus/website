@@ -9,7 +9,6 @@ export const R = {
   category: (slug: string) => `/danh-muc/${slug}`, // category
   listing: (id: string) => `/tin/${id}`, // detail-c, not-found
   seller: (id: string) => `/nguoi-ban/${id}`, // seller
-  map: '/ban-do', // map
   how: '/cach-mua', // how
   sell: '/cach-dang-tin', // sell
   cod: '/giao-cod', // cod; redirects to the dialog in Tin nhắn
@@ -40,7 +39,6 @@ export const R = {
 /** Footer and other link lists, by label. */
 export const LINK: Record<string, string> = {
   'Dành cho bạn': R.home,
-  'Bản đồ': R.map,
   'Danh mục': R.categories,
   'Mới nhất': `${R.search}?sap-xep=moi`,
   'Cách mua bằng COD': R.how,

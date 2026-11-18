@@ -1,5 +1,5 @@
 // Mock content for the public pages (Tìm kiếm, Danh mục, Chi tiết tin, Người
-// bán, Bản đồ, Tìm bằng ảnh, 404), from .superdesign/tools: build.py,
+// bán, Tìm bằng ảnh, 404), from .superdesign/tools: build.py,
 // build_c.py, build_pages.py, build_seller_map.py and build_j_public.py.
 
 import type { Listing } from '../lib/format';
@@ -244,7 +244,7 @@ export const SELLING: Listing[] = [
   }
 ];
 
-/** Bản đồ's list of listings in view. */
+/** More listings around Bình Thạnh, for search and the listing pages. */
 export const IN_VIEW: Listing[] = [
   {
     "id": "v1",

@@ -8,7 +8,7 @@ import { R } from '../lib/routes';
 import { viewer } from '../lib/session';
 import Icon from './Icon.astro';
 
-export type Section = 'explore' | 'categories' | 'map' | 'how';
+export type Section = 'explore' | 'categories' | 'how';
 
 interface Props {
   section: Section | null;
@@ -20,7 +20,6 @@ const me = viewer(Astro);
 const nav: [Section, string, string][] = [
   ['explore', 'Khám phá', R.home],
   ['categories', 'Danh mục', R.categories],
-  ['map', 'Bản đồ', R.map],
   ['how', 'Cách mua', R.how],
 ];
 ---

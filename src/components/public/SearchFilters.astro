@@ -1,7 +1,7 @@
 ---
 // Tìm kiếm's filter panel: price histogram with the median, brands, Tình
-// trạng, distance, and the map.
-import { R } from '../../lib/routes';
+// trạng, and the distance from where the buyer is, which they can change.
+import { HERE, NEAR_STEPS, nearParam } from '../../lib/near';
 import Icon from '../Icon.astro';
 import Seg from '../Seg.astro';
 
@@ -13,7 +13,14 @@ const brands: [string, number, boolean][] = [
   ['HP', 6, false],
   ['ASUS', 4, false],
 ];
-const km = ['Mọi nơi', '2 km', '5 km', '10 km', '20 km'];
+// Each distance is a link to this search with ?gan= set (or cleared for Mọi nơi).
+const picked = nearParam(Astro.url);
+const distances = [null, ...NEAR_STEPS].map((d) => {
+  const u = new URL(Astro.url);
+  if (d) u.searchParams.set('gan', String(d));
+  else u.searchParams.delete('gan');
+  return { label: d ? `${d} km` : 'Mọi nơi', href: u.pathname + u.search, on: d === picked };
+});
 const group = 'border-b border-line py-4';
 ---
 
@@ -75,37 +82,46 @@ const group = 'border-b border-line py-4';
   </div>
   <div class="py-4">
     <p class="text-title-small text-ink">Khoảng cách</p>
-    <div class="mt-3 flex flex-wrap gap-1.5" data-pick>
+    <div class="mt-3 flex flex-wrap gap-1.5">
       {
-        km.map((d, i) => (
-          <button
-            type="button"
-            aria-pressed={i === 0 ? 'true' : 'false'}
-            class="rounded-full border border-line px-3 py-1 text-label-large text-on-surface-variant aria-pressed:border-transparent aria-pressed:bg-ink aria-pressed:text-on-ink"
+        distances.map((d) => (
+          <a
+            href={d.href}
+            aria-current={d.on ? 'true' : undefined}
+            class="rounded-full border border-line px-3 py-1 text-label-large text-on-surface-variant hover:bg-surface-container-low aria-[current]:border-transparent aria-[current]:bg-ink aria-[current]:text-on-ink"
           >
-            {d}
-          </button>
+            {d.label}
+          </a>
         ))
       }
     </div>
-  </div>
-  <div class="-mx-1 mb-4">
-    <a
-      href={R.map}
-      class="state-layer flex h-11 items-center justify-center gap-2 rounded-full bg-secondary-container text-label-large text-on-secondary-container"
-    >
-      <Icon name="map-outline-rounded" size={18} />Xem 126 tin trên bản đồ
-    </a>
+    <details class="group mt-3">
+      <summary class="flex cursor-pointer list-none items-center gap-1.5 text-body-small text-on-surface-variant [&::-webkit-details-marker]:hidden">
+        <Icon name="location-on-outline-rounded" size={16} />
+        <span class="min-w-0 flex-1 truncate">Quanh {HERE}</span>
+        <span class="text-label-large text-primary group-open:hidden">Đổi</span>
+      </summary>
+      <input
+        name="noi"
+        aria-label="Quận, huyện hoặc tỉnh"
+        placeholder="Quận, huyện hoặc tỉnh"
+        class="mt-2 block w-full rounded-full bg-surface-container-low px-3 py-1.5 text-body-medium text-ink outline-none"
+      />
+      <button type="button" data-here class="state-layer mt-1.5 flex h-9 items-center gap-1.5 rounded-full px-2 text-label-large text-primary">
+        <Icon name="my-location-outline-rounded" size={18} />Dùng vị trí hiện tại
+      </button>
+    </details>
   </div>
 </aside>
 
 <script>
-  // One choice per group of pills.
-  document.querySelectorAll<HTMLElement>('[data-pick]').forEach((g) =>
-    g.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest('button');
-      if (!b) return;
-      g.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  // "Dùng vị trí hiện tại" asks the browser for its location and folds the
+  // picker. Until the server's search is wired, the place stays the mock's.
+  document.querySelectorAll<HTMLButtonElement>('[data-here]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const close = () => b.closest('details')?.removeAttribute('open');
+      if (navigator.geolocation) navigator.geolocation.getCurrentPosition(close, close);
+      else close();
     }),
   );
 </script>

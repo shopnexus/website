@@ -15,6 +15,7 @@ import Layout from '../layouts/Layout.astro';
 import { EXTRA_RESULTS, QUERY_PHOTO, RESULTS, SEARCH_QUERY, SEARCH_RESULTS } from '../data/listings';
 import { ALL_LISTINGS, EMPTY_QUERY, PHONES } from '../data/public';
 import type { Listing } from '../lib/format';
+import { nearby, nearParam } from '../lib/near';
 import { R } from '../lib/routes';
 
 const raw = (Astro.url.searchParams.get('q') ?? '').trim();
@@ -35,6 +36,10 @@ if (isDefault) {
     .sort((a, b) => b.hits - a.hits)
     .map((x) => x.it);
 }
+// Quanh tôi (?gan=): only listings that close, widening when there are none.
+const km = nearParam(Astro.url);
+const near = km && items.length ? nearby(items, km) : null;
+if (near) items = near.items;
 const empty = items.length === 0;
 const full = raw.toLowerCase() === EMPTY_QUERY.toLowerCase();
 const photo = isDefault ? QUERY_PHOTO : full ? PHONES[0].photo : undefined;
@@ -60,14 +65,20 @@ const without = (c: string) => `${R.search}?q=${encodeURIComponent(chips.filter(
         </FilterRow>
       </SearchEmpty>
     ) : (
-      <SearchResults items={items} total={isDefault ? 126 : items.length} noun={isDefault ? 'laptop khớp' : 'tin khớp'} summary={isDefault}>
+      <SearchResults
+        items={items}
+        total={isDefault && !near ? 126 : items.length}
+        noun={isDefault ? 'laptop khớp' : 'tin khớp'}
+        summary={isDefault && !near}
+        near={near && km ? { asked: km, shown: near.shown } : undefined}
+      >
         <FilterRow>
           {chips.map((c) => (
             <AiChip slot="chips" label={c} remove={without(c)} />
           ))}
           <Drop label="Tình trạng" count={isDefault ? 2 : undefined} />
           <Drop label="Hãng" count={isDefault ? 2 : undefined} />
-          <Drop label="Mọi khu vực" />
+          <Drop label={km ? `Quanh tôi · ${km} km` : 'Mọi nơi'} on={!!km} />
           <Drop label="Trả giá được" />
         </FilterRow>
       </SearchResults>
