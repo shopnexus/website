@@ -1,0 +1,70 @@
+---
+// Home's left rail from expanded up (K2, after ai-portal's sidebar): every
+// category with its count, then the buyer's own lists, then how COD works.
+// Signed out, the lists are this browser's recent searches.
+import artCod from '@brand/art_cod_ready.webp';
+import { CATEGORY_INDEX } from '../../data/public';
+import { R } from '../../lib/routes';
+import Icon from '../Icon.astro';
+import Photo from '../Photo.astro';
+
+interface Props {
+  signedIn: boolean;
+}
+
+const { signedIn } = Astro.props;
+const row = 'state-layer flex h-9 items-center gap-2.5 rounded-sm px-2.5 text-body-large text-ink hover:bg-hover';
+const searches: [string, string?][] = signedIn
+  ? [['Sony A7 III dưới 25 triệu', '3'], ['iPhone 13 pin trên 85%', '1'], ['Xe đạp cho bé 8 tuổi']]
+  : [['iPhone 13 pin trên 85%'], ['sofa 3 chỗ'], ['xe đạp cho bé 8 tuổi']];
+---
+
+<aside class="sticky top-[88px] hidden self-start lg:block" aria-label="Danh mục và tìm kiếm của bạn">
+  <p class="px-2.5 text-body-small text-faint">Danh mục</p>
+  <nav class="mt-1.5 flex flex-col">
+    {
+      CATEGORY_INDEX.map((c) => (
+        <a href={R.category(c.slug)} class={row}>
+          <Icon name={c.icon} size={17} class="text-sub" />
+          <span class="flex-1 truncate">{c.name}</span>
+          <span class="text-body-small text-faint tabular-nums">{c.count}</span>
+        </a>
+      ))
+    }
+  </nav>
+  <div class="my-4 border-t border-line"></div>
+  <p class="px-2.5 text-body-small text-faint">{signedIn ? 'Tìm đã lưu' : 'Tìm gần đây'}</p>
+  <nav class="mt-1.5 flex flex-col">
+    {
+      searches.map(([q, n]) => (
+        <a href={`${R.search}?q=${encodeURIComponent(q)}`} class={row}>
+          <Icon name={signedIn ? 'notifications-outline-rounded' : 'history-rounded'} size={16} class="text-sub" />
+          <span class="flex-1 truncate">{q}</span>
+          {n && <span class="rounded-full bg-mint px-1.5 text-label-small text-on-mint tabular-nums">{n}</span>}
+        </a>
+      ))
+    }
+    {
+      signedIn && (
+        <>
+          <a href={R.saved} class={row}>
+            <Icon name="favorite-outline-rounded" size={16} class="text-sub" />
+            <span class="flex-1">Tin đã lưu</span>
+            <span class="text-body-small text-faint tabular-nums">13</span>
+          </a>
+          <a href={R.myListings} class={row}>
+            <Icon name="storefront-outline-rounded" size={16} class="text-sub" />
+            <span class="flex-1">Tin của bạn</span>
+            <span class="text-body-small text-faint tabular-nums">5</span>
+          </a>
+        </>
+      )
+    }
+  </nav>
+  <div class="my-4 border-t border-line"></div>
+  <a href={R.how} class="block rounded-md bg-mint p-3.5 hover:brightness-[.98]">
+    <Photo src={artCod} alt="" width={184} height={184} class="mx-auto h-[92px] w-auto" />
+    <span class="mt-2 block text-title-small text-on-mint">Mua bằng COD</span>
+    <span class="block text-body-small text-on-mint/80">Xem hàng rồi mới trả tiền</span>
+  </a>
+</aside>

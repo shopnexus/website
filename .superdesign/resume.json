@@ -1039,6 +1039,60 @@
           "visualDirection": "J; mockups/quickchat-mobile.html"
         }
       }
+    },
+    "#quiet-redesign": {
+      "targetKind": "redesign",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "activeDraftId": "f16739a0-b14f-4b4a-935b-bcdc5f67d06c",
+      "designSystemPath": ".superdesign/design-system.md",
+      "drafts": {
+        "7ad5354f-4934-4a2a-9e38-a9c02b34a0d4": {
+          "title": "K. Gọn · Trang chủ",
+          "currentVersion": 2,
+          "visualDirection": "tools/build_quiet.py (2026-11-18, candidate to replace J)"
+        },
+        "c1e9ba7d-3632-4544-8ce3-f6681f8b5308": {
+          "title": "K. Gọn · Tìm kiếm",
+          "currentVersion": 2,
+          "visualDirection": "tools/build_quiet.py (2026-11-18, candidate to replace J)"
+        },
+        "7bf2c6bc-ecd1-49a4-aba7-423473ba3db3": {
+          "title": "K. Gọn · Chi tiết tin",
+          "currentVersion": 3,
+          "visualDirection": "tools/build_quiet.py (2026-11-18, candidate to replace J)"
+        },
+        "83db25a4-3dac-4585-bc30-71defa9e1c40": {
+          "title": "L. Thoáng · Trang chủ",
+          "currentVersion": 1,
+          "visualDirection": "tools/build_quiet.py (2026-11-18, candidate to replace J)"
+        },
+        "639e9f16-3bcf-4e23-958f-db6fd080ccf1": {
+          "title": "L. Thoáng · Tìm kiếm",
+          "currentVersion": 1,
+          "visualDirection": "tools/build_quiet.py (2026-11-18, candidate to replace J)"
+        },
+        "ed25ba86-179a-441a-80d3-b39af4158653": {
+          "title": "L. Thoáng · Chi tiết tin",
+          "currentVersion": 1,
+          "visualDirection": "tools/build_quiet.py (2026-11-18, candidate to replace J)"
+        },
+        "f16739a0-b14f-4b4a-935b-bcdc5f67d06c": {
+          "title": "K2. Gọn kiểu ai-portal · Trang chủ",
+          "currentVersion": 2,
+          "visualDirection": "tools/build_k2.py (K2 detailed, brand teal)"
+        },
+        "d95a3f04-fd92-42ce-ab44-8f60bd0e789f": {
+          "title": "K2. Gọn kiểu ai-portal · Tìm kiếm",
+          "currentVersion": 2,
+          "visualDirection": "tools/build_k2.py (K2 detailed, brand teal)"
+        },
+        "2ed3dd84-7233-4ff0-91d1-94795a44c600": {
+          "title": "K2. Gọn kiểu ai-portal · Chi tiết tin",
+          "currentVersion": 2,
+          "visualDirection": "tools/build_k2.py (K2 detailed, brand teal)"
+        }
+      }
     }
   }
 }

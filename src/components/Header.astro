@@ -1,7 +1,9 @@
 ---
 import Photo from './Photo.astro';
-// The glass bar: sticky, no border, no shadow. From expanded up it carries the
-// four sections as text links; below, they move to BottomNav.
+// K2's bar: the page colour, a hairline under it, sticky. The search field is
+// always there, so a buyer can search from any page; Tìm kiếm fills it with
+// the query. From expanded up it carries Tin nhắn, Thông báo, the account and
+// "Đăng tin"; below, those move to BottomNav.
 import brandMark from '@brand/brand_mark.svg';
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
@@ -11,107 +13,88 @@ import Icon from './Icon.astro';
 export type Section = 'explore' | 'categories' | 'how';
 
 interface Props {
+  /** BottomNav marks it; the bar itself has no section links. */
   section: Section | null;
   search?: { q: string; photo?: string };
 }
 
-const { section, search } = Astro.props;
+const { search } = Astro.props;
 const me = viewer(Astro);
-const nav: [Section, string, string][] = [
-  ['explore', 'Khám phá', R.home],
-  ['categories', 'Danh mục', R.categories],
-  ['how', 'Cách mua', R.how],
-];
+const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounded-control text-ink hover:bg-hover lg:grid';
 ---
 
-<header class="glass sticky top-0 z-30">
-  <div class="mx-auto flex h-16 max-w-[1360px] items-center gap-2 px-4 md:px-6 lg:px-8">
-    <a href={R.home} class="flex shrink-0 items-center gap-2 lg:pr-4">
+<header class="glass sticky top-0 z-30 border-b border-line">
+  <div class="mx-auto flex h-16 max-w-[1280px] items-center gap-3 px-4 md:px-6 lg:gap-4 lg:px-8">
+    <a href={R.home} class="flex shrink-0 items-center gap-2 lg:pr-2">
       <Photo src={brandMark} alt="" class="h-8 w-8" />
-      <span class="text-j-20 text-ink" class:list={[search && 'max-md:sr-only']}>ShopNexus</span>
+      <span class="text-j-16 text-ink max-md:sr-only">ShopNexus</span>
     </a>
-    <nav class="hidden items-center gap-0.5 lg:flex" aria-label="Mục chính">
+    <form
+      action={R.search}
+      class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-control border border-field bg-card pl-3 pr-1 focus-within:border-brand lg:max-w-[720px]"
+    >
       {
-        nav.map(([key, label, href]) => (
-          <a
-            href={href}
-            aria-current={key === section ? 'page' : undefined}
-            class="flex h-9 items-center rounded-full px-3.5 text-label-large text-on-surface-variant hover:text-ink aria-[current=page]:bg-card/85 aria-[current=page]:text-ink aria-[current=page]:shadow-knob"
-          >
-            {label}
-          </a>
-        ))
-      }
-    </nav>
-    {
-      search ? (
-        <form
-          action={R.search}
-          class="flex h-11 min-w-0 flex-1 items-center gap-2.5 rounded-full bg-card px-1.5 shadow-glow lg:mx-6"
-        >
-          {search.photo ? (
-            <Photo src={img(search.photo, 64, 64)} width={64} height={64} alt="" class="h-8 w-8 shrink-0 rounded-full object-cover" />
-          ) : (
-            <Icon name="search-rounded" size={20} class="ml-2 text-primary" />
-          )}
-          <input
-            name="q"
-            value={search.q}
-            aria-label="Tìm trên ShopNexus"
-            class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none"
-          />
-          <a
-            href={R.photoSearch}
-            class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-full text-on-surface-variant"
-            aria-label="Tìm bằng ảnh"
-          >
-            <Icon name="photo-camera-outline-rounded" size={20} />
-          </a>
-          <button class="state-layer flex h-8 shrink-0 items-center gap-1 rounded-full bg-primary pl-3 pr-4 text-label-large text-on-primary">
-            <Icon name="search-rounded" size={18} />
-            Tìm
-          </button>
-        </form>
-      ) : (
-        <span class="flex-1" />
-      )
-    }
-    <div class="flex shrink-0 items-center gap-1">
-      {
-        me && (
-          <a
-            href={R.messages}
-            class="state-layer relative hidden h-10 w-10 place-items-center rounded-full text-on-surface-variant lg:grid"
-            aria-label="Tin nhắn, 3 chưa đọc"
-          >
-            <Icon name="chat-outline-rounded" size={22} />
-            <span class="absolute right-0.5 top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-error px-1 text-label-small text-on-error ring-2 ring-card">
-              3
-            </span>
-          </a>
+        search?.photo ? (
+          <Photo src={img(search.photo, 64, 64)} width={64} height={64} alt="" class="h-7 w-7 shrink-0 rounded-md object-cover" />
+        ) : (
+          <Icon name="search-rounded" size={17} class="text-faint" />
         )
       }
+      <input
+        name="q"
+        value={search?.q ?? ''}
+        placeholder="Tìm iPhone, xe đạp, sofa…"
+        aria-label="Tìm trên ShopNexus"
+        class="h-full min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-faint"
+      />
       <a
-        href={R.post}
-        class="state-layer ml-2 hidden h-10 items-center gap-1.5 rounded-full bg-ink pl-3.5 pr-4 text-label-large text-on-ink lg:flex"
+        href={R.photoSearch}
+        class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-md text-sub hover:bg-hover"
+        aria-label="Tìm bằng ảnh"
       >
-        <Icon name="add-rounded" size={18} />
-        Đăng tin
+        <Icon name="photo-camera-outline-rounded" size={17} />
       </a>
+    </form>
+    <div class="ml-auto flex shrink-0 items-center gap-1">
       {
-        me ? (
-          <a href={R.me} class="ml-2 shrink-0" aria-label="Tài khoản">
-            <Photo src={img(me.photo, 80, 80)} width={80} height={80} alt="" class="h-9 w-9 rounded-full object-cover ring-2 ring-card" />
-          </a>
-        ) : (
+        me && (
+          <>
+            <a href={R.notifications} class={iconBtn} aria-label="Thông báo, có tin mới">
+              <Icon name="notifications-outline-rounded" size={19} />
+              <span class="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-error" />
+            </a>
+            <a
+              href={R.messages}
+              class="state-layer hidden h-10 items-center gap-2 rounded-control px-3 text-title-small text-ink hover:bg-hover lg:flex"
+              aria-label="Tin nhắn, 3 chưa đọc"
+            >
+              <Icon name="chat-outline-rounded" size={18} />
+              Tin nhắn
+              <span class="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-brand px-1 text-label-small text-white">3</span>
+            </a>
+            <a href={R.me} class="ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-hover" aria-label="Tài khoản">
+              <Photo src={img(me.photo, 80, 80)} width={80} height={80} alt="" class="h-8 w-8 rounded-full object-cover" />
+            </a>
+          </>
+        )
+      }
+      {
+        !me && (
           <a
             href={`${R.login}?tiep=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`}
-            class="state-layer ml-1 flex h-10 items-center rounded-full px-4 text-label-large text-ink"
+            class="state-layer flex h-10 items-center rounded-control px-3.5 text-title-small text-ink hover:bg-hover"
           >
             Đăng nhập
           </a>
         )
       }
+      <a
+        href={R.post}
+        class="state-layer ml-2 hidden h-10 items-center gap-1.5 rounded-control bg-brand px-4 text-title-small text-white hover:bg-brand-hover lg:flex"
+      >
+        <Icon name="add-rounded" size={17} />
+        Đăng tin
+      </a>
     </div>
   </div>
 </header>

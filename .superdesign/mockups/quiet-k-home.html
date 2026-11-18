@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShopNexus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: {'primary':'#005049','on-primary':'#FFFFFF','primary-container':'#066A61','on-primary-container':'#97E7DB','secondary':'#47645F','on-secondary':'#FFFFFF','secondary-container':'#C7E6E0','on-secondary-container':'#4B6863','tertiary':'#773115','on-tertiary':'#FFFFFF','tertiary-container':'#95482A','on-tertiary-container':'#FFCDBC','tertiary-fixed':'#FFDBCF','on-tertiary-fixed-variant':'#773215','error':'#BA1A1A','on-error':'#FFFFFF','error-container':'#FFDAD6','surface':'#F7FAF8','surface-container-lowest':'#FFFFFF','surface-container-low':'#F1F4F2','surface-container':'#EBEFED','surface-container-high':'#E6E9E7','surface-container-highest':'#E0E3E1','on-surface':'#181C1C','on-surface-variant':'#3E4947','outline':'#6E7977','outline-variant':'#BEC9C6','inverse-surface':'#2D3130','inverse-on-surface':'#EEF1EF','inverse-primary':'#85D5C9'},
+  fontSize: {'display-l':['57px',{lineHeight:'64px',fontWeight:'400',letterSpacing:'-0.25px'}],'display-m':['45px',{lineHeight:'52px',fontWeight:'400',letterSpacing:'0'}],'display-s':['32px',{lineHeight:'40px',fontWeight:'400',letterSpacing:'0'}],'headline-m':['24px',{lineHeight:'32px',fontWeight:'400',letterSpacing:'0'}],'headline-s':['20px',{lineHeight:'28px',fontWeight:'400',letterSpacing:'0'}],'title-l':['20px',{lineHeight:'26px',fontWeight:'400',letterSpacing:'0'}],'title-m':['15px',{lineHeight:'22px',fontWeight:'500',letterSpacing:'0.1px'}],'title-s':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'body-l':['14px',{lineHeight:'20px',fontWeight:'400',letterSpacing:'0.25px'}],'body-m':['13px',{lineHeight:'18px',fontWeight:'400',letterSpacing:'0.2px'}],'body-s':['12px',{lineHeight:'16px',fontWeight:'400',letterSpacing:'0.3px'}],'label-l':['13px',{lineHeight:'18px',fontWeight:'500',letterSpacing:'0.1px'}],'label-m':['12px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.4px'}],'label-s':['11px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.4px'}]},
+  borderRadius: {'xs':'4px','sm':'8px','md':'12px','lg':'16px','lg-plus':'20px','xl':'28px','xl-plus':'32px'},
+  fontFamily: { sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'] },
+  boxShadow: { float: '0 1px 3px 0 rgba(0,0,0,.30), 0 4px 8px 3px rgba(0,0,0,.15)' },
+} } };
+</script>
+<script src="https://code.iconify.design/iconify-icon/3.0.2/iconify-icon.min.js"></script>
+<style>
+  :root { --md-primary: #005049; --md-on-primary: #FFFFFF; --md-primary-container: #066A61; --md-on-primary-container: #97E7DB; --md-secondary: #47645F; --md-on-secondary: #FFFFFF; --md-secondary-container: #C7E6E0; --md-on-secondary-container: #4B6863; --md-tertiary: #773115; --md-on-tertiary: #FFFFFF; --md-tertiary-container: #95482A; --md-on-tertiary-container: #FFCDBC; --md-tertiary-fixed: #FFDBCF; --md-on-tertiary-fixed-variant: #773215; --md-error: #BA1A1A; --md-on-error: #FFFFFF; --md-error-container: #FFDAD6; --md-surface: #F7FAF8; --md-surface-container-lowest: #FFFFFF; --md-surface-container-low: #F1F4F2; --md-surface-container: #EBEFED; --md-surface-container-high: #E6E9E7; --md-surface-container-highest: #E0E3E1; --md-on-surface: #181C1C; --md-on-surface-variant: #3E4947; --md-outline: #6E7977; --md-outline-variant: #BEC9C6; --md-inverse-surface: #2D3130; --md-inverse-on-surface: #EEF1EF; --md-inverse-primary: #85D5C9;
+    --spatial: linear(0, 0.107, 0.321, 0.539, 0.719, 0.848, 0.931, 0.979, 1.004, 1.014, 1.015, 1.011, 1.006, 1.003, 1);
+    --effects: linear(0, 0.286, 0.625, 0.826, 0.924, 0.968, 0.987, 0.995, 1); }
+  html, body { background: var(--md-surface); }
+  .state { position: relative; isolation: isolate; }
+  .state::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0;
+    pointer-events: none; transition: opacity 140ms var(--effects); }
+  .state:hover::after { opacity: .08; }
+  .state:active::after { opacity: .1; }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  :root { --bg: #FFFFFF; --ink: #141414; --mute: #6B6F6E; --line: #E7E9E8; --soft: #F4F5F5; --teal: #066A61; --r: 8px; --rp: 8px; }
+  html, body { background: var(--bg); color: var(--ink); }
+  .ink { color: var(--ink); } .mute { color: var(--mute); } .bd { border-color: var(--line); }
+  .bg-soft { background: var(--soft); } .bg-ink { background: var(--ink); } .bg-teal { background: var(--teal); } .text-teal { color: var(--teal); }
+  .r { border-radius: var(--r); } .rp { border-radius: var(--rp); }
+  .num { font-variant-numeric: tabular-nums; }
+  .tile img { transition: opacity 200ms; } .tile:hover img { opacity: .92; }
+  .tile:hover .t { text-decoration: underline; text-underline-offset: 2px; }
+  input::placeholder { color: var(--mute); }
+
+</style>
+</head>
+<body>
+<div id="app" class="min-h-screen font-sans ink">
+<header class="sticky top-0 z-30 border-b bd bg-white">
+  <div class="mx-auto flex h-16 items-center gap-6 max-w-[1280px] px-8">
+    <a id="brand" href="#brand" class="flex items-center gap-2"><img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="" class="h-7 w-7"><span class="text-[17px] font-semibold tracking-tight">ShopNexus</span></a>
+    <form class="flex h-10 flex-1 items-center gap-2 r border bd bg-white pl-3 pr-1 focus-within:border-[var(--ink)]">
+      <iconify-icon icon="material-symbols:search-rounded" width="20" height="20" class="block shrink-0 mute"></iconify-icon>
+      <input class="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none" placeholder="Tìm đồ cũ" value="">
+      <button type="button" class="grid h-8 w-8 place-items-center rounded-[6px] mute hover:bg-[var(--soft)]" aria-label="Tìm bằng ảnh"><iconify-icon icon="material-symbols:photo-camera-outline-rounded" width="19" height="19" class="block shrink-0 "></iconify-icon></button>
+    </form>
+    <nav class="flex items-center gap-1 text-[14px]">
+      <a id="h-msg" href="#h-msg" class="relative flex h-10 items-center gap-2 rounded-[6px] px-3 hover:bg-[var(--soft)]"><iconify-icon icon="material-symbols:chat-outline-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon>Tin nhắn<span class="h-1.5 w-1.5 rounded-full bg-[#C4372B]"></span></a>
+      <a id="h-me" href="#h-me" class="flex h-10 items-center gap-2 rounded-[6px] px-3 hover:bg-[var(--soft)]"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&q=80&auto=format&fit=crop" alt="" class="h-6 w-6 rounded-full object-cover">Tôi</a>
+      <a id="h-sell" href="#h-sell" class="ml-2 flex h-10 items-center r bg-teal px-4 font-medium text-white">Đăng tin</a>
+    </nav>
+  </div>
+  <div class="mx-auto flex h-11 items-center gap-6 text-[14px] mute max-w-[1280px] px-8"><a id="c0" href="#c0" class="hover:text-[var(--ink)]">Điện thoại</a><a id="c1" href="#c1" class="hover:text-[var(--ink)]">Máy tính</a><a id="c2" href="#c2" class="hover:text-[var(--ink)]">Máy ảnh</a><a id="c3" href="#c3" class="hover:text-[var(--ink)]">Âm thanh</a><a id="c4" href="#c4" class="hover:text-[var(--ink)]">Xe đạp</a><a id="c5" href="#c5" class="hover:text-[var(--ink)]">Xe máy</a><a id="c6" href="#c6" class="hover:text-[var(--ink)]">Nội thất</a><a id="c7" href="#c7" class="hover:text-[var(--ink)]">Thời trang</a><a id="c8" href="#c8" class="hover:text-[var(--ink)]">Đồ gia dụng</a><a id="c9" href="#c9" class="hover:text-[var(--ink)]">Mẹ và bé</a></div>
+</header>
+<main>
+  <div class="mx-auto max-w-[1280px] px-8">
+    <div class="mt-6 grid grid-cols-2 gap-4">
+      <div class="flex items-center gap-4 r border bd bg-white px-4 py-3">
+    <img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=96&h=96&q=80&auto=format&fit=crop" alt="" class="h-12 w-12 rounded-[6px] object-cover">
+    <div class="min-w-0 flex-1"><p class="text-[13px] mute">Đơn đang giao</p><p class="truncate text-[15px] font-medium">iPhone X 64GB, pin 86%</p><p class="text-[13px] mute">Shipper tới chiều nay</p></div>
+    <a id="task0" href="#task0" class="text-[14px] font-medium text-teal">Xem đơn</a>
+  </div>
+      <div class="flex items-center gap-4 r border bd bg-white px-4 py-3">
+    <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=96&h=96&q=80&auto=format&fit=crop" alt="" class="h-12 w-12 rounded-[6px] object-cover">
+    <div class="min-w-0 flex-1"><p class="text-[13px] mute">Đang trả giá</p><p class="truncate text-[15px] font-medium">Sofa nhung xanh 3 chỗ</p><p class="text-[13px] mute">Người bán trả lại 4.500.000 ₫</p></div>
+    <a id="task1" href="#task1" class="text-[14px] font-medium text-[#8A3B1C]">Trả lời</a>
+  </div>
+    </div>
+    <section class="mt-12"><div class="flex items-end justify-between"><div><h2 class="text-[20px] font-semibold tracking-tight">Danh mục</h2></div><a id="more-Dan" href="#more-Dan" class="text-[14px] mute hover:text-[var(--ink)]">Tất cả</a></div>
+      <div class="mt-5 grid grid-cols-10 gap-4"><a id="cat0" href="#cat0" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Điện thoại</span></a><a id="cat1" href="#cat1" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Máy tính</span></a><a id="cat2" href="#cat2" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Máy ảnh</span></a><a id="cat3" href="#cat3" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Âm thanh</span></a><a id="cat4" href="#cat4" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Xe đạp</span></a><a id="cat5" href="#cat5" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Xe máy</span></a><a id="cat6" href="#cat6" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Nội thất</span></a><a id="cat7" href="#cat7" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Thời trang</span></a><a id="cat8" href="#cat8" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1585515320310-259814833e62?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Đồ gia dụng</span></a><a id="cat9" href="#cat9" class="group flex flex-col gap-2"><span class="block overflow-hidden rp bg-soft"><img src="https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=240&h=240&q=80&auto=format&fit=crop" alt="" class="aspect-square w-full object-cover transition group-hover:scale-[1.03]"></span><span class="text-[14px]">Mẹ và bé</span></a></div></section>
+    <section class="mt-14"><div class="flex items-end justify-between"><div><h2 class="text-[20px] font-semibold tracking-tight">Mới đăng gần bạn</h2><p class="mt-1 text-[14px] mute">Trong 10 km</p></div><a id="more-Mới" href="#more-Mới" class="text-[14px] mute hover:text-[var(--ink)]">Xem tất cả</a></div>
+      <div class="mt-5 grid grid-cols-6 gap-x-5 gap-y-8"><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">3.900.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">iPhone X 64GB, pin 86%, máy zin chưa sửa</p>
+  <p class="mt-0.5 text-[13px] mute">1,2 km · 12 phút</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">11,5 tr ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">MacBook Air M1 13 inch 8/256GB, sạc 92 lần</p>
+  <p class="mt-0.5 text-[13px] mute">2,4 km · 1 giờ</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">2.300.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Xe đạp fixed gear khung thép, vừa thay lốp</p>
+  <p class="mt-0.5 text-[13px] mute">0,8 km · 35 phút</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">1.750.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Máy ảnh Polaroid OneStep 2, tặng 1 hộp film</p>
+  <p class="mt-0.5 text-[13px] mute">3,1 km · 2 giờ</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 text-[#C4372B]" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">3.200.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Tai nghe chống ồn Sony WH-1000XM4, fullbox</p>
+  <p class="mt-0.5 text-[13px] mute">4,0 km · 3 giờ</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">4.800.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp</p>
+  <p class="mt-0.5 text-[13px] mute">5,6 km · 5 giờ</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">1.290.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Giày Nike Free RN size 42, mới nguyên hộp</p>
+  <p class="mt-0.5 text-[13px] mute">1,9 km · 20 phút</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">15,9 tr ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">iPhone 15 128GB, bảo hành Apple đến 03/2027</p>
+  <p class="mt-0.5 text-[13px] mute">2,2 km · 40 phút</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">26,5 tr ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Sony A7 III kèm lens 28-70 và 50mm f/1.8</p>
+  <p class="mt-0.5 text-[13px] mute">Hà Nội · 1 ngày</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">1.600.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Ghế bành bọc vải vàng mù tạt, khung gỗ sồi</p>
+  <p class="mt-0.5 text-[13px] mute">3,8 km · 6 giờ</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">950.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Ghế xoay vải be chân gỗ, ngồi êm</p>
+  <p class="mt-0.5 text-[13px] mute">1,4 km · 50 phút</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1585515320310-259814833e62?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">450.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Máy xay sinh tố 2L, còn bảo hành 6 tháng</p>
+  <p class="mt-0.5 text-[13px] mute">0,6 km · 15 phút</p>
+</article></div></section>
+  </div>
+
+  <section class="mt-16 bg-soft py-12">
+    <div class="mx-auto grid grid-cols-[300px_1fr] gap-12 max-w-[1280px] px-8">
+      <div>
+        <h2 class="text-[20px] font-semibold tracking-tight">Tìm đã lưu</h2>
+        <p class="mt-1 text-[14px] mute">Có tin mới là báo bạn.</p>
+        <div class="mt-4 border-t bd"><a id="sq0" href="#sq0" class="flex items-center justify-between border-b bd py-3 text-[15px] hover:underline"><span>Sony A7 III dưới 25 triệu</span><span class="text-[13px] font-medium text-teal">3 tin mới</span></a><a id="sq1" href="#sq1" class="flex items-center justify-between border-b bd py-3 text-[15px] hover:underline"><span>iPhone 13 pin trên 85%</span><span class="text-[13px] font-medium text-teal">1 tin mới</span></a><a id="sq2" href="#sq2" class="flex items-center justify-between border-b bd py-3 text-[15px] hover:underline"><span>Xe đạp cho bé 8 tuổi</span><span class="text-[13px] mute">Không có tin mới</span></a></div>
+      </div>
+      <div>
+        <p class="text-[15px] font-medium">Sony A7 III dưới 25 triệu <span class="font-normal mute">· 3 tin mới</span></p>
+        <div class="mt-4 grid grid-cols-4 gap-5"><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">24.500.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Sony A7 III body, 12k shot</p>
+  <p class="mt-0.5 text-[13px] mute">3,4 km</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">23.900.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Sony A7 III kèm lens kit</p>
+  <p class="mt-0.5 text-[13px] mute">6,0 km</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1510127034890-ba27508e9f1c?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">22.000.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Sony A7 III, sạc 2 pin</p>
+  <p class="mt-0.5 text-[13px] mute">Hà Nội</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">1.750.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Polaroid OneStep 2</p>
+  <p class="mt-0.5 text-[13px] mute">3,1 km</p>
+</article></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-[1280px] px-8">
+    <section class="mt-14"><div class="flex items-end justify-between"><div><h2 class="text-[20px] font-semibold tracking-tight">Bạn vừa xem</h2></div><a id="more-Bạn" href="#more-Bạn" class="text-[14px] mute hover:text-[var(--ink)]">Xóa</a></div>
+      <div class="mt-5 grid grid-cols-6 gap-x-5 gap-y-8"><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">15,9 tr ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">iPhone 15 128GB, bảo hành Apple đến 03/2027</p>
+  <p class="mt-0.5 text-[13px] mute">2,2 km</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">11,5 tr ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">MacBook Air M1 13 inch 8/256GB, sạc 92 lần</p>
+  <p class="mt-0.5 text-[13px] mute">2,4 km</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">4.800.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp</p>
+  <p class="mt-0.5 text-[13px] mute">5,6 km</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">1.600.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Ghế bành bọc vải vàng mù tạt, khung gỗ sồi</p>
+  <p class="mt-0.5 text-[13px] mute">3,8 km</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">1.750.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Máy ảnh Polaroid OneStep 2, tặng 1 hộp film</p>
+  <p class="mt-0.5 text-[13px] mute">3,1 km</p>
+</article><article class="tile min-w-0">
+  <div class="relative overflow-hidden rp bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1585515320310-259814833e62?w=520&h=520&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 ink" aria-label="Lưu"><iconify-icon icon="material-symbols:favorite-outline-rounded" width="18" height="18" class="block shrink-0 "></iconify-icon></button></div>
+  <p class="num mt-2.5 text-[16px] font-semibold">450.000 ₫</p>
+  <p class="t mt-0.5 truncate text-[14px]">Máy xay sinh tố 2L, còn bảo hành 6 tháng</p>
+  <p class="mt-0.5 text-[13px] mute">0,6 km</p>
+</article></div></section>
+  </div>
+
+  <section class="mx-auto mt-16 max-w-[1280px] px-8">
+    <div class="grid grid-cols-3 gap-10 r bg-soft px-10 py-8"><div class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white ink"><iconify-icon icon="material-symbols:chat-outline-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon></span><div><p class="text-[15px] font-medium">Nhắn người bán</p><p class="mt-0.5 text-[14px] mute">Hỏi, trả giá ngay trên tin.</p></div></div><div class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white ink"><iconify-icon icon="material-symbols:local-shipping-outline-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon></span><div><p class="text-[15px] font-medium">Giao COD</p><p class="mt-0.5 text-[14px] mute">Shipper mang hàng tới nhà.</p></div></div><div class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white ink"><iconify-icon icon="material-symbols:visibility-outline-rounded" width="20" height="20" class="block shrink-0 "></iconify-icon></span><div><p class="text-[15px] font-medium">Xem rồi mới trả</p><p class="mt-0.5 text-[14px] mute">Không ưng thì không nhận.</p></div></div></div>
+  </section>
+</main>
+<footer class="mt-24 border-t bd">
+  <div class="mx-auto flex justify-between gap-10 py-12 max-w-[1280px] px-8">
+    <div><p class="text-[15px] font-semibold">ShopNexus</p><p class="mt-2 text-[14px] mute">Xem hàng rồi mới trả tiền.</p></div>
+    <div class="flex gap-20"><div><p class="text-[13px] mute">Mua bán</p><ul class="mt-3 flex flex-col gap-2 text-[14px]"><li><a id="fMu0" href="#fMu0" class="hover:underline">Cách mua</a></li><li><a id="fMu1" href="#fMu1" class="hover:underline">Cách đăng tin</a></li><li><a id="fMu2" href="#fMu2" class="hover:underline">Gói người bán</a></li></ul></div><div><p class="text-[13px] mute">Hỗ trợ</p><ul class="mt-3 flex flex-col gap-2 text-[14px]"><li><a id="fHỗ0" href="#fHỗ0" class="hover:underline">Trợ giúp</a></li><li><a id="fHỗ1" href="#fHỗ1" class="hover:underline">Quy định đăng tin</a></li><li><a id="fHỗ2" href="#fHỗ2" class="hover:underline">Điều khoản</a></li></ul></div></div>
+  </div>
+</footer>
+</div>
+</body>
+</html>

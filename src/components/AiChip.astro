@@ -1,5 +1,5 @@
 ---
-// A condition the model read from the query: sparkle, removable.
+// A condition read from the query, removable: a white chip with a ×.
 import Icon from './Icon.astro';
 
 interface Props {
@@ -11,10 +11,9 @@ interface Props {
 const { label, remove = '#' } = Astro.props;
 ---
 
-<span class="glass glass-edge flex h-9 shrink-0 items-center gap-1.5 rounded-full pl-3 pr-1.5 text-label-large text-ink">
-  <Icon name="auto-awesome-rounded" size={15} class="text-primary" />
+<span class="flex h-8 shrink-0 items-center gap-1 rounded-full border border-field bg-card pl-3 pr-1 text-body-medium text-ink">
   {label}
-  <a href={remove} class="state-layer grid h-6 w-6 place-items-center rounded-full text-on-surface-variant" aria-label={`Bỏ ${label}`}>
-    <Icon name="close-rounded" size={14} />
+  <a href={remove} class="state-layer grid h-6 w-6 place-items-center rounded-full text-faint hover:bg-hover" aria-label={`Bỏ ${label}`}>
+    <Icon name="close-rounded" size={13} />
   </a>
 </span>

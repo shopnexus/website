@@ -17,9 +17,9 @@ export default defineConfig({
     // The mascot art, favicon and app icons live in the brand submodule
     // (shopnexus/brand), shared with the Android app: import '@brand/art_deal.webp'.
     resolve: { alias: { '@brand': decodeURIComponent(new URL('./brand/web', import.meta.url).pathname) } },
-    // Material Symbols Rounded, as in the app. React islands import icons as
-    // components (~icons/material-symbols/…); .astro files use <Icon name>,
-    // which reads the subset src/build/icons.mjs builds.
+    // Icons are Remix Icon, named the Material Symbols way as in the app
+    // (src/build/icon-map.mjs). .astro files use <Icon name>, which reads the
+    // subset src/build/icons.mjs builds.
     plugins: [tailwindcss(), Icons({ compiler: 'jsx', jsx: 'react' }), iconSubset()],
   },
   env: {

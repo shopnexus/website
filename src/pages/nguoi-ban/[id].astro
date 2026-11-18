@@ -155,7 +155,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
           {
             SELLING.map((it, i) => (
               <div class="grid min-w-0" data-in={catOf[i]}>
-                <ListingCard item={it} />
+                <ListingCard item={it} loading={i < 3 ? 'eager' : 'lazy'} />
               </div>
             ))
           }

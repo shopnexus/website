@@ -12,18 +12,18 @@ const { parts, class: cls } = Astro.props;
 const last = parts[parts.length - 1];
 ---
 
-<nav class:list={['flex items-center gap-1 text-body-small text-on-surface-variant', cls]} aria-label="Đường dẫn">
+<nav class:list={['flex min-w-0 items-center gap-1 whitespace-nowrap text-body-small text-faint', cls]} aria-label="Đường dẫn">
   {
     parts.slice(0, -1).map(([label, href]) => (
       <>
         <a href={href} class="hover:text-ink">
           {label}
         </a>
-        <Icon name="chevron-right-rounded" size={16} class="text-outline" />
+        <Icon name="chevron-right-rounded" size={14} class="text-faint" />
       </>
     ))
   }
-  <span class="text-ink" aria-current="page">{last[0]}</span>
+  <span class="min-w-0 truncate text-ink" aria-current="page">{last[0]}</span>
   {Astro.slots.has('default') && <span class="flex-1" />}
   <slot />
 </nav>

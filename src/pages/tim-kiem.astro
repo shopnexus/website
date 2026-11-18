@@ -72,7 +72,7 @@ const without = (c: string) => `${R.search}?q=${encodeURIComponent(chips.filter(
         summary={isDefault && !near}
         near={near && km ? { asked: km, shown: near.shown } : undefined}
       >
-        <FilterRow>
+        <FilterRow drops={false}>
           {chips.map((c) => (
             <AiChip slot="chips" label={c} remove={without(c)} />
           ))}

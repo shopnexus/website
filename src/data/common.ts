@@ -3,6 +3,22 @@
 /** The signed-in buyer on every signed-in page. */
 export const ME = {"name": "Khánh Linh", "photo": "1494790108377-be9c29b29330", "area": "Bình Thạnh, TP.HCM", "rating": "4,8", "sold": 14} as const;
 
+/** Sellers the mock listings are spread over; a card names one by its id (sellerOf). */
+export const SELLERS = [
+  { name: 'Tuấn Kiệt', photo: '1544723795-3fb6469f5b39', rating: 4.9 },
+  { name: 'Minh Anh', photo: '1438761681033-6461ffad8d80', rating: 4.8 },
+  { name: 'Hoàng Nam', photo: '1500648767791-00dcc994a43e', rating: 4.7 },
+  { name: 'Thu Hà', photo: '1544005313-94ddf0286df2', rating: 5.0 },
+  { name: 'Quốc Bảo', photo: '1506794778202-cad84cf45f1d', rating: 4.6 },
+] as const;
+
+/** The mock seller of a listing, the same one for an id on every page. */
+export function sellerOf(id: string) {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return SELLERS[h % SELLERS.length];
+}
+
 /** The app's MONEY sentences, word for word. A page quotes them, never rewords them. */
 export const MONEY = {
   "cod_seller": "Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.",

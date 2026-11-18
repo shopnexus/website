@@ -1,7 +1,8 @@
 ---
-// The segmented control: a white thumb slides under the selected item.
-// Items are labels, or icon names when `icons` is set. A click moves the thumb
-// and fires a "seg-change" event with detail { index } on the control.
+// The segmented control: a white thumb slides under the selected item. With
+// variant="tabs" it is a row of underlined tabs instead (K2's tabs over a grid).
+// Items are labels, or icon names when `icons` is set. A click moves the
+// selection and fires a "seg-change" event with detail { index } on the control.
 import Icon from './Icon.astro';
 
 interface Props {
@@ -14,20 +15,24 @@ interface Props {
   /** Classes for each item: size, padding. */
   itemClass?: string;
   name?: string;
+  variant?: 'seg' | 'tabs';
 }
 
-const { items, selected = 0, icons = false, labels, class: cls, itemClass = 'text-label-large', name } = Astro.props;
+const { items, selected = 0, icons = false, labels, class: cls, itemClass, name, variant = 'seg' } = Astro.props;
+const tabs = variant === 'tabs';
 ---
 
 <div
-  class:list={['seg relative inline-flex rounded-full p-1', cls]}
+  class:list={[tabs ? 'flex gap-6' : 'seg relative inline-flex rounded-control p-0.5', cls]}
   role="tablist"
   aria-label={name}
   data-seg
 >
-  <span
-    class="seg-thumb pointer-events-none absolute bottom-1 top-1 rounded-full bg-card shadow-knob transition-[left,width] duration-(--duration-spatial-default) ease-spatial"
-  ></span>
+  {
+    !tabs && (
+      <span class="seg-thumb pointer-events-none absolute bottom-0.5 top-0.5 rounded-sm bg-card shadow-knob transition-[left,width] duration-(--duration-spatial-default) ease-spatial" />
+    )
+  }
   {
     items.map((it, i) => (
       <button
@@ -36,8 +41,10 @@ const { items, selected = 0, icons = false, labels, class: cls, itemClass = 'tex
         aria-selected={i === selected ? 'true' : 'false'}
         aria-label={icons ? labels?.[i] : undefined}
         class:list={[
-          'relative z-10 flex h-8 items-center justify-center whitespace-nowrap rounded-full px-3.5 text-on-surface-variant aria-selected:text-ink',
-          itemClass,
+          tabs
+            ? '-mb-px flex h-10 items-center whitespace-nowrap border-b-2 border-transparent text-sub hover:text-ink aria-selected:border-brand aria-selected:font-medium aria-selected:text-ink'
+            : 'relative z-10 flex h-8 items-center justify-center whitespace-nowrap rounded-sm px-3 text-sub aria-selected:text-ink',
+          itemClass ?? (tabs ? 'text-body-large' : 'text-title-small'),
         ]}
       >
         {icons ? <Icon name={it} size={18} /> : it}
@@ -48,9 +55,10 @@ const { items, selected = 0, icons = false, labels, class: cls, itemClass = 'tex
 
 <script>
   function setup(seg: HTMLElement) {
-    const thumb = seg.querySelector<HTMLElement>('.seg-thumb')!;
+    const thumb = seg.querySelector<HTMLElement>('.seg-thumb');
     const btns = [...seg.querySelectorAll<HTMLButtonElement>('button')];
     const put = (b: HTMLElement) => {
+      if (!thumb) return;
       thumb.style.left = `${b.offsetLeft}px`;
       thumb.style.width = `${b.offsetWidth}px`;
     };

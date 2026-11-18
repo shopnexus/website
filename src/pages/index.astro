@@ -1,177 +1,104 @@
 ---
-// Trang chủ. Signed in: the buyer's own deals (order on the way, offers,
-// saved, their listings). Signed out: what this browser already knows (recent
-// searches, viewed listings, the area from the IP), and signing in offered as
-// a way to keep them. Neither is a pitch. One column: the search, the
-// buyer's tiles, three sideways rows, then the feed.
-import Carousel from '../components/Carousel.astro';
+// Trang chủ (K2). From expanded up a rail on the left holds the categories,
+// the buyer's searches and lists, and how COD works; the column on the right
+// greets the buyer, shows the two things waiting on them, then the feed under
+// its tabs, and what they viewed last. Signed out the rail shows this
+// browser's searches and the shortcuts what it viewed. The header carries
+// the search field, so the page has no search hero.
 import Icon from '../components/Icon.astro';
 import ListingCard from '../components/ListingCard.astro';
 import ListingSkeleton from '../components/ListingSkeleton.astro';
-import SearchField from '../components/SearchField.astro';
+import Photo from '../components/Photo.astro';
+import Price from '../components/Price.astro';
 import Seg from '../components/Seg.astro';
+import HomeRail from '../components/home/HomeRail.astro';
 import HomeTiles from '../components/home/HomeTiles.astro';
 import Layout from '../layouts/Layout.astro';
-import { CATS, ME, TRENDING } from '../data/common';
+import { ME } from '../data/common';
 import { LISTINGS } from '../data/listings';
+import { CATEGORY_INDEX } from '../data/public';
 import { feedPage } from '../lib/feed';
+import { img } from '../lib/format';
 import { R } from '../lib/routes';
 import { viewer } from '../lib/session';
 import { CONTENT } from '../lib/ui';
 
 const me = viewer(Astro);
-const hour = new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
-const greeting = +hour < 11 ? 'Chào buổi sáng' : +hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
-
-// Signed in: their searches, a followed one with its new listings. Signed out: this browser's.
-const recent = me
-  ? [
-      { q: 'Sony A7 III dưới 25 triệu', icon: 'notifications-outline-rounded', more: '+2' },
-      { q: 'iPhone 13 pin trên 85%', icon: 'history-rounded' },
-      { q: 'xe đạp cho bé 8 tuổi', icon: 'history-rounded' },
-      { q: 'sofa 3 chỗ Q.7', icon: 'history-rounded' },
-    ]
-  : [
-      { q: 'iPhone 13 pin trên 85%', icon: 'history-rounded' },
-      { q: 'sofa 3 chỗ', icon: 'history-rounded' },
-      { q: 'xe đạp cho bé 8 tuổi', icon: 'history-rounded' },
-    ];
-// Listed within 10 km, nearest first.
-const near = LISTINGS.filter((it) => it.km < 10).sort((a, b) => a.km - b.km);
+const now = new Date();
+const hour = +now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
+const part = hour < 11 ? 'Sáng' : hour < 18 ? 'Chiều' : 'Tối';
+const day = now.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' });
 const feed = feedPage('cho-ban', 1);
-const tabs = me ? ['Dành cho bạn', 'Gần bạn', 'Mới nhất'] : ['Gợi ý cho bạn', 'Gần bạn', 'Mới nhất'];
+const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'];
+const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], LISTINGS[11], LISTINGS[2], LISTINGS[6]].filter(Boolean);
 ---
 
 <Layout title="ShopNexus · Đồ cũ giá tốt" description="Đồ cũ giá tốt, xem hàng rồi mới trả." section="explore">
-  <main class={CONTENT}>
-    <section class="mx-auto flex max-w-[820px] flex-col items-center pt-8 text-center lg:pt-14">
-      {
-        me ? (
-          <p class="text-label-large text-on-surface-variant">
-            {greeting}, {ME.name}
-          </p>
-        ) : (
-          <p class="flex items-center gap-1 text-label-large text-on-surface-variant">
-            <Icon name="location-on-outline-rounded" size={16} />
-            Gần Bình Thạnh, TP.HCM
-            <a href="#khu-vuc" class="ml-1 text-primary hover:underline">
-              Đổi
-            </a>
-          </p>
-        )
-      }
-      <h1 class="mt-1 text-j-34 text-ink lg:text-j-48">Hôm nay tìm gì?</h1>
-      <SearchField large class="mt-6 w-full text-left" placeholder="Gõ như nhắn tin: laptop cho sinh viên thiết kế, dưới 8 triệu" />
-      <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+  <div class:list={[CONTENT, 'grid gap-10 pt-6 lg:grid-cols-[224px_minmax(0,1fr)]']}>
+    <HomeRail signedIn={!!me} />
+    <main class="min-w-0">
+      <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+        <div>
+          <p class="text-body-small text-faint first-letter:uppercase">{part} {day}</p>
+          <h1 class="mt-1 text-j-24 text-ink lg:text-j-28">{me ? `Chào ${ME.name.split(' ').pop()}` : 'Đồ cũ quanh bạn'}</h1>
+        </div>
+        <p class="text-body-large text-sub"><b class="font-semibold text-ink tabular-nums">214</b> tin mới quanh Bình Thạnh hôm nay</p>
+      </div>
+
+      <nav class="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 lg:hidden" aria-label="Danh mục">
         {
-          recent.map((r) => (
-            <a
-              href={`${R.search}?q=${encodeURIComponent(r.q)}`}
-              class="state-layer glass glass-edge flex h-9 items-center gap-1.5 rounded-full px-3 text-label-large text-ink"
-            >
-              <Icon name={r.icon} size={16} class="text-on-surface-variant" />
-              {r.q}
-              {r.more && (
-                <span class="grid h-5 min-w-5 place-items-center rounded-full bg-tertiary px-1 text-label-small text-on-tertiary">
-                  {r.more}
-                </span>
-              )}
+          CATEGORY_INDEX.map((c) => (
+            <a href={R.category(c.slug)} class="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-line bg-card px-3 text-body-large text-ink">
+              <Icon name={c.icon} size={16} class="text-sub" />
+              {c.name}
             </a>
           ))
         }
-      </div>
-    </section>
+      </nav>
 
-    <HomeTiles signedIn={!!me} />
+      <HomeTiles signedIn={!!me} />
 
-    <Carousel title="Danh mục" link="Tất cả" href={R.categories} class="mt-10" trackClass="stagger gap-2">
-      {
-        CATS.map((c) => (
+      <section class="mt-9" data-feed>
+        <div class="flex items-center justify-between border-b border-line">
+          <Seg items={tabs} variant="tabs" name="Bảng tin" />
+          <span class="hidden pb-2 text-body-small text-faint md:block">Gần thì ghi km, xa thì ghi nơi bán</span>
+        </div>
+        <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" aria-live="polite" data-feed-grid>
+          {feed.items.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} loading={i < 8 ? 'eager' : 'lazy'} />)}
+        </div>
+        <div class="mt-8 flex justify-center">
           <a
-            href={R.categories}
-            class="state-layer flex h-11 items-center gap-2 rounded-full border border-line bg-card pl-1.5 pr-3 text-label-large text-ink"
+            href={R.search}
+            class="state-layer flex h-10 items-center gap-1.5 rounded-control border border-field bg-card px-5 text-title-small text-ink hover:bg-page"
+            hidden={!feed.more}
+            data-feed-more
           >
-            <span class="grid h-8 w-8 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
-              <Icon name={c.icon} size={18} />
-            </span>
-            {c.name}
-            <span class="rounded-full bg-surface-container-low px-2 py-0.5 text-label-small text-on-surface-variant tabular-nums">
-              {c.count}
-            </span>
+            Xem thêm tin
+            <Icon name="keyboard-arrow-down-rounded" size={17} />
           </a>
-        ))
-      }
-    </Carousel>
+        </div>
+        <template data-feed-skeleton><ListingSkeleton /></template>
+      </section>
 
-    <Carousel
-      title={me ? 'Vừa đăng quanh bạn' : 'Vừa đăng quanh Bình Thạnh'}
-      note="Trong 10 km, gần nhất trước"
-      link="Xem tất cả"
-      href={`${R.search}?sap-xep=moi`}
-      class="mt-10"
-    >
-      {/* Signed out the tiles are shorter and this row is in the first screen on a desktop. */}
-      {
-        near.map((it) => (
-          <div class="w-[172px] md:w-[200px] lg:w-[216px]">
-            <ListingCard item={it} loading={me ? 'lazy' : 'eager'} />
-          </div>
-        ))
-      }
-    </Carousel>
-
-    <Carousel title="Đang được tìm nhiều" icon="trending-up-rounded" class="mt-10" trackClass="gap-2">
-      {
-        TRENDING.map((t, i) => (
-          <a
-            href={`${R.search}?q=${encodeURIComponent(t.q)}`}
-            class="lift flex w-[220px] items-center gap-3 rounded-tile border border-line bg-card px-3 py-3"
-          >
-            <span
-              class:list={[
-                'grid h-8 w-8 shrink-0 place-items-center rounded-full text-label-large tabular-nums',
-                i < 3 ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant',
-              ]}
-            >
-              {i + 1}
-            </span>
-            <span class="min-w-0">
-              <span class="block truncate text-title-small text-ink">{t.q}</span>
-              <span class="block text-body-small text-on-surface-variant tabular-nums">
-                {t.count} tin · giữa {t.median}
-              </span>
-            </span>
-          </a>
-        ))
-      }
-    </Carousel>
-
-    <section class="mt-12" data-feed>
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <Seg items={tabs} class="bg-black/5" name="Bảng tin" />
-        <span class="text-body-small text-on-surface-variant">Mọi tỉnh thành · gần thì ghi km, xa thì ghi nơi bán</span>
-      </div>
-      <div
-        class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5"
-        aria-live="polite"
-        data-feed-grid
-      >
-        {feed.items.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} loading="lazy" />)}
-      </div>
-      <div class="mt-6 flex justify-center">
-        <a
-          href={R.search}
-          class="state-layer flex h-11 items-center gap-1.5 rounded-full border border-line bg-card px-6 text-label-large text-ink"
-          hidden={!feed.more}
-          data-feed-more
-        >
-          Xem thêm tin
-          <Icon name="keyboard-arrow-down-rounded" size={18} />
-        </a>
-      </div>
-      <template data-feed-skeleton><ListingSkeleton /></template>
-    </section>
-  </main>
+      <section class="mt-14">
+        <div class="flex items-center justify-between">
+          <h2 class="text-j-16 text-ink">Bạn vừa xem</h2>
+          <button type="button" class="text-body-small text-faint hover:underline">Xóa lịch sử</button>
+        </div>
+        <div class="no-scrollbar mt-4 flex gap-4 overflow-x-auto">
+          {
+            seen.map((it) => (
+              <a href={R.listing(it.id)} class="w-[132px] shrink-0">
+                <Photo src={img(it.photo, 264, 264)} width={264} height={264} alt="" loading="lazy" class="aspect-square w-full rounded-tile object-cover" />
+                <Price vnd={it.price} size="text-j-15" class="mt-1.5 block" />
+                <span class="block truncate text-body-small text-sub">{it.title}</span>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+    </main>
+  </div>
 </Layout>
 
 <script>

@@ -1,7 +1,8 @@
 ---
-// A Material Symbols Rounded icon by name, as plain SVG. The name is the
-// iconify one without the prefix: "chat-outline-rounded". Names must appear
-// in src/ as a quoted string so src/build/icons.mjs ships them.
+// An icon by name, as plain SVG. The name is the Material Symbols one, as in
+// the app ("chat-outline-rounded"); src/build/icon-map.mjs draws it with its
+// Remix Icon glyph. Names must appear in src/ as a quoted string so
+// src/build/icons.mjs ships them.
 import icons from 'virtual:icons';
 
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
 
 const { name, size = 24, class: cls = '', label } = Astro.props;
 const icon = icons[name];
-if (!icon && import.meta.env.DEV) console.warn(`Icon "${name}" is not in Material Symbols or not quoted in src/`);
+if (!icon && import.meta.env.DEV) console.warn(`Icon "${name}" is not in icon-map.mjs or Material Symbols, or not quoted in src/`);
 ---
 
 {

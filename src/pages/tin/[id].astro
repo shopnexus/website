@@ -8,17 +8,17 @@ import Photo from '../../components/Photo.astro';
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
+import Price from '../../components/Price.astro';
 import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import QuickChat from '../../components/public/QuickChat.astro';
-import RangeBar from '../../components/public/RangeBar.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Layout from '../../layouts/Layout.astro';
-import { ALL_LISTINGS, DETAIL, SELLER, SIMILAR, SOLD } from '../../data/public';
-import { crop, group, img, where } from '../../lib/format';
+import { ALL_LISTINGS, DETAIL, REVIEWS, SELLER, SELLING, SIMILAR, SOLD } from '../../data/public';
+import { crop, group, img, money, where } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
-import { CONTENT, PANEL } from '../../lib/ui';
+import { CONTENT, PANEL, btnCls } from '../../lib/ui';
 
 const id = Astro.params.id ?? '';
 const sold = SOLD[id];
@@ -47,19 +47,16 @@ const photos = DETAIL.crops.map(([fx, fy, z], i) => ({
   big: crop(it.photo, 1200, fx, fy, z),
   thumb: crop(it.photo, i === 0 ? 1200 : 600, fx, fy, z),
 }));
-const facts: [string, string][] = [
-  ['check-circle-outline-rounded', it.condition],
-  ['near-me-outline-rounded', place],
-  ['schedule-outline-rounded', `${posted} trước`],
-  ['visibility-outline-rounded', '318 lượt xem'],
-];
+// The listing's short code, as the seller and support quote it.
+const code = 18200 + [...it.id].reduce((n, c) => n + c.charCodeAt(0), 0);
+const act = 'state-layer flex h-8 items-center gap-1.5 rounded-sm px-2.5 text-body-medium text-sub hover:bg-hover hover:text-ink';
 /** What each condition on the scale means. */
 const GRADE: Record<string, string> = {
   'Mới': 'Chưa dùng',
   'Như mới': 'Không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần',
   'Đã dùng': 'Có vết dùng, người bán ghi trong mô tả',
 };
-const questions = ['Máy còn không bạn?', 'Xem máy ở đâu được?', 'Có hộp và hóa đơn không?'];
+const questions = ['Máy còn không bạn?', 'Có hộp và hóa đơn không?', 'Bớt chút được không?'];
 const stats: [string, string][] = [
   ['4,9', '32 đánh giá'],
   ['14', 'đã bán'],
@@ -103,158 +100,160 @@ const ld = {
     >
       <script type="application/ld+json" slot="head" set:html={JSON.stringify(ld)} />
       <main class={CONTENT}>
-        <Crumbs parts={crumbs} class="pt-4">
-          <button type="button" class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Chia sẻ" data-share>
-            <Icon name="share-outline-rounded" size={19} />
+        <Crumbs parts={crumbs} class="pt-5">
+          <button type="button" class={act} aria-label="Lưu tin" aria-pressed="false" data-save>
+            <Icon name="favorite-outline-rounded" size={16} class="save-off" />
+            <Icon name="favorite-rounded" size={16} class="save-on text-error" />
+            <span class="max-md:sr-only">Lưu</span>
           </button>
-          <button
-            type="button"
-            class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant"
-            aria-label="Ẩn tin tương tự, Báo cáo tin"
-          >
-            <Icon name="more-vert" size={19} />
+          <button type="button" class={act} data-share>
+            <Icon name="share-outline-rounded" size={16} /><span class="max-md:sr-only">Chia sẻ</span>
+          </button>
+          <button type="button" class={act}>
+            <Icon name="flag-outline-rounded" size={16} /><span class="max-md:sr-only">Báo cáo</span>
           </button>
         </Crumbs>
 
-        <div class="mt-3 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
-          <div class="min-w-0">
+        <!-- On a phone the order is gallery, price and actions, then the rest; from
+             expanded up the actions stick in the right column beside both. -->
+        <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:gap-x-8">
+          <div class="min-w-0 lg:col-start-1 lg:row-start-1">
             <Gallery photos={photos} title={title} />
-
-            <div class="mt-4 flex flex-col gap-4">
-              <div class:list={[PANEL, 'p-5']}>
-                <p class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                  <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-3 py-1 text-label-large text-on-secondary-container">
-                    <Icon name="check-circle-outline-rounded" size={16} />
-                    {it.condition}
-                  </span>
-                  {GRADE[it.condition] && <span class="text-body-small text-on-surface-variant">{GRADE[it.condition]}</span>}
-                </p>
-                <div class="mt-4 flex max-w-[680px] flex-col gap-3">
-                  {description.map((d) => (
-                    <p class="text-body-large text-ink">{d}</p>
-                  ))}
-                </div>
-              </div>
-              {iphone && (
-                <div class:list={[PANEL, 'p-5']}>
-                  <p class="text-title-small text-ink">Thông số</p>
-                  <dl class="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
-                    {DETAIL.specs.map(([key, v]) => (
-                      <div class="rounded-lg bg-surface-container-low px-3 py-2">
-                        <dt class="text-body-small text-on-surface-variant">{key}</dt>
-                        <dd class="truncate text-title-small text-ink">{v}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              )}
-            </div>
           </div>
-
-          <aside class="flex flex-col gap-3 self-start lg:sticky lg:top-[84px]">
-            <div class="glass glass-edge rounded-xl p-5 shadow-soft">
-              <a href={R.seller(SELLER.id)} class="flex items-center gap-3 rounded-full">
-                <Photo src={img(SELLER.photo, 96, 96)} width={96} height={96} alt="" class="h-10 w-10 rounded-full object-cover ring-2 ring-white" />
-                <span class="flex flex-1 items-center gap-1 text-title-small text-ink">
-                  {SELLER.name}
-                  <Icon name="verified-rounded" size={16} class="text-primary" />
-                </span>
-                <span class="flex items-center gap-1 rounded-full bg-card/80 px-2.5 py-1 text-label-large text-ink">
-                  <Icon name="star-rounded" size={15} class="text-star" />
-                  4,9
-                </span>
-                <Icon name="chevron-right-rounded" size={20} class="text-on-surface-variant" />
-              </a>
-              <h1 class="mt-4 text-j-28 text-ink">{title}</h1>
-              <p class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-body-small text-on-surface-variant">
-                {facts.map(([ic, t]) => (
-                  <span class="flex items-center gap-1">
-                    <Icon name={ic} size={15} />
-                    {t}
-                  </span>
-                ))}
+          <aside class="flex flex-col gap-4 self-start lg:sticky lg:top-[88px] lg:col-start-2 lg:row-span-2 lg:row-start-1">
+            <div class:list={[PANEL, 'p-5 lg:p-6']}>
+              <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
+                <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{it.condition}</span>
+                {place} · {posted} trước
               </p>
-              <div class="mt-5 flex items-end justify-between">
-                <p class="text-j-40 text-ink tabular-nums xl:text-j-44">
-                  {group(it.price)}
-                  <span class="ml-1 text-title-medium font-medium tracking-normal text-on-surface-variant">₫</span>
-                </p>
-                <button
-                  type="button"
-                  class="state-layer grid h-11 w-11 place-items-center rounded-full bg-card text-on-surface"
-                  aria-label="Lưu tin"
-                  aria-pressed="false"
-                  data-save
-                >
-                  <Icon name="favorite-outline-rounded" size={22} class="save-off" />
-                  <Icon name="favorite-rounded" size={22} class="save-on" />
-                </button>
-              </div>
-              <div class="mt-3 rounded-lg-plus bg-card/80 p-3.5">
-                <p class="flex flex-wrap items-center justify-between gap-x-2 text-label-large">
-                  <span class="flex items-center gap-1 text-tertiary">
-                    <Icon name="auto-awesome-rounded" size={15} />
-                    Ngang giá thị trường
-                  </span>
-                  <span class="text-body-small text-on-surface-variant">42 tin · 30 ngày · TP.HCM</span>
-                </p>
-                <div class="mt-3">
-                  <RangeBar lo={band.lo} hi={band.hi} med={band.med} axis={band.axis} mark={it.price} />
-                </div>
-              </div>
-              <div class="mt-4 grid grid-cols-2 gap-2">
-                <a href={chat} data-quickchat="chat" class="state-layer flex h-12 items-center justify-center gap-2 rounded-full bg-ink text-label-large text-on-ink">
-                  <Icon name="chat-outline-rounded" size={19} />
+              <h1 class="mt-3 text-j-22 text-ink">{title}</h1>
+              <p class="mt-3 text-j-30 text-ink tabular-nums">
+                {group(it.price)}<span class="ml-1 text-title-medium font-medium tracking-normal text-sub">₫</span>
+              </p>
+              <p class="mt-1 text-body-small text-faint">Tin giống vậy: {money(band.lo, true)} – {money(band.hi, true)}</p>
+              <div class="mt-5 flex flex-col gap-2">
+                <a href={chat} data-quickchat="chat" class={btnCls('ink', 'lg')}>
+                  <Icon name="chat-outline-rounded" size={18} />
                   Nhắn tin
                 </a>
-                <a
-                  href={`${chat}&tra-gia=1`}
-                  data-quickchat="offer"
-                  class="state-layer flex h-12 items-center justify-center gap-2 rounded-full bg-tertiary text-label-large text-on-tertiary"
-                >
-                  <Icon name="sell-outline-rounded" size={19} />
+                <a href={`${chat}&tra-gia=1`} data-quickchat="offer" class={btnCls('line', 'lg')}>
+                  <Icon name="sell-outline-rounded" size={18} class="text-terracotta" />
                   Trả giá
                 </a>
               </div>
-              <div class="mt-3 flex flex-wrap gap-1.5">
+              <p class="mt-5 text-body-small text-faint">Hỏi nhanh</p>
+              <div class="mt-1 flex flex-col">
                 {questions.map((q) => (
                   <a
                     href={`${chat}&hoi=${encodeURIComponent(q)}`}
                     data-quickchat={q}
-                    class="state-layer flex h-8 items-center rounded-full border border-line bg-card px-3 text-label-medium text-ink"
+                    class="state-layer -mx-2 flex h-10 items-center justify-between rounded-sm px-2 text-body-large text-ink hover:bg-hover"
                   >
                     {q}
+                    <Icon name="arrow-forward-rounded" size={15} class="text-faint" />
                   </a>
                 ))}
               </div>
             </div>
 
-            <div class:list={[PANEL, 'p-4']}>
+            <div class:list={[PANEL, 'p-5']}>
               <div class="flex items-center gap-3">
-                <Photo src={img(SELLER.photo, 160, 160)} width={160} height={160} alt="" class="h-11 w-11 rounded-full object-cover" />
+                <Photo src={img(SELLER.photo, 96, 96)} width={96} height={96} alt="" class="h-11 w-11 rounded-full object-cover" />
                 <div class="min-w-0 flex-1">
-                  <p class="flex items-center gap-1 text-title-small text-ink">
+                  <p class="flex items-center gap-1 text-title-medium text-ink">
                     {SELLER.name}
-                    <Icon name="verified-rounded" size={16} class="text-primary" />
+                    <Icon name="verified-rounded" size={16} class="text-brand" />
                   </p>
-                  <p class="text-body-small text-on-surface-variant">
-                    Bậc Xuất sắc · tham gia {SELLER.joined}
-                  </p>
+                  <p class="text-body-small text-faint">Tham gia {SELLER.joined}</p>
                 </div>
-                <a href={R.seller(SELLER.id)} class="state-layer flex h-9 items-center rounded-full border border-line px-3.5 text-label-medium text-ink">
-                  14 tin khác
-                </a>
+                <a href={R.seller(SELLER.id)} class={btnCls('line', 'sm')}>Xem trang</a>
               </div>
-              <div class="mt-3 grid grid-cols-3 gap-2">
+              <div class="mt-4 grid grid-cols-3 divide-x divide-line rounded-control border border-line text-center">
                 {stats.map(([v, l]) => (
-                  <div class="rounded-lg bg-surface-container-low px-3 py-2">
-                    <p class="text-j-16 text-ink tabular-nums">{v}</p>
-                    <p class="text-body-small text-on-surface-variant">{l}</p>
+                  <div class="py-2.5">
+                    <p class="text-j-15 text-ink tabular-nums">{v}</p>
+                    <p class="text-body-small text-faint">{l}</p>
                   </div>
+                ))}
+              </div>
+              <p class="mt-4 text-body-small text-faint">14 tin khác</p>
+              <div class="mt-2 grid grid-cols-3 gap-2">
+                {SELLING.slice(0, 3).map((o) => (
+                  <a href={R.listing(o.id)} class="min-w-0">
+                    <Photo src={img(o.photo, 200, 200)} width={200} height={200} alt={o.title} loading="lazy" class="aspect-square w-full rounded-control object-cover" />
+                    <Price vnd={o.price} size="text-j-15" class="mt-1 block text-[13px]" />
+                  </a>
                 ))}
               </div>
             </div>
           </aside>
+          <div class="flex min-w-0 flex-col gap-4 lg:col-start-1 lg:row-start-2">
+            <section class:list={[PANEL, 'p-5 lg:p-6']}>
+              <h2 class="text-j-16 text-ink">Mô tả</h2>
+              <div class="mt-3 flex max-w-[680px] flex-col gap-2">
+                {description.map((d) => (
+                  <p class="text-j-15 font-normal leading-7 text-ink">{d}</p>
+                ))}
+              </div>
+              <p class="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-body-small text-faint">
+                <span>Mã tin {code}</span><span>Đăng {posted} trước</span><span>318 lượt xem</span><span>12 người lưu</span>
+              </p>
+            </section>
+
+            <section class:list={[PANEL, 'p-5 lg:p-6']}>
+              <h2 class="text-j-16 text-ink">Tình trạng</h2>
+              <div class="mt-3 grid grid-cols-3 gap-1 rounded-control bg-soft p-1">
+                {Object.entries(GRADE).map(([g, d]) => (
+                  <div class:list={['rounded-sm px-3 py-2', g === it.condition ? 'bg-brand text-white' : 'text-sub']}>
+                    <p class="text-title-small">{g}</p>
+                    <p class:list={['text-body-small max-md:hidden', g === it.condition && 'text-white/75']}>{d}</p>
+                  </div>
+                ))}
+              </div>
+              {iphone && <p class="mt-3 text-body-large text-sub">Người bán ghi: 2 vết xước nhỏ ở viền, có trong ảnh 3.</p>}
+            </section>
+
+            {iphone && (
+              <section class:list={[PANEL, 'p-5 lg:p-6']}>
+                <h2 class="text-j-16 text-ink">Thông số</h2>
+                <dl class="mt-2 grid grid-cols-1 gap-x-10 md:grid-cols-2">
+                  {DETAIL.specs.map(([key, v]) => (
+                    <div class="flex justify-between gap-4 border-b border-line py-2.5 text-body-large">
+                      <dt class="text-sub">{key}</dt>
+                      <dd class="text-right font-medium text-ink">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
+
+            <section class:list={[PANEL, 'p-5 lg:p-6']}>
+              <div class="flex items-center justify-between gap-4">
+                <h2 class="text-j-16 text-ink">Đánh giá về {SELLER.name}</h2>
+                <p class="flex items-center gap-1 text-body-large text-sub">
+                  <Icon name="star-rounded" size={15} class="text-star" /><b class="font-semibold text-ink">4,9</b> · 32 đánh giá
+                </p>
+              </div>
+              <div class="mt-4 flex flex-col gap-4">
+                {REVIEWS.slice(0, 2).map((r, i) => (
+                  <div class:list={['flex gap-3', i > 0 && 'border-t border-line pt-4']}>
+                    <Photo src={img(r.photo, 72, 72)} width={72} height={72} alt="" loading="lazy" class="h-9 w-9 shrink-0 rounded-full object-cover" />
+                    <div class="min-w-0">
+                      <p class="flex items-center gap-2 text-title-small text-ink">
+                        {r.name}
+                        <span class="flex text-star" aria-label={`${r.stars} sao`}>
+                          {Array.from({ length: r.stars }, () => <Icon name="star-rounded" size={12} />)}
+                        </span>
+                      </p>
+                      <p class="mt-1 text-body-large leading-6 text-ink">{r.text}</p>
+                      <p class="mt-1 text-body-small text-faint">{r.itemName} · {r.ago}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
         </div>
 
         <section class="mt-10">

@@ -1,8 +1,10 @@
 ---
-// Tìm kiếm's results: count and summary, the filter panel, the sort bar with
-// the grid/list switch, the cards, "Báo khi có tin mới" after the eighth.
+// Tìm kiếm's results (K2): the count and one summary line with "Báo khi có
+// tin mới", the filter panel on the left, then the query's chips (the slot),
+// the sort tabs with the grid/list switch, the cards, and the alert strip
+// after the eighth.
 import type { Listing } from '../../lib/format';
-import { CONTENT } from '../../lib/ui';
+import { CONTENT, btnCls } from '../../lib/ui';
 import Icon from '../Icon.astro';
 import ListingCard from '../ListingCard.astro';
 import Seg from '../Seg.astro';
@@ -26,61 +28,35 @@ const shown = items.slice(0, 12);
 ---
 
 <div class={CONTENT}>
-  <slot />
-  <div class="mt-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+  <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-6">
     <div>
-      <h1 class="flex flex-wrap items-center gap-x-3 gap-y-1 text-j-32 text-ink md:text-j-40">
-        <span class="tabular-nums" data-count>{total}</span>
-        {noun}
-        {
-          summary && (
-            <span class="rounded-full bg-card/80 px-2.5 py-1 text-label-medium font-medium tracking-normal text-primary">+9 hôm nay</span>
-          )
-        }
-      </h1>
-      {
-        summary && (
-          <p class="mt-1.5 flex items-center gap-1.5 text-body-medium text-on-surface-variant">
-            <Icon name="auto-awesome-rounded" size={15} class="text-primary" />
-            Ưu tiên RAM 16 GB cho Photoshop và Figma.
-          </p>
-        )
-      }
+      <h1 class="text-j-24 text-ink lg:text-j-28"><span class="tabular-nums" data-count>{total}</span> {noun}</h1>
+      {summary && <p class="mt-1 text-body-large text-sub">9 tin mới hôm nay · đa số từ 6,5 đến 7,9 tr ₫</p>}
     </div>
-    {
-      summary && (
-        <div class="flex items-center gap-4 pb-1 text-body-small text-on-surface-variant">
-          <span class="flex items-center gap-1.5">
-            <span class="h-2 w-2 rounded-full bg-primary" />
-            Giữa <b class="font-semibold text-ink tabular-nums">7,3 tr ₫</b>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <span class="h-2 w-2 rounded-full bg-teal-light" />
-            <b class="font-semibold text-ink tabular-nums">38</b> tin trong 5 km
-          </span>
-        </div>
-      )
-    }
+    <button type="button" class={btnCls('line', 'sm')}>
+      <Icon name="notifications-outline-rounded" size={16} />
+      Báo khi có tin mới
+    </button>
   </div>
 </div>
 
-<main class:list={[CONTENT, 'mt-5 grid grid-cols-1 gap-8 lg:grid-cols-[264px_1fr]']}>
+<main class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[256px_minmax(0,1fr)]']}>
   <div class="hidden lg:block"><SearchFilters /></div>
   <section class="min-w-0" data-results>
-    <div
-      class="glass glass-edge sticky top-[76px] z-20 flex items-center justify-between gap-2 overflow-x-auto rounded-full py-1 pl-1 pr-1.5 shadow-soft no-scrollbar"
-    >
-      <div data-sort>
-        <Seg items={['Phù hợp nhất', 'Mới đăng', 'Giá thấp', 'Gần nhất']} class="bg-ink/[.04]" name="Sắp xếp" />
+    <slot />
+    <div class="mt-3 flex items-center justify-between gap-4 border-b border-line">
+      <div data-sort class="no-scrollbar overflow-x-auto">
+        <Seg items={['Phù hợp nhất', 'Mới đăng', 'Giá thấp', 'Gần nhất']} variant="tabs" name="Sắp xếp" />
       </div>
-      <div class="flex shrink-0 items-center gap-2">
-        <span class="hidden text-body-small text-on-surface-variant md:inline">1–{shown.length} trong {total}</span>
+      <div class="flex shrink-0 items-center gap-3 pb-1.5">
+        <span class="hidden text-body-small text-faint md:inline">1–{shown.length} trong {total}</span>
         <div data-view>
           <Seg
             items={['grid-view-outline-rounded', 'view-list-outline-rounded']}
             labels={['Dạng lưới', 'Dạng danh sách']}
             icons
-            class="bg-ink/[.04]"
+            class="bg-soft"
+            itemClass="px-2!"
             name="Cách xem"
           />
         </div>
@@ -89,13 +65,13 @@ const shown = items.slice(0, 12);
 
     {
       widened && (
-        <p class="mt-4 flex items-center gap-2 px-2 text-body-medium text-on-surface-variant">
-          <Icon name="near-me-outline-rounded" size={18} class="text-primary" />
+        <p class="mt-4 flex items-center gap-2 text-body-medium text-sub">
+          <Icon name="near-me-outline-rounded" size={16} class="text-brand" />
           Chưa có tin trong {near.asked} km · đang hiện {near.shown ? `tin trong ${near.shown} km` : 'tin ở mọi nơi'}
         </p>
       )
     }
-    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" data-grid>
+    <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" data-grid>
       {
         shown.map((it, i) => (
           <div
@@ -110,15 +86,14 @@ const shown = items.slice(0, 12);
           </div>
         ))
       }
-      <div class="order-1 col-span-full flex flex-wrap items-center gap-4 rounded-panel border border-line bg-card p-3" data-alert>
-        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-teal to-teal-light text-white">
-          <Icon name="notifications-outline-rounded" size={22} />
+      <div class="order-1 col-span-full flex flex-wrap items-center gap-4 rounded-card border border-line bg-card px-4 py-3" data-alert>
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-on-mint">
+          <Icon name="notifications-outline-rounded" size={19} />
         </span>
         <p class="min-w-0 flex-1 text-body-large text-ink">
-          <b class="font-semibold">Chưa thấy máy ưng?</b>{' '}
-          <span class="text-on-surface-variant">Có {noun.split(' ')[0]} mới khớp câu này, ShopNexus báo bạn.</span>
+          Chưa thấy món ưng? <span class="text-sub max-md:hidden">Có tin mới khớp, ShopNexus báo bạn.</span>
         </p>
-        <button type="button" class="state-layer h-10 shrink-0 rounded-full bg-ink px-5 text-label-large text-on-ink">Báo khi có tin mới</button>
+        <button type="button" class={btnCls('ink', 'sm')}>Báo khi có tin mới</button>
       </div>
     </div>
 
@@ -130,20 +105,20 @@ const shown = items.slice(0, 12);
       {
         ['1', '2', '3', '…', '11'].map((n) =>
           n === '…' ? (
-            <span class="grid h-10 min-w-10 place-items-center text-label-large text-ink">…</span>
+            <span class="grid h-9 min-w-9 place-items-center text-body-large text-faint">…</span>
           ) : (
             <a
               href={n === '1' ? '#' : `?trang=${n}`}
               aria-current={n === '1' ? 'page' : undefined}
-              class="grid h-10 min-w-10 place-items-center rounded-full px-2 text-label-large text-ink tabular-nums hover:bg-card aria-[current=page]:bg-ink aria-[current=page]:text-on-ink"
+              class="grid h-9 min-w-9 place-items-center rounded-control px-2 text-body-large text-ink tabular-nums hover:bg-hover aria-[current=page]:bg-brand aria-[current=page]:text-white"
             >
               {n}
             </a>
           ),
         )
       }
-      <a href="?trang=2" class="ml-2 flex h-10 items-center gap-1 rounded-full border border-line bg-card px-4 text-label-large text-ink">
-        Trang sau<Icon name="arrow-forward-rounded" size={16} />
+      <a href="?trang=2" class:list={['ml-2', btnCls('line', 'sm')]}>
+        Trang sau<Icon name="chevron-right-rounded" size={16} />
       </a>
     </nav>
   </section>

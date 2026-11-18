@@ -11,10 +11,10 @@ interface Props {
   class?: string;
 }
 
-const { vnd, size = 'text-j-18', short = true, class: cls } = Astro.props;
+const { vnd, size = 'text-j-16', short = true, class: cls } = Astro.props;
 const [num, unit] = priceParts(vnd, short);
 ---
 
 <span class:list={['whitespace-nowrap text-ink tabular-nums', size, cls]}
-  >{num}<span class="ml-0.5 text-body-small font-medium tracking-normal text-on-surface-variant">{unit}</span></span
+  >{num}<span class="ml-0.5 text-body-small font-medium tracking-normal text-sub">{unit}</span></span
 >
