@@ -43,7 +43,7 @@ const code = ['2', '8', '4', '9', '', ''];
     <div class="mt-6 grid grid-cols-1 gap-8 lg:mt-8 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_480px] xl:gap-10">
       <section class="order-2 min-w-0 lg:order-1 lg:pt-4">
         <h1 class="max-w-[640px] text-j-40 text-ink md:text-j-48 xl:text-j-56">
-          Đồ cũ giá tốt,<br /><span class="grad-text">xem hàng</span> rồi mới trả.
+          Đồ cũ giá tốt,<br />xem hàng rồi mới trả.
         </h1>
         <div class="mt-6 flex flex-wrap gap-2">
           {
@@ -57,9 +57,9 @@ const code = ['2', '8', '4', '9', '', ''];
         </div>
         <div class="mt-7 flex flex-wrap gap-x-10 gap-y-4">
           {
-            stats.map(([v, l], i) => (
+            stats.map(([v, l]) => (
               <div>
-                <p class:list={['text-j-28 tabular-nums', i === 0 ? 'grad-num' : 'text-ink']}>{v}</p>
+                <p class="text-j-28 tabular-nums text-ink">{v}</p>
                 <p class="text-body-small text-on-surface-variant">{l}</p>
               </div>
             ))

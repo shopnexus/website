@@ -216,8 +216,8 @@ search fields and segmented controls are pills.
 Display and title text use weight 600 with letter spacing −0.02 em
 (−0.035 em at 28 px and above), which departs from the app's weight 400. The
 signed-in Home headline is 44/52, page titles 40, section titles 26 to 28.
-Prices use tabular figures. The Home headline may carry one word in a
-`primary` to `tertiary` gradient.
+Prices use tabular figures. Text is never a gradient; gradients are
+for backgrounds only.
 
 ### Controls
 

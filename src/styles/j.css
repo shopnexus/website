@@ -205,18 +205,6 @@
     var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);
 }
 
-/* One word of the Home headline, and the big counts. */
-@utility grad-text {
-  background: linear-gradient(100deg, #005049 0%, #0e8a7d 45%, #c0623e 100%);
-  background-clip: text;
-  color: transparent;
-}
-@utility grad-num {
-  background: linear-gradient(160deg, #066a61, #5cc2b4);
-  background-clip: text;
-  color: transparent;
-}
-
 /* A card lifts 4 px on hover and its photo scales to 104 %. */
 @utility lift {
   transition:

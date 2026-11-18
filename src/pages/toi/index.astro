@@ -65,9 +65,9 @@ const settings = [
     </div>
     <div class="mt-5 grid grid-cols-2 gap-y-4 border-t border-line pt-4 md:flex md:divide-x md:divide-line">
       {
-        stats.map(([value, label], i) => (
+        stats.map(([value, label]) => (
           <div class="flex-1 pr-4 md:px-5 md:first:pl-0">
-            <p class:list={['text-j-26 tabular-nums', i === 0 ? 'grad-num' : 'text-ink']}>{value}</p>
+            <p class="text-j-26 tabular-nums text-ink">{value}</p>
             <p class="text-body-small text-on-surface-variant">{label}</p>
           </div>
         ))

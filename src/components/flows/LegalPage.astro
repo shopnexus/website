@@ -50,7 +50,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
       sections.map(([t, parts], i) => (
         <section id={`s${i + 1}`} class:list={['scroll-mt-24 pb-6', i > 0 && 'border-t border-line pt-6']}>
           <h2 class="flex items-baseline gap-3 text-j-22 text-ink">
-            <span class="grad-num tabular-nums">{num(i)}</span>
+            <span class="tabular-nums">{num(i)}</span>
             {t}
           </h2>
           {parts.map((p) =>
