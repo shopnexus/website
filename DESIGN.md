@@ -124,9 +124,9 @@ every page.
   160 px of scroll after it enters the window. What is on the first screen
   is already past that range and shows as it is. The Home category row comes
   in with a 30 ms stagger (`stagger`).
-- A whole number in `grad-num` from 10 up counts from 0 the first time it is
-  in view, on a critically damped spring at stiffness 120, so it never passes
-  its value.
+- A whole number marked `data-count` from 10 up counts from 0 the first
+  time it is in view, on a critically damped spring at stiffness 120, so it
+  never passes its value.
 - Rings fill and price bands grow from the left when the page opens; the
   listing's dot lands on the band after it.
 - Dialogs scale up from 96 % over a fading backdrop and leave the same way.

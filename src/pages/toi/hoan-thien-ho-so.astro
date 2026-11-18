@@ -180,7 +180,7 @@ const qr = Array.from({ length: N * N }, (_, i) => {
       </ul>
     </div>
     <a href={R.reputation} class:list={['lift flex items-center gap-3 p-4', PANEL]}>
-      <span class="text-j-28 text-ink tabular-nums">{SCORE}</span>
+      <span class="text-j-28 text-ink tabular-nums" data-count>{SCORE}</span>
       <span class="flex-1 text-body-medium text-ink">
         Điểm uy tín
         {next && <span class="block text-body-small text-on-surface-variant">Còn {next[1] - SCORE} điểm lên {next[0]}</span>}

@@ -34,10 +34,10 @@ document.addEventListener('animationend', (e) => {
   if ((e as AnimationEvent).animationName === 'save-ring') (e.target as Element).classList.remove('is-popping');
 });
 
-// Big figures in the teal gradient count up from 0 the first time they come
+// Big figures marked data-count count up from 0 the first time they come
 // into view. Only whole numbers from 10 up: "01" in a table of contents stays.
 const vi = new Intl.NumberFormat('vi-VN');
-document.querySelectorAll<HTMLElement>('.grad-num').forEach((el) => {
+document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
   const text = el.textContent?.trim() ?? '';
   if (!/^\d{1,3}(\.\d{3})*$|^\d+$/.test(text)) return;
   const value = Number(text.replaceAll('.', ''));
