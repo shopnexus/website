@@ -92,9 +92,53 @@ filters, chat. Parts that depend on who is signed in (the saved heart, the
 unread badge) load as server islands so the rest of the page can be cached.
 
 **Motion.** CSS has no springs, so each spring is sampled into `linear()`
-with its settle time. Page changes use the View Transitions API with the slow
-spatial spring. Everything drops to an instant change under
-`prefers-reduced-motion`.
+with its settle time. Scripts animate with the `motion` library, and
+`src/lib/motion.ts` turns each app spring (damping ratio and stiffness) into
+its options. `src/styles/motion.css` holds the CSS side and
+`src/scripts/page-motion.ts` the scripted side; Layout.astro loads both on
+every page.
+
+- A link to another page is a cross-document view transition: the old page
+  fades out, the new one fades in and rises 12 px on the slow spatial spring.
+  The header, the bottom bar and the current-section pill keep their place
+  and slide to the new section.
+- A listing's photo grows from the card that was clicked into the gallery,
+  and shrinks back into the card on the way back. An inline script in
+  Layout.astro names the one pair on `pageswap` and `pagereveal`, because the
+  same listing can appear twice on a page.
+- Pills and round buttons with `state-layer` shrink to 96 % while held, on
+  the fast spatial spring. A held card drops to 1 px above its place. The
+  switch's knob stretches while held.
+- Links and buttons change colour over the fast effects spring.
+- A save button (`data-save`) draws both hearts. The filled one pops in with
+  a ring, and the snackbar says "Đã lưu tin" with "Xem", or "Đã bỏ lưu tin"
+  with "Hoàn tác". The saved state lives in the page until the server is
+  wired.
+- `snack()` in `src/lib/snackbar.ts` shows the app's snackbar. It rises on
+  the spatial spring, the ring round its icon empties over its four seconds,
+  and hovering or focusing it stops the time. Share on a listing copies the
+  link through it; on a touch screen it opens the system share sheet.
+- Listing photos (`<Photo fade>`) fade in over the `surfaceContainerHigh`
+  placeholder once loaded.
+- A top-level `section` in `main` rises 24 px and fades in over the first
+  160 px of scroll after it enters the window. What is on the first screen
+  is already past that range and shows as it is. The Home category row comes
+  in with a 30 ms stagger (`stagger`).
+- A whole number in `grad-num` from 10 up counts from 0 the first time it is
+  in view, on a critically damped spring at stiffness 120, so it never passes
+  its value.
+- Rings fill and price bands grow from the left when the page opens; the
+  listing's dot lands on the band after it.
+- Dialogs scale up from 96 % over a fading backdrop and leave the same way.
+  The ⋮ menus and the "Gỡ liên kết" confirm drop in from their button. A FAQ
+  answer slides open.
+- In the gallery a thumbnail zooms a little on hover, and the big photo
+  settles in from 103 % once the new one has decoded.
+- The header gets a 1 px `line` edge once the page has scrolled 48 px under
+  it.
+- Under `prefers-reduced-motion` page changes are instant, figures show their
+  value at once, the snackbar appears without moving, and every CSS
+  animation lasts 1 ms.
 
 **Theme.** Light, dark from the system, and an override through `data-theme`
 on `<html>`, as "Giao diện tối" does in the app. Material You is left out: a
@@ -147,7 +191,7 @@ fractal noise at 22 %, overlay blend) sits on it.
 ### Header
 
 A glass bar, sticky, 64 px tall, inside a 1360 px content box,
-with no border and no shadow. Brand mark and "ShopNexus"; the section links
+with no shadow, and no border until the page scrolls under it. Brand mark and "ShopNexus"; the section links
 Khám phá, Danh mục, Bản đồ, Cách mua as text, the current one on a white
 capsule; Tin nhắn with the `error` badge; "Đăng tin" as an ink pill; the
 avatar. Signed out, Tin nhắn and the avatar give way to a "Đăng nhập" text

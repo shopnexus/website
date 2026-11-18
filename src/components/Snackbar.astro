@@ -1,0 +1,22 @@
+---
+// The app's snackbar: a secondaryContainer card, 16 px corners, the kind's icon
+// in a circle ringed by the time left, and an optional text action. src/lib/snackbar.ts
+// fills it; this holds the region and the icons it can show.
+import Icon from './Icon.astro';
+
+const ICONS = ['check-rounded', 'favorite-rounded', 'heart-broken-outline-rounded', 'link-rounded', 'error-outline-rounded'];
+---
+
+<div
+  class="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-4 lg:bottom-6"
+  aria-live="polite"
+  data-snackbar
+>
+</div>
+{
+  ICONS.map((name) => (
+    <template data-snack-icon={name}>
+      <Icon name={name} size={18} />
+    </template>
+  ))
+}

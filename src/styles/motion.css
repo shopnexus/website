@@ -1,0 +1,369 @@
+/*
+ * Motion and micro-interactions shared by every page. DESIGN.md ("Motion")
+ * lists them. Springs come from tokens.css (`--ease-spatial*`, `--ease-effects`
+ * with `--duration-*`); the JS side uses the same springs through
+ * src/lib/motion.ts. Each rule works without JavaScript or degrades to an
+ * instant change, and tokens.css cuts every animation to 1 ms under
+ * prefers-reduced-motion.
+ */
+
+/* ------------------------------------------------- page transitions -- */
+/* A link to another page cross-fades the content while the header, the
+   bottom bar and the current-section pill stay put or slide. A listing's
+   photo grows from its card into the gallery and back (the inline script in
+   Layout.astro names the pair). */
+@view-transition {
+  navigation: auto;
+}
+
+header.glass.sticky {
+  view-transition-name: site-header;
+}
+nav[aria-label="Mục chính"].fixed {
+  view-transition-name: bottom-nav;
+}
+header nav a[aria-current="page"] {
+  view-transition-name: header-current;
+}
+nav.fixed a[aria-current="page"] > span {
+  view-transition-name: bottom-current;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--duration-spatial-slow);
+  animation-timing-function: var(--ease-spatial);
+}
+::view-transition-old(root) {
+  animation: vt-fade-out var(--duration-effects-default) var(--ease-effects) both;
+}
+::view-transition-new(root) {
+  animation:
+    vt-fade-in var(--duration-effects-slow) var(--ease-effects) both,
+    vt-rise var(--duration-spatial-slow) var(--ease-spatial) both;
+}
+/* The pills keep their own shape: no stretched cross-fade of the label. */
+::view-transition-old(header-current),
+::view-transition-new(header-current),
+::view-transition-old(bottom-current),
+::view-transition-new(bottom-current) {
+  height: 100%;
+  object-fit: none;
+}
+::view-transition-old(listing-photo),
+::view-transition-new(listing-photo) {
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+}
+::view-transition-group(listing-photo) {
+  border-radius: 16px;
+  overflow: clip;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-rise {
+  from {
+    translate: 0 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+/* --------------------------------------------------------- the header -- */
+/* At the top the glass bar has no edge; once the page scrolls under it, a
+   hairline separates it from the content. */
+@supports (animation-timeline: scroll()) {
+  header.glass.sticky {
+    animation: header-edge linear both;
+    animation-timeline: scroll();
+    animation-range: 0 48px;
+  }
+}
+@keyframes header-edge {
+  from {
+    box-shadow: 0 1px 0 transparent;
+  }
+  to {
+    box-shadow: 0 1px 0 var(--j-line);
+  }
+}
+
+/* -------------------------------------------------------- hover tints -- */
+/* Links and buttons change colour over the fast effects spring instead of
+   snapping. In the base layer, so a transition utility on the element wins. */
+@layer base {
+  :where(a, button, summary, label, [role="tab"]) {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-duration: var(--duration-effects-fast);
+    transition-timing-function: var(--ease-effects);
+  }
+}
+
+/* ------------------------------------------------------------- press -- */
+/* The app's press morph: a pill or round button shrinks a little while held
+   and springs back. Rows and cards (not rounded-full) keep the state layer only. */
+.state-layer.rounded-full,
+.state-layer.rounded-panel,
+.press {
+  transition:
+    scale var(--duration-spatial-fast) var(--ease-spatial-fast),
+    color var(--duration-effects-fast) var(--ease-effects),
+    background-color var(--duration-effects-fast) var(--ease-effects),
+    border-color var(--duration-effects-fast) var(--ease-effects),
+    opacity var(--duration-effects-fast) var(--ease-effects);
+  &:active {
+    scale: 0.96;
+  }
+}
+/* A card sinks back while pressed: the lift's hover goes, the press shows. */
+.lift:active {
+  transform: translateY(-1px);
+  transition-duration: var(--duration-effects-fast);
+}
+
+/* The switch's knob stretches while held, as in M3; when on it grows to the left. */
+[data-switch] > span {
+  transition:
+    translate var(--duration-spatial-fast) var(--ease-spatial-fast),
+    width var(--duration-spatial-fast) var(--ease-spatial-fast),
+    left var(--duration-spatial-fast) var(--ease-spatial-fast);
+}
+[data-switch]:active > span {
+  width: 1.5rem;
+}
+[data-switch][aria-checked="true"]:active > span {
+  left: 0;
+}
+
+/* --------------------------------------------------- save (the heart) -- */
+/* A save button draws both hearts and aria-pressed picks one. The filled one
+   pops in, and page-motion.ts adds the ring burst. */
+[data-save] .save-on {
+  display: none;
+}
+[data-save][aria-pressed="true"] {
+  color: var(--color-teal);
+}
+[data-save][aria-pressed="true"] .save-on {
+  display: block;
+  animation: save-pop var(--duration-spatial-fast) var(--ease-spatial-fast);
+}
+[data-save][aria-pressed="true"] .save-off {
+  display: none;
+}
+[data-save].is-popping::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--color-teal);
+  animation: save-ring var(--duration-effects-slow) var(--ease-effects) forwards;
+  pointer-events: none;
+}
+@keyframes save-pop {
+  from {
+    scale: 0.4;
+  }
+}
+@keyframes save-ring {
+  from {
+    scale: 0.6;
+    opacity: 0.9;
+  }
+  to {
+    scale: 1.6;
+    opacity: 0;
+  }
+}
+
+/* ----------------------------------------------------- photos loading -- */
+/* A photo fades in over the surfaceContainerHigh placeholder once it has
+   loaded (the app's rule). Layout.astro marks <html> with `js` before the
+   first paint, so without JavaScript photos show at once. */
+html.js img[data-fade]:not([data-loaded]) {
+  opacity: 0;
+}
+html.js img[data-fade] {
+  /* transform too: the card's hover zoom (lift in j.css) runs on the same photo. */
+  transition:
+    opacity var(--duration-effects-slow) var(--ease-effects),
+    transform var(--duration-spatial-slow) var(--ease-spatial);
+}
+
+/* -------------------------------------------------- sections on scroll -- */
+/* A section rises in as it enters the window. What is in the first screen is
+   already past the range, so it shows as it is. */
+@supports (animation-timeline: view()) {
+  main section:not(section section) {
+    animation:
+      reveal-fade linear both,
+      reveal-rise linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 160px;
+  }
+}
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes reveal-rise {
+  from {
+    translate: 0 24px;
+  }
+}
+
+/* A group marked `stagger` brings its children in one after another on
+   load, 30 ms apart (the app's Home category row). A browser without
+   sibling-index() brings them in together. */
+.stagger > * {
+  animation:
+    vt-fade-in var(--duration-effects-default) var(--ease-effects) both,
+    stagger-rise var(--duration-spatial-default) var(--ease-spatial) both;
+}
+@supports (animation-delay: calc(sibling-index() * 1ms)) {
+  .stagger > * {
+    animation-delay: calc((sibling-index() - 1) * 30ms);
+  }
+}
+@keyframes stagger-rise {
+  from {
+    translate: 0 8px;
+  }
+}
+
+/* -------------------------------------------------- dialogs and menus -- */
+/* A dialog scales up from 96 % over a fading backdrop and leaves the same
+   way. */
+dialog {
+  opacity: 0;
+  scale: 0.96;
+  transition:
+    opacity var(--duration-effects-default) var(--ease-effects),
+    scale var(--duration-spatial-default) var(--ease-spatial),
+    overlay var(--duration-effects-default) allow-discrete,
+    display var(--duration-effects-default) allow-discrete;
+  &[open] {
+    opacity: 1;
+    scale: 1;
+  }
+  &::backdrop {
+    opacity: 0;
+    transition:
+      opacity var(--duration-effects-default) var(--ease-effects),
+      overlay var(--duration-effects-default) allow-discrete,
+      display var(--duration-effects-default) allow-discrete;
+  }
+  &[open]::backdrop {
+    opacity: 1;
+  }
+}
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    scale: 0.96;
+  }
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Popovers that pages show by dropping the `hidden` class (the ⋮ menus,
+   the "Gỡ liên kết" confirm): each opening drops in from the button. */
+[data-menu]:not(.hidden),
+[data-unlink-dialog]:not(.hidden) {
+  animation:
+    vt-fade-in var(--duration-effects-default) var(--ease-effects),
+    menu-drop var(--duration-spatial-default) var(--ease-spatial);
+  transform-origin: top right;
+}
+@keyframes menu-drop {
+  from {
+    scale: 0.94;
+    translate: 0 -4px;
+  }
+}
+
+/* ----------------------------------------------------------- the FAQ -- */
+/* An answer slides open; the chevron already turns in Faq.astro. */
+details[data-faq] {
+  interpolate-size: allow-keywords;
+  &::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    opacity: 0;
+    transition:
+      block-size var(--duration-spatial-default) var(--ease-spatial),
+      opacity var(--duration-effects-default) var(--ease-effects),
+      content-visibility var(--duration-spatial-default) allow-discrete;
+  }
+  &[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------- progress and rings -- */
+/* Rings (Ring.astro) and price bands (RangeBar.astro) fill from empty when
+   the page opens. */
+[data-ring] {
+  animation: ring-fill var(--duration-spatial-slow) var(--ease-spatial) both 120ms;
+}
+@keyframes ring-fill {
+  from {
+    stroke-dasharray: 0 999;
+  }
+}
+[data-fill] {
+  transform-origin: left;
+  animation: bar-fill var(--duration-spatial-slow) var(--ease-spatial) both 120ms;
+}
+@keyframes bar-fill {
+  from {
+    scale: 0 1;
+  }
+}
+/* The listing's own dot on a price band lands once the band has filled. */
+[data-dot] {
+  animation: dot-land var(--duration-spatial-fast) var(--ease-spatial-fast) both 420ms;
+}
+@keyframes dot-land {
+  from {
+    scale: 0;
+  }
+}
+
+/* --------------------------------------------------------- the gallery -- */
+/* A thumbnail zooms a little on hover; page-motion.ts settles the big photo
+   in after a swap. */
+[data-gallery] [data-big] img {
+  transition: scale var(--duration-spatial-default) var(--ease-spatial);
+}
+[data-gallery] [data-big]:hover img {
+  scale: 1.06;
+}
+[data-gallery] [data-big] {
+  transition:
+    opacity var(--duration-effects-fast) var(--ease-effects),
+    box-shadow var(--duration-spatial-fast) var(--ease-spatial-fast);
+}
+
+/* ------------------------------------------------------ smooth anchors -- */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

@@ -96,7 +96,7 @@ const ld = {
       <script type="application/ld+json" slot="head" set:html={JSON.stringify(ld)} />
       <main class={CONTENT}>
         <Crumbs parts={crumbs} class="pt-4">
-          <button type="button" class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Chia sẻ">
+          <button type="button" class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Chia sẻ" data-share>
             <Icon name="share-outline-rounded" size={19} />
           </button>
           <button
@@ -213,8 +213,10 @@ const ld = {
                   class="state-layer grid h-11 w-11 place-items-center rounded-full bg-card text-on-surface"
                   aria-label="Lưu tin"
                   aria-pressed="false"
+                  data-save
                 >
-                  <Icon name="favorite-outline-rounded" size={22} />
+                  <Icon name="favorite-outline-rounded" size={22} class="save-off" />
+                  <Icon name="favorite-rounded" size={22} class="save-on" />
                 </button>
               </div>
               <div class="mt-3 rounded-lg-plus bg-card/80 p-3.5">
@@ -355,16 +357,4 @@ const ld = {
   )
 }
 
-<script>
-  // Gallery: a thumbnail puts its photo in the big frame.
-  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
-    const big = g.querySelector<HTMLImageElement>('[data-main]')!;
-    const thumbs = [...g.querySelectorAll<HTMLButtonElement>('[data-big]')];
-    thumbs.forEach((t) =>
-      t.addEventListener('click', () => {
-        big.src = t.dataset.big!;
-        thumbs.forEach((x) => x.setAttribute('aria-pressed', String(x === t)));
-      }),
-    );
-  });
-</script>
+

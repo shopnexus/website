@@ -35,6 +35,7 @@ const id = `ring-${size}`;
       stroke={`url(#${id})`}
       stroke-width={stroke}
       stroke-linecap="round"
+      data-ring
       stroke-dasharray={`${((c * done) / total).toFixed(1)} ${c.toFixed(1)}`}></circle>
   </svg>
   <span class="relative text-title-medium font-semibold text-ink tabular-nums" aria-hidden="true"

@@ -6,6 +6,7 @@ import favicon32 from '@brand/favicon-32.png';
 import BottomNav from '../components/BottomNav.astro';
 import Footer from '../components/Footer.astro';
 import Header, { type Section } from '../components/Header.astro';
+import Snackbar from '../components/Snackbar.astro';
 import { theme } from '../lib/session';
 
 interface Props {
@@ -40,6 +41,48 @@ const { title, description, section = null, search, footer = true, fab = true, i
     {image && <meta property="og:image" content={image} />}
     <meta property="og:site_name" content="ShopNexus" />
     <slot name="head" />
+    <!-- Hold the first paint until the page is parsed, so pagereveal below
+         finds the listing photo it pairs with the one on the last page. -->
+    <link rel="expect" href="#page-end" blocking="render" />
+    <script is:inline>
+      // Runs before the first paint. `js` lets motion.css hide a photo until
+      // it has loaded; the rest pairs a listing's photo across a page change,
+      // card to gallery and back, for the view transition in motion.css.
+      document.documentElement.classList.add('js');
+      const loaded = (e) => e.target instanceof HTMLImageElement && (e.target.dataset.loaded = '');
+      // On document: an image's load event does not reach window.
+      document.addEventListener('load', loaded, true);
+      document.addEventListener('error', loaded, true);
+
+      let tapped = null;
+      addEventListener('click', (e) => (tapped = e.target.closest?.('a[href]') ?? null), true);
+      const photoOf = (a) => a.querySelector('img') ?? a.closest('article, li')?.querySelector('img');
+      const pair = (img, vt) => {
+        if (!img) return;
+        img.style.viewTransitionName = 'listing-photo';
+        img.dataset.loaded = '';
+        vt.finished.finally(() => (img.style.viewTransitionName = ''));
+      };
+      const gallery = () => document.querySelector('[data-gallery] [data-main]');
+      addEventListener('pageswap', (e) => {
+        if (!e.viewTransition || !e.activation?.entry?.url) return;
+        const to = new URL(e.activation.entry.url);
+        if (to.pathname.startsWith('/tin/') && tapped?.pathname === to.pathname) pair(photoOf(tapped), e.viewTransition);
+        else pair(gallery(), e.viewTransition);
+      });
+      addEventListener('pagereveal', (e) => {
+        if (!e.viewTransition) return;
+        if (gallery()) return pair(gallery(), e.viewTransition);
+        const from = window.navigation?.activation?.from?.url;
+        if (!from) return;
+        const path = new URL(from).pathname;
+        const seen = [...document.querySelectorAll('a[href="' + path + '"]')].map(photoOf).find((img) => {
+          const r = img?.getBoundingClientRect();
+          return r && r.bottom > 0 && r.top < innerHeight;
+        });
+        pair(seen, e.viewTransition);
+      });
+    </script>
   </head>
   <body class="min-h-dvh font-sans text-body-medium">
     <div class="relative min-h-dvh overflow-x-clip pb-40 lg:pb-0">
@@ -51,5 +94,10 @@ const { title, description, section = null, search, footer = true, fab = true, i
       </div>
     </div>
     <BottomNav section={section} fab={fab} />
+    <Snackbar />
+    <span id="page-end" hidden></span>
+    <script>
+      import '../scripts/page-motion';
+    </script>
   </body>
 </html>

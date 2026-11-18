@@ -82,7 +82,7 @@ const tabs = me ? ['Dành cho bạn', 'Gần bạn', 'Mới nhất'] : ['Gợi �
           }
         </div>
         <HomeTiles signedIn={!!me} />
-        <div class="mt-5 flex gap-2 overflow-x-auto no-scrollbar lg:flex-wrap">
+        <div class="stagger mt-5 flex gap-2 overflow-x-auto no-scrollbar lg:flex-wrap">
           {
             CATS.map((c) => (
               <a

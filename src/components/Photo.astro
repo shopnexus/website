@@ -5,9 +5,12 @@
 import type { ComponentProps } from 'astro/types';
 import { Image } from 'astro:assets';
 
-type Props = ComponentProps<typeof Image>;
+type Props = ComponentProps<typeof Image> & {
+  /** Fade in over the placeholder once loaded (motion.css). Listing photos do. */
+  fade?: boolean;
+};
 
-const { loading = 'eager', ...rest } = Astro.props;
+const { loading = 'eager', fade = false, ...rest } = Astro.props;
 ---
 
-<Image loading={loading} {...rest} />
+<Image loading={loading} data-fade={fade ? '' : undefined} {...rest} />

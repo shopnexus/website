@@ -21,14 +21,16 @@ const note = typeof it.change === 'object' ? ('cut' in it.change ? { icon: 'arro
 
 <article class="lift min-w-0 rounded-card border border-line bg-card p-2">
   <div class="relative overflow-hidden rounded-lg bg-surface-container-high" style="aspect-ratio: 1 / 1">
-    <Photo src={img(it.photo, 400, 400)} width={400} height={400} alt={it.title} loading={loading} class:list={['h-full w-full object-cover', sold && 'opacity-60 grayscale']} />
+    <Photo src={img(it.photo, 400, 400)} width={400} height={400} alt={it.title} loading={loading} fade class:list={['h-full w-full object-cover', sold && 'opacity-60 grayscale']} />
     <button
       type="button"
       class="state-layer absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/85 text-teal backdrop-blur"
-      aria-label="Bỏ lưu"
+      aria-label="Bỏ lưu tin"
       aria-pressed="true"
+      data-save
     >
-      <Icon name="favorite-rounded" size={18} />
+      <Icon name="favorite-outline-rounded" size={18} class="save-off" />
+      <Icon name="favorite-rounded" size={18} class="save-on" />
     </button>
     {sold && <span class="absolute left-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-label-medium text-white backdrop-blur">Đã bán</span>}
     {
