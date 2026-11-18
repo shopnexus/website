@@ -21,9 +21,9 @@ export const SPRING = {
   effects: spring(1, 1600),
   /** skeleton to content */
   effectsSlow: spring(1, 800),
-  /** Counting a figure up: the slow stiffness without the overshoot, so a
-      number never passes its value and comes back. */
-  count: spring(1, 120),
+  /** Counting a figure up: critically damped, so a number never passes its
+      value and comes back. */
+  count: spring(1, 400),
 };
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;

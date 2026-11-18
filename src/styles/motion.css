@@ -30,16 +30,16 @@ nav.fixed a[aria-current="page"] > span {
 }
 
 ::view-transition-group(*) {
-  animation-duration: var(--duration-spatial-slow);
+  animation-duration: var(--duration-spatial-default);
   animation-timing-function: var(--ease-spatial);
 }
 ::view-transition-old(root) {
-  animation: vt-fade-out var(--duration-effects-default) var(--ease-effects) both;
+  animation: vt-fade-out var(--duration-effects-fast) var(--ease-effects) both;
 }
 ::view-transition-new(root) {
   animation:
-    vt-fade-in var(--duration-effects-slow) var(--ease-effects) both,
-    vt-rise var(--duration-spatial-slow) var(--ease-spatial) both;
+    vt-fade-in var(--duration-effects-default) var(--ease-effects) both,
+    vt-rise var(--duration-spatial-default) var(--ease-spatial) both;
 }
 /* The pills keep their own shape: no stretched cross-fade of the label. */
 ::view-transition-old(header-current),
@@ -72,7 +72,7 @@ nav.fixed a[aria-current="page"] > span {
 }
 @keyframes vt-rise {
   from {
-    translate: 0 12px;
+    translate: 0 8px;
   }
 }
 
@@ -200,7 +200,7 @@ html.js img[data-fade] {
   /* transform too: the card's hover zoom (lift in j.css) runs on the same photo. */
   transition:
     opacity var(--duration-effects-slow) var(--ease-effects),
-    transform var(--duration-spatial-slow) var(--ease-spatial);
+    transform var(--duration-spatial-default) var(--ease-spatial);
 }
 
 /* -------------------------------------------------- sections on scroll -- */
@@ -212,7 +212,7 @@ html.js img[data-fade] {
       reveal-fade linear both,
       reveal-rise linear both;
     animation-timeline: view();
-    animation-range: cover 0% cover 160px;
+    animation-range: cover 0% cover 100px;
   }
 }
 @keyframes reveal-fade {
@@ -222,7 +222,7 @@ html.js img[data-fade] {
 }
 @keyframes reveal-rise {
   from {
-    translate: 0 24px;
+    translate: 0 16px;
   }
 }
 
@@ -320,7 +320,7 @@ details[data-faq] {
 /* Rings (Ring.astro) and price bands (RangeBar.astro) fill from empty when
    the page opens. */
 [data-ring] {
-  animation: ring-fill var(--duration-spatial-slow) var(--ease-spatial) both 120ms;
+  animation: ring-fill var(--duration-spatial-default) var(--ease-spatial) both;
 }
 @keyframes ring-fill {
   from {
@@ -329,7 +329,7 @@ details[data-faq] {
 }
 [data-fill] {
   transform-origin: left;
-  animation: bar-fill var(--duration-spatial-slow) var(--ease-spatial) both 120ms;
+  animation: bar-fill var(--duration-spatial-default) var(--ease-spatial) both;
 }
 @keyframes bar-fill {
   from {
@@ -338,7 +338,7 @@ details[data-faq] {
 }
 /* The listing's own dot on a price band lands once the band has filled. */
 [data-dot] {
-  animation: dot-land var(--duration-spatial-fast) var(--ease-spatial-fast) both 420ms;
+  animation: dot-land var(--duration-spatial-fast) var(--ease-spatial-fast) both 240ms;
 }
 @keyframes dot-land {
   from {

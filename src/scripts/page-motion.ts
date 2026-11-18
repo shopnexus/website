@@ -86,6 +86,6 @@ document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
     await next.decode().catch(() => {});
     big.removeAttribute('srcset');
     big.src = next.src;
-    if (!reducedMotion()) animate(big, { opacity: [0.35, 1], scale: [1.03, 1] }, SPRING.spatialSlow);
+    if (!reducedMotion()) animate(big, { opacity: [0.35, 1], scale: [1.03, 1] }, SPRING.spatial);
   });
 });

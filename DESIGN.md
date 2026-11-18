@@ -99,7 +99,7 @@ its options. `src/styles/motion.css` holds the CSS side and
 every page.
 
 - A link to another page is a cross-document view transition: the old page
-  fades out, the new one fades in and rises 12 px on the slow spatial spring.
+  fades out, the new one fades in and rises 8 px on the default spatial spring.
   The header, the bottom bar and the current-section pill keep their place
   and slide to the new section.
 - A listing's photo grows from the card that was clicked into the gallery,
@@ -120,12 +120,12 @@ every page.
   link through it; on a touch screen it opens the system share sheet.
 - Listing photos (`<Photo fade>`) fade in over the `surfaceContainerHigh`
   placeholder once loaded.
-- A top-level `section` in `main` rises 24 px and fades in over the first
-  160 px of scroll after it enters the window. What is on the first screen
+- A top-level `section` in `main` rises 16 px and fades in over the first
+  100 px of scroll after it enters the window. What is on the first screen
   is already past that range and shows as it is. The Home category row comes
   in with a 30 ms stagger (`stagger`).
 - A whole number marked `data-count` from 10 up counts from 0 the first
-  time it is in view, on a critically damped spring at stiffness 120, so it
+  time it is in view, on a critically damped spring at stiffness 400, so it
   never passes its value.
 - Rings fill and price bands grow from the left when the page opens; the
   listing's dot lands on the band after it.
