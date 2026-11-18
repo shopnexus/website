@@ -5,7 +5,8 @@
 Writes mockups/how.html, sell.html, cod.html and support.html, replacing what
 build_sell_howto.py, build_chat_cod.py (cod) and build_support.py drew, and the
 footer's info pages: help.html, plans.html, listing-rules.html, terms.html. The
-content and deal facts are theirs; MONEY sentences stay word for word.
+content and deal facts are theirs; COD and money facts appear only as answers
+in Cách mua's FAQ, Trợ giúp and Điều khoản.
 """
 import json
 import os
@@ -18,7 +19,7 @@ from build_sell_howto import CLAIMS, DESCRIPTION, GUIDE, PHOTO as SELL_PHOTO, PH
 from build_pages import tr
 from build_support import CARRIER, FEEDBACK, KINDS, NO_ARBITRATION, ORDER, REPORT
 from common import MONEY, crop, icon, img
-from j_kit import H2, PANEL, btn_cls, card, crumbs, field, footer, header, link_rows, money_line, page, price, seg, stepper, summary_card
+from j_kit import H2, PANEL, btn_cls, card, crumbs, field, footer, header, link_rows, page, price, seg, stepper, summary_card
 
 ART = {**ART, **json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "art_sh.json")))}
 
@@ -35,11 +36,12 @@ EXTRA_CSS = """<style>
 
 # ------------------------------------------------------- shared in this file --
 # ---------------------------------------------------------------- Cách mua --
-FAQ = [("Tôi có phải trả tiền trước không?", MONEY["pay_shipper"], True),
-       ("Mở ra thấy không đúng mô tả thì sao?", MONEY["refuse"] + " Hàng quay về người bán.", True),
+CANCEL = "Được, khi người bán chưa tạo vận đơn. Bạn không mất tiền."
+FAQ = [("Tôi có phải trả tiền trước không?", "Không. Shipper tới, bạn xem hàng rồi trả tiền hàng và phí ship, bằng tiền mặt hoặc chuyển khoản.", True),
+       ("Mở ra thấy không đúng mô tả thì sao?", "Bạn từ chối nhận, hàng quay về người bán.", True),
        ("Hãng báo đã giao mà tôi chưa nhận?", "Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.", False),
-       ("Tôi hủy đơn được không?", MONEY["cancel"], False),
-       ("Phí ship ai trả, bao nhiêu?", MONEY["cod_buyer"] + " Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.", False)]
+       ("Tôi hủy đơn được không?", CANCEL, False),
+       ("Phí ship ai trả, bao nhiêu?", "Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.", False)]
 
 
 def how():
@@ -55,10 +57,6 @@ def how():
     <div class="rounded-[16px] bg-surface-container-low px-4 py-3"><p class="text-body-s text-on-surface-variant">Tiền hàng</p><p class="mt-0.5">{price("5.100.000 ₫")}</p></div>
     <div class="rounded-[16px] bg-surface-container-low px-4 py-3"><p class="text-body-s text-on-surface-variant">Phí ship</p><p class="mt-0.5">{price("32.000 ₫")}</p></div>
   </div>
-  <div class="mt-3 flex items-center gap-3 rounded-[16px] bg-[#FFF4EF] px-4 py-3">
-    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-tertiary">{icon("payments-outline-rounded", 20)}</span>
-    <p class="text-body-m text-on-tertiary-fixed-variant">{MONEY["pay_shipper"]}</p>
-  </div>
   <div class="mt-3 grid grid-cols-2 gap-2">
     <button type="button" class="state h-10 rounded-full bg-[var(--ink)] text-label-l text-white">Đã nhận hàng</button>
     <button type="button" class="state h-10 rounded-full border line text-label-l ink">Báo chưa nhận hàng</button>
@@ -66,10 +64,10 @@ def how():
 </div>"""
 
     steps = [
-        ("art_deal", "Chốt giá", "Tìm món gần bạn bằng một câu hoặc một tấm ảnh, rồi nhắn người bán và trả giá. Hai bên đồng ý là chốt, giá đó vào đơn.", [], "deal"),
-        ("art_orders", "Tạo đơn", "Bạn chọn giao COD với một địa chỉ trong sổ. Người bán tạo vận đơn bằng tài khoản GHTK hoặc GHN đứng tên mình, hoặc tự gửi rồi nhập mã vận đơn.", ["cancel"], None),
-        ("door-check", "Nhận hàng", "Shipper tới, bạn mở hàng và so với Tin ghi trên tin đăng, rồi bấm “Đã nhận hàng”. Hãng báo đã giao mà bạn chưa nhận, bấm “Báo chưa nhận hàng”.", ["pay_shipper", "refuse"], None),
-        ("art_reviews", "Đánh giá", "Chấm sao cho người bán. Đánh giá tính vào điểm uy tín của họ.", [], "stars"),
+        ("art_deal", "Chốt giá", "Tìm món gần bạn bằng một câu hoặc một tấm ảnh, rồi nhắn người bán và trả giá. Hai bên đồng ý là chốt, giá đó vào đơn.", "deal"),
+        ("art_orders", "Tạo đơn", "Bạn chọn giao COD với một địa chỉ trong sổ. Người bán tạo vận đơn bằng tài khoản GHTK hoặc GHN đứng tên mình, hoặc tự gửi rồi nhập mã vận đơn.", None),
+        ("door-check", "Nhận hàng", "Shipper tới, bạn xem hàng rồi bấm “Đã nhận hàng”. Hãng báo đã giao mà bạn chưa nhận, bấm “Báo chưa nhận hàng”.", None),
+        ("art_reviews", "Đánh giá", "Chấm sao cho người bán. Đánh giá tính vào điểm uy tín của họ.", "stars"),
     ]
     extra = {
         "deal": f'<div class="flex items-center justify-between rounded-[14px] bg-[#FFF4EF] px-3 py-2"><span class="text-body-s text-on-surface-variant line-through">5.200.000 ₫</span>{icon("arrow-forward-rounded", 15, "text-tertiary")}<span class="num text-title-s text-tertiary">5.100.000 ₫ · Đã chốt</span></div>',
@@ -82,8 +80,8 @@ def how():
   </div>
   <h3 class="mt-1 text-[20px] font-semibold leading-7 tight ink">{t}</h3>
   <p class="mt-1.5 text-body-m text-on-surface-variant">{d}</p>
-  <div class="mt-auto flex flex-col gap-2 pt-3">{"".join(f'<p class="flex gap-2 rounded-[14px] bg-surface-container-low px-3 py-2 text-body-s ink">{icon("check-circle-outline-rounded", 16, "mt-px shrink-0 text-primary")}<span>{MONEY[k]}</span></p>' for k in keys)}{extra.get(x, "")}</div>
-</li>""" for i, (art, t, d, keys, x) in enumerate(steps))
+  <div class="mt-auto flex flex-col gap-2 pt-3">{extra.get(x, "")}</div>
+</li>""" for i, (art, t, d, x) in enumerate(steps))
 
     do = [("search-rounded", "Kết nối bạn với người bán quanh nhà", "Tìm bằng cả câu hoặc bằng ảnh, AI điền tin giúp người bán."),
           ("query-stats-rounded", "Đưa giá tham khảo", "So giá một tin với các tin giống nó đã bán và đang bán."),
@@ -108,7 +106,6 @@ def how():
     <div>
       <span class="glass glass-edge inline-flex items-center gap-2 rounded-full px-3 py-1 text-label-m ink"><span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Cách mua trên ShopNexus</span>
       <h1 class="mt-4 text-[60px] font-semibold leading-[64px] tighter ink">Xem hàng tận tay,<br>rồi mới trả tiền.</h1>
-      <p class="mt-4 max-w-[520px] text-body-l text-on-surface-variant">{MONEY["cod_buyer"]}</p>
       <div class="mt-6 flex gap-2">
         {a("start-search", btn_cls("ink", "lg"), icon("search-rounded", 18) + "Bắt đầu tìm")}
         {a("jump-faq", btn_cls("line", "lg"), "Câu hỏi thường gặp", "#faq")}
@@ -190,7 +187,7 @@ def sell():
       <div><p class="mb-1.5 flex items-center gap-1 text-label-l text-on-surface-variant">Tình trạng{icon("auto-awesome-rounded", 14, "text-primary")}</p>
         {seg(["Mới", "Như mới", "Đã dùng"], 2, "w-full bg-surface-container-low", "flex-1 text-label-l")}
         <p class="mt-1.5 text-body-s text-on-surface-variant">Có vết thấy rõ hoặc lỗi nhỏ</p></div>
-      <div><p class="mb-1.5 text-label-l text-on-surface-variant">Tin ghi <span class="font-normal">· người mua kiểm những điều này khi nhận hàng</span></p>
+      <div><p class="mb-1.5 text-label-l text-on-surface-variant">Tin ghi</p>
         <div class="flex flex-wrap gap-1.5">{claims}<button type="button" class="state flex h-8 items-center gap-1 rounded-full border border-dashed border-outline-variant px-3 text-label-l text-on-surface-variant">{icon("add-rounded", 16)}Thêm điều bạn ghi</button></div></div>
     </div>
     {field("Mô tả", DESCRIPTION, ai=True, tall=True)}
@@ -247,14 +244,13 @@ def sell():
         act = a(f"chg-{ic[:6]}", "state rounded-full px-3 py-1 text-label-l text-primary", action) if action else ""
         return (f'<div class="flex items-center gap-3 rounded-[18px] bg-surface-container-low p-3">'
                 f'<span class="grid h-10 w-10 shrink-0 place-items-center rounded-full {"badge-grad" if on else "bg-white text-on-surface-variant"}">{icon(ic, 20)}</span>'
-                f'<span class="min-w-0 flex-1"><span class="block text-title-s ink">{title}</span><span class="block text-body-s text-on-surface-variant">{sub}</span></span>{act}</div>')
+                f'<span class="min-w-0 flex-1"><span class="block text-title-s ink">{title}</span>{f'<span class="block text-body-s text-on-surface-variant">{sub}</span>' if sub else ""}</span>{act}</div>')
     deal = panel("4", "Giao dịch", f"""
   <div class="mt-4 grid grid-cols-3 gap-2.5">
-    {deal_tile("local-shipping-outline-rounded", "COD, xem hàng trước", "Người mua xem hàng rồi mới trả", on=True)}
+    {deal_tile("local-shipping-outline-rounded", "COD, xem hàng trước", None, on=True)}
     {deal_tile("check-rounded", "GHTK của bạn", "Có đơn thì tạo vận đơn ngay", "Đổi")}
     {deal_tile("location-on-outline-rounded", "Bình Thạnh", "Chỉ hiện quận", "Đổi")}
-  </div>
-  <div class="mt-4 flex flex-col gap-2">{money_line("cod_seller", "account-balance-outline-rounded")}{money_line("return_leg", "undo-rounded")}</div>""")
+  </div>""")
 
     ready = [("4 ảnh, có ảnh bìa", True), ("Tiêu đề và tình trạng", True), ("Giá 4.800.000 ₫", True), ("Giao COD bằng GHTK", True)]
     ready_html = "".join(f'<li class="flex items-center gap-2.5 text-body-m ink">{icon("check-circle-rounded", 18, "text-primary")}{t}</li>' for t, _ in ready)
@@ -301,8 +297,6 @@ def cod():
   <span class="min-w-0 flex-1"><span class="flex items-center gap-2"><span class="rounded-full bg-surface-container-low px-2 text-label-s text-on-surface-variant">{tag}</span><span class="text-body-s text-on-surface-variant">{who}</span></span>
     <span class="mt-0.5 line-clamp-1 block text-body-m ink">{addr}</span></span>
 </label>""" for addr, who, tag, on in addresses)
-    checks = ["Pin 88%", "Face ID hoạt động", "Chưa sửa chữa", "Kèm hộp và cáp"]
-    check_html = "".join(f'<li class="flex items-center gap-2 rounded-full bg-surface-container-low px-3 py-1.5 text-label-l ink">{icon("check-rounded", 16, "text-primary")}{c}</li>' for c in checks)
 
     def row(ic, label, value, muted=False):
         return (f'<div class="flex items-center gap-3 py-2.5">{icon(ic, 20, "text-on-surface-variant")}<span class="flex-1 text-body-l ink">{label}</span>'
@@ -330,14 +324,6 @@ def cod():
         <div class="mt-3 grid grid-cols-2 gap-2.5">{addr_html}</div>
       </section>
 
-      <section class="{PANEL} grid grid-cols-[1fr_1fr] gap-6 p-5">
-        <div>
-          <h2 class="text-title-m ink">Khi shipper tới</h2>
-          <p class="mt-1 text-body-m text-on-surface-variant">Mở hàng, so với Tin ghi của {SELLER["name"]}:</p>
-          <ul class="mt-3 flex flex-wrap gap-1.5">{check_html}</ul>
-        </div>
-        <div class="flex flex-col gap-2 border-l line pl-6">{money_line("cod_buyer", "visibility-outline-rounded")}{money_line("refuse", "undo-rounded")}{money_line("cancel", "close-rounded")}</div>
-      </section>
     </div>
 
     <aside class="self-start">
@@ -372,7 +358,7 @@ def support():
         return (f'<span class="badge-grad grid shrink-0 place-items-center rounded-full" style="width:{size}px;height:{size}px">'
                 f'{icon("support-agent-rounded", size * 11 // 20)}</span>')
 
-    tickets = [("not_received", ORDER["title"], "Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà…", "09:05", True, False),
+    tickets = [("not_received", ORDER["title"], "Bạn kiểm tra giúp mình với bảo vệ toà nhà…", "09:05", True, False),
                ("carrier_request", CARRIER["name"], "Bạn: " + CARRIER["note"], "Hôm qua", False, False),
                ("other", FEEDBACK, "Cảm ơn bạn. Lỗi này đã sửa trong bản 2.4, bạn cập nhật app giúp mình nhé.", "Thứ Hai", False, True)]
 
@@ -414,7 +400,7 @@ def support():
   <p class="text-center text-label-m text-on-surface-variant">Hôm nay</p>
   {ticket}
   {theirs(["Chào bạn, mình đã xem lịch trình GHTK của đơn: bưu tá báo giao lúc 14:20 tại 12 Nguyễn Gia Trí, Bình Thạnh.",
-           "Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà, mình cũng báo GHTK kiểm tra lại."], "09:05")}
+           "Bạn kiểm tra giúp mình với bảo vệ toà nhà, mình cũng báo GHTK kiểm tra lại."], "09:05")}
   {mine("Ok bạn, để mình hỏi bảo vệ rồi báo lại nhé.", "09:11")}"""
 
     track = [("Đã lấy hàng", "Hôm kia, 16:40 · Gò Vấp", True), ("Đang giao", "Hôm qua, 09:12 · Bình Thạnh", True),
@@ -468,7 +454,6 @@ def support():
           <img src="{ORDER["thumb"]}" alt="" class="h-14 w-14 rounded-[14px] object-cover">
           <div class="min-w-0"><p class="truncate text-title-s ink">{escape(ORDER["title"])}</p>{price("3.900.000 ₫", "text-[15px] leading-5")}</div>
         </div>
-        <p class="mt-3 rounded-[14px] bg-[#FFF4EF] px-3 py-2 text-body-s text-on-tertiary-fixed-variant">Bạn chưa trả tiền nên không mất gì.</p>
         {a("open-order", btn_cls("line", "lg") + " mt-3 w-full !h-10", "Mở đơn", "order.html")}
       </div>
       <div class="{PANEL} p-4">
@@ -484,11 +469,11 @@ def support():
 
 # ------------------------------------------------------------ Trợ giúp --
 HELP_SAFETY = "Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat."
-AFTER_PAY = "Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được. Nếu hàng có vấn đề, bạn mở ghi nhận trong chat."
+AFTER_PAY = "Đã trả tiền cho shipper thì không đòi lại qua ứng dụng được. Nếu hàng có vấn đề, bạn mở ghi nhận trong chat với người bán."
 HELP_TOPICS = [
     ("Mua hàng", "shopping-bag-outline-rounded", [
-        ("Xem hàng trước khi trả tiền thế nào?", MONEY["cod_buyer"] + " " + MONEY["refuse"]),
-        ("Hủy đơn được không?", MONEY["cancel"]),
+        ("Xem hàng trước khi trả tiền thế nào?", "Shipper tới, bạn mở hàng xem rồi mới trả tiền. Không ưng thì từ chối nhận, hàng quay về người bán và bạn không mất tiền."),
+        ("Hủy đơn được không?", CANCEL),
         ("Hàng có vấn đề sau khi đã nhận", AFTER_PAY),
         ("Hãng báo đã giao mà tôi chưa nhận?", "Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.")]),
     ("Bán hàng", "storefront-outline-rounded", [
@@ -573,7 +558,6 @@ TIERS = [("Mới", "0", "COD 2 đơn đang mở · 5 tin"), ("Tin cậy", "200",
          ("Uy tín", "500", "COD 10 đơn đang mở · ưu tiên ở Gần bạn"), ("Xuất sắc", "800", "COD 20 đơn đang mở · huy hiệu trên mọi tin · giảm 20% phí đẩy tin")]
 PAY_WAYS = [("MoMo", "•• 0912", True, None), ("ZaloPay", "Chưa liên kết", False, "Liên kết"),
             ("Thẻ ngân hàng", "Visa, Mastercard, thẻ ATM", False, "Liên kết"), ("Chuyển khoản qua mã QR", "Quét mã mỗi lần trả", False, None)]
-FEE_NOTE = "Phí dịch vụ của ShopNexus, không hoàn."
 
 
 def plan_card(plan, chosen):
@@ -627,7 +611,6 @@ def plans():
         <div class="{PANEL} p-5">
           <p class="flex items-center gap-2 text-title-s ink">{icon("autorenew-rounded", 18, "text-primary")}Gia hạn và hủy</p>
           <p class="mt-2 text-body-m text-on-surface-variant">Gia hạn mỗi tháng. Hủy lúc nào cũng được, gói chạy hết tháng đã trả.</p>
-          <p class="mt-2 flex gap-2 text-body-s text-on-surface-variant">{icon("info-outline-rounded", 16, "mt-px shrink-0 text-primary")}{FEE_NOTE}</p>
         </div>
       </div>
       <div class="{PANEL} mt-4 p-5">
@@ -641,9 +624,8 @@ def plans():
       <div class="mt-1 flex items-baseline justify-between"><p class="text-title-l font-semibold tight ink">Plus</p><p class="flex items-baseline gap-1">{price("49.000 ₫", "text-[24px] leading-8")}<span class="text-body-s text-on-surface-variant">/tháng</span></p></div>
       <p class="mt-4 text-label-l text-on-surface-variant">Trả bằng</p>
       <div class="mt-1.5 flex flex-col gap-1">{pays}</div>
-      <p class="mt-3 text-body-s text-on-surface-variant">Dùng để trả phí đẩy tin và gói người bán. Tiền hàng vẫn trả cho shipper khi nhận.</p>
+      <p class="mt-3 text-body-s text-on-surface-variant">Dùng để trả phí đẩy tin và gói người bán.</p>
       <button type="button" class="{btn_cls("ink", "lg")} mt-4 w-full">Xác nhận</button>
-      <p class="mt-3 text-center text-body-s text-on-surface-variant">{FEE_NOTE}</p>
     </aside>
   </section>
 </main>
@@ -700,7 +682,7 @@ def listing_rules():
                           "Ảnh lấy từ mạng hay ảnh của món khác làm tin bị hạ hiển thị khi có người báo cáo.",
                           "AI đọc ảnh và video bạn chọn để điền tên, tình trạng và giá. Bạn sửa được mọi ô trước khi đăng."]),
         ("Tình trạng và Tin ghi", ["Chọn một trong ba: Mới (chưa dùng), Như mới (không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần), Đã dùng (có vết dùng, ghi rõ trong mô tả).",
-                                   "Mỗi điều bạn ghi trong tin, như pin 86%, máy zin hay còn bảo hành, là một Tin ghi. Người mua kiểm từng Tin ghi khi shipper tới cửa. " + MONEY["refuse"]]),
+                                   "Mỗi điều bạn ghi trong tin, như pin 86%, máy zin hay còn bảo hành, là một Tin ghi."]),
         ("Giá", ["Ghi giá bạn thật sự bán. Giá tối thiểu là 10.000 ₫.",
                  "Không ghi giá ảo để kéo người xem rồi báo giá khác trong chat. Trả giá diễn ra trong chat của tin.",
                  "Giá tham khảo trong tin do AI tính từ các tin cùng đời máy trong 30 ngày. Đó không phải lời hứa của người bán."]),
@@ -712,7 +694,6 @@ def listing_rules():
     ]
     aside = summary_card("Tóm tắt", [("inventory-2-outline-rounded", "Một tin bán một món của chính bạn"),
                                      ("photo-camera-outline-rounded", "Ảnh chụp món thật; người mua thấy ảnh nào chụp trong app"),
-                                     ("fact-check-outline-rounded", "Mỗi Tin ghi được kiểm tại cửa"),
                                      ("sell-outline-rounded", "Giá ghi là giá thật")]) + \
         f'<div class="{PANEL} p-2">' + link_rows([("help-outline-rounded", "Trợ giúp và an toàn", "help.html"), ("description-outline-rounded", "Điều khoản", "terms.html"),
                                                   ("add-circle-outline-rounded", "Đăng tin", "sell.html")], "rel") + "</div>"
@@ -726,23 +707,21 @@ def terms():
         ("Tài khoản", ["Mỗi người một tài khoản, đăng nhập bằng số điện thoại hoặc Google. Bạn giữ mã đăng nhập cho riêng mình; ShopNexus không bao giờ hỏi mã đó.",
                        "Người mua và người bán thấy tên, ảnh đại diện, khu vực, hạng uy tín, đánh giá và các tin bạn đăng. Họ không thấy số điện thoại, địa chỉ hay giấy tờ của bạn."]),
         ("Tiền và giao hàng", ["ShopNexus không giữ tiền hàng của bên nào. Cách giao trong app là COD có xem hàng:",
-                               [MONEY["cod_buyer"], MONEY["refuse"], MONEY["cancel"], MONEY["cod_seller"], MONEY["return_leg"]],
-                               "Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được."]),
+                               ["Người mua xem hàng rồi trả tiền hàng và phí ship cho shipper.", "Người mua hủy được đơn khi người bán chưa tạo vận đơn.", MONEY["cod_seller"], MONEY["return_leg"]],
+                               "Đã trả tiền cho shipper thì không đòi lại qua ứng dụng được."]),
         ("Khi có vấn đề sau khi nhận", ["Bạn mở ghi nhận trong chat hoặc trong đơn, kèm ảnh. Người bán tự hoàn tiền cho bạn hoặc từ chối.",
                                         "Ghi nhận bị từ chối hiện trên trang của người bán. ShopNexus không quyết định ai đúng."]),
         ("Điểm uy tín và quyền", ["Điểm uy tín từ 0 đến 1000, tính trên 12 tháng, chỉ từ những việc app thấy: giao dịch xong, đánh giá, trả lời nhanh, xác minh danh tính.",
                                   "Bậc uy tín quyết định số tin và số đơn COD đang mở. Tỷ lệ từ chối nhận và ghi nhận bị từ chối trong 90 ngày làm mất quyền, từng bậc."]),
         ("Phí của ShopNexus", ["Đăng tin, nhắn tin và mua hàng miễn phí. ShopNexus thu phí đẩy tin (từ 15.000 ₫) và gói người bán (Plus 49.000 ₫/tháng, Cửa hàng 199.000 ₫/tháng).",
-                               FEE_NOTE + " Gói gia hạn mỗi tháng và hủy lúc nào cũng được."]),
+                               "Gói gia hạn mỗi tháng và hủy lúc nào cũng được. Phí đã trả không hoàn lại."]),
         ("Nội dung bạn đăng", ["Bạn chịu trách nhiệm về tin, ảnh và lời nhắn của mình. Tin phải theo Quy định đăng tin.",
                                "ShopNexus hiển thị tin của bạn trên app, web và kết quả tìm kiếm để người mua tìm thấy."]),
         ("Khóa và xóa tài khoản", ["ShopNexus khóa tài khoản khi bán hàng cấm, hàng giả, lừa đảo, hoặc khi mất hết quyền theo điểm uy tín.",
                                    "Bạn xóa tài khoản trong Tôi › Bảo mật. Tin đăng và trang của bạn được gỡ ngay."]),
         ("Liên hệ", ["Gửi yêu cầu trong Hỗ trợ. ShopNexus trả lời trong chat của yêu cầu đó."]),
     ]
-    aside = summary_card("Điều quan trọng nhất", [("visibility-outline-rounded", "Xem hàng rồi mới trả tiền cho shipper"),
-                                                  ("undo-rounded", "Không ưng thì từ chối nhận, không mất tiền"),
-                                                  ("block-rounded", "Đã trả thì ShopNexus không đòi lại được")], "priority-high-rounded") + \
+    aside = summary_card("Điều quan trọng nhất", [("visibility-outline-rounded", "Xem hàng rồi mới trả tiền cho shipper")], "priority-high-rounded") + \
         f'<div class="{PANEL} p-2">' + link_rows([("gavel-rounded", "Quy định đăng tin", "listing-rules.html"), ("lock-outline-rounded", "Chính sách bảo mật", "#privacy"),
                                                   ("support-agent-rounded", "Yêu cầu hỗ trợ", "support.html")], "rel") + "</div>"
     return legal("Điều khoản", "28/10/2026", sections, aside, active_sec=2)

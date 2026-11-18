@@ -2,7 +2,6 @@
 // from .superdesign/tools/build_j_account.py and the builders it imports
 // (build_account.py, build_chat_cod.py).
 
-import { MONEY } from './common';
 import { crop, img } from '../lib/format';
 import { R } from '../lib/routes';
 
@@ -66,7 +65,7 @@ export const NOTES: [string, Note[]][] = [
       {
         tone: 'deal',
         icon: 'local-shipping-outline-rounded',
-        html: `Shipper đang tới giao <b class='font-medium'>Sony WH-1000XM4</b>. ${MONEY.cod_buyer}`,
+        html: `Shipper đang tới giao <b class='font-medium'>Sony WH-1000XM4</b>.`,
         when: '32 phút',
         unread: true,
         photo: '1505740420928-5e560c06d30e',

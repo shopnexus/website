@@ -10,7 +10,7 @@ import Row from '../../components/account/Row.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
 import SideList from '../../components/account/SideList.astro';
 import { PHONE, SCORE, TIERS } from '../../data/account';
-import { ADDRESS_BOOK, MONEY, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
+import { ADDRESS_BOOK, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 import { btnCls, LABEL, PANEL } from '../../lib/ui';
@@ -36,7 +36,6 @@ const kycSteps = [
 const unlocks = [
   { icon: 'sell-outline-rounded', text: 'Đăng tin bán, sau khi xác minh và thiết lập COD' },
   { icon: 'military-tech-outline-rounded', text: '+100 điểm uy tín khi xác minh danh tính' },
-  { icon: 'payments-outline-rounded', text: MONEY.cod_seller },
 ];
 const next = TIERS.find(([, from]) => from > SCORE);
 

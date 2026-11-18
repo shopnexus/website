@@ -22,7 +22,7 @@ ORDER = dict(title="iPhone X 64GB, pin 86%", thumb=img("1510557880182-3d4d3cba35
 CARRIER = dict(name="Ninja Van", note="Mình gửi Ninja Van vì gần nhà, phí rẻ hơn GHTK.")
 REPORT = "GHTK báo đã giao lúc 14:20 hôm qua nhưng mình chưa nhận được, nhà không ai ký nhận."
 FEEDBACK = "Lọc theo khu vực hay nhảy về Q.1 dù mình đã chọn Bình Thạnh."
-NO_ARBITRATION = "ShopNexus không phân xử giữa người mua và người bán."
+NO_ARBITRATION = "Hệ thống không phân xử giữa người mua và người bán."
 
 KINDS = {
     "not_received": ("package-2-outline-rounded", "Báo chưa nhận hàng"),
@@ -32,7 +32,7 @@ KINDS = {
 
 # kind, what it is about, the last message, when, unread, selected
 OPEN = [
-    ("not_received", ORDER["title"], "Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà…", "09:05", 0, True),
+    ("not_received", ORDER["title"], "Bạn kiểm tra giúp mình với bảo vệ toà nhà…", "09:05", 0, True),
     ("carrier_request", CARRIER["name"], "Bạn: " + CARRIER["note"], "Hôm qua", 0, False),
 ]
 DONE = [("other", FEEDBACK, "Cảm ơn bạn. Lỗi này đã sửa trong bản 2.4, bạn cập nhật app giúp mình nhé.", "Thứ Hai", 0, False)]
@@ -88,7 +88,7 @@ def page():
       <p class="text-center text-label-m text-on-surface-variant">Hôm nay</p>
       {ticket_card("not_received", REPORT, "08:12")}
       {group("theirs", ["Chào bạn, mình đã xem lịch trình GHTK của đơn: bưu tá báo giao lúc 14:20 tại 12 Nguyễn Gia Trí, Bình Thạnh.",
-                        "Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà, mình cũng báo GHTK kiểm tra lại."], "09:05")}
+                        "Bạn kiểm tra giúp mình với bảo vệ toà nhà, mình cũng báo GHTK kiểm tra lại."], "09:05")}
     """
     # Chat's own composer, so a change to Chat reaches Hỗ trợ too.
     bar = composer("ShopNexus").replace(">Nhắn tin</div>", ">Nhắn ShopNexus</div>", 1)

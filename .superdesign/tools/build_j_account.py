@@ -16,8 +16,8 @@ import build_c
 import build_chat_cod as chat
 from build import OUT, a
 from build_account import GOOGLE_G, ME, MY_LISTINGS, NOTES
-from common import LISTINGS, MONEY, icon, img, split_price, where
-from j_kit import ADDRESS_BOOK, AVATAR, HREF, LABEL, PROFILE_TASKS, TASKS_DONE, PANEL, account_nav, field, btn, btn_cls, crumbs, footer, header, money_line, page, page_title, panel, price, seg, switch
+from common import LISTINGS, icon, img, split_price, where
+from j_kit import ADDRESS_BOOK, AVATAR, HREF, LABEL, PROFILE_TASKS, TASKS_DONE, PANEL, account_nav, field, btn, btn_cls, crumbs, footer, header, page, page_title, panel, price, seg, switch
 
 CHEV = icon("chevron-right-rounded", 20, "text-on-surface-variant")
 
@@ -180,7 +180,7 @@ def account():
         <a id="support-reply" href="support.html" class="card flex items-center gap-3 {PANEL} p-4">
           <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-on-primary">{icon("support-agent-rounded", 22)}</span>
           <span class="min-w-0 flex-1"><span class="flex items-center gap-2 text-title-s ink">ShopNexus đã trả lời<span class="grid h-5 min-w-5 place-items-center rounded-full bg-error px-1.5 text-label-s text-on-error">1</span></span>
-            <span class="block truncate text-body-s text-on-surface-variant">Báo chưa nhận hàng · Bạn chưa trả tiền nên không mất gì…</span></span>{CHEV}
+            <span class="block truncate text-body-s text-on-surface-variant">Báo chưa nhận hàng · Bạn kiểm tra giúp mình với bảo vệ toà nhà…</span></span>{CHEV}
         </a>
         <a id="waiting" href="#waiting" class="card flex items-center gap-3 {PANEL} p-4">
           <img src="{img("1580480055273-228ff5388ef8", 96, 96)}" alt="" class="h-11 w-11 shrink-0 rounded-[12px] object-cover">
@@ -212,7 +212,6 @@ def account():
         <p class="text-label-m uppercase tracking-[0.12em] text-white/75">Giao COD</p>
         <p class="mt-1 max-w-[200px] text-title-l font-semibold tight">Chưa liên kết bên vận chuyển</p>
         <p class="mt-2 text-body-s text-white/85">Liên kết tài khoản GHTK hoặc GHN của bạn để nhận đơn COD.</p>
-        <p class="mt-2 flex gap-1.5 text-body-s text-white/85">{icon("payments-outline-rounded", 16, "mt-0.5")}<span>{MONEY["cod_seller"]}</span></p>
         <button type="button" class="state mt-4 h-10 w-full rounded-full bg-white text-label-l text-primary">Thiết lập giao COD</button>
       </section>
 
@@ -430,8 +429,7 @@ def addresses():
     side = (panel(f"""<p class="flex gap-2 text-body-m ink">{icon("lock-outline-rounded", 18, "mt-0.5 shrink-0 text-primary")}<span>Chỉ shipper và người bán của đơn COD thấy địa chỉ. Tin gần bạn dùng vị trí của máy, không dùng địa chỉ.</span></p>""", "p-4")
             + side_list("Giao gần đây", used)
             + panel(f"""<p class="{LABEL}">Khi mua bằng COD</p>
-  <p class="mt-2 px-1 text-body-m text-on-surface-variant">Chạm một địa chỉ để giao đơn này đến đó. Địa chỉ mặc định không đổi.</p>
-  <div class="mt-3 px-1">{money_line("cod_buyer", "visibility-outline-rounded", small=True)}</div>""", "p-4"))
+  <p class="mt-2 px-1 text-body-m text-on-surface-variant">Chạm một địa chỉ để giao đơn này đến đó. Địa chỉ mặc định không đổi.</p>""", "p-4"))
     return settings_page("Địa chỉ của tôi", "Địa chỉ", "2 địa chỉ · Nhà là mặc định", main, side, btn("Thêm địa chỉ", "add-rounded", "ink"))
 
 
@@ -572,8 +570,7 @@ def profile_tasks():
       {cod}
       {bio}"""
     unlocks = "".join(f'<li class="flex gap-2">{icon(ic, 18, "mt-0.5 shrink-0 text-primary")}<span>{t}</span></li>' for ic, t in [
-        ("sell-outline-rounded", "Đăng tin bán, sau khi xác minh và thiết lập COD"), ("military-tech-outline-rounded", "+100 điểm uy tín khi xác minh danh tính"),
-        ("payments-outline-rounded", MONEY["cod_seller"])])
+        ("sell-outline-rounded", "Đăng tin bán, sau khi xác minh và thiết lập COD"), ("military-tech-outline-rounded", "+100 điểm uy tín khi xác minh danh tính")])
     side = (side_list(f"Đã xong · {TASKS_DONE}", done)
             + panel(f'<p class="{LABEL}">Mỗi bước mở ra</p><ul class="mt-2 flex flex-col gap-2.5 px-1 text-body-m ink">{unlocks}</ul>', "p-4")
             + a("rep-link", f"card flex items-center gap-3 {PANEL} p-4",

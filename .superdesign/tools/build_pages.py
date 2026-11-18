@@ -262,7 +262,6 @@ def category():
         <p class="flex items-center gap-1.5 text-label-l uppercase tracking-[0.12em] text-on-secondary-container">{icon("auto-awesome-rounded", 16, "text-primary")}Mẹo kiểm điện thoại · gợi ý chung</p>
         <h2 class="mt-2 text-display-s text-on-surface">Kiểm 4 điều này khi shipper tới cửa</h2>
         <ul class="mt-6 grid grid-cols-2 gap-3">{tips}</ul>
-        <p class="mt-5 flex items-center gap-2 text-body-l text-on-surface">{icon("undo-rounded", 20)}{MONEY["refuse"]}</p>
       </div>
     </section>
   </main>

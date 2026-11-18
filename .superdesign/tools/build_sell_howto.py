@@ -258,8 +258,8 @@ def how():
     # The app's four order steps (Chốt giá, Tạo đơn, Nhận hàng, Đánh giá), each with what the buyer does in it.
     steps = [
         ("art_deal", "Chốt giá", "Tìm món gần bạn bằng một câu hoặc một tấm ảnh, rồi nhắn người bán và trả giá. Hai bên đồng ý là chốt, giá đó vào đơn.", [], True),
-        ("art_orders", "Tạo đơn", "Bạn chọn giao COD với một địa chỉ trong sổ. Người bán tạo vận đơn ngay trên ShopNexus bằng tài khoản GHTK hoặc GHN đứng tên mình, hoặc tự gửi rồi nhập mã vận đơn. Đơn hiện hãng, mã vận đơn và phí ship.", ["cancel"], False),
-        ("door-check", "Nhận hàng", "Shipper tới, bạn mở hàng và so với Tin ghi trên tin đăng, rồi bấm “Đã nhận hàng”. Hãng báo đã giao mà bạn chưa nhận, bấm “Báo chưa nhận hàng” để gửi cho Hỗ trợ.", ["pay_shipper", "refuse"], False),
+        ("art_orders", "Tạo đơn", "Bạn chọn giao COD với một địa chỉ trong sổ. Người bán tạo vận đơn ngay trên ShopNexus bằng tài khoản GHTK hoặc GHN đứng tên mình, hoặc tự gửi rồi nhập mã vận đơn. Đơn hiện hãng, mã vận đơn và phí ship.", [], False),
+        ("door-check", "Nhận hàng", "Shipper tới, bạn xem hàng rồi bấm “Đã nhận hàng”. Hãng báo đã giao mà bạn chưa nhận, bấm “Báo chưa nhận hàng” để gửi cho Hỗ trợ.", [], False),
         ("art_reviews", "Đánh giá", "Chấm sao cho người bán. Đánh giá tính vào điểm uy tín của họ.", [], False),
     ]
     step_html = "".join(
@@ -283,11 +283,10 @@ def how():
                       f'<div><p class="text-title-m text-on-surface">{t}</p><p class="mt-0.5 text-body-m text-on-surface-variant">{d}</p></div></li>' for ic, t, d in do)
     dont_html = "".join(f'<li class="flex gap-4"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-inverse-on-surface/10 text-inverse-on-surface">{icon(ic, 22)}</span>'
                         f'<p class="pt-2.5 text-body-l text-inverse-on-surface">{t}</p></li>' for ic, t in dont)
-    faq = [("Tôi có phải trả tiền trước không?", MONEY["pay_shipper"], True),
-           ("Mở ra thấy không đúng mô tả thì sao?", MONEY["refuse"] + " Hàng quay về người bán.", False),
+    faq = [("Mở ra thấy không đúng mô tả thì sao?", "Bạn từ chối nhận, hàng quay về người bán.", True),
            ("Hãng báo đã giao mà tôi chưa nhận?", "Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.", False),
-           ("Tôi hủy đơn được không?", MONEY["cancel"], False),
-           ("Phí ship ai trả, bao nhiêu?", MONEY["cod_buyer"] + " Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.", False)]
+           ("Tôi hủy đơn được không?", "Được, khi người bán chưa tạo vận đơn. Bạn không mất tiền.", False),
+           ("Phí ship ai trả, bao nhiêu?", "Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.", False)]
     faq_html = "".join(f"""<details class="faq rounded-lg bg-surface-container-low px-6 py-5"{" open" if op else ""}>
   <summary class="flex items-center justify-between gap-4 text-title-m text-on-surface">{q}{icon("keyboard-arrow-down-rounded", 24, "chev text-on-surface-variant")}</summary>
   <p class="mt-3 max-w-[760px] text-body-l text-on-surface-variant">{ans}</p>
@@ -302,7 +301,6 @@ def how():
       <div class="flex flex-col justify-center pl-14">
         <p class="text-label-l uppercase tracking-[0.12em] text-on-primary-container">Cách mua trên ShopNexus</p>
         <h1 class="mt-3 text-display-l text-white">Xem hàng tận tay<br>rồi mới trả tiền</h1>
-        <p class="mt-5 max-w-[560px] text-body-l text-on-primary-container">{MONEY["cod_buyer"]}</p>
         <div class="mt-8 flex gap-3">
           {a("start-search", "state flex h-12 items-center gap-2 rounded-full bg-surface-container-lowest px-6 text-label-l text-primary", icon("search-rounded", 20) + "Bắt đầu tìm")}
           {a("jump-faq", "state flex h-12 items-center rounded-full border border-on-primary-container/40 px-6 text-label-l text-white", "Câu hỏi thường gặp")}

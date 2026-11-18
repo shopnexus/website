@@ -282,8 +282,7 @@ def kiet_pane():
     """
     agreed = figure(lead_icon("handshake-outline-rounded"), "5.100.000",
                     a("choose-cod", FILLED, icon("local-shipping-outline-rounded", 20) + "Chọn giao COD", "cod.html"))
-    body = f"""{agreed}
-          <p class="mt-1 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("local-shipping-outline-rounded", 18)}Giao COD · xem hàng rồi mới trả</p>"""
+    body = agreed
     strip = f"""
         <div class="reply-strip mb-2 flex items-center gap-3 rounded-lg bg-surface-container py-2 pl-3 pr-1">
           <span class="bar"></span>
@@ -342,16 +341,6 @@ def price_row(label, value, cls="text-body-m text-on-surface-variant", vcls="tex
     return f'<div class="mt-1 flex items-baseline justify-between"><span class="flex items-center gap-1 {cls}">{label}</span><span class="{vcls}">{value}</span></div>'
 
 
-def rules_card():
-    """Chat's "Quy tắc tiền" sheet, kept open beside the thread on a wide window."""
-    groups = [("COD, xem hàng trước", [("cod_buyer", "local-shipping-outline-rounded"), ("refuse", "undo-rounded"),
-                                       ("cancel", "cancel-outline-rounded")])]
-    out = "".join(f'<p class="{"mt-4 " if i else ""}text-title-s text-primary">{name}</p><ul class="mt-2 flex flex-col gap-2">'
-                  + "".join(f'<li class="flex gap-2 text-body-m text-on-surface-variant">{icon(ic, 18, "mt-0.5")}<span>{MONEY[k]}</span></li>' for k, ic in notes)
-                  + "</ul>" for i, (name, notes) in enumerate(groups))
-    return f'<div class="rounded-xl bg-surface-container-lowest p-4"><p class="text-title-m">Quy tắc tiền</p><div class="mt-3">{out}</div></div>'
-
-
 def side_panels():
     iphone, airpods = DEALS
     hand = icon("handshake-outline-rounded", 16)
@@ -362,11 +351,9 @@ def side_panels():
     scam_rows = price_row("Giá đăng", SCAM_ITEM["listed"], vcls="text-title-l text-on-surface")
     return f"""<aside data-conv="kiet" class="on flex flex-col gap-4 overflow-hidden">
       {listing_card(iphone, iphone_rows, "iphone")}{listing_card(airpods, airpods_rows, "airpods").replace("<div ", "<div hidden ", 1)}
-      {rules_card()}
     </aside>
     <aside data-conv="scam" class="flex flex-col gap-4 overflow-hidden">
       {listing_card(SCAM_ITEM, scam_rows)}
-      {rules_card()}
     </aside>"""
 
 

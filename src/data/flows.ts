@@ -5,7 +5,7 @@
 import { MONEY } from './common';
 import { LISTINGS } from './listings';
 
-export const NO_ARBITRATION = 'ShopNexus không phân xử giữa người mua và người bán.';
+export const NO_ARBITRATION = 'Hệ thống không phân xử giữa người mua và người bán.';
 
 /** The deal the guides and Giao COD show. */
 export const DEAL = {
@@ -21,11 +21,11 @@ export const SELLER = { name: 'Tuấn Kiệt', photo: '1544723795-3fb6469f5b39' 
 
 /** [question, answer, open]. */
 export const FAQ: [string, string, boolean][] = [
-  ['Tôi có phải trả tiền trước không?', MONEY.pay_shipper, true],
-  ['Mở ra thấy không đúng mô tả thì sao?', `${MONEY.refuse} Hàng quay về người bán.`, true],
+  ['Tôi có phải trả tiền trước không?', 'Không. Shipper tới, bạn xem hàng rồi trả tiền hàng và phí ship, bằng tiền mặt hoặc chuyển khoản.', true],
+  ['Mở ra thấy không đúng mô tả thì sao?', 'Bạn từ chối nhận, hàng quay về người bán.', true],
   ['Hãng báo đã giao mà tôi chưa nhận?', 'Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.', false],
-  ['Tôi hủy đơn được không?', MONEY.cancel, false],
-  ['Phí ship ai trả, bao nhiêu?', `${MONEY.cod_buyer} Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.`, false],
+  ['Tôi hủy đơn được không?', 'Được, khi người bán chưa tạo vận đơn. Bạn không mất tiền.', false],
+  ['Phí ship ai trả, bao nhiêu?', 'Bạn thấy phí ship trong đơn khi người bán tạo vận đơn.', false],
 ];
 
 export const HOW_DO = [
@@ -76,15 +76,15 @@ export const SELL = {
 // ---------------------------------------------------------------- Trợ giúp --
 
 export const HELP_SAFETY = 'Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat.';
-const AFTER_PAY = 'Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được. Nếu hàng có vấn đề, bạn mở ghi nhận trong chat.';
+const AFTER_PAY = 'Đã trả tiền cho shipper thì không đòi lại qua ứng dụng được. Nếu hàng có vấn đề, bạn mở ghi nhận trong chat với người bán.';
 
 export const HELP_TOPICS: { title: string; icon: string; qs: [string, string][] }[] = [
   {
     title: 'Mua hàng',
     icon: 'shopping-bag-outline-rounded',
     qs: [
-      ['Xem hàng trước khi trả tiền thế nào?', `${MONEY.cod_buyer} ${MONEY.refuse}`],
-      ['Hủy đơn được không?', MONEY.cancel],
+      ['Xem hàng trước khi trả tiền thế nào?', 'Shipper tới, bạn mở hàng xem rồi mới trả tiền. Không ưng thì từ chối nhận, hàng quay về người bán và bạn không mất tiền.'],
+      ['Hủy đơn được không?', 'Được, khi người bán chưa tạo vận đơn. Bạn không mất tiền.'],
       ['Hàng có vấn đề sau khi đã nhận', AFTER_PAY],
       ['Hãng báo đã giao mà tôi chưa nhận?', 'Trong đơn, bấm “Báo chưa nhận hàng”. Yêu cầu tới Hỗ trợ và ShopNexus trả lời trong chat.'],
     ],
@@ -131,7 +131,6 @@ export const HELP_POPULAR = ['Hủy đơn', 'Từ chối nhận hàng', 'Khi nà
 
 // ----------------------------------------------------------- Gói người bán --
 
-export const FEE_NOTE = 'Phí dịch vụ của ShopNexus, không hoàn.';
 
 export const PLANS = [
   { name: 'Cơ bản', amount: 'Miễn phí', unit: null, current: true, perks: ['Số tin theo bậc uy tín', 'Đẩy tin trả theo lượt, từ 15.000 ₫', 'Thống kê 7 ngày'] },
@@ -205,7 +204,7 @@ export const LISTING_RULES: LegalSection[] = [
     'Tình trạng và Tin ghi',
     [
       'Chọn một trong ba: Mới (chưa dùng), Như mới (không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần), Đã dùng (có vết dùng, ghi rõ trong mô tả).',
-      `Mỗi điều bạn ghi trong tin, như pin 86%, máy zin hay còn bảo hành, là một Tin ghi. Người mua kiểm từng Tin ghi khi shipper tới cửa. ${MONEY.refuse}`,
+      `Mỗi điều bạn ghi trong tin, như pin 86%, máy zin hay còn bảo hành, là một Tin ghi.`,
     ],
   ],
   [
@@ -252,8 +251,8 @@ export const TERMS: LegalSection[] = [
     'Tiền và giao hàng',
     [
       'ShopNexus không giữ tiền hàng của bên nào. Cách giao trong app là COD có xem hàng:',
-      [MONEY.cod_buyer, MONEY.refuse, MONEY.cancel, MONEY.cod_seller, MONEY.return_leg],
-      'Sau khi bạn trả tiền, ShopNexus không đòi lại tiền được.',
+      ['Người mua xem hàng rồi trả tiền hàng và phí ship cho shipper.', 'Người mua hủy được đơn khi người bán chưa tạo vận đơn.', MONEY.cod_seller, MONEY.return_leg],
+      'Đã trả tiền cho shipper thì không đòi lại qua ứng dụng được.',
     ],
   ],
   [
@@ -274,7 +273,7 @@ export const TERMS: LegalSection[] = [
     'Phí của ShopNexus',
     [
       'Đăng tin, nhắn tin và mua hàng miễn phí. ShopNexus thu phí đẩy tin (từ 15.000 ₫) và gói người bán (Plus 49.000 ₫/tháng, Cửa hàng 199.000 ₫/tháng).',
-      `${FEE_NOTE} Gói gia hạn mỗi tháng và hủy lúc nào cũng được.`,
+      'Gói gia hạn mỗi tháng và hủy lúc nào cũng được. Phí đã trả không hoàn lại.',
     ],
   ],
   [

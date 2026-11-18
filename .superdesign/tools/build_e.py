@@ -318,7 +318,6 @@ def detail():
           {icon("local-shipping-outline-rounded", 24, "text-on-surface-variant")}
           <span class="flex-1"><span class="block text-body-l">COD, xem hàng trước</span><span class="block text-body-s text-on-surface-variant">Gửi từ Thủ Đức · phí ship 16.000–30.000 ₫</span></span>
         </div>
-        <div class="mt-4 flex flex-col gap-2.5">{money("cod_buyer", "inventory-2-outline-rounded")}</div>
       </section>
     </div>
 
@@ -336,7 +335,6 @@ def detail():
       <div>
         <h2 class="text-headline-s">Tin ghi · kèm cách tự kiểm</h2>
         <ul class="mt-4">{claims}</ul>
-        <p class="mt-2 flex items-center gap-2 text-body-m text-on-surface">{icon("undo-rounded", 18)}{MONEY["refuse"]}</p>
         <p class="mt-3 flex items-center gap-2 text-body-s text-on-surface-variant">{icon("auto-awesome-rounded", 14, "text-primary")}Mẹo kiểm laptop · gợi ý chung, không phải điều Lê Hoàng cam kết</p>
       </div>
       <div>

@@ -188,9 +188,6 @@ def detail_m3():
           <button type="button" class="state flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-secondary-container text-label-l text-on-secondary-container">{icon("chat-outline-rounded", 20)}Nhắn tin</button>
           <button type="button" class="state flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-tertiary text-label-l text-on-tertiary">{icon("sell-outline-rounded", 20)}Trả giá</button>
         </div>
-        <div class="mt-6 flex flex-col gap-3">
-          {money("cod_buyer", "local-shipping-outline-rounded")}
-        </div>
         {grouped([
             f'<div class="flex items-center gap-4"><img src="{img(SELLER["photo"], 112, 112)}" alt="" class="h-14 w-14 rounded-full object-cover"><div class="flex-1"><p class="text-title-m">{SELLER["name"]}</p><p class="flex items-center gap-1 text-body-s text-on-surface-variant">{icon("verified-rounded", 16, "text-primary")}Đã xác minh danh tính</p></div>{icon("chevron-right-rounded", 24, "text-on-surface-variant")}</div>',
             f'<div class="flex">{stats}</div>'], "mt-8")}
@@ -279,7 +276,7 @@ def home_web():
     quick = "".join(f'<button type="button" class="state h-9 rounded-full border border-outline-variant px-4 text-label-l text-on-surface-variant">{q}</button>'
                     for q in ["iPhone cũ", "Xe đạp fixed gear", "MacBook M1", "Sofa", "Máy ảnh film"])
     points = "".join(f'<li class="flex items-center gap-3 text-body-m text-on-surface-variant">{icon(ic, 22, "text-primary")}{t}</li>'
-                     for ic, t in [("local-shipping-outline-rounded", MONEY["cod_buyer"]), ("near-me-outline-rounded", "Tin gần bạn được xếp lên trước."),
+                     for ic, t in [("near-me-outline-rounded", "Tin gần bạn được xếp lên trước."),
                                    ("sell-outline-rounded", "Trả giá ngay trong chat với người bán.")])
     cards = "".join(web_card(it, i, hover=(i == 1)) for i, it in enumerate(LISTINGS))
     tiles = "".join(f'<button type="button" class="state flex h-20 items-center gap-3 rounded-md bg-surface-container-low px-4 text-left">'
@@ -372,10 +369,6 @@ def detail_web():
             <button type="button" class="state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md text-label-l text-on-surface-variant">{icon("favorite-outline-rounded", 20)}Lưu tin</button>
             <button type="button" class="state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md text-label-l text-on-surface-variant">{icon("share-outline-rounded", 20)}Chia sẻ</button>
             <button type="button" class="state flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md text-label-l text-on-surface-variant">{icon("flag-outline-rounded", 20)}Báo cáo</button>
-          </div>
-          <div class="mt-5 flex flex-col gap-3 border-t border-outline-variant pt-5">
-            {money("cod_buyer", "local-shipping-outline-rounded")}
-            {money("refuse", "undo-rounded")}
           </div>
         </div>
       </aside>

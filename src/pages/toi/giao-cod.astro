@@ -3,7 +3,6 @@
 // linked carrier account; the last card sums up what buyers will get. There
 // is no payout step: the carrier pays the COD into the seller's own account.
 import Icon from '../../components/Icon.astro';
-import MoneyLine from '../../components/MoneyLine.astro';
 import AccountFrame from '../../components/orders/AccountFrame.astro';
 import Face from '../../components/orders/Face.astro';
 import ListRow from '../../components/orders/ListRow.astro';
@@ -42,9 +41,6 @@ const label = 'mb-2 text-label-large text-ink';
           <a href={R.me} class="text-primary hover:underline">Để sau</a>
         </p>
         <h1 class="mt-1 text-j-32 text-ink lg:text-j-40">Thiết lập giao COD</h1>
-      </div>
-      <div class="flex max-w-[420px] flex-col gap-1.5 xl:pt-1">
-        <MoneyLine k="cod_seller" icon="account-balance-outline-rounded" />
       </div>
     </div>
     <ol class="mt-5 flex flex-col gap-3 border-t border-white/70 pt-4 md:flex-row md:items-center md:gap-4">

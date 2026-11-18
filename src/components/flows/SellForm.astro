@@ -7,7 +7,6 @@ import Photo from '../Photo.astro';
 import Field from '../Field.astro';
 import Icon from '../Icon.astro';
 import ListingCard from '../ListingCard.astro';
-import MoneyLine from '../MoneyLine.astro';
 import Price from '../Price.astro';
 import Seg from '../Seg.astro';
 import Switch from '../Switch.astro';
@@ -41,7 +40,7 @@ const preview = {
   facts: ['64 GB', 'Pin 81%'],
 };
 const deal = [
-  { icon: 'local-shipping-outline-rounded', title: 'COD, xem hàng trước', sub: 'Người mua xem hàng rồi mới trả', on: true },
+  { icon: 'local-shipping-outline-rounded', title: 'COD, xem hàng trước', on: true },
   { icon: 'check-rounded', title: 'GHTK của bạn', sub: 'Có đơn thì tạo vận đơn ngay', action: R.codSetup },
   { icon: 'location-on-outline-rounded', title: 'Bình Thạnh', sub: 'Chỉ hiện quận', action: R.addresses },
 ];
@@ -144,7 +143,7 @@ const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.ur
           </div>
           <div>
             <p class="mb-1.5 text-label-large text-on-surface-variant">
-              Tin ghi <span class="font-normal">· người mua kiểm những điều này khi nhận hàng</span>
+              Tin ghi
             </p>
             <div class="flex flex-wrap gap-1.5">
               {
@@ -314,7 +313,7 @@ const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.ur
               </span>
               <span class="min-w-0 flex-1">
                 <span class="block text-title-small text-ink">{d.title}</span>
-                <span class="block text-body-small text-on-surface-variant">{d.sub}</span>
+                {d.sub && <span class="block text-body-small text-on-surface-variant">{d.sub}</span>}
               </span>
               {d.action && (
                 <a href={d.action} class="state-layer rounded-full px-3 py-1 text-label-large text-primary">
@@ -324,10 +323,6 @@ const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.ur
             </div>
           ))
         }
-      </div>
-      <div class="mt-4 flex flex-col gap-2">
-        <MoneyLine k="cod_seller" icon="account-balance-outline-rounded" />
-        <MoneyLine k="return_leg" icon="undo-rounded" />
       </div>
     </section>
   </div>

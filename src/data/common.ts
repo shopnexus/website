@@ -1,16 +1,12 @@
-// The signed-in buyer, the app's MONEY sentences and the lists several pages share.
+// The signed-in buyer, the money sentences the FAQ quotes and the lists several pages share.
 
 /** The signed-in buyer on every signed-in page. */
 export const ME = {"name": "Khánh Linh", "photo": "1494790108377-be9c29b29330", "area": "Bình Thạnh, TP.HCM", "rating": "4,8", "sold": 14} as const;
 
 /** The app's MONEY sentences, word for word. A page quotes them, never rewords them. */
 export const MONEY = {
-  "cod_buyer": "Xem hàng rồi mới trả tiền hàng và phí ship cho shipper.",
-  "cancel": "Bạn hủy được đơn khi người bán chưa tạo đơn và không mất tiền.",
-  "refuse": "Nếu không ưng, bạn từ chối nhận hàng và không mất tiền.",
   "cod_seller": "Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.",
-  "return_leg": "Người mua từ chối nhận thì bạn trả phí ship cả chiều đi và chiều về.",
-  "pay_shipper": "Trả tiền hàng và phí ship cho shipper sau khi xem, bằng tiền mặt hoặc chuyển khoản."
+  "return_leg": "Người mua từ chối nhận thì bạn trả phí ship cả chiều đi và chiều về."
 } as const;
 
 /** Home's category chips: name, icon, count. */

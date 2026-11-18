@@ -18,11 +18,11 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
-        ".superdesign/tools/build_pages.py": "9c763a4e230a40d892213ff5960220fd2a24de79c437bb71e6893bbacb963997",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
+        ".superdesign/tools/build_pages.py": "0999ade76956d0301cc05cfbbd38b4d35b2dc2251690fd8938868068d1c38734",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42"
       },
       "brandAssets": {
@@ -80,11 +80,11 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
-        ".superdesign/tools/build_pages.py": "9c763a4e230a40d892213ff5960220fd2a24de79c437bb71e6893bbacb963997",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
+        ".superdesign/tools/build_pages.py": "0999ade76956d0301cc05cfbbd38b4d35b2dc2251690fd8938868068d1c38734",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42"
       },
       "brandAssets": {
@@ -127,11 +127,11 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
-        ".superdesign/tools/build_pages.py": "9c763a4e230a40d892213ff5960220fd2a24de79c437bb71e6893bbacb963997",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
+        ".superdesign/tools/build_pages.py": "0999ade76956d0301cc05cfbbd38b4d35b2dc2251690fd8938868068d1c38734",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42"
       }
     },
@@ -160,11 +160,11 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
-        ".superdesign/tools/build_pages.py": "9c763a4e230a40d892213ff5960220fd2a24de79c437bb71e6893bbacb963997",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
+        ".superdesign/tools/build_pages.py": "0999ade76956d0301cc05cfbbd38b4d35b2dc2251690fd8938868068d1c38734",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42"
       }
     },
@@ -185,17 +185,17 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_seller_map.py": "66a6909ecd2112ec864c04f8319515a35a3a34d1333b3d501c2b61191c27db66"
+        ".superdesign/tools/build_seller_map.py": "37d9258b3c481de5e3f16efeb803500c47a02004320d2671d4051114655e1989"
       },
       "drafts": {
         "e322dbf4-f686-4e13-9b4c-07307acf9e36": {
           "title": "Người bán",
-          "currentVersion": 7,
+          "currentVersion": 8,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
@@ -218,12 +218,12 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_seller_map.py": "66a6909ecd2112ec864c04f8319515a35a3a34d1333b3d501c2b61191c27db66"
+        ".superdesign/tools/build_seller_map.py": "37d9258b3c481de5e3f16efeb803500c47a02004320d2671d4051114655e1989"
       },
       "drafts": {
         "0a8a0c4c-0715-48fe-b7fb-dc1ebaa64dbb": {
@@ -251,17 +251,17 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_chat_cod.py": "0237cf23aa9d572d2c16ded3685a0ebaa92142a78b36e36e33c36f0e05cf0908"
+        ".superdesign/tools/build_chat_cod.py": "055eca62a8ef8d77625ac7b9c41060c0abf7791c29f0bad70a30f113725d5153"
       },
       "drafts": {
         "5f73de9d-4afa-4101-9bef-658bd4331f66": {
           "title": "Tin nhắn",
-          "currentVersion": 7,
+          "currentVersion": 9,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
@@ -284,17 +284,17 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_chat_cod.py": "0237cf23aa9d572d2c16ded3685a0ebaa92142a78b36e36e33c36f0e05cf0908"
+        ".superdesign/tools/build_chat_cod.py": "055eca62a8ef8d77625ac7b9c41060c0abf7791c29f0bad70a30f113725d5153"
       },
       "drafts": {
         "7e3ac5c7-d989-4364-8cdb-4f5f7f55101b": {
           "title": "Giao COD",
-          "currentVersion": 6,
+          "currentVersion": 7,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
@@ -317,17 +317,17 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_sell_howto.py": "ad8efc0a5e2efdbe0c2a10290515db549b088abb59604cc28676d6e3146449a5"
+        ".superdesign/tools/build_sell_howto.py": "80d92e44939cbd1f8703d1cbf63624cc147cfb3f619c18c3c0aa7b163e90485f"
       },
       "drafts": {
         "9e3ff29b-a8bb-46ad-9563-ab7b06470094": {
           "title": "Đăng tin",
-          "currentVersion": 7,
+          "currentVersion": 10,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
@@ -350,17 +350,17 @@
       ],
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_sell_howto.py": "ad8efc0a5e2efdbe0c2a10290515db549b088abb59604cc28676d6e3146449a5"
+        ".superdesign/tools/build_sell_howto.py": "80d92e44939cbd1f8703d1cbf63624cc147cfb3f619c18c3c0aa7b163e90485f"
       },
       "drafts": {
         "6aa21972-7f8f-42a2-b5f4-2122f25e2fe8": {
           "title": "Cách mua",
-          "currentVersion": 6,
+          "currentVersion": 8,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
@@ -391,12 +391,12 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_account.py": "3f108fb34ecc0d4126f7144bfa25ce9432f80b46822c8b5f9a6524acb0e43030"
+        ".superdesign/tools/build_account.py": "eeaeffa6003239d4a05a1c56ab5b378ba95c7fa98d1ec5a7820ca76383179688"
       }
     },
     "/tai-khoan": {
@@ -417,19 +417,19 @@
       "drafts": {
         "b0456a9c-cf87-4073-a25b-29b61f9dc4cb": {
           "title": "Tôi",
-          "currentVersion": 7,
+          "currentVersion": 9,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_account.py": "3f108fb34ecc0d4126f7144bfa25ce9432f80b46822c8b5f9a6524acb0e43030"
+        ".superdesign/tools/build_account.py": "eeaeffa6003239d4a05a1c56ab5b378ba95c7fa98d1ec5a7820ca76383179688"
       }
     },
     "/thong-bao": {
@@ -450,19 +450,19 @@
       "drafts": {
         "e9aac9e5-1b2a-48d5-950a-0b44c32b2716": {
           "title": "Thông báo",
-          "currentVersion": 7,
+          "currentVersion": 8,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_account.py": "3f108fb34ecc0d4126f7144bfa25ce9432f80b46822c8b5f9a6524acb0e43030"
+        ".superdesign/tools/build_account.py": "eeaeffa6003239d4a05a1c56ab5b378ba95c7fa98d1ec5a7820ca76383179688"
       }
     },
     "/don-hang": {
@@ -483,19 +483,19 @@
       "drafts": {
         "f874fc32-71bf-4f49-901a-6069e97202aa": {
           "title": "Đơn hàng",
-          "currentVersion": 6,
+          "currentVersion": 7,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_orders.py": "5e13fd0a8dae2bd0ece917706ad47c9c87562081b839e853ad7d5b893d0e0c08"
+        ".superdesign/tools/build_orders.py": "f1c804a1ea55865d8726397b0bce028a7b404258d34625dfae41d68e6252d690"
       }
     },
     "/don-hang/[id]": {
@@ -516,19 +516,19 @@
       "drafts": {
         "dbf0b87b-c943-422a-8887-e5b2d7c7ef20": {
           "title": "Đơn COD",
-          "currentVersion": 6,
+          "currentVersion": 8,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_orders.py": "5e13fd0a8dae2bd0ece917706ad47c9c87562081b839e853ad7d5b893d0e0c08"
+        ".superdesign/tools/build_orders.py": "f1c804a1ea55865d8726397b0bce028a7b404258d34625dfae41d68e6252d690"
       }
     },
     "/don-ban/[id]": {
@@ -549,19 +549,19 @@
       "drafts": {
         "5af7cd52-be74-4781-9148-f53b78e5ea58": {
           "title": "Đơn bán",
-          "currentVersion": 7,
+          "currentVersion": 8,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
-        ".superdesign/tools/build_orders.py": "5e13fd0a8dae2bd0ece917706ad47c9c87562081b839e853ad7d5b893d0e0c08"
+        ".superdesign/tools/build_orders.py": "f1c804a1ea55865d8726397b0bce028a7b404258d34625dfae41d68e6252d690"
       }
     },
     "/tin-cua-ban": {
@@ -589,10 +589,10 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
         ".superdesign/tools/build_seller_tools.py": "7d9939504b1f6ef23fb1f86951b8e3970111eb7eca33e6920fe23375e91ef90a"
       }
@@ -622,10 +622,10 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
         ".superdesign/tools/build_seller_tools.py": "7d9939504b1f6ef23fb1f86951b8e3970111eb7eca33e6920fe23375e91ef90a"
       }
@@ -648,17 +648,17 @@
       "drafts": {
         "1d38ced3-110d-407e-a285-5e053e602871": {
           "title": "Thiết lập giao COD",
-          "currentVersion": 6,
+          "currentVersion": 7,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build.py": "183a2180c5e05ea6f2b64d216801389a4b737b1e59df85ff5b75eb9e1c9701c9",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_e.py": "cc2e0458d7fc7920b41fba2a88923a3c9309058de97281bdfe4f65de73efac17",
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build.py": "46cb1ef41820ef8f20c79223792e8f77bb698508671106fd7079a829669fcecd",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_e.py": "987900982183b293f59253473abde958e5d583630ff9f310847c803bcf91ae31",
         ".superdesign/tools/art_urls.json": "962f8336099bc3e73c806a2b8dacdeb87beb137c2be5c2e3f346774be6c92c42",
         ".superdesign/tools/build_seller_tools.py": "7d9939504b1f6ef23fb1f86951b8e3970111eb7eca33e6920fe23375e91ef90a"
       }
@@ -679,17 +679,17 @@
       "drafts": {
         "72743100-5344-4813-a878-2b5a11b1edfe": {
           "title": "Hỗ trợ",
-          "currentVersion": 6,
+          "currentVersion": 8,
           "visualDirection": "J Kính mờ (tools/j_kit.py)"
         }
       },
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/common.py": "cb61a5c7af87f63c6e4657730ca7091b355bc31a4c4e370d7b4eac474cec6bb3",
-        ".superdesign/tools/build_c.py": "686e405ab6c4b785da99e3be1b82ea35eaf79989638c7a179c5ecea45aff3f2c",
-        ".superdesign/tools/build_chat_cod.py": "0237cf23aa9d572d2c16ded3685a0ebaa92142a78b36e36e33c36f0e05cf0908",
-        ".superdesign/tools/build_support.py": "afe069468885e8801d24217d017a7254b83e6aa84cd019ae67e344bcc936cbb8"
+        ".superdesign/tools/common.py": "74e630fadcb700a1f1bb9008513f4858d3542d44a927e7ccab704a5bf579cc6a",
+        ".superdesign/tools/build_c.py": "b83dc3686fab98d16c726f93a09f547e982cd58600f1c09debe281f797d88fc9",
+        ".superdesign/tools/build_chat_cod.py": "055eca62a8ef8d77625ac7b9c41060c0abf7791c29f0bad70a30f113725d5153",
+        ".superdesign/tools/build_support.py": "3551b4e929436c59ab69e4b104528315a35882a77ad603edec704c6a5234abe2"
       }
     },
     "/danh-muc": {
@@ -712,7 +712,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/tim-bang-anh": {
@@ -735,7 +735,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "404": {
@@ -758,7 +758,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/s?empty": {
@@ -781,7 +781,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/tro-giup": {
@@ -793,7 +793,7 @@
       "drafts": {
         "60be3f4a-2102-4fe4-af6e-d9db5d51f495": {
           "title": "Trợ giúp và an toàn",
-          "currentVersion": 4,
+          "currentVersion": 6,
           "visualDirection": "J Kính mờ; mockups/help.html"
         }
       },
@@ -804,7 +804,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/goi-nguoi-ban": {
@@ -816,7 +816,7 @@
       "drafts": {
         "ea492d9d-66a1-44f1-b4e0-c21dd7ccaeeb": {
           "title": "Gói người bán",
-          "currentVersion": 3,
+          "currentVersion": 5,
           "visualDirection": "J Kính mờ; mockups/plans.html"
         }
       },
@@ -827,7 +827,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/quy-dinh-dang-tin": {
@@ -839,7 +839,7 @@
       "drafts": {
         "41fdcdfd-6d1c-4b4f-a660-9b39ead0f652": {
           "title": "Quy định đăng tin",
-          "currentVersion": 3,
+          "currentVersion": 4,
           "visualDirection": "J Kính mờ; mockups/listing-rules.html"
         }
       },
@@ -850,7 +850,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/dieu-khoan": {
@@ -862,7 +862,7 @@
       "drafts": {
         "d80ca0ed-56d0-4db4-b3f5-6e3fc7ee1563": {
           "title": "Điều khoản",
-          "currentVersion": 3,
+          "currentVersion": 5,
           "visualDirection": "J Kính mờ; mockups/terms.html"
         }
       },
@@ -873,7 +873,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/tai-khoan/dia-chi": {
@@ -885,7 +885,7 @@
       "drafts": {
         "5aedec63-d086-4f26-a40c-14848af83031": {
           "title": "Địa chỉ",
-          "currentVersion": 3,
+          "currentVersion": 4,
           "visualDirection": "J Kính mờ; mockups/addresses.html"
         }
       },
@@ -896,7 +896,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/tai-khoan/bao-mat": {
@@ -919,7 +919,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/tai-khoan/quyen-rieng-tu": {
@@ -942,7 +942,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/tai-khoan/ho-so": {
@@ -954,7 +954,7 @@
       "drafts": {
         "59f9ca79-2682-4fe8-95d8-1c1953c5241d": {
           "title": "Hoàn thiện hồ sơ",
-          "currentVersion": 3,
+          "currentVersion": 4,
           "visualDirection": "J Kính mờ; mockups/profile-tasks.html"
         }
       },
@@ -965,7 +965,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     },
     "/tai-khoan/uy-tin": {
@@ -988,7 +988,7 @@
       "updatedAt": "2026-11-18",
       "fingerprints": {
         ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
-        ".superdesign/tools/j_kit.py": "f3406aa72fc6abe803205c28f47231b1a229920717ea3388f1a8950a52e8ccba"
+        ".superdesign/tools/j_kit.py": "041ebd1bbb07bac038c9331741ed3e2824d0d88fe019cb44e61fbc4bcf036b8c"
       }
     }
   }

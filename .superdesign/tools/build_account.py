@@ -19,7 +19,6 @@ ART2 = {**json.load(open(os.path.join(HERE, "art_sh.json"))), **json.load(open(o
 # Verbatim from app/.superdesign/tools/common.py MONEY.
 MONEY = dict(
     cod_seller="Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.",
-    cod_buyer="Xem hàng rồi mới trả tiền hàng và phí ship cho shipper.",
 )
 
 ME = dict(name="Khánh Linh", photo="1494790108377-be9c29b29330", area="Bình Thạnh, TP.HCM")
@@ -249,7 +248,7 @@ def account():
         <a id="support-reply" href="support.html" class="state mt-6 flex items-center gap-4 rounded-xl bg-surface-container px-5 py-4">
           <span class="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary-container text-on-primary-container">{icon("support-agent-rounded", 26)}</span>
           <span class="min-w-0 flex-1"><span class="block text-body-l text-on-surface">ShopNexus đã trả lời</span>
-            <span class="block truncate text-body-m text-primary">Báo chưa nhận hàng · Bạn chưa trả tiền nên không mất gì…</span></span>
+            <span class="block truncate text-body-m text-primary">Báo chưa nhận hàng · Bạn kiểm tra giúp mình với bảo vệ toà nhà…</span></span>
           <span class="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-primary px-1.5 text-label-s text-on-primary">1</span>
         </a>
 
@@ -328,7 +327,7 @@ TONES = {"offer": "bg-tertiary-fixed text-on-tertiary-fixed-variant", "deal": "b
 NOTES = [
     ("Hôm nay", [
         ("offer", "sell-outline-rounded", "<b class='font-medium'>Tuấn Kiệt</b> trả 4.900.000 ₫ cho iPhone 13 Pro 128GB", "10 phút", True, "1632661674596-df8be070a5c5", "Xem trong chat"),
-        ("deal", "local-shipping-outline-rounded", "Shipper đang tới giao <b class='font-medium'>Sony WH-1000XM4</b>. " + MONEY["cod_buyer"], "32 phút", True, "1505740420928-5e560c06d30e", "Mở đơn COD"),
+        ("deal", "local-shipping-outline-rounded", "Shipper đang tới giao <b class='font-medium'>Sony WH-1000XM4</b>.", "32 phút", True, "1505740420928-5e560c06d30e", "Mở đơn COD"),
         ("deal", "inventory-2-outline-rounded", "<b class='font-medium'>Đức Huy</b> gửi yêu cầu COD cho Ghế xoay vải be. Tạo đơn trong Đơn bán.", "1 giờ", True, "1580480055273-228ff5388ef8", "Tạo đơn"),
         ("offer", "trending-down-rounded", "Máy ảnh Polaroid OneStep 2 bạn đã lưu giảm còn 1.590.000 ₫", "3 giờ", False, "1526170375885-4d8ecf77b99f", None),
     ]),

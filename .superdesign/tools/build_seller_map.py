@@ -135,7 +135,6 @@ def seller():
           <p class="mt-3 flex items-center gap-2 text-body-m text-on-surface-variant">{icon("local-shipping-outline-rounded", 18)}Gửi COD từ {SELLER['area']}</p>
         </div>
         <div class="flex flex-col gap-2.5 rounded-xl border border-outline-variant p-5">
-          <p class="flex gap-2 text-body-m text-on-surface-variant">{icon("local-shipping-outline-rounded", 18, "mt-0.5")}<span>{MONEY["cod_buyer"]}</span></p>
         </div>
       </aside>
     </div>

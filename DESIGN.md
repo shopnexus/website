@@ -48,8 +48,11 @@ breakpoints are switched off, so a value outside the system does not compile.
 - The snackbar is the app's tonal card: `secondaryContainer`, 16 px corners,
   the kind's icon in a circle with the time-left ring, an optional `primary`
   text action; a failure turns the icon and ring `error`.
-- The listing card, the sparkle for AI judgments only, the `MONEY` sentences
-  word for word, and Vietnamese copy with correct diacritics.
+- The listing card, the sparkle for AI judgments only, and Vietnamese copy
+  with correct diacritics.
+- COD and money facts appear only as answers in Cách mua's FAQ, Trợ giúp and
+  Điều khoản. Screens carry no money notes, no door checklists and no rules
+  panel, because buyers and sellers already know how COD works.
 - The minimal look: few elements per block, wide spacing, icons and layout in
   place of explanatory copy.
 

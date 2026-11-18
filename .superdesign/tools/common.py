@@ -87,12 +87,8 @@ TYPE = {
 RADII = {"xs": "4px", "sm": "8px", "md": "12px", "lg": "16px", "lg-plus": "20px", "xl": "28px", "xl-plus": "32px"}
 
 MONEY = dict(
-    cod_buyer="Xem hàng rồi mới trả tiền hàng và phí ship cho shipper.",
-    cancel="Bạn hủy được đơn khi người bán chưa tạo đơn và không mất tiền.",
-    refuse="Nếu không ưng, bạn từ chối nhận hàng và không mất tiền.",
     cod_seller="Bên vận chuyển chuyển tiền hàng cho bạn 1–2 ngày sau khi người mua nhận.",
     return_leg="Người mua từ chối nhận thì bạn trả phí ship cả chiều đi và chiều về.",
-    pay_shipper="Trả tiền hàng và phí ship cho shipper sau khi xem, bằng tiền mặt hoặc chuyển khoản.",
 )
 
 CATEGORIES = [

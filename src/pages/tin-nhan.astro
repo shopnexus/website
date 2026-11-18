@@ -13,7 +13,6 @@ import Composer from '../components/account/chat/Composer.astro';
 import DealCard from '../components/account/chat/DealCard.astro';
 import DealConsole from '../components/account/chat/DealConsole.astro';
 import InboxRow from '../components/account/chat/InboxRow.astro';
-import MoneyRules from '../components/account/chat/MoneyRules.astro';
 import PaneHead from '../components/account/chat/PaneHead.astro';
 import PriceMove from '../components/account/chat/PriceMove.astro';
 import ReportDialog from '../components/account/chat/ReportDialog.astro';
@@ -115,9 +114,6 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
             </p>
             <button type="button" data-open-cod class={ink}><Icon name="local-shipping-outline-rounded" size={20} />Chọn giao COD</button>
           </div>
-          <p class="mt-1 flex items-center gap-2 text-body-medium text-on-surface-variant">
-            <Icon name="local-shipping-outline-rounded" size={18} />Giao COD · xem hàng rồi mới trả
-          </p>
         </DealConsole>
         <Composer peer={SELLER.name}>
           <div slot="strip" class="mb-2 flex items-center gap-3 rounded-lg bg-card/80 py-2 pl-3 pr-1" data-strip>
@@ -211,7 +207,6 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
             <span class="text-title-large text-on-surface tabular-nums">{airpods.offer}</span>
           </div>
         </DealCard>
-        <MoneyRules />
       </aside>
       <aside data-conv="scam" class={side} hidden>
         <DealCard title={SCAM_ITEM.title} photo={SCAM_ITEM.photo} meta={SCAM_ITEM.meta} loading="lazy">
@@ -220,7 +215,6 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
             <span class="text-title-large text-on-surface tabular-nums">{SCAM_ITEM.listed}</span>
           </div>
         </DealCard>
-        <MoneyRules />
       </aside>
     </div>
   </main>

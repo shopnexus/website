@@ -88,7 +88,6 @@ export interface OrderDetail {
   phase: number;
   times: string[];
   /** What the listing says to check at the door. */
-  checks: string;
   events: { title: string; sub: string; when: string; now?: boolean }[];
   updated: string;
   to: { line: string; who: string; window: string };
@@ -110,7 +109,6 @@ export const ORDERS: Record<string, OrderDetail> = {
     eta: 'Dự kiến hôm nay',
     phase: 2,
     times: ['Hôm qua 09:15', 'Hôm qua 10:02', 'Hôm nay', ''],
-    checks: 'Pin 86% · Bản quốc tế, đã mở mạng · Không trầy màn',
     events: [
       { title: 'Đang giao hàng', sub: 'Shipper Văn Tài · 09•• ••• 117', when: 'Hôm nay 08:05', now: true },
       { title: 'Đến kho Bình Thạnh', sub: 'GHTK', when: 'Hôm qua 21:10' },
@@ -268,7 +266,7 @@ export const SENDER = { name: 'Nguyễn Khánh Linh', phone: '0912 345 812', sho
 
 // ---------------------------------------------------------------- Hỗ trợ --
 
-export const NO_ARBITRATION = 'ShopNexus không phân xử giữa người mua và người bán.';
+export const NO_ARBITRATION = 'Hệ thống không phân xử giữa người mua và người bán.';
 
 export const TICKET_KINDS = {
   not_received: { icon: 'package-2-outline-rounded', name: 'Báo chưa nhận hàng' },
@@ -277,7 +275,7 @@ export const TICKET_KINDS = {
 } as const;
 
 export const TICKETS: { kind: keyof typeof TICKET_KINDS; subject: string; last: string; when: string; open: boolean }[] = [
-  { kind: 'not_received', subject: 'iPhone X 64GB, pin 86%', last: 'Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà…', when: '09:05', open: true },
+  { kind: 'not_received', subject: 'iPhone X 64GB, pin 86%', last: 'Bạn kiểm tra giúp mình với bảo vệ toà nhà…', when: '09:05', open: true },
   { kind: 'carrier_request', subject: 'Ninja Van', last: 'Bạn: Mình gửi Ninja Van vì gần nhà, phí rẻ hơn GHTK.', when: 'Hôm qua', open: true },
   { kind: 'other', subject: 'Lọc theo khu vực hay nhảy về Q.1 dù mình đã chọn Bình Thạnh.', last: 'Cảm ơn bạn. Lỗi này đã sửa trong bản 2.4, bạn cập nhật app giúp mình nhé.', when: 'Thứ Hai', open: false },
 ];
@@ -286,7 +284,7 @@ export const REPORT = 'GHTK báo đã giao lúc 14:20 hôm qua nhưng mình chư
 
 export const SUPPORT_REPLY = [
   'Chào bạn, mình đã xem lịch trình GHTK của đơn: bưu tá báo giao lúc 14:20 tại 12 Nguyễn Gia Trí, Bình Thạnh.',
-  'Bạn chưa trả tiền nên không mất gì. Bạn kiểm tra giúp mình với bảo vệ toà nhà, mình cũng báo GHTK kiểm tra lại.',
+  'Bạn kiểm tra giúp mình với bảo vệ toà nhà, mình cũng báo GHTK kiểm tra lại.',
 ];
 
 export const SUPPORT_TRACK = [

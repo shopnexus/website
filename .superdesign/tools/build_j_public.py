@@ -13,7 +13,7 @@ from build_c import ART, area_map
 from build_pages import MODELS, PHONES, tr
 from build_seller_map import IN_VIEW, REVIEWS, SELLER, SELLING, big_map
 from common import LISTINGS, crop, icon, img, split_price, where
-from j_kit import ai_chip, btn, card, crumbs, drop, footer, header, mini_row, money_line, page, panel, price, search_field, section_title, seg, switch, trending
+from j_kit import ai_chip, btn, card, crumbs, drop, footer, header, mini_row, page, panel, price, search_field, section_title, seg, switch, trending
 
 
 # What each condition on the scale means (the site's GRADE in tin/[id].astro).
@@ -265,7 +265,6 @@ def seller():
         {j_map([(56, 44, SELLER["area"], True)], (30, 72), 200, route=((30, 72), (56, 44), where("2,1 km", SELLER["area"])))}
         <div class="flex flex-col gap-1.5 px-3 pb-2 pt-3">
           <p class="flex items-center gap-2 text-title-s ink">{icon("local-shipping-outline-rounded", 18, "text-primary")}Gửi COD từ {SELLER['area']}</p>
-          {money_line("cod_buyer", "visibility-outline-rounded", small=True)}
         </div>
       </div>
     </aside>

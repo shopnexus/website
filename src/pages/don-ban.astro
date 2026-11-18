@@ -113,10 +113,6 @@ const label = 'mb-2 text-label-large text-ink';
           { k: 'Tiền hàng COD', v: money(s.price), deal: true },
           { k: 'Phí ship người mua trả', v: money(s.ship) },
         ]}
-        money={[
-          { k: 'cod_seller', icon: 'local-shipping-outline-rounded' },
-          { k: 'return_leg', icon: 'undo-rounded' },
-        ]}
       >
         <Fragment slot="person">{s.buyerArea} · giao COD</Fragment>
         <div slot="extra" class="mt-4 flex items-center gap-3 rounded-lg bg-surface-container-low px-3.5 py-3">

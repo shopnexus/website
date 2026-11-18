@@ -1,7 +1,7 @@
 ---
 import Photo from '../components/Photo.astro';
 // Cách mua: the four deal steps, what ShopNexus does and does not do, and the
-// questions buyers ask. Every money sentence is a MONEY sentence.
+// questions buyers ask.
 import artAiCamera from '@brand/art_ai_camera.webp';
 import artDeal from '@brand/art_deal.webp';
 import artOrders from '@brand/art_orders.webp';
@@ -12,34 +12,29 @@ import Price from '../components/Price.astro';
 import Stepper from '../components/Stepper.astro';
 import Faq from '../components/flows/Faq.astro';
 import Layout from '../layouts/Layout.astro';
-import { MONEY } from '../data/common';
 import { DEAL, FAQ, HOW_DO, HOW_DONT, SELLER } from '../data/flows';
 import { crop } from '../lib/format';
 import { R } from '../lib/routes';
 import { btnCls, CONTENT, H2, PANEL } from '../lib/ui';
 
-type MoneyKey = keyof typeof MONEY;
-const steps: { art: ImageMetadata; title: string; text: string; keys: MoneyKey[]; extra?: 'deal' | 'stars' }[] = [
+const steps: { art: ImageMetadata; title: string; text: string; extra?: 'deal' | 'stars' }[] = [
   {
     art: artDeal,
     title: 'Chốt giá',
     text: 'Tìm món gần bạn bằng một câu hoặc một tấm ảnh, rồi nhắn người bán và trả giá. Hai bên đồng ý là chốt, giá đó vào đơn.',
-    keys: [],
     extra: 'deal',
   },
   {
     art: artOrders,
     title: 'Tạo đơn',
     text: 'Bạn chọn giao COD với một địa chỉ trong sổ. Người bán tạo vận đơn bằng tài khoản GHTK hoặc GHN đứng tên mình, hoặc tự gửi rồi nhập mã vận đơn.',
-    keys: ['cancel'],
   },
   {
     art: artReceived,
     title: 'Nhận hàng',
-    text: 'Shipper tới, bạn mở hàng và so với Tin ghi trên tin đăng, rồi bấm “Đã nhận hàng”. Hãng báo đã giao mà bạn chưa nhận, bấm “Báo chưa nhận hàng”.',
-    keys: ['pay_shipper', 'refuse'],
+    text: 'Shipper tới, bạn xem hàng rồi bấm “Đã nhận hàng”. Hãng báo đã giao mà bạn chưa nhận, bấm “Báo chưa nhận hàng”.',
   },
-  { art: artReviews, title: 'Đánh giá', text: 'Chấm sao cho người bán. Đánh giá tính vào điểm uy tín của họ.', keys: [], extra: 'stars' },
+  { art: artReviews, title: 'Đánh giá', text: 'Chấm sao cho người bán. Đánh giá tính vào điểm uy tín của họ.', extra: 'stars' },
 ];
 const stats = [
   ['4 bước', 'chốt giá tới đánh giá'],
@@ -48,7 +43,7 @@ const stats = [
 const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-teal-light text-title-small text-white tabular-nums';
 ---
 
-<Layout title="Cách mua · ShopNexus" description={MONEY.cod_buyer} section="how">
+<Layout title="Cách mua · ShopNexus" description="Cách mua đồ cũ trên ShopNexus: chốt giá, tạo đơn COD, nhận hàng và đánh giá." section="how">
   <main class={CONTENT}>
     <section class="grid grid-cols-1 items-center gap-8 pt-8 lg:grid-cols-[1fr_440px] lg:pt-10 xl:grid-cols-[1fr_520px] xl:gap-12">
       <div class="min-w-0">
@@ -58,7 +53,6 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
         <h1 class="mt-4 text-j-40 text-ink md:text-j-52 xl:text-j-60">
           Xem hàng tận tay,<br />rồi mới trả tiền.
         </h1>
-        <p class="mt-4 max-w-[520px] text-body-large text-on-surface-variant">{MONEY.cod_buyer}</p>
         <div class="mt-6 flex flex-wrap gap-2">
           <a href={R.search} class={btnCls('ink', 'lg')}><Icon name="search-rounded" size={18} />Bắt đầu tìm</a>
           <a href="#faq" class={btnCls('line', 'lg')}>Câu hỏi thường gặp</a>
@@ -95,12 +89,6 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
             <p class="mt-0.5"><Price vnd={32000} /></p>
           </div>
         </div>
-        <div class="mt-3 flex items-center gap-3 rounded-lg bg-peach-wash px-4 py-3">
-          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-tertiary">
-            <Icon name="payments-outline-rounded" size={20} />
-          </span>
-          <p class="text-body-medium text-on-tertiary-fixed-variant">{MONEY.pay_shipper}</p>
-        </div>
         <div class="mt-3 grid grid-cols-2 gap-2">
           <a href={R.orders} class={btnCls('ink')}>Đã nhận hàng</a>
           <a href={R.support} class={btnCls('line')}>Báo chưa nhận hàng</a>
@@ -124,12 +112,6 @@ const badge = 'grid place-items-center rounded-full bg-linear-140 from-teal to-t
               <h3 class="mt-1 text-j-20 text-ink">{s.title}</h3>
               <p class="mt-1.5 text-body-medium text-on-surface-variant">{s.text}</p>
               <div class="mt-auto flex flex-col gap-2 pt-3">
-                {s.keys.map((k) => (
-                  <p class="flex gap-2 rounded-field bg-surface-container-low px-3 py-2 text-body-small text-ink">
-                    <Icon name="check-circle-outline-rounded" size={16} class="mt-px shrink-0 text-primary" />
-                    <span>{MONEY[k]}</span>
-                  </p>
-                ))}
                 {s.extra === 'deal' && (
                   <div class="flex items-center justify-between rounded-field bg-peach-wash px-3 py-2">
                     <span class="text-body-small text-on-surface-variant line-through">{DEAL.listed}</span>

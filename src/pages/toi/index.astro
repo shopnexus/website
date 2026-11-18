@@ -11,7 +11,7 @@ import AccountShell from '../../components/account/AccountShell.astro';
 import Ring from '../../components/account/Ring.astro';
 import Row from '../../components/account/Row.astro';
 import { MY_LISTINGS } from '../../data/account';
-import { ADDRESS_BOOK, MONEY, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
+import { ADDRESS_BOOK, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
 import { img } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { requireViewer, theme } from '../../lib/session';
@@ -82,7 +82,7 @@ const settings = [
         <span class="flex items-center gap-2 text-title-small text-ink"
           >ShopNexus đã trả lời<span class="grid h-5 min-w-5 place-items-center rounded-full bg-error px-1.5 text-label-small text-on-error">1</span></span
         >
-        <span class="block truncate text-body-small text-on-surface-variant">Báo chưa nhận hàng · Bạn chưa trả tiền nên không mất gì…</span>
+        <span class="block truncate text-body-small text-on-surface-variant">Báo chưa nhận hàng · Bạn kiểm tra giúp mình với bảo vệ toà nhà…</span>
       </span>
       <Icon name="chevron-right-rounded" size={20} class="text-on-surface-variant" />
     </a>
@@ -224,9 +224,6 @@ const settings = [
       <p class="text-label-medium uppercase tracking-[0.12em] text-white/75">Giao COD</p>
       <p class="mt-1 max-w-[200px] text-j-20">Chưa liên kết bên vận chuyển</p>
       <p class="mt-2 text-body-small text-white/85">Liên kết tài khoản GHTK hoặc GHN của bạn để nhận đơn COD.</p>
-      <p class="mt-2 flex gap-1.5 text-body-small text-white/85">
-        <Icon name="payments-outline-rounded" size={16} class="mt-0.5" /><span>{MONEY.cod_seller}</span>
-      </p>
       <a href={R.codSetup} class="state-layer mt-4 flex h-10 w-full items-center justify-center rounded-full bg-white text-label-large text-teal"
         >Thiết lập giao COD</a
       >

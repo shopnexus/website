@@ -11,8 +11,8 @@ import os
 from html import escape
 
 from build import OUT, a
-from common import MONEY, icon, img, split_price, where
-from j_kit import ADDRESS_BOOK, ME, PANEL, account_nav, btn, crumbs, footer, header, money_line, page, page_title, phase_bar, phase_track, price, seg, switch
+from common import icon, img, split_price, where
+from j_kit import ADDRESS_BOOK, ME, PANEL, account_nav, btn, crumbs, footer, header, page, page_title, phase_bar, phase_track, price, seg, switch
 
 # ----------------------------------------------------------------- pieces --
 
@@ -139,7 +139,6 @@ def orders():
         <p class="text-title-s ink">Đơn COD đang mở</p>
         <p class="mt-2"><span class="num ink text-[44px] font-semibold leading-[48px] tighter">2</span><span class="text-title-l text-on-surface-variant">/5</span></p>
         <div class="mt-3 flex gap-1.5">{slots}</div>
-        <div class="mt-4 flex flex-col gap-2.5 border-t line pt-4">{money_line("cod_buyer", "inventory-2-outline-rounded")}</div>
       </div>
       <div class="{PANEL} px-5 py-3">
         <p class="py-1 text-label-m text-on-surface-variant">Tháng 10</p>
@@ -160,9 +159,9 @@ CODE = "S1.A1.17373471"
 COPY = icon_btn("Sao chép", "content-copy-outline-rounded")
 
 
-def summary_card(photo, item, item_price, person, person_sub, chat_id, total_label, total, lines, money_keys, extra="", actions=""):
+def summary_card(photo, item, item_price, person, person_sub, chat_id, total_label, total, lines, extra="", actions=""):
     """The sticky card on the right of an order screen: the item and the other
-    person, the sum the buyer hands the shipper, how it splits, the money rules."""
+    person, the sum the buyer hands the shipper, how it splits."""
     rows = "".join(f'<p class="flex justify-between gap-3"><span class="text-on-surface-variant">{k}</span><span class="num flex items-center gap-1.5 {cls}">{v}</span></p>'
                    for k, v, cls in lines)
     return f"""<aside class="sticky top-[84px] self-start overflow-hidden rounded-[28px] border line bg-white soft">
@@ -180,7 +179,6 @@ def summary_card(photo, item, item_price, person, person_sub, chat_id, total_lab
     <p class="mt-0.5">{amount(total)}</p>
     <div class="mt-3 flex flex-col gap-1.5 border-b line pb-4 text-body-m">{rows}</div>
     {extra}
-    <div class="mt-4 flex flex-col gap-2.5">{"".join(money_line(k, ic) for k, ic in money_keys)}</div>
   </div>
   {f'<div class="flex items-center gap-2 border-t line bg-surface-container-low/60 p-3">{actions}</div>' if actions else ""}
 </aside>"""
@@ -212,12 +210,6 @@ def order():
 </li>""" for i, (t, s, w, now) in enumerate(events))
     track = a("ghtk-track", "state flex h-9 items-center rounded-full px-3 text-label-l text-primary", "Tra mã", f"https://i.ghtk.vn/{CODE}")
     left = f"""<div class="flex min-w-0 flex-col gap-4">
-  <section class="flex items-center gap-4 rounded-[24px] border line bg-white p-4">
-    <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">{icon("fact-check-outline-rounded", 22)}</span>
-    <div class="min-w-0 flex-1"><p class="text-body-s text-on-surface-variant">Tin ghi · xem kỹ khi shipper tới</p><p class="text-title-s ink">Pin 86% · Bản quốc tế, đã mở mạng · Không trầy màn</p></div>
-    {icon("chevron-right-rounded", 22, "text-on-surface-variant")}
-  </section>
-  <div class="flex items-center gap-2 rounded-full bg-tertiary-fixed/60 px-4 py-2.5 text-body-m text-on-tertiary-fixed-variant">{icon("undo-rounded", 18)}{MONEY["refuse"]}</div>
   <div class="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-4">
     <section class="{PANEL} p-5">
       {section_label("Hành trình", '<span class="flex items-center gap-1.5 text-label-m text-primary"><span class="h-1.5 w-1.5 rounded-full bg-primary"></span>GHTK cập nhật 08:05</span>')}
@@ -241,7 +233,6 @@ def order():
         "1510557880182-3d4d3cba35a5", "iPhone X 64GB, pin 86%", "Giá chốt 3.800.000 ₫", "Hoàng Nam",
         f'4,7{icon("star-rounded", 13, "text-[#E0A23B]")}· 12 đã bán', "chat-seller", "Trả khi nhận", 3_822_000,
         [("Tiền hàng", icon("handshake-outline-rounded", 16) + "3.800.000 ₫", "text-tertiary"), ("Phí ship · GHTK Giao nhanh", "22.000 ₫", "ink")],
-        [("pay_shipper", "payments-outline-rounded")],
         actions=btn("Báo chưa nhận", "help-outline-rounded", "ghost") + btn("Đã nhận hàng", "package-2-outline-rounded", "primary", "h-11 flex-1"))
     inner = f"""
   {crumbs("Tôi", "Đơn hàng", "iPhone X 64GB")}
@@ -298,7 +289,6 @@ def ship():
         "1503602642458-232111445657", "Ghế đôn gỗ cao", "Giá chốt 350.000 ₫", "Đức Huy", "Phường Cầu Kiệu · giao COD", "chat-buyer",
         "Người mua trả shipper", 372_000,
         [("Tiền hàng COD", icon("handshake-outline-rounded", 16) + "350.000 ₫", "text-tertiary"), ("Phí ship người mua trả", "22.000 ₫", "ink")],
-        [("cod_seller", "local-shipping-outline-rounded"), ("return_leg", "undo-rounded")],
         extra=cod_to,
         actions=f'<span class="flex items-center gap-1.5 pl-2 text-body-s text-on-surface-variant">{icon("tag-rounded", 15)}SNX 8841 2207</span><span class="flex-1"></span>'
                 + btn("Tạo đơn", "receipt-long-outline-rounded", "primary", "h-11 px-6"))
@@ -581,7 +571,6 @@ def cod_setup():
         <p class="flex items-center gap-3 text-label-m text-on-surface-variant"><span class="flex items-center gap-1">{icon("timer-outline-rounded", 15)}3 phút</span><span class="flex items-center gap-1">{icon("event-repeat-outline-rounded", 15)}Làm một lần</span>{a("later", "text-primary hover:underline", "Để sau")}</p>
         <h1 class="mt-1 text-[40px] font-semibold leading-[44px] tighter ink">Thiết lập giao COD</h1>
       </div>
-      <div class="flex max-w-[420px] flex-col gap-1.5 pt-1">{money_line("cod_seller", "account-balance-outline-rounded")}</div>
     </div>
     <ol class="mt-5 flex items-center gap-4 border-t border-white/70 pt-4">{steps}</ol>
   </section>

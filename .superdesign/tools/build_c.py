@@ -213,7 +213,7 @@ def home():
     story = [("art_search", "Tìm và nhắn", "Gõ cả câu hoặc chụp một tấm ảnh. Hỏi người bán ngay trong chat.", False),
              ("art_deal", "Trả giá, chốt", "Đưa giá trong chat. Hai bên đồng ý là chốt, giá đó vào đơn.", True),
              ("art_cod_ready", "Người bán gửi COD", "Người bán tạo đơn với bên vận chuyển, bạn theo dõi trong app.", False),
-             ("art_received", "Xem rồi mới trả", MONEY["cod_buyer"] + " " + MONEY["refuse"], False)]
+             ("art_received", "Nhận hàng", "Shipper tới, bạn xem hàng rồi bấm “Đã nhận hàng”.", False)]
     story_html = "".join(
         f"""<li class="relative flex flex-col rounded-xl p-6 {"bg-tertiary-fixed text-on-tertiary-fixed-variant" if bar else "bg-surface-container-lowest text-on-surface"}">
   <span class="absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full {"bg-tertiary text-on-tertiary" if bar else "bg-primary-container text-on-primary-container"} text-title-s">{i + 1}</span>
@@ -417,7 +417,6 @@ def detail():
         <p class="text-label-l uppercase tracking-[0.12em] text-on-secondary-container">Tin ghi · kèm cách tự kiểm</p>
         <h2 class="mt-2 text-display-s text-on-surface">Kiểm 4 điều này khi shipper tới cửa</h2>
         <ul class="mt-6 grid grid-cols-2 gap-3">{claims}</ul>
-        <p class="mt-5 flex items-center gap-2 text-body-l text-on-surface">{icon("undo-rounded", 20)}{MONEY["refuse"]}</p>
         <p class="mt-3 flex items-center gap-2 text-body-m text-on-secondary-container">{icon("auto-awesome-rounded", 16, "text-primary")}Mẹo kiểm iPhone · gợi ý chung, không phải điều {SELLER["name"]} cam kết</p>
       </div>
     </section>

@@ -6,7 +6,7 @@
 import Icon from '../components/Icon.astro';
 import Price from '../components/Price.astro';
 import Layout from '../layouts/Layout.astro';
-import { FEE_NOTE, PAY_WAYS, PLANS, TIERS } from '../data/flows';
+import { PAY_WAYS, PLANS, TIERS } from '../data/flows';
 import { R } from '../lib/routes';
 import { viewer } from '../lib/session';
 import { btnCls, CONTENT, PANEL } from '../lib/ui';
@@ -98,9 +98,6 @@ const confirmHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(R.pla
               <Icon name="autorenew-rounded" size={18} class="text-primary" />Gia hạn và hủy
             </p>
             <p class="mt-2 text-body-medium text-on-surface-variant">Gia hạn mỗi tháng. Hủy lúc nào cũng được, gói chạy hết tháng đã trả.</p>
-            <p class="mt-2 flex gap-2 text-body-small text-on-surface-variant">
-              <Icon name="info-outline-rounded" size={16} class="mt-px shrink-0 text-primary" />{FEE_NOTE}
-            </p>
           </div>
         </div>
         <div class:list={[PANEL, 'mt-4 p-5']}>
@@ -167,7 +164,7 @@ const confirmHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(R.pla
           }
         </div>
         <p class="mt-3 text-body-small text-on-surface-variant">
-          Dùng để trả phí đẩy tin và gói người bán. Tiền hàng vẫn trả cho shipper khi nhận.
+          Dùng để trả phí đẩy tin và gói người bán.
         </p>
         {
           confirmHref ? (
@@ -180,7 +177,6 @@ const confirmHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(R.pla
             </button>
           )
         }
-        <p class="mt-3 text-center text-body-small text-on-surface-variant">{FEE_NOTE}</p>
       </aside>
     </section>
   </main>

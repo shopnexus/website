@@ -12,7 +12,6 @@ import ListRow from '../../components/orders/ListRow.astro';
 import SectionLabel from '../../components/orders/SectionLabel.astro';
 import SummaryAside from '../../components/orders/SummaryAside.astro';
 import Layout from '../../layouts/Layout.astro';
-import { MONEY } from '../../data/common';
 import { ORDERS } from '../../data/orders';
 import { money } from '../../lib/format';
 import { R } from '../../lib/routes';
@@ -41,19 +40,6 @@ if (!o) return Astro.rewrite('/404');
 
     <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
       <div class="flex min-w-0 flex-col gap-4">
-        <a href={R.listing('l1')} class="flex items-center gap-4 rounded-panel border border-line bg-card p-4 hover:bg-surface-container-lowest">
-          <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
-            <Icon name="fact-check-outline-rounded" size={22} />
-          </span>
-          <span class="min-w-0 flex-1">
-            <span class="block text-body-small text-on-surface-variant">Tin ghi · xem kỹ khi shipper tới</span>
-            <span class="block text-title-small text-ink">{o.checks}</span>
-          </span>
-          <Icon name="chevron-right-rounded" size={22} class="text-on-surface-variant" />
-        </a>
-        <p class="flex items-center gap-2 rounded-panel bg-tertiary-fixed/60 px-4 py-2.5 text-body-medium text-on-tertiary-fixed-variant md:rounded-full">
-          <Icon name="undo-rounded" size={18} />{MONEY.refuse}
-        </p>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
           <section class:list={[PANEL, 'p-5']}>
             <SectionLabel title="Hành trình">
@@ -120,9 +106,6 @@ if (!o) return Astro.rewrite('/404');
         lines={[
           { k: 'Tiền hàng', v: money(o.price), deal: true },
           { k: `Phí ship · ${o.carrier} ${o.service}`, v: money(o.ship) },
-        ]}
-        money={[
-          { k: 'pay_shipper', icon: 'payments-outline-rounded' },
         ]}
       >
         <Fragment slot="person">

@@ -1,13 +1,11 @@
 ---
 import Photo from '../Photo.astro';
 // The sticky card on the right of an order screen: the item and the other
-// person, the sum the buyer hands the shipper, how it splits, the money rules.
+// person, the sum the buyer hands the shipper, how it splits.
 // Slot "person" is the person's sub line, "extra" sits under the split and
 // "actions" fills the grey bar at the bottom.
-import type { MONEY } from '../../data/common';
 import { group, img } from '../../lib/format';
 import Icon from '../Icon.astro';
-import MoneyLine from '../MoneyLine.astro';
 import Face from './Face.astro';
 
 interface Props {
@@ -20,10 +18,9 @@ interface Props {
   total: number;
   /** The split: label, value; deal marks the price agreed in chat (tertiary, handshake). */
   lines: { k: string; v: string; deal?: boolean }[];
-  money: { k: keyof typeof MONEY; icon: string }[];
 }
 
-const { photo, item, itemPrice, person, chatHref, totalLabel, total, lines, money } = Astro.props;
+const { photo, item, itemPrice, person, chatHref, totalLabel, total, lines } = Astro.props;
 ---
 
 <aside class="self-start overflow-hidden rounded-xl border border-line bg-card shadow-soft lg:sticky lg:top-[84px]">
@@ -65,9 +62,6 @@ const { photo, item, itemPrice, person, chatHref, totalLabel, total, lines, mone
       }
     </div>
     <slot name="extra" />
-    <div class="mt-4 flex flex-col gap-2.5">
-      {money.map((m) => <MoneyLine k={m.k} icon={m.icon} />)}
-    </div>
   </div>
   {
     Astro.slots.has('actions') && (

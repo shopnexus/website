@@ -13,7 +13,7 @@ from build import a
 from build_account import ME
 from build_chat_cod import PHASES
 from build_pages import QUERY_PHOTO
-from common import LOGO, MONEY, head, icon, img, split_price, where
+from common import LOGO, head, icon, img, split_price, where
 
 # The signed-in buyer on every signed-in page.
 AVATAR = ME["photo"]
@@ -200,13 +200,6 @@ def btn_cls(kind="ink", size="md"):
 
 def btn(label, ic=None, kind="ink", cls="", size="md"):
     return f'<button type="button" class="{btn_cls(kind, size)} {cls}">{icon(ic, 18) if ic else ""}{label}</button>'
-
-
-def money_line(key, ic="info-outline-rounded", small=False):
-    """One MONEY sentence, word for word, with its icon."""
-    if small:
-        return f'<p class="flex gap-2 text-body-s text-on-surface-variant">{icon(ic, 16, "mt-px shrink-0 text-primary")}<span>{MONEY[key]}</span></p>'
-    return f'<p class="flex gap-2 text-body-m text-on-surface-variant">{icon(ic, 17, "mt-0.5 shrink-0 text-primary")}<span>{MONEY[key]}</span></p>'
 
 
 def crumbs(*parts, tail="", cls=""):
