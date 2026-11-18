@@ -8,6 +8,7 @@ import Icon from '../components/Icon.astro';
 import Seg from '../components/Seg.astro';
 import Bubbles from '../components/account/chat/Bubbles.astro';
 import ChatEvent from '../components/account/chat/ChatEvent.astro';
+import CodDialog from '../components/account/chat/CodDialog.astro';
 import Composer from '../components/account/chat/Composer.astro';
 import DealCard from '../components/account/chat/DealCard.astro';
 import DealConsole from '../components/account/chat/DealConsole.astro';
@@ -19,7 +20,6 @@ import ReportDialog from '../components/account/chat/ReportDialog.astro';
 import { DEALS, INBOX, SCAM_ITEM, SCAMMER, SELLER, THUMB } from '../data/account';
 import { MONEY } from '../data/common';
 import Layout from '../layouts/Layout.astro';
-import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { CONTENT } from '../lib/ui';
 
@@ -107,6 +107,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
           <Bubbles side="mine" texts={['Bạn bán luôn AirPods Pro 2 không? Mình lấy cả hai.']} time="14:11" />
           <PriceMove side="mine" amount={airpods.offer!} time="AirPods Pro 2 · 14:12" />
           <Bubbles side="theirs" from={SELLER.name} texts={[asked]} time="14:13" />
+          <div data-cod-sent hidden><ChatEvent icon="local-shipping-outline-rounded" text="Đã gửi yêu cầu COD · chờ người bán tạo đơn" /></div>
         </div>
         <DealConsole current={1}>
           <div class="flex flex-wrap items-center gap-3">
@@ -114,7 +115,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
             <p class="flex flex-1 items-baseline text-on-surface tabular-nums">
               <span class="text-headline-medium">5.100.000</span><span class="ml-1 text-title-large text-on-surface-variant">₫</span>
             </p>
-            <a href={R.cod} class={ink}><Icon name="local-shipping-outline-rounded" size={20} />Chọn giao COD</a>
+            <button type="button" data-open-cod class={ink}><Icon name="local-shipping-outline-rounded" size={20} />Chọn giao COD</button>
           </div>
           <p class="mt-1 flex items-center gap-2 text-body-medium text-on-surface-variant">
             <Icon name="local-shipping-outline-rounded" size={18} />Giao COD · xem hàng rồi mới trả
@@ -230,6 +231,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
     </div>
   </main>
   <ReportDialog />
+  <CodDialog name={v.name} />
 </Layout>
 
 <script>
@@ -289,6 +291,29 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
       open('scam');
     }),
   );
+
+  // Chọn giao COD opens the request over the chat; sending it notes it in the thread.
+  const cod = $<HTMLDialogElement>('#cod')!;
+  const codPane = (p: string) => $$('[data-pane]', cod).forEach((el) => (el.hidden = el.dataset.pane !== p));
+  const openCod = () => {
+    codPane('form');
+    cod.showModal();
+  };
+  $('[data-open-cod]')!.addEventListener('click', openCod);
+  cod.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest('[data-go="sent"]')) {
+      codPane('sent');
+      $('[data-cod-sent]')!.hidden = false;
+      const b = $<HTMLButtonElement>('[data-open-cod]')!;
+      b.disabled = true;
+      b.classList.add('opacity-60');
+      b.lastChild!.textContent = 'Đã gửi COD';
+      const thread = $('[data-conv="kiet"] [data-thread]');
+      if (thread) thread.scrollTop = thread.scrollHeight;
+    }
+    if (t.closest('[data-close]') || t === cod) cod.close();
+  });
 
   // The chips switch the listing in the bar and on the side; the thread is the pair's and stays.
   $$('[data-deal]').forEach((c) =>
@@ -366,6 +391,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
 
   const h = location.hash.slice(1);
   open(h === 'scam' || h === 'report' || h === 'reported' ? 'scam' : 'kiet');
+  if (h === 'cod') openCod();
   if (h === 'report') {
     pane('form');
     dlg.showModal();

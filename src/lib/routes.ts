@@ -12,7 +12,7 @@ export const R = {
   map: '/ban-do', // map
   how: '/cach-mua', // how
   sell: '/cach-dang-tin', // sell
-  cod: '/giao-cod', // cod
+  cod: '/giao-cod', // cod; redirects to the dialog in Tin nhắn
   help: '/tro-giup', // help
   plans: '/goi-nguoi-ban', // plans
   listingRules: '/quy-dinh-dang-tin', // listing-rules
