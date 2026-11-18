@@ -1,4 +1,5 @@
 ---
+import Photo from './Photo.astro';
 // White card, 22 px, hairline; the photo at 16 px inside an 8 px inset. Lifts on hover.
 import { type Listing, listingPhoto, where } from '../lib/format';
 import { R } from '../lib/routes';
@@ -10,15 +11,17 @@ interface Props {
   saved?: boolean;
   /** CSS aspect-ratio of the photo. */
   ratio?: string;
+  /** "lazy" when it sits below the first screen. */
+  loading?: 'eager' | 'lazy';
 }
 
-const { item, saved = false, ratio = '1 / 1' } = Astro.props;
+const { item, saved = false, ratio = '1 / 1', loading } = Astro.props;
 const meta = [item.condition, where(item.km, item.area), item.posted].filter(Boolean).join(' · ');
 ---
 
 <article class="lift relative min-w-0 rounded-card border border-line bg-card p-2">
   <div class="relative overflow-hidden rounded-lg bg-surface-container-high" style={`aspect-ratio: ${ratio}`}>
-    <img src={listingPhoto(item, 480)} alt={item.title} loading="lazy" class="h-full w-full object-cover" />
+    <Photo src={listingPhoto(item, 480)} width={480} height={480} alt={item.title} loading={loading} class="h-full w-full object-cover" />
     <button
       type="button"
       class:list={[

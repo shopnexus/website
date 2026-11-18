@@ -1,4 +1,5 @@
 ---
+import Photo from '../../components/Photo.astro';
 // Điểm uy tín: the score, the tier track, the buyer's limits, the penalty
 // ladder, ways to earn points and the history; on the side how points count.
 import tierTrusted from '@brand/tier_trusted.webp';
@@ -35,7 +36,7 @@ const stat = 'flex-1 px-4 first:pl-0';
 <SettingsFrame title="Điểm uy tín" page="Điểm uy tín" meta="Người mua thấy bậc của bạn trên mọi tin bạn đăng">
   <div class:list={[PANEL, 'px-5 pb-4 pt-5 md:px-6']}>
     <div class="flex flex-wrap items-center gap-5">
-      <img src={tierTrusted.src} alt="" class="h-16 w-16 shrink-0 md:h-20 md:w-20" />
+      <Photo src={tierTrusted} alt="" class="h-16 w-16 shrink-0 md:h-20 md:w-20" />
       <div class="flex-1">
         <p class="text-label-large text-on-surface-variant">Bậc hiện tại · {tier}</p>
         <p class="tabular-nums">

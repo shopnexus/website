@@ -1,4 +1,5 @@
 ---
+import Photo from './Photo.astro';
 // A compact listing link: thumb, price, title, place.
 import { type Listing, listingPhoto, where } from '../lib/format';
 import { R } from '../lib/routes';
@@ -12,7 +13,7 @@ const { item } = Astro.props;
 ---
 
 <a href={R.listing(item.id)} class="lift flex items-center gap-3 rounded-tile border border-line bg-card p-1.5 pr-3">
-  <img src={listingPhoto(item, 120)} alt="" loading="lazy" class="h-14 w-14 shrink-0 rounded-md object-cover" />
+  <Photo src={listingPhoto(item, 120)} width={120} height={120} alt="" loading="lazy" class="h-14 w-14 shrink-0 rounded-md object-cover" />
   <span class="min-w-0 flex-1">
     <Price vnd={item.price} size="text-j-15" />
     <span class="block truncate text-body-small text-ink">{item.title}</span>

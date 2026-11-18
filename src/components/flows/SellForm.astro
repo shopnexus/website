@@ -1,4 +1,5 @@
 ---
+import Photo from '../Photo.astro';
 // The Đăng tin form as the mockup draws it (sell.html): photos, the item, the
 // price with its guide, the deal, and on the right what buyers will see.
 // The web has no posting endpoint yet, so nothing here submits; signed out,
@@ -72,13 +73,13 @@ const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.ur
       </div>
       <div class="mt-4 grid h-[300px] grid-cols-2 grid-rows-3 gap-2.5 md:h-[260px] md:grid-cols-[1.6fr_1fr_1fr] md:grid-rows-2">
         <div class="relative col-span-2 overflow-hidden rounded-tile bg-surface-container-high md:col-span-1 md:row-span-2">
-          <img src={crop(cover[0], 900, cover[1], cover[2], cover[3])} alt={`Ảnh bìa: ${cover[4]}`} class="h-full w-full object-cover" />
+          <Photo src={crop(cover[0], 900, cover[1], cover[2], cover[3])} width={900} height={900} alt={`Ảnh bìa: ${cover[4]}`} class="h-full w-full object-cover" />
           <span class="absolute left-3 top-3 rounded-full bg-white/85 px-2.5 py-0.5 text-label-medium text-photo-ink backdrop-blur">Ảnh bìa</span>
         </div>
         {
           rest.map(([id, fx, fy, z, alt]) => (
             <button type="button" class="state-layer relative overflow-hidden rounded-lg bg-surface-container-high" title="Đặt làm ảnh bìa">
-              <img src={crop(id, 480, fx, fy, z)} alt={alt} class="h-full w-full object-cover" />
+              <Photo src={crop(id, 480, fx, fy, z)} width={480} height={480} alt={alt} class="h-full w-full object-cover" />
               <span class="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white backdrop-blur" aria-label="Bỏ ảnh">
                 <Icon name="close-rounded" size={14} />
               </span>
@@ -112,13 +113,21 @@ const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.ur
         </Field>
         <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <Field label="Danh mục" ai>
-            Điện thoại › iPhone
-            <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="text-on-surface-variant" />
+            <select name="category" class="min-w-0 flex-1 cursor-pointer appearance-none bg-transparent outline-none">
+              <option>Điện thoại › iPhone</option>
+              <option>Điện thoại › Samsung</option>
+              <option>Điện thoại › Xiaomi</option>
+            </select>
+            <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
           </Field>
           <Field label="Màu" ai><input value="Trắng" class="min-w-0 flex-1 bg-transparent outline-none" /></Field>
           <Field label="Dung lượng">
-            64 GB
-            <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="text-on-surface-variant" />
+            <select name="storage" class="min-w-0 flex-1 cursor-pointer appearance-none bg-transparent outline-none">
+              <option>64 GB</option>
+              <option>128 GB</option>
+              <option>256 GB</option>
+            </select>
+            <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
           </Field>
           <Field label="Pin">
             <input value="81" inputmode="numeric" class="min-w-0 flex-1 bg-transparent outline-none" />
@@ -250,7 +259,7 @@ const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.ur
         {
           SELL.similar.map(([id, fx, fy, z, p, cond, w]) => (
             <button type="button" class="state-layer min-w-0 rounded-lg text-left" title="So với tin của bạn">
-              <img src={crop(id, 320, fx, fy, z)} alt="" class="aspect-square w-full rounded-lg object-cover" />
+              <Photo src={crop(id, 320, fx, fy, z)} width={320} height={320} alt="" loading="lazy" class="aspect-square w-full rounded-lg object-cover" />
               <span class="mt-1.5 block">
                 <Price vnd={p} size="text-j-15" short={false} />
               </span>

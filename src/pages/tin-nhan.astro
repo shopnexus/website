@@ -1,4 +1,5 @@
 ---
+import Photo from '../components/Photo.astro';
 // Tin nhắn: three panes over the wash. The inbox; the open chat with its deal
 // chips, thread, deal console and composer; the listing and the money rules.
 // Tuấn Kiệt's and Thanh Lý 24h's chats open here; #scam, #report and #reported
@@ -53,7 +54,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
           <Seg items={['Tất cả', 'Mua', 'Bán', `Chưa đọc ${unread}`]} class="bg-card/60" itemClass="text-label-medium" name="Lọc tin nhắn" />
         </div>
         <div class="no-scrollbar mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-inbox>
-          {INBOX.map((c) => <InboxRow c={c} selected={c.id === 'kiet'} />)}
+          {INBOX.map((c, i) => <InboxRow c={c} selected={c.id === 'kiet'} loading={i < 6 ? 'eager' : 'lazy'} />)}
         </div>
       </section>
 
@@ -70,7 +71,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
                   aria-selected={i === 0 ? 'true' : 'false'}
                   class="state-layer flex h-8 shrink-0 items-center gap-2 rounded-full border border-outline-variant bg-card pl-1 pr-3 text-label-large text-on-surface-variant aria-selected:border-transparent aria-selected:bg-ink aria-selected:text-on-ink"
                 >
-                  <img src={d.chip} alt="" class="h-6 w-6 rounded-full object-cover" />
+                  <Photo src={d.chip} width={72} height={72} alt="" class="h-6 w-6 rounded-full object-cover" />
                   {d.short}
                 </button>
               ))
@@ -135,7 +136,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
       </section>
 
       <section data-conv="scam" class={pane} hidden>
-        <PaneHead title={SCAM_ITEM.title} name={SCAMMER.name} thumb={SCAM_ITEM.thumb} />
+        <PaneHead title={SCAM_ITEM.title} name={SCAMMER.name} thumb={SCAM_ITEM.thumb} loading="lazy" />
         <div data-warning class="px-3 pt-3">
           <button
             type="button"
@@ -203,7 +204,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
             <span class="text-title-large text-tertiary tabular-nums">{iphone.agreed}</span>
           </div>
         </DealCard>
-        <DealCard title={airpods.title} photo={airpods.photo} meta={airpods.meta} deal="airpods" hidden>
+        <DealCard title={airpods.title} photo={airpods.photo} meta={airpods.meta} deal="airpods" hidden loading="lazy">
           <div class={row}>
             <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
             <span class="text-body-medium text-on-surface-variant tabular-nums">{airpods.listed}</span>
@@ -218,7 +219,7 @@ const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden
         <MoneyRules />
       </aside>
       <aside data-conv="scam" class={side} hidden>
-        <DealCard title={SCAM_ITEM.title} photo={SCAM_ITEM.photo} meta={SCAM_ITEM.meta}>
+        <DealCard title={SCAM_ITEM.title} photo={SCAM_ITEM.photo} meta={SCAM_ITEM.meta} loading="lazy">
           <div class={row}>
             <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
             <span class="text-title-large text-on-surface tabular-nums">{SCAM_ITEM.listed}</span>

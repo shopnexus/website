@@ -1,0 +1,13 @@
+---
+// Every image on the site goes through Astro's Image. Image loads lazily by
+// default, but most photos here sit in the first screen, so Photo loads
+// eagerly and a caller passes loading="lazy" for one further down.
+import type { ComponentProps } from 'astro/types';
+import { Image } from 'astro:assets';
+
+type Props = ComponentProps<typeof Image>;
+
+const { loading = 'eager', ...rest } = Astro.props;
+---
+
+<Image loading={loading} {...rest} />

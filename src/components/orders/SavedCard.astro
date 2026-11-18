@@ -1,4 +1,5 @@
 ---
+import Photo from '../Photo.astro';
 // A saved listing: the filled heart to unsave, a price cut or the AI's note on
 // the photo; sold ones go grey with a link to similar listings.
 import type { SavedItem } from '../../data/orders';
@@ -9,16 +10,18 @@ import Price from '../Price.astro';
 
 interface Props {
   it: SavedItem;
+  /** "lazy" when it sits below the first screen. */
+  loading?: 'eager' | 'lazy';
 }
 
-const { it } = Astro.props;
+const { it, loading } = Astro.props;
 const sold = it.change === 'sold';
 const note = typeof it.change === 'object' ? ('cut' in it.change ? { icon: 'arrow-downward-rounded', v: it.change.cut } : { icon: 'auto-awesome-rounded', v: it.change.ai }) : null;
 ---
 
 <article class="lift min-w-0 rounded-card border border-line bg-card p-2">
   <div class="relative overflow-hidden rounded-lg bg-surface-container-high" style="aspect-ratio: 1 / 1">
-    <img src={img(it.photo, 400, 400)} alt={it.title} loading="lazy" class:list={['h-full w-full object-cover', sold && 'opacity-60 grayscale']} />
+    <Photo src={img(it.photo, 400, 400)} width={400} height={400} alt={it.title} loading={loading} class:list={['h-full w-full object-cover', sold && 'opacity-60 grayscale']} />
     <button
       type="button"
       class="state-layer absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/85 text-teal backdrop-blur"

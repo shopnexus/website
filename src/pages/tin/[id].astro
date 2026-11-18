@@ -1,4 +1,5 @@
 ---
+import Photo from '../../components/Photo.astro';
 // Chi tiết tin. Any id from the mock listing pools renders the detail mockup
 // (detail-c) with that listing's title, price, photo, condition and place; the
 // description, specs and the four checks are the mockup's iPhone and show only
@@ -111,7 +112,7 @@ const ld = {
           <div class="min-w-0">
             <div class="rounded-xl border border-line bg-card p-2" data-gallery>
               <div class="relative overflow-hidden rounded-card" style="aspect-ratio: 16 / 10.5">
-                <img src={photos[0].big} alt={title} class="h-full w-full object-cover" data-main />
+                <Photo src={photos[0].big} width={1200} height={1200} alt={title} class="h-full w-full object-cover" data-main />
                 <span class="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
                   <Icon name="photo-camera-outline-rounded" size={15} />
                   Cả {photos.length} ảnh chụp trong app
@@ -133,7 +134,7 @@ const ld = {
                     aria-label={`Ảnh ${i + 1}`}
                     class="overflow-hidden rounded-lg opacity-90 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
                   >
-                    <img src={p.thumb} alt="" loading="lazy" class="aspect-square w-full object-cover" />
+                    <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -182,7 +183,7 @@ const ld = {
           <aside class="flex flex-col gap-3 self-start lg:sticky lg:top-[84px]">
             <div class="glass glass-edge rounded-xl p-5 shadow-soft">
               <a href={R.seller(SELLER.id)} class="flex items-center gap-3 rounded-full">
-                <img src={img(SELLER.photo, 96, 96)} alt="" class="h-10 w-10 rounded-full object-cover ring-2 ring-white" />
+                <Photo src={img(SELLER.photo, 96, 96)} width={96} height={96} alt="" class="h-10 w-10 rounded-full object-cover ring-2 ring-white" />
                 <span class="flex flex-1 items-center gap-1 text-title-small text-ink">
                   {SELLER.name}
                   <Icon name="verified-rounded" size={16} class="text-primary" />
@@ -279,7 +280,7 @@ const ld = {
 
             <div class:list={[PANEL, 'p-4']}>
               <div class="flex items-center gap-3">
-                <img src={img(SELLER.photo, 160, 160)} alt="" class="h-11 w-11 rounded-full object-cover" />
+                <Photo src={img(SELLER.photo, 160, 160)} width={160} height={160} alt="" loading="lazy" class="h-11 w-11 rounded-full object-cover" />
                 <div class="min-w-0 flex-1">
                   <p class="flex items-center gap-1 text-title-small text-ink">
                     {SELLER.name}
@@ -345,7 +346,7 @@ const ld = {
             {SIMILAR.filter((s) => s.id !== it.id)
               .slice(0, 5)
               .map((s, i) => (
-                <ListingCard item={s} saved={i === 2} />
+                <ListingCard item={s} saved={i === 2} loading="lazy" />
               ))}
           </div>
         </section>

@@ -1,4 +1,5 @@
 ---
+import Photo from '../components/Photo.astro';
 // Trang chủ. Signed in: the buyer's own deals (order on the way, offers,
 // saved, their listings). Signed out: what this browser already knows (recent
 // searches, viewed listings, the area from the IP), and signing in offered as
@@ -108,7 +109,7 @@ const tabs = me ? ['Dành cho bạn', 'Gần bạn', 'Mới nhất'] : ['Gợi �
         </div>
         <a href={R.listing(lead.id)} class="lift block overflow-hidden rounded-card bg-card">
           <div class="relative overflow-hidden" style="aspect-ratio: 16 / 10">
-            <img src={img(lead.photo, 800, 500)} alt="" class="h-full w-full object-cover" />
+            <Photo src={img(lead.photo, 800, 500)} width={800} height={500} alt="" class="h-full w-full object-cover" />
             <span class="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-label-medium text-photo-ink backdrop-blur">
               {where(lead.km, lead.area)} · {lead.posted} trước
             </span>
@@ -126,7 +127,7 @@ const tabs = me ? ['Dành cho bạn', 'Gần bạn', 'Mới nhất'] : ['Gợi �
             near.map((it) => (
               <li>
                 <a href={R.listing(it.id)} class="flex items-center gap-3 rounded-tile p-1.5 hover:bg-card/70">
-                  <img src={img(it.photo, 160, 160)} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
+                  <Photo src={img(it.photo, 160, 160)} width={160} height={160} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
                   <span class="min-w-0 flex-1">
                     <span class="block truncate text-body-medium text-ink">{it.title}</span>
                     <span class="block text-body-small text-on-surface-variant">
@@ -149,7 +150,7 @@ const tabs = me ? ['Dành cho bạn', 'Gần bạn', 'Mới nhất'] : ['Gợi �
           <span class="text-body-small text-on-surface-variant">Mọi tỉnh thành · gần thì ghi km, xa thì ghi nơi bán</span>
         </div>
         <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
-          {feed.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} />)}
+          {feed.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} loading={i < 4 ? 'eager' : 'lazy'} />)}
         </div>
         <div class="mt-6 flex justify-center">
           <a href={R.search} class="state-layer flex h-11 items-center rounded-full border border-line bg-card px-6 text-label-large text-ink">

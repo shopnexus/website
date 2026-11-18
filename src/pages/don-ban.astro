@@ -77,13 +77,13 @@ const label = 'mb-2 text-label-large text-ink';
             <div>
               <p class={label}>Dịch vụ</p>
               <div class="flex flex-col gap-2" role="radiogroup" aria-label="Dịch vụ">
-                {s.services.map((o) => <Option t={o.t} sub={o.sub} end={o.end} on={o.on} />)}
+                {s.services.map((o) => <Option name="service" t={o.t} sub={o.sub} end={o.end} on={o.on} />)}
               </div>
             </div>
             <div>
               <p class={label}>Cách lấy hàng</p>
               <div class="flex flex-col gap-2" role="radiogroup" aria-label="Cách lấy hàng">
-                {s.pickupWays.map((o) => <Option t={o.t} sub={o.sub} on={o.on} />)}
+                {s.pickupWays.map((o) => <Option name="pickup-way" t={o.t} sub={o.sub} on={o.on} />)}
                 <p class="flex min-h-[52px] items-center gap-2 rounded-lg bg-surface-container-low px-3.5 text-body-small text-on-surface-variant">
                   <Icon name="schedule-outline-rounded" size={18} />Tạo trước 11:00, shipper lấy trong chiều nay
                 </p>
@@ -94,7 +94,7 @@ const label = 'mb-2 text-label-large text-ink';
                 Lấy hàng tại<span class="text-body-small font-normal text-on-surface-variant">Kho trên GHTK · địa chỉ của bạn</span>
               </p>
               <div class="flex flex-col gap-2" role="radiogroup" aria-label="Lấy hàng tại">
-                {s.pickupAt.map((o) => <Option t={o.t} sub={o.sub} on={o.on} />)}
+                {s.pickupAt.map((o) => <Option name="pickup-at" t={o.t} sub={o.sub} on={o.on} />)}
               </div>
             </div>
           </div>

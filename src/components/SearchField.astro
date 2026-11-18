@@ -1,4 +1,5 @@
 ---
+import Photo from './Photo.astro';
 // The 56 px page search field (Danh mục, 404): a form to Tìm kiếm, the photo button, Tìm.
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
@@ -26,7 +27,7 @@ const { placeholder = 'Tìm trên ShopNexus', value, photo, class: cls, large = 
 >
   {
     photo ? (
-      <img src={img(photo, 72, 72)} alt="" class="h-9 w-9 rounded-full object-cover" />
+      <Photo src={img(photo, 72, 72)} width={72} height={72} alt="" class="h-9 w-9 rounded-full object-cover" />
     ) : (
       <Icon name="search-rounded" size={large ? 24 : 22} class="text-primary" />
     )

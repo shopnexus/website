@@ -1,4 +1,5 @@
 ---
+import Photo from '../../components/Photo.astro';
 // One category. Điện thoại carries the mockup's content (brands, hot
 // searches, Giá tham khảo per model, the phone checks at the door); the other
 // categories reuse the frame with their subcategories, "Đang được tìm nhiều"
@@ -103,7 +104,7 @@ const s = (q: string) => `${R.search}?q=${encodeURIComponent(q)}`;
             {
               fresh.map((it) => (
                 <a href={R.listing(it.id)} class="lift flex items-center gap-2.5 rounded-tile border border-line bg-card p-1.5 pr-3">
-                  <img src={img(it.photo, 120, 120)} alt="" class="h-11 w-11 shrink-0 rounded-md object-cover" />
+                  <Photo src={img(it.photo, 120, 120)} width={120} height={120} alt="" class="h-11 w-11 shrink-0 rounded-md object-cover" />
                   <span class="min-w-0">
                     <Price vnd={it.price} size="text-j-15" />
                     <span class="block truncate text-body-small text-on-surface-variant">{it.posted} trước</span>
@@ -205,7 +206,7 @@ const s = (q: string) => `${R.search}?q=${encodeURIComponent(q)}`;
             </div>
           )
         }
-        {items.slice(4, 8).map((it) => <ListingCard item={it} />)}
+        {items.slice(4, 8).map((it) => <ListingCard item={it} loading="lazy" />)}
       </div>
       <div class="mt-6 flex justify-center">
         <a

@@ -1,4 +1,5 @@
 ---
+import Photo from './Photo.astro';
 // Every account page's side column: who you are, then the account's pages;
 // the current one is an ink pill. Hidden below expanded, where BottomNav's Tôi leads to it.
 import { ACCOUNT_NAV, ME } from '../data/common';
@@ -28,7 +29,7 @@ const HREF: Record<string, string> = {
 
 <aside class="hidden self-start lg:sticky lg:top-[84px] lg:block">
   <a href={R.me} class="glass glass-edge flex items-center gap-3 rounded-panel p-3">
-    <img src={img(ME.photo, 176, 176)} alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-card" />
+    <Photo src={img(ME.photo, 176, 176)} width={176} height={176} alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-card" />
     <span class="min-w-0">
       <span class="flex items-center gap-1 truncate text-title-small text-ink">
         {ME.name}<Icon name="verified-rounded" size={15} class="text-primary" />

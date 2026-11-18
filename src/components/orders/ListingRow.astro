@@ -1,4 +1,5 @@
 ---
+import Photo from '../Photo.astro';
 // One of the seller's listings: photo, title, price and its numbers, what
 // waits on it, and the ⋮ menu (Sửa tin, Đánh dấu đã bán, Ẩn tin, Xóa tin).
 import { LISTING_MENU, type MyListing } from '../../data/orders';
@@ -24,7 +25,7 @@ const stats = [
 
 <article class="lift relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-card p-2 md:flex-nowrap" data-row-menu>
   <div class="flex min-w-0 flex-1 basis-full items-center gap-4 md:basis-auto">
-    <img src={img(it.photo, 160, 160)} alt={it.title} class:list={['h-16 w-16 shrink-0 rounded-lg object-cover', hidden && 'opacity-50']} />
+    <Photo src={img(it.photo, 160, 160)} width={160} height={160} alt={it.title} class:list={['h-16 w-16 shrink-0 rounded-lg object-cover', hidden && 'opacity-50']} />
     <div class:list={['min-w-0 flex-1', hidden && 'opacity-50']}>
       <h3 class="truncate text-title-small text-ink">{it.title}</h3>
       {
@@ -97,16 +98,19 @@ const stats = [
   <ul role="menu" class="absolute right-3 top-14 z-20 hidden w-[220px] rounded-tile bg-card/95 p-1.5 shadow-float ring-1 ring-line backdrop-blur" data-menu>
     {
       LISTING_MENU.map((m, i) => (
-        <li
-          role="menuitem"
-          tabindex="-1"
-          class:list={[
-            'flex h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-body-medium hover:bg-black/[.05]',
-            i === 3 ? 'text-error' : 'text-ink',
-          ]}
-        >
-          <Icon name={m.icon} size={20} class={i === 3 ? '' : 'text-on-surface-variant'} />
-          {m.label}
+        <li role="none">
+          <button
+            type="button"
+            role="menuitem"
+            tabindex="-1"
+            class:list={[
+              'flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-3 text-body-medium hover:bg-black/[.05]',
+              i === 3 ? 'text-error' : 'text-ink',
+            ]}
+          >
+            <Icon name={m.icon} size={20} class={i === 3 ? '' : 'text-on-surface-variant'} />
+            {m.label}
+          </button>
         </li>
       ))
     }

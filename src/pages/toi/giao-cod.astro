@@ -85,7 +85,7 @@ const label = 'mb-2 text-label-large text-ink';
         <div class="flex flex-col gap-2" role="radiogroup" aria-label="Lấy hàng tại">
           {
             ADDRESS_BOOK.map((a, i) => (
-              <Option sub={`${a.street}, ${a.ward}`} on={i === 0}>
+              <Option name="pickup-at" sub={`${a.street}, ${a.ward}`} on={i === 0}>
                 <span slot="title" class="flex items-center gap-1.5">
                   <Icon name={a.icon} size={17} class="text-on-surface-variant" />
                   {a.label}
@@ -99,7 +99,7 @@ const label = 'mb-2 text-label-large text-ink';
               </Option>
             ))
           }
-          <Option>
+          <Option name="pickup-at">
             <span slot="title" class="flex items-center gap-1.5">
               <Icon name="add-rounded" size={17} class="text-primary" />Địa chỉ mới
             </span>

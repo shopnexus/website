@@ -1,4 +1,5 @@
 ---
+import Photo from '../components/Photo.astro';
 // Đã lưu: saved searches with their new listings, then saved listings by
 // category, with the three phones compared side by side.
 import Icon from '../components/Icon.astro';
@@ -16,6 +17,8 @@ import { btnCls } from '../lib/ui';
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
 
+// The first 8 cards fill the first screen; the rest load lazily.
+const later = new Set(SAVED_GROUPS.flatMap((g) => g.items).slice(8));
 const count = SAVED_GROUPS.reduce((n, g) => n + g.items.length, 0);
 const cuts = SAVED_GROUPS.flatMap((g) => g.items).filter((it) => typeof it.change === 'object' && 'cut' in it.change).length;
 // On wide windows each group spans as many of the five columns as it has cards.
@@ -76,7 +79,7 @@ const COLS: Record<number, string> = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3' 
             </div>
             <div class:list={['grid grid-cols-2 gap-3 md:grid-cols-3', COLS[g.items.length]]}>
               {g.items.map((it) => (
-                <SavedCard it={it} />
+                <SavedCard it={it} loading={later.has(it) ? 'lazy' : 'eager'} />
               ))}
             </div>
           </section>
@@ -90,7 +93,7 @@ const COLS: Record<number, string> = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3' 
                       <th class="w-[72px]" />
                       {COMPARE.cols.map((c) => (
                         <th class="px-1 pb-1.5 text-left align-bottom font-normal">
-                          <img src={img(c.photo, 80, 80)} alt="" class="h-7 w-7 rounded-sm object-cover" />
+                          <Photo src={img(c.photo, 80, 80)} width={80} height={80} alt="" class="h-7 w-7 rounded-sm object-cover" />
                           <span class="mt-1 block text-label-medium text-ink">{c.name}</span>
                         </th>
                       ))}

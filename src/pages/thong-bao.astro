@@ -1,4 +1,5 @@
 ---
+import Photo from '../components/Photo.astro';
 // Thông báo: grouped by day, the unread ones tinted; on the side the browser
 // prompt and the notification settings.
 import Icon from '../components/Icon.astro';
@@ -26,6 +27,8 @@ const groups = NOTES.map(([day, items]) => [
   day,
   items.map((n) => (n.icon === 'checklist-rounded' ? { ...n, html: `Còn ${PROFILE_TASKS.length - TASKS_DONE} bước để hoàn thiện hồ sơ` } : n)),
 ] as const);
+// Photos past the fifth sit below the first screen.
+const later = new Set(groups.flatMap(([, n]) => n).filter((n) => n.photo).slice(5));
 const unread = NOTES.flatMap(([, n]) => n).filter((n) => n.unread).length;
 const counts = [
   ['4', 'hôm nay'],
@@ -107,7 +110,7 @@ const prefs: [string, Pref[]][] = [
                     </a>
                   )}
                 </div>
-                {n.photo && <img src={img(n.photo, 96, 96)} alt="" class="h-12 w-12 shrink-0 rounded-md object-cover" />}
+                {n.photo && <Photo src={img(n.photo, 96, 96)} width={96} height={96} alt="" loading={later.has(n) ? 'lazy' : 'eager'} class="h-12 w-12 shrink-0 rounded-md object-cover" />}
                 <span class="self-center">
                   {n.unread ? (
                     <span class="block h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Chưa đọc" data-dot />

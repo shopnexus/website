@@ -95,7 +95,7 @@ const shown = items.slice(0, 12);
             data-km={it.km}
             style={i >= 8 ? 'order:2' : undefined}
           >
-            <ListingCard item={it} saved={i === 1} />
+            <ListingCard item={it} saved={i === 1} loading={i < 8 ? 'eager' : 'lazy'} />
           </div>
         ))
       }

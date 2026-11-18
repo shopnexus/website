@@ -1,4 +1,5 @@
 ---
+import Photo from '../components/Photo.astro';
 // Tìm bằng ảnh: the photo stands in for the query in the header field. The
 // conditions read from the photo are sparkle chips; a sticky column holds the
 // photo with its crop frame, "Đổi ảnh", "Chụp" and recent photos; the main
@@ -38,7 +39,7 @@ const { lo, hi, med, n } = MODELS[0];
     <aside class="flex flex-col gap-3 self-start md:flex-row lg:sticky lg:top-[84px] lg:flex-col">
       <div class="rounded-xl border border-line bg-card p-2 md:flex-1 lg:flex-none">
         <div class="relative overflow-hidden rounded-card" style="aspect-ratio: 1 / 1">
-          <img src={img(SIERRA, 640, 640)} alt="Ảnh bạn tải lên" class="h-full w-full object-cover" data-photo />
+          <Photo src={img(SIERRA, 640, 640)} width={640} height={640} alt="Ảnh bạn tải lên" class="h-full w-full object-cover" data-photo />
           <span
             class="absolute rounded-tile border-2 border-white shadow-[0_0_0_999px_rgb(0_0_0/.28)]"
             style="left:24%;top:14%;width:52%;height:74%"></span>
@@ -68,7 +69,7 @@ const { lo, hi, med, n } = MODELS[0];
                 aria-label={`Ảnh gần đây ${i + 1}`}
                 class="state-layer overflow-hidden rounded-field ring-primary ring-offset-2 ring-offset-card aria-pressed:ring-2"
               >
-                <img src={img(p, 120, 120)} alt="" class="aspect-square w-full object-cover" />
+                <Photo src={img(p, 120, 120)} width={120} height={120} alt="" class="aspect-square w-full object-cover" />
               </button>
             ))
           }
@@ -105,7 +106,7 @@ const { lo, hi, med, n } = MODELS[0];
       </div>
       <SectionTitle class="mt-8" title="Cùng hãng, đời khác" link="Xem 214 tin" href={`${R.search}?q=iPhone`} />
       <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
-        {PHOTO_SIMILAR.map((it) => <ListingCard item={it} />)}
+        {PHOTO_SIMILAR.map((it) => <ListingCard item={it} loading="lazy" />)}
       </div>
     </section>
   </main>

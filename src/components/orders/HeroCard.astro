@@ -1,4 +1,5 @@
 ---
+import Photo from '../Photo.astro';
 // The glass card at the top of an order screen: photo, state, chips; slot
 // "chips" holds the chips and the default slot the step track at the right.
 import { img } from '../../lib/format';
@@ -15,7 +16,7 @@ const { photo, heading } = Astro.props;
   class="glass glass-edge mt-3 flex flex-col gap-4 rounded-xl p-3 shadow-soft xl:flex-row xl:items-center xl:gap-5 xl:pr-8"
 >
   <div class="flex min-w-0 flex-1 items-center gap-4 xl:gap-5">
-    <img src={img(photo, 240, 240)} alt="" class="h-20 w-20 shrink-0 rounded-lg-plus object-cover md:h-[104px] md:w-[104px]" />
+    <Photo src={img(photo, 240, 240)} width={240} height={240} alt="" class="h-20 w-20 shrink-0 rounded-lg-plus object-cover md:h-[104px] md:w-[104px]" />
     <div class="min-w-0 flex-1">
       <h1 class="text-j-28 text-ink md:text-j-34">{heading}</h1>
       <div class="mt-2 flex flex-wrap items-center gap-2"><slot name="chips" /></div>

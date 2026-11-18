@@ -1,4 +1,5 @@
 ---
+import Photo from '../../components/Photo.astro';
 // Tôi: the profile, what waits on the buyer, their listings, addresses and
 // theme; on the side the profile steps, COD setup and the account links.
 import codReady from '@brand/art_cod_ready.webp';
@@ -41,8 +42,8 @@ const settings = [
   <div class:list={[PANEL, 'p-5 md:p-6']}>
     <div class="flex flex-wrap items-center gap-5">
       <div class="relative shrink-0">
-        <img src={img(v.photo, 176, 176)} alt="" class="h-[88px] w-[88px] rounded-full object-cover ring-4 ring-card" />
-        <img src={tierTrusted.src} alt="" class="absolute -bottom-1 -right-2 h-9 w-9" />
+        <Photo src={img(v.photo, 176, 176)} width={176} height={176} alt="" class="h-[88px] w-[88px] rounded-full object-cover ring-4 ring-card" />
+        <Photo src={tierTrusted} alt="" class="absolute -bottom-1 -right-2 h-9 w-9" />
       </div>
       <div class="min-w-[200px] flex-1">
         <h1 class="text-j-32 text-ink">{v.name}</h1>
@@ -86,7 +87,7 @@ const settings = [
       <Icon name="chevron-right-rounded" size={20} class="text-on-surface-variant" />
     </a>
     <a href={R.sales} class:list={['lift flex flex-wrap items-center gap-3 p-4', PANEL]}>
-      <img src={img('1580480055273-228ff5388ef8', 96, 96)} alt="" class="h-11 w-11 shrink-0 rounded-md object-cover" />
+      <Photo src={img('1580480055273-228ff5388ef8', 96, 96)} width={96} height={96} alt="" class="h-11 w-11 shrink-0 rounded-md object-cover" />
       <span class="min-w-0 flex-1">
         <span class="block text-title-small text-primary">Đang chờ bạn: tạo đơn cho Đức Huy</span>
         <span class="block truncate text-body-small text-on-surface-variant">Ghế xoay vải be chân gỗ · đã gửi yêu cầu COD</span>
@@ -107,12 +108,15 @@ const settings = [
     </div>
     <ul class="mt-2 flex flex-col">
       {
-        MY_LISTINGS.map((l) => (
+        MY_LISTINGS.map((l, i) => (
           <li>
             <a href={R.myListings} class="state-layer flex items-center gap-3 rounded-lg p-2">
-              <img
+              <Photo
                 src={img(l.photo, 112, 112)}
+                width={112}
+                height={112}
                 alt=""
+                loading={i < 3 ? 'eager' : 'lazy'}
                 class:list={['h-14 w-14 shrink-0 rounded-field object-cover', l.kind === 'sold' && 'opacity-60']}
               />
               <span class="min-w-0 flex-1">
@@ -216,7 +220,7 @@ const settings = [
     </div>
 
     <section class="relative overflow-hidden rounded-panel bg-radial-[120%_120%_at_100%_0%] from-teal-light via-teal-mid via-35% to-teal to-80% p-5 text-white">
-      <img src={codReady.src} alt="" class="absolute -right-2 -top-2 h-24 w-24" />
+      <Photo src={codReady} alt="" class="absolute -right-2 -top-2 h-24 w-24" />
       <p class="text-label-medium uppercase tracking-[0.12em] text-white/75">Giao COD</p>
       <p class="mt-1 max-w-[200px] text-j-20">Chưa liên kết bên vận chuyển</p>
       <p class="mt-2 text-body-small text-white/85">Liên kết tài khoản GHTK hoặc GHN của bạn để nhận đơn COD.</p>

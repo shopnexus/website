@@ -1,4 +1,5 @@
 ---
+import Photo from '../components/Photo.astro';
 // Giao COD: the buyer asks for cash on delivery on an agreed deal. The address
 // comes from their book, the checks from the seller's Tin ghi; the money panel
 // says what they pay the shipper. It needs the buyer, so it is behind sign-in.
@@ -46,11 +47,11 @@ const checks = ['Pin 88%', 'Face ID hoạt động', 'Chưa sửa chữa', 'Kèm
     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px]">
       <div class="flex min-w-0 flex-col gap-4">
         <section class:list={[PANEL, 'flex flex-wrap items-center gap-4 p-3 md:flex-nowrap md:pr-6']}>
-          <img src={crop(DEAL.photo, 192, 0.5, 0.52, 1.25)} alt="" class="h-24 w-24 shrink-0 rounded-tile object-cover" />
+          <Photo src={crop(DEAL.photo, 192, 0.5, 0.52, 1.25)} width={192} height={192} alt="" class="h-24 w-24 shrink-0 rounded-tile object-cover" />
           <div class="min-w-0 flex-1">
             <p class="text-title-medium text-ink md:truncate">{DEAL.title}</p>
             <p class="mt-1 flex items-center gap-2 text-body-medium text-on-surface-variant">
-              <img src={img(SELLER.photo, 48, 48)} alt="" class="h-6 w-6 shrink-0 rounded-full object-cover" />
+              <Photo src={img(SELLER.photo, 48, 48)} width={48} height={48} alt="" class="h-6 w-6 shrink-0 rounded-full object-cover" />
               {SELLER.name} · {DEAL.meta}
             </p>
           </div>

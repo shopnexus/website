@@ -1,4 +1,5 @@
 ---
+import Photo from '../components/Photo.astro';
 // Đăng nhập. A mock sign-in until the website is wired to the server: posting
 // the form (Google, or the phone code) sets the session cookie and goes back
 // to `tiep`. Signed in already, the page goes straight there.
@@ -73,7 +74,7 @@ const code = ['2', '8', '4', '9', '', ''];
             LOGIN_NEARBY.map((it) => (
               <a href={R.listing(it.id)} class="lift block min-w-0 rounded-lg-plus border border-line bg-card p-1.5">
                 <div class="relative overflow-hidden rounded-[15px]" style="aspect-ratio: 4 / 3">
-                  <img src={img(it.photo, 360, 270)} alt={it.title} loading="lazy" class="h-full w-full object-cover" />
+                  <Photo src={img(it.photo, 360, 270)} width={360} height={270} alt={it.title} class="h-full w-full object-cover" />
                   <span class="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-white/85 px-2 py-0.5 text-label-small text-photo-ink backdrop-blur">
                     <Icon name="near-me-outline-rounded" size={12} />
                     {where(it.km, it.area)}
@@ -160,7 +161,6 @@ const code = ['2', '8', '4', '9', '', ''];
                     inputmode="numeric"
                     autocomplete={i === 0 ? 'one-time-code' : 'off'}
                     aria-label={`Số ${i + 1}`}
-                    autofocus={i === 4}
                     class="h-14 w-12 min-w-0 rounded-field border border-line bg-card text-center text-j-24 text-ink caret-primary tabular-nums outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
                     data-digit
                   />

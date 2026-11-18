@@ -25,7 +25,7 @@ if (v instanceof Response) return v;
   </div>
   <div class="mt-4 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <section class="flex min-w-0 flex-col gap-3">
-      {BUYING.map((o) => <OrderRow o={o} href={ORDERS[o.id] ? R.order(o.id) : '#'} />)}
+      {BUYING.map((o, i) => <OrderRow o={o} href={ORDERS[o.id] ? R.order(o.id) : '#'} loading={i < 5 ? 'eager' : 'lazy'} />)}
     </section>
     <aside class="flex flex-col gap-4 self-start xl:sticky xl:top-[84px]">
       <div class:list={[PANEL, 'p-5']}>
