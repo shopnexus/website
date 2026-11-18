@@ -4,7 +4,7 @@
  * warm off-white page, white surfaces with 1 px hairlines, 10 px controls and
  * 16 px cards, a shadow only on hover or when floating, Inter, Remix Icon
  * line glyphs, no gradients. The brand teal carries every primary action and
- * selection; mint fills a selected row; terracotta marks bargaining only.
+ * selection, mint a selected row or an offer. No peach or brown.
  * The mockups are .superdesign/mockups/quiet-k2-*.html (tools/build_k2.py).
  * tokens.css keeps the app's tokens; this file adds what K2 needs on top.
  */
@@ -82,6 +82,14 @@
   --md-outline-variant: var(--j-field);
   --md-secondary-container: var(--j-mint);
   --md-on-secondary-container: var(--j-on-mint);
+  /* The app's tertiary (peach and brown, #924628) reads wrong on the web:
+     bargaining and offers use the brand teal and mint like everything else. */
+  --md-tertiary: #066a61;
+  --md-on-tertiary: #ffffff;
+  --md-tertiary-container: var(--j-mint);
+  --md-on-tertiary-container: var(--j-on-mint);
+  --md-tertiary-fixed: var(--j-mint);
+  --md-on-tertiary-fixed-variant: var(--j-on-mint);
 }
 
 /*
@@ -112,22 +120,21 @@
   --font-sans: "Inter Variable", system-ui, sans-serif;
   --color-brand: #066a61;
   --color-brand-hover: #05554e;
-  --color-terracotta: #924628;
   --color-teal: #066a61;
   --color-teal-mid: #0e8a7d;
   --color-teal-light: #5cc2b4;
   --color-mint-on-teal: #b9ede4;
   --color-mint-wash: #e3f2ef;
-  --color-peach-wash: #fff4ef;
-  --color-peach-soft: #ffe9e1;
-  --color-peach: #f2a98e;
-  --color-clay: #c0623e;
+  --color-peach-wash: #eef7f5; /* was peach; K2 keeps the name, the tone is mint */
+  --color-peach-soft: #e3f2ef;
+  --color-peach: #97e7db;
+  --color-clay: #066a61;
   --color-star: #e0a23b;
   --color-ghtk: #0a8f3c;
   --color-ghn: #f26522;
   /* Text on the white/90 badges and buttons over photos, the same in both themes. */
   --color-photo-ink: #121817;
-  --color-photo-accent: #773115;
+  --color-photo-accent: #05554e;
 
   /* Corners: controls 10, cards and panels 16, popovers and sheets 20. */
   --radius-2xs: 6px; /* checkbox, a chat bubble's tail */

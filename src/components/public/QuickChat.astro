@@ -55,7 +55,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
   <div class="mx-3 mt-2.5 flex items-center gap-2.5 rounded-lg bg-surface-container-low p-1.5 pr-3">
     <Photo src={thumb} width={80} height={80} alt="" loading="lazy" class="h-10 w-10 rounded-md object-cover" />
     <p class="min-w-0 flex-1 truncate text-body-medium">{title}</p>
-    <p class="text-j-15 tabular-nums">{group(price)}<span class="ml-0.5 text-body-small font-medium text-on-surface-variant">₫</span></p>
+    <p class="text-j-15 tabular-nums">{group(price)}<span class="ml-0.5 text-body-small font-medium text-sub">₫</span></p>
   </div>
 
   <div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-3" data-qc-thread>
@@ -74,10 +74,10 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
     }
   </div>
 
-  <form class="mx-3 mb-2 hidden shrink-0 rounded-lg-plus bg-tertiary-fixed/70 p-3" data-qc-tray>
+  <form class="mx-3 mb-2 hidden shrink-0 rounded-card border border-line bg-soft p-3" data-qc-tray>
     <div class="flex items-center justify-between">
-      <label for="qc-amount" class="text-label-large text-on-tertiary-fixed-variant">Giá bạn trả</label>
-      <p class="text-body-small text-on-surface-variant">Giá đăng {group(price)} ₫</p>
+      <label for="qc-amount" class="text-title-small text-ink">Giá bạn trả</label>
+      <p class="text-body-small text-faint">Giá đăng {group(price)} ₫</p>
     </div>
     <p class="mt-1 flex items-baseline">
       <input
@@ -86,17 +86,17 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
         inputmode="numeric"
         autocomplete="off"
         value={group(start)}
-        class="w-full min-w-0 bg-transparent text-j-28 tabular-nums outline-none"
+        class="min-w-[4ch] max-w-full bg-transparent text-j-28 tabular-nums outline-none [field-sizing:content]"
         data-qc-amount
       />
-      <span class="ml-1 text-title-medium text-on-surface-variant">₫</span>
+      <span class="ml-1 text-title-medium text-sub">₫</span>
     </p>
     <div class="mt-2 flex gap-1.5">
       {
         cuts.map((c) => (
           <button
             type="button"
-            class="state-layer h-8 flex-1 rounded-full bg-card text-label-medium aria-pressed:bg-ink aria-pressed:text-on-ink"
+            class="state-layer h-8 flex-1 rounded-sm border border-field bg-card text-body-medium text-ink aria-pressed:border-brand aria-pressed:bg-mint aria-pressed:font-medium aria-pressed:text-on-mint"
             aria-pressed={price - c === start ? 'true' : 'false'}
             data-qc-cut={price - c}
           >
@@ -105,7 +105,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
         ))
       }
     </div>
-    <button type="submit" class="state-layer mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-full bg-tertiary text-label-large text-on-tertiary">
+    <button type="submit" class="state-layer mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-control bg-brand text-title-small text-white hover:bg-brand-hover">
       <Icon name="sell-outline-rounded" size={18} />Gửi giá
     </button>
   </form>
@@ -113,7 +113,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
   <form class="flex shrink-0 items-center gap-1.5 px-2 pb-[max(10px,env(safe-area-inset-bottom))]" data-qc-composer>
     <button
       type="button"
-      class="state-layer flex h-10 shrink-0 items-center gap-1 rounded-full bg-tertiary-fixed pl-2.5 pr-3 text-label-large text-on-tertiary-fixed-variant aria-expanded:bg-ink aria-expanded:text-on-ink"
+      class="state-layer flex h-10 shrink-0 items-center gap-1 rounded-control border border-field bg-card pl-2.5 pr-3 text-title-small text-ink hover:bg-page aria-expanded:border-brand aria-expanded:bg-mint aria-expanded:text-on-mint"
       aria-expanded="false"
       data-qc-offer
     >
@@ -150,7 +150,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
   <p class="max-w-[82%] self-end rounded-lg-plus bg-teal px-3 py-2 text-body-medium text-white"></p>
 </template>
 <template data-qc-price>
-  <p class="flex h-10 items-center gap-2 self-end rounded-full bg-tertiary-fixed pl-3 pr-4 text-title-small text-on-tertiary-fixed-variant tabular-nums">
+  <p class="flex h-10 items-center gap-2 self-end rounded-full border border-brand/30 bg-mint pl-3 pr-4 text-title-small text-on-mint tabular-nums">
     <Icon name="sell-outline-rounded" size={18} /><span></span>
   </p>
 </template>
