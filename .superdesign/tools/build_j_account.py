@@ -73,7 +73,7 @@ def login():
         ("local-shipping-outline-rounded", "Giao tận nơi, xem hàng rồi mới trả"),
         ("photo-camera-outline-rounded", "Ảnh chụp trong app"),
         ("shield-outline-rounded", "Không cọc trước")])
-    stats = "".join(f'<div><p class="num text-[28px] font-semibold leading-8 tighter {"grad-num" if i == 0 else "ink"}">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>'
+    stats = "".join(f'<div><p class="num text-[28px] font-semibold leading-8 tighter {"ink" if i == 0 else "ink"}">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>'
                     for i, (v, l) in enumerate([("48.210", "món đang bán"), ("1.904", "tin mới hôm nay"), ("4,8★", "điểm người bán trung bình")]))
     otp = "".join(f'<span class="num grid h-14 w-12 place-items-center rounded-[14px] border {"border-primary ring-4 ring-primary/10" if i == 4 else "line"} bg-white text-headline-s font-semibold ink">{d}</span>'
                   for i, d in enumerate(["2", "8", "4", "9", '<span class="h-6 w-0.5 bg-primary"></span>', ""]))
@@ -81,7 +81,7 @@ def login():
 <main class="mx-auto max-w-[1360px] px-8">
   <div class="mt-8 grid grid-cols-[1fr_480px] gap-10">
     <section class="min-w-0 pt-4">
-      <h1 class="max-w-[640px] text-[56px] font-semibold leading-[60px] tighter ink">Đồ cũ giá tốt,<br><span class="grad-text">xem hàng</span> rồi mới trả.</h1>
+      <h1 class="max-w-[640px] text-[56px] font-semibold leading-[60px] tighter ink">Đồ cũ giá tốt,<br>xem hàng rồi mới trả.</h1>
       <div class="mt-6 flex flex-wrap gap-2">{promises}</div>
       <div class="mt-7 flex gap-10">{stats}</div>
       <div class="mt-8 flex items-baseline justify-between"><h2 class="text-title-m font-semibold ink">Đang bán quanh Bình Thạnh</h2><span class="text-body-s text-on-surface-variant">cập nhật 2 phút trước</span></div>
@@ -143,7 +143,7 @@ def my_row(kind, photo, title, p, stats):
 
 
 def account():
-    stats = "".join(f'<div class="flex-1 px-5 first:pl-0"><p class="num text-[26px] font-semibold leading-8 tighter {"grad-num" if i == 0 else "ink"}">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>'
+    stats = "".join(f'<div class="flex-1 px-5 first:pl-0"><p class="num text-[26px] font-semibold leading-8 tighter {"ink" if i == 0 else "ink"}">{v}</p><p class="text-body-s text-on-surface-variant">{l}</p></div>'
                     for i, (v, l) in enumerate([("14", "đã bán"), ("8 phút", "thường trả lời"), ("0", "ghi nhận bị từ chối · 90 ngày"), ("0/11", "COD bị từ chối nhận")]))
     todo = "".join(row(ic, t, trail=CHEV, cls="-mx-2", tone="bg-primary/10 text-primary" if i == 0 else "bg-surface-container-low text-on-surface-variant",
                        href=HREF["cod"] if k == "cod" else HREF["Hoàn thiện hồ sơ"])
@@ -563,7 +563,7 @@ def profile_tasks():
                    for k, ic, t, ok in PROFILE_TASKS if ok)
     left = len(PROFILE_TASKS) - TASKS_DONE
     head_panel = panel(f"""<div class="flex items-center gap-5">{ring(TASKS_DONE, len(PROFILE_TASKS), 84, 8)}
-  <div class="flex-1"><p class="text-label-l text-on-surface-variant">Còn {left} bước</p><p class="text-[26px] font-semibold leading-8 tighter ink">Lên <span class="grad-text">Người bán tin cậy</span></p>
+  <div class="flex-1"><p class="text-label-l text-on-surface-variant">Còn {left} bước</p><p class="text-[26px] font-semibold leading-8 tighter ink">Lên Người bán tin cậy</p>
     <p class="mt-1 text-body-m text-on-surface-variant">Xác minh danh tính và thiết lập giao COD là đủ để đăng tin.</p></div>
   <img src="{build_c.ART["tier_trusted"]}" alt="" class="h-20 w-20"></div>""", "p-5")
     main = f"""{head_panel}
@@ -577,7 +577,7 @@ def profile_tasks():
     side = (side_list(f"Đã xong · {TASKS_DONE}", done)
             + panel(f'<p class="{LABEL}">Mỗi bước mở ra</p><ul class="mt-2 flex flex-col gap-2.5 px-1 text-body-m ink">{unlocks}</ul>', "p-4")
             + a("rep-link", f"card flex items-center gap-3 {PANEL} p-4",
-                f'<span class="num grad-num text-[28px] font-semibold leading-8 tighter">386</span><span class="flex-1 text-body-m ink">Điểm uy tín<span class="block text-body-s text-on-surface-variant">Còn 114 điểm lên Uy tín</span></span>{CHEV}',
+                f'<span class="num ink text-[28px] font-semibold leading-8 tighter">386</span><span class="flex-1 text-body-m ink">Điểm uy tín<span class="block text-body-s text-on-surface-variant">Còn 114 điểm lên Uy tín</span></span>{CHEV}',
                 "reputation.html"))
     return settings_page("Hoàn thiện hồ sơ", "Hoàn thiện hồ sơ", f"{TASKS_DONE}/{len(PROFILE_TASKS)} bước · số điện thoại, ảnh đại diện và địa chỉ đã xong", main, side)
 
@@ -622,7 +622,7 @@ def reputation():
     hero = panel(f"""<div class="flex items-center gap-5">
   <img src="{build_c.ART["tier_trusted"]}" alt="" class="h-20 w-20 shrink-0">
   <div class="flex-1"><p class="text-label-l text-on-surface-variant">Bậc hiện tại · Tin cậy</p>
-    <p class="num"><span class="grad-num text-[56px] font-semibold leading-[60px] tighter">{SCORE}</span><span class="text-title-m text-on-surface-variant">/1000</span></p></div>
+    <p class="num"><span class="ink text-[56px] font-semibold leading-[60px] tighter">{SCORE}</span><span class="text-title-m text-on-surface-variant">/1000</span></p></div>
   <div class="text-right"><p class="text-title-m font-semibold ink">Còn 114 điểm</p><p class="text-body-s text-on-surface-variant">lên Uy tín</p></div>
 </div>{track}""", "px-6 pb-4 pt-5")
     main = f"""{hero}

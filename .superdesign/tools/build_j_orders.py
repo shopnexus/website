@@ -137,7 +137,7 @@ def orders():
     <aside class="sticky top-[84px] flex flex-col gap-4 self-start">
       <div class="{PANEL} p-5">
         <p class="text-title-s ink">Đơn COD đang mở</p>
-        <p class="mt-2"><span class="num grad-num text-[44px] font-semibold leading-[48px] tighter">2</span><span class="text-title-l text-on-surface-variant">/5</span></p>
+        <p class="mt-2"><span class="num ink text-[44px] font-semibold leading-[48px] tighter">2</span><span class="text-title-l text-on-surface-variant">/5</span></p>
         <div class="mt-3 flex gap-1.5">{slots}</div>
         <div class="mt-4 flex flex-col gap-2.5 border-t line pt-4">{money_line("cod_buyer", "inventory-2-outline-rounded")}{money_line("no_hold", "lock-outline-rounded")}</div>
       </div>
@@ -579,7 +579,7 @@ def cod_setup():
     <div class="flex items-start justify-between gap-8">
       <div>
         <p class="flex items-center gap-3 text-label-m text-on-surface-variant"><span class="flex items-center gap-1">{icon("timer-outline-rounded", 15)}3 phút</span><span class="flex items-center gap-1">{icon("event-repeat-outline-rounded", 15)}Làm một lần</span>{a("later", "text-primary hover:underline", "Để sau")}</p>
-        <h1 class="mt-1 text-[40px] font-semibold leading-[44px] tighter ink">Thiết lập <span class="grad-text">giao COD</span></h1>
+        <h1 class="mt-1 text-[40px] font-semibold leading-[44px] tighter ink">Thiết lập giao COD</h1>
       </div>
       <div class="flex max-w-[420px] flex-col gap-1.5 pt-1">{money_line("cod_seller", "account-balance-outline-rounded")}{money_line("no_hold", "lock-outline-rounded")}</div>
     </div>

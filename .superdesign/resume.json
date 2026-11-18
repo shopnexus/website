@@ -40,10 +40,28 @@
           "title": "Trang chủ · Chưa đăng nhập",
           "currentVersion": 3,
           "visualDirection": "J, guest home: browser history + rough area, no pitch"
+        },
+        "c57d233e-179d-4061-8afb-7ffbe2780cdd": {
+          "title": "Trang chủ gọn · A. Lặng",
+          "currentVersion": 1,
+          "visualDirection": "calm home candidate (tools/build_j_calm.py)",
+          "parentDraftId": "cc1198e3-abdb-4dd9-b538-6d2b6b61b640"
+        },
+        "0505c2f4-efeb-47a3-b724-429bf22591da": {
+          "title": "Trang chủ gọn · B. Gọn hai",
+          "currentVersion": 1,
+          "visualDirection": "calm home candidate (tools/build_j_calm.py)",
+          "parentDraftId": "cc1198e3-abdb-4dd9-b538-6d2b6b61b640"
+        },
+        "10a8c5ed-eb37-4cd8-ab2c-36906df45afd": {
+          "title": "Trang chủ gọn · C. Bảng tin",
+          "currentVersion": 1,
+          "visualDirection": "calm home candidate (tools/build_j_calm.py)",
+          "parentDraftId": "cc1198e3-abdb-4dd9-b538-6d2b6b61b640"
         }
       },
-      "note": "2026-11-17: J \"Kính mờ\" chosen for the whole site; shared pieces in tools/j_kit.py. Home has two drafts: signed in (cc1198e3) and guest (06ec18a8).",
-      "updatedAt": "2026-11-17"
+      "note": "2026-11-17: J \"Kính mờ\" chosen for the whole site; shared pieces in tools/j_kit.py. Home has two drafts: signed in (cc1198e3) and guest (06ec18a8). 2026-11-18: three calmer home candidates A/B/C; the user kept the current home (cc1198e3).",
+      "updatedAt": "2026-11-18"
     },
     "/p/[slug]": {
       "targetKind": "new-ui",

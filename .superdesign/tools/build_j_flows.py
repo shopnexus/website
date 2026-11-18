@@ -104,12 +104,12 @@ def how():
   <p class="mt-2 text-body-m text-on-surface-variant">{ans}</p>
 </details>""" for q, ans, op in FAQ)
 
-    body = f"""{header(active=3)}{EXTRA_CSS}
+    body = f"""{header(active=2)}{EXTRA_CSS}
 <main class="mx-auto max-w-[1360px] px-8">
   <section class="grid grid-cols-[1fr_520px] items-center gap-12 pt-10">
     <div>
       <span class="glass glass-edge inline-flex items-center gap-2 rounded-full px-3 py-1 text-label-m ink"><span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Cách mua trên ShopNexus</span>
-      <h1 class="mt-4 text-[60px] font-semibold leading-[64px] tighter ink">Xem hàng tận tay,<br><span class="grad-text">rồi mới trả tiền.</span></h1>
+      <h1 class="mt-4 text-[60px] font-semibold leading-[64px] tighter ink">Xem hàng tận tay,<br>rồi mới trả tiền.</h1>
       <p class="mt-4 max-w-[520px] text-body-l text-on-surface-variant">{MONEY["cod_buyer"]} {MONEY["no_hold"]}</p>
       <div class="mt-6 flex gap-2">
         {a("start-search", btn_cls("ink", "lg"), icon("search-rounded", 18) + "Bắt đầu tìm")}
@@ -685,7 +685,7 @@ def legal(title, updated, sections, aside, active_sec=0):
                     f'<span class="num w-5 shrink-0 text-label-m {"text-primary" if i == active_sec else ""}">{i + 1:02d}</span>{t}', f"#s{i + 1}")
                   for i, (t, _) in enumerate(sections))
     text = "".join(f"""<section id="s{i + 1}" class="{"border-t line pt-6" if i else ""} pb-6">
-  <h2 class="flex items-baseline gap-3 text-[22px] font-semibold leading-7 tighter ink"><span class="grad-num num">{i + 1:02d}</span>{t}</h2>
+  <h2 class="flex items-baseline gap-3 text-[22px] font-semibold leading-7 tighter ink"><span class="ink num">{i + 1:02d}</span>{t}</h2>
   {"".join(legal_block(p) for p in parts)}
 </section>""" for i, (t, parts) in enumerate(sections))
     body = f"""{header(active=None)}{EXTRA_CSS}

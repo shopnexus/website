@@ -357,7 +357,7 @@ def map_page():
   <div class="mt-3 flex flex-wrap gap-1.5">{"".join(f'<span class="rounded-full bg-white/80 px-2.5 py-0.5 text-label-m text-on-surface-variant ring-1 ring-black/5">{t}</span>' for t in tops)}</div>
 </a>""" for i, (n, c, new, tops, mine, sp) in enumerate(areas))
     ctrl = "glass glass-edge soft"
-    body = f"""{header(active=2)}
+    body = f"""{header(active=None)}
 <main class="mx-auto max-w-[1360px] px-8">
   <section class="relative mt-4 h-[720px] overflow-hidden rounded-[28px] border line">
     {big_map()}
@@ -389,7 +389,7 @@ def map_page():
 
     <aside class="{ctrl} absolute bottom-5 right-5 top-5 flex w-[404px] flex-col rounded-[24px] p-3">
       <div class="flex items-center justify-between px-2 pt-1">
-        <div><h1 class="text-title-l font-semibold tight ink"><span class="grad-num num">146</span> món trong 3 km</h1><p class="text-body-s text-on-surface-variant">quanh Bình Thạnh · gần nhất trước</p></div>
+        <div><h1 class="text-title-l font-semibold tight ink"><span class="ink num">146</span> món trong 3 km</h1><p class="text-body-s text-on-surface-variant">quanh Bình Thạnh · gần nhất trước</p></div>
         <button type="button" class="state grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Sắp xếp">{icon("swap-vert-rounded", 20)}</button>
       </div>
       <div class="no-scrollbar mt-2 flex flex-1 flex-col gap-1 overflow-hidden">{rows}</div>
@@ -558,7 +558,7 @@ def photo_search():
   <section>
     <div class="flex items-end justify-between gap-6">
       <div>
-        <h1 class="flex items-center gap-3 text-[40px] font-semibold leading-[44px] tighter ink"><span class="grad-num num">36</span> tin giống ảnh</h1>
+        <h1 class="flex items-center gap-3 text-[40px] font-semibold leading-[44px] tighter ink"><span class="ink num">36</span> tin giống ảnh</h1>
         <p class="mt-1.5 text-body-m text-on-surface-variant">Trong 10 km quanh Bình Thạnh · cùng đời máy và màu</p>
       </div>
       <div class="w-[340px] rounded-[20px] border line bg-white px-4 py-3">

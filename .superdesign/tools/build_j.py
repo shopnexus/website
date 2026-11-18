@@ -67,7 +67,7 @@ def search():
   <div class="flex items-center gap-2 pt-4">{bar}<span class="flex-1"></span>{a("reset", "text-label-l text-primary hover:underline", "Xóa lọc")}</div>
   <div class="mt-6 flex items-end justify-between">
     <div>
-      <h1 class="flex items-center gap-3 text-[40px] font-semibold leading-[44px] tighter ink"><span class="grad-num num">126</span> laptop khớp
+      <h1 class="flex items-center gap-3 text-[40px] font-semibold leading-[44px] tighter ink"><span class="ink num">126</span> laptop khớp
         <span class="rounded-full bg-white/80 px-2.5 py-1 text-label-m font-medium tracking-normal text-primary">+9 hôm nay</span></h1>
       <p class="mt-1.5 flex items-center gap-1.5 text-body-m text-on-surface-variant">{icon("auto-awesome-rounded", 15, "text-primary")}Ưu tiên RAM 16 GB cho Photoshop và Figma.</p>
     </div>

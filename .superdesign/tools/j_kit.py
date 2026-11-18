@@ -43,8 +43,7 @@ CSS = """
   .glass-edge { box-shadow: inset 0 0 0 1px rgb(255 255 255 / .7); }
   .soft { box-shadow: 0 1px 2px rgb(18 24 23 / .04), 0 8px 24px -8px rgb(18 24 23 / .10); }
   .glow { box-shadow: 0 0 0 1px rgb(255 255 255 / .9), 0 12px 32px -10px rgb(6 80 73 / .30); }
-  .grad-text { background: linear-gradient(100deg, #005049 0%, #0E8A7D 45%, #C0623E 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .grad-num { background: linear-gradient(160deg, #066A61, #5CC2B4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .ink { background: linear-gradient(160deg, #066A61, #5CC2B4); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .card { transition: transform 420ms var(--spatial), box-shadow 300ms var(--effects); }
   .card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px -14px rgb(18 24 23 / .22); }
   .card img { transition: transform 600ms var(--spatial); } .card:hover img { transform: scale(1.04); }
@@ -68,7 +67,7 @@ addEventListener('DOMContentLoaded', () => document.querySelectorAll('.seg').for
 }));
 </script>"""
 
-NAV = ["Khám phá", "Danh mục", "Bản đồ", "Cách mua"]
+NAV = ["Khám phá", "Danh mục", "Cách mua"]
 
 # Where each link opens, among the mockups (the rest stay hash placeholders).
 HREF = {"Khám phá": "j-home.html", "Danh mục": "categories.html", "Bản đồ": "map.html", "Cách mua": "how.html",
@@ -119,7 +118,7 @@ def header(active: int | None = 0, search: str | None = None, signed_in=True, ph
 
 
 def footer():
-    cols = [("Khám phá", ["Dành cho bạn", "Bản đồ", "Danh mục", "Mới nhất"]), ("Mua và bán", ["Cách mua bằng COD", "Cách đăng tin", "Gói người bán", "Điểm uy tín"]),
+    cols = [("Khám phá", ["Dành cho bạn", "Danh mục", "Mới nhất"]), ("Mua và bán", ["Cách mua bằng COD", "Cách đăng tin", "Gói người bán", "Điểm uy tín"]),
             ("Hỗ trợ", ["Trợ giúp và an toàn", "Yêu cầu hỗ trợ", "Quy định đăng tin", "Điều khoản"])]
     col_html = "".join(f'<div><p class="text-label-m text-on-surface-variant">{t}</p><ul class="mt-3 flex flex-col gap-2 text-body-m ink">'
                        + "".join(f"<li>{a(f'f-{t[:3]}-{i}', 'hover:text-primary', l, HREF.get(l))}</li>" for i, l in enumerate(ls)) + "</ul></div>" for t, ls in cols)
