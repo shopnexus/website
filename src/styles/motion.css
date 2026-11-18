@@ -215,6 +215,11 @@ html.js img[data-fade] {
     animation-range: cover 0% cover 100px;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  main section {
+    animation: none;
+  }
+}
 @keyframes reveal-fade {
   from {
     opacity: 0;
@@ -365,5 +370,80 @@ details[data-faq] {
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
+  }
+}
+
+/* ---------------------------------------------------------- skeletons -- */
+/* A block standing in for content that is on its way: the placeholder tone
+   with a soft band of light sweeping across it. ListingSkeleton.astro is a
+   card made of them. */
+.skeleton {
+  background: var(--md-surface-container-high);
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--md-surface-container-lowest) 70%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.3s linear infinite;
+}
+/* A photo that has not loaded yet shimmers the same way in its frame. */
+html.js :has(> img[data-fade]:not([data-loaded])) {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--md-surface-container-lowest) 60%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.3s linear infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: -130% 0;
+  }
+}
+/* Cards that replace skeletons fade in. */
+[data-fresh] {
+  animation: vt-fade-in var(--duration-effects-slow) var(--ease-effects) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  html.js :has(> img[data-fade]:not([data-loaded])) {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------- carousels -- */
+/* Carousel.astro: items snap to the start and keep their width; the side
+   that hides more items fades out; the arrows show only for a mouse and only
+   when the row overflows. */
+.carousel-track {
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: 2px;
+  & > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  --fade-l: 40px;
+  --fade-r: 40px;
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+  &[data-at-start] {
+    --fade-l: 0px;
+  }
+  &[data-at-end] {
+    --fade-r: 0px;
+  }
+}
+@media (pointer: fine) {
+  [data-carousel][data-scrolls] .carousel-arrows {
+    display: flex;
   }
 }

@@ -136,9 +136,17 @@ every page.
   settles in from 103 % once the new one has decoded.
 - The header gets a 1 px `line` edge once the page has scrolled 48 px under
   it.
-- Under `prefers-reduced-motion` page changes are instant, figures show their
-  value at once, the snackbar appears without moving, and every CSS
-  animation lasts 1 ms.
+- While a feed page is on its way, `ListingSkeleton` cards hold its place:
+  the card's frame with a shimmering photo and three lines. They appear only
+  after 80 ms and then stay at least 350 ms, so a fast answer does not flash
+  them. The cards that replace them fade in. A listing photo that has not
+  loaded shimmers in its frame the same way.
+- A carousel row snaps its items to the start and fades the edge that hides
+  more items. On a mouse two arrows beside the heading page it by 85 % of its
+  width on the spatial spring; on touch the row scrolls directly.
+- Under `prefers-reduced-motion` page changes are instant, skeletons and
+  sections stand still, figures show their value at once, the snackbar
+  appears without moving, and every CSS animation lasts 1 ms.
 
 **Theme.** Light, dark from the system, and an override through `data-theme`
 on `<html>`, as "Giao diện tối" does in the app. Material You is left out: a
@@ -234,18 +242,25 @@ drawings are off the pages.
 
 ### Home
 
-Two drafts, signed in and signed out, on the same frame. On the
-left: one line, "Hôm nay tìm gì?", the 64 px search field, chips, four tiles,
-the categories with counts. On the right: a glass panel of the newest
-listings near the buyer. Below: the feed in a segmented control next to
-"Đang được tìm nhiều" and "Đăng tin". Signed in, the line greets the buyer by
-name, the chips are their searches and alerts, and the tiles are their order
-on the way, their offers, their saved listings and their own listings. Signed
-out, the line is the area guessed from the IP with "Đổi", the chips are this
-browser's recent searches, and the tiles are the listings this browser
-viewed, listings like them, the price of a recent search, and "Giữ 3 tin bạn
-vừa xem trên mọi máy" with "Đăng nhập". The signed-out Home has no tagline,
-no trust figures and no four steps; the feed opens on "Gợi ý cho bạn".
+One column on every window, chosen 2026-11-18 in place of the split with a
+glass panel on the right, which the user found looked generated. Two drafts, signed in and
+signed out. From the top: one line and "Hôm nay tìm gì?" centred over the
+64 px search field and the chips; the four tiles in two columns; then three
+sideways rows (`Carousel.astro`): Danh mục with counts, "Vừa đăng quanh bạn"
+(listings within 10 km, nearest first) and "Đang được tìm nhiều"; then the
+feed across the full width, five cards a row on a large window. Signed in,
+the line greets the buyer by name, the chips are their searches and alerts,
+and the tiles are their order on the way, their offers, their saved listings
+and their own listings. Signed out, the line is the area guessed from the IP
+with "Đổi", the chips are this browser's recent searches, and the tiles are
+the listings this browser viewed, listings like them, the price of a recent
+search, and "Giữ 3 tin bạn vừa xem trên mọi máy" with "Đăng nhập". The
+signed-out Home has no tagline, no trust figures and no four steps; the feed
+opens on "Gợi ý cho bạn".
+
+The feed's tabs and "Xem thêm tin" load pages of ten cards from `/bang-tin`
+(`?tab=cho-ban|gan-ban|moi-nhat&trang=`), which renders them from the mock
+data in `src/lib/feed.ts` until the server's feed is wired.
 
 ### Tìm kiếm
 

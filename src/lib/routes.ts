@@ -34,6 +34,8 @@ export const R = {
   notifications: '/thong-bao', // notifications
   support: '/ho-tro', // support
   post: '/dang-tin', // "Đăng tin" opens the app's flow; the web has no form yet
+  /** Home's feed as HTML cards, a page at a time: ?tab=&trang= (feedPage in lib/feed.ts). */
+  feed: '/bang-tin',
 } as const;
 
 /** Footer and other link lists, by label. */

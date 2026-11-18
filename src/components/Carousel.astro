@@ -1,0 +1,95 @@
+---
+// A row that scrolls sideways: a heading with an optional link, and on a mouse
+// two round arrows beside it that page the row. Items snap to the start; the
+// edge that hides more items fades. Touch and trackpads scroll it directly.
+import Icon from './Icon.astro';
+
+interface Props {
+  title: string;
+  /** A line under the heading. */
+  note?: string;
+  link?: string;
+  href?: string;
+  /** The heading's icon. */
+  icon?: string;
+  class?: string;
+  /** Classes for the row: the gap between items. */
+  trackClass?: string;
+}
+
+const { title, note, link, href, icon, class: cls, trackClass = 'gap-3' } = Astro.props;
+const arrow =
+  'state-layer grid h-9 w-9 place-items-center rounded-full border border-line bg-card text-ink disabled:pointer-events-none disabled:opacity-35';
+---
+
+<section class:list={['min-w-0', cls]} data-carousel aria-label={title}>
+  <div class="flex items-end justify-between gap-4">
+    <div class="min-w-0">
+      <h2 class="flex items-center gap-2 text-j-20 text-ink lg:text-j-22">
+        {icon && <Icon name={icon} size={20} class="text-primary" />}
+        {title}
+      </h2>
+      {note && <p class="mt-0.5 text-body-small text-on-surface-variant">{note}</p>}
+    </div>
+    <div class="flex shrink-0 items-center gap-1.5">
+      {
+        link && (
+          <a href={href} class="mr-1 text-label-large text-primary hover:underline">
+            {link}
+          </a>
+        )
+      }
+      <span class="carousel-arrows hidden items-center gap-1.5">
+        <button type="button" class={arrow} aria-label="Trước" data-prev disabled>
+          <Icon name="chevron-left-rounded" size={20} />
+        </button>
+        <button type="button" class={arrow} aria-label="Sau" data-next>
+          <Icon name="chevron-right-rounded" size={20} />
+        </button>
+      </span>
+    </div>
+  </div>
+  <div class:list={['carousel-track no-scrollbar mt-1 -mb-2 flex overflow-x-auto pb-2 pt-2', trackClass]} data-track>
+    <slot />
+  </div>
+</section>
+
+<script>
+  import { animate } from 'motion';
+  import { SPRING, reducedMotion } from '../lib/motion';
+
+  // The arrows page by the visible width, on the default spatial spring; the
+  // edges and the disabled arrows follow the scroll position.
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((c) => {
+    const track = c.querySelector<HTMLElement>('[data-track]')!;
+    const prev = c.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const next = c.querySelector<HTMLButtonElement>('[data-next]')!;
+    const sync = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      const start = track.scrollLeft <= 2;
+      const end = track.scrollLeft >= max - 2;
+      prev.disabled = start;
+      next.disabled = end;
+      c.toggleAttribute('data-scrolls', max > 2);
+      track.toggleAttribute('data-at-start', start);
+      track.toggleAttribute('data-at-end', end);
+    };
+    const page = (dir: 1 | -1) => {
+      const max = track.scrollWidth - track.clientWidth;
+      const to = Math.min(max, Math.max(0, track.scrollLeft + dir * track.clientWidth * 0.85));
+      if (reducedMotion()) return void (track.scrollLeft = to);
+      // Snap would fight a scripted scroll, so it is off until the row settles.
+      track.style.scrollSnapType = 'none';
+      animate(track.scrollLeft, to, {
+        ...SPRING.spatial,
+        onUpdate: (v) => (track.scrollLeft = v),
+        onComplete: () => (track.style.scrollSnapType = ''),
+      });
+    };
+    prev.addEventListener('click', () => page(-1));
+    next.addEventListener('click', () => page(1));
+    track.addEventListener('scroll', sync, { passive: true });
+    new ResizeObserver(sync).observe(track);
+    sync();
+  });
+</script>

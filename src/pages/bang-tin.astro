@@ -1,0 +1,16 @@
+---
+// A page of Home's feed as bare cards, for the tabs and "Xem thêm tin" to
+// fetch. data-more on the first card's wrapper says whether another page follows.
+import ListingCard from '../components/ListingCard.astro';
+import { feedPage, feedTab } from '../lib/feed';
+
+export const partial = true;
+
+const tab = feedTab(Astro.url.searchParams.get('tab'));
+const page = Number(Astro.url.searchParams.get('trang')) || 1;
+const { items, more } = feedPage(tab, page);
+---
+
+<template data-feed-page data-more={more ? 'true' : 'false'}>
+  {items.map((it) => <ListingCard item={it} loading="lazy" />)}
+</template>
