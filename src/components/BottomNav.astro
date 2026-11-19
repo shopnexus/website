@@ -34,8 +34,9 @@ const items = [
         href={it.href}
         aria-current={it.on ? 'page' : undefined}
         class="group flex flex-col items-center justify-center gap-1 text-label-medium text-on-surface-variant aria-[current=page]:text-ink"
+        data-press
       >
-        <span class="grid h-8 w-16 place-items-center rounded-full group-aria-[current=page]:bg-mint group-aria-[current=page]:text-on-mint">
+        <span class="state-layer grid h-8 w-16 place-items-center rounded-full group-aria-[current=page]:bg-mint group-aria-[current=page]:text-on-mint">
           <Icon name={it.on ? it.icon.replace('-outline', '') : it.icon} size={24} />
         </span>
         {it.label}

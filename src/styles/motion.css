@@ -82,25 +82,6 @@ nav.fixed a[aria-current="page"] > span {
   }
 }
 
-/* --------------------------------------------------------- the header -- */
-/* At the top the glass bar has no edge; once the page scrolls under it, a
-   hairline separates it from the content. */
-@supports (animation-timeline: scroll()) {
-  header.glass.sticky {
-    animation: header-edge linear both;
-    animation-timeline: scroll();
-    animation-range: 0 48px;
-  }
-}
-@keyframes header-edge {
-  from {
-    box-shadow: 0 1px 0 transparent;
-  }
-  to {
-    box-shadow: 0 1px 0 var(--j-line);
-  }
-}
-
 /* -------------------------------------------------------- hover tints -- */
 /* Links and buttons change colour over the fast effects spring instead of
    snapping. In the base layer, so a transition utility on the element wins. */
@@ -113,6 +94,23 @@ nav.fixed a[aria-current="page"] > span {
 }
 
 /* ------------------------------------------------------------- press -- */
+/* A tap acts at once: no double-tap zoom wait. The browser's grey tap flash
+   is off; each control draws its own press below. */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  :where(a[href], button, summary, label, [role="tab"]) {
+    touch-action: manipulation;
+  }
+  /* A control without a state layer dims while held, at once, and comes back
+     over the effects spring. */
+  :where(a[href], button:enabled, summary, [role="tab"]):where(:not(.state-layer, .lift, [data-press])):active {
+    opacity: 0.65;
+    transition-duration: 0ms;
+  }
+}
+
 /* The app's press morph: a pill or round button shrinks a little while held
    and springs back. Rows and cards (not rounded-full) keep the state layer only. */
 .state-layer.rounded-full,
@@ -128,10 +126,25 @@ nav.fixed a[aria-current="page"] > span {
     scale: 0.96;
   }
 }
-/* A card sinks back while pressed: the lift's hover goes, the press shows. */
-.lift:active {
-  transform: translateY(-1px);
-  transition-duration: var(--duration-effects-fast);
+/* A cell marked data-press (a bottom bar item) presses its state-layer child
+   wherever it is tapped, the label included. */
+[data-press]:active > .state-layer {
+  scale: 0.96;
+}
+[data-press]:active > .state-layer::after {
+  opacity: 0.1;
+}
+@media (hover: hover) {
+  [data-press]:hover > .state-layer::after {
+    opacity: 0.08;
+  }
+}
+/* A held card takes the pressed tone and drops its hover shadow. Only a card
+   that is a link or whose link is held: a button inside it presses alone. */
+a.lift:active,
+.lift:has(a[href]:active) {
+  background-color: var(--j-hover);
+  box-shadow: none;
 }
 
 /* The switch's knob stretches while held, as in M3; when on it grows to the left. */
@@ -391,8 +404,10 @@ details[data-faq] {
 [data-gallery] [data-thumb] img {
   transition: scale var(--duration-spatial-default) var(--ease-spatial);
 }
-[data-gallery] [data-thumb]:hover img {
-  scale: 1.06;
+@media (hover: hover) {
+  [data-gallery] [data-thumb]:hover img {
+    scale: 1.06;
+  }
 }
 
 /* ------------------------------------------------------ smooth anchors -- */
