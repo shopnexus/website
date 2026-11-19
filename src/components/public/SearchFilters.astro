@@ -28,7 +28,7 @@ const head = 'text-title-small text-ink';
 const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] border-field bg-card text-transparent peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand';
 ---
 
-<form action={base} class="self-start overflow-hidden rounded-card border border-line bg-card lg:sticky lg:top-[88px]" data-filters>
+<form action={base} class="self-start overflow-hidden rounded-card border border-line bg-card lg:sticky-fit lg:sticky lg:top-[88px]" data-filters>
   {search.q && <input type="hidden" name="q" value={search.q} />}
   {search.category && <input type="hidden" name="category" value={search.category} />}
   {search.off.map((o) => <input type="hidden" name="off" value={o} />)}

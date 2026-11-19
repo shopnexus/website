@@ -258,6 +258,14 @@
   }
 }
 
+/* A sticky side panel no taller than the window under the header; a longer
+   one scrolls on its own. */
+@utility sticky-fit {
+  max-height: calc(100dvh - 104px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {

@@ -31,7 +31,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 </div>
 
 <div class="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[230px_1fr] xl:grid-cols-[260px_1fr_320px]">
-  <nav class="border border-line bg-card hidden flex-col gap-0.5 rounded-panel p-2 lg:sticky lg:top-[84px] lg:flex" aria-label="Mục lục" data-toc>
+  <nav class="border border-line bg-card hidden flex-col gap-0.5 rounded-panel p-2 lg:sticky-fit lg:sticky lg:top-[84px] lg:flex" aria-label="Mục lục" data-toc>
     {
       sections.map(([t], i) => (
         <a
@@ -71,7 +71,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
       ))
     }
   </article>
-  <aside class="flex flex-col gap-4 lg:col-start-2 xl:sticky xl:top-[84px] xl:col-start-auto">
+  <aside class="flex flex-col gap-4 lg:col-start-2 xl:sticky-fit xl:sticky xl:top-[80px] xl:-m-1 xl:p-1 xl:col-start-auto">
     <slot />
   </aside>
 </div>
