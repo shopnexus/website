@@ -23,6 +23,11 @@ const LOOKS: Record<string, [icon: string, photo: string]> = {
   home: ['blender-outline-rounded', '1585515320310-259814833e62'],
   baby: ['child-care-outline-rounded', '1515488042361-ee00e0ddd4e4'],
   sports: ['sports-tennis-outline-rounded', '1554068865-24cecd4e34b8'],
+  camera: ['photo-camera-outline-rounded', '1516035069371-29a1b244cc32'],
+  books: ['menu-book-outline-rounded', '1495446815901-a7297e633e8d'],
+  beauty: ['face-retouching-natural-outline-rounded', '1596462502278-27bfdc403348'],
+  hobby: ['sports-esports-outline-rounded', '1510915361894-db8b60106cb1'],
+  pets: ['pets-outline-rounded', '1548199973-03cce0bbc87b'],
   other: ['category-outline-rounded', '1526170375885-4d8ecf77b99f'],
 };
 
