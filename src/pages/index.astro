@@ -7,10 +7,10 @@
 // has no search hero.
 import Icon from '../components/Icon.astro';
 import ListingCard from '../components/ListingCard.astro';
-import ListingSkeleton from '../components/ListingSkeleton.astro';
 import Photo from '../components/Photo.astro';
 import Price from '../components/Price.astro';
 import Seg from '../components/Seg.astro';
+import Skeleton from '../components/Skeleton.astro';
 import HomeRail from '../components/home/HomeRail.astro';
 import HomeTiles from '../components/home/HomeTiles.astro';
 import Layout from '../layouts/Layout.astro';
@@ -83,7 +83,7 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
             <Icon name="keyboard-arrow-down-rounded" size={17} />
           </a>
         </div>
-        <template data-feed-skeleton><ListingSkeleton /></template>
+        <Skeleton kind="card" />
       </section>
 
       {
@@ -112,17 +112,15 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
   import { R } from '../lib/routes';
   import { FEED_PAGE, FEED_TABS } from '../lib/feed-tabs';
   import { locate } from '../lib/locate';
+  import { type Hold, failure, hold } from '../lib/skeleton';
 
-  // The tabs and "Xem thêm tin" fetch pages of cards from /bang-tin, passing
-  // the last page's cursor. While a page is on its way, skeleton cards hold
-  // its place: from 80 ms on, and once shown for at least 350 ms, so a fast
-  // answer does not flash them. Gần bạn's ask for the place asks the browser,
-  // then loads the tab again.
+  // The tabs and "Xem thêm tin" fetch pages of cards from /feed, passing the
+  // last page's cursor; skeleton cards hold the page's place meanwhile. Gần
+  // bạn's ask for the place asks the browser, then loads the tab again.
   const root = document.querySelector<HTMLElement>('[data-feed]');
   if (root) {
     const grid = root.querySelector<HTMLElement>('[data-feed-grid]')!;
     const more = root.querySelector<HTMLAnchorElement>('[data-feed-more]')!;
-    const skeleton = root.querySelector<HTMLTemplateElement>('[data-feed-skeleton]')!;
     let tab: string = FEED_TABS[0];
     let next = '';
     let run = 0;
@@ -138,36 +136,33 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
       const part = holder.content.querySelector<HTMLTemplateElement>('template[data-feed-page]')!;
       return { cards: [...part.content.children] as HTMLElement[], next: part.dataset.next ?? '' };
     };
-    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    // The page on its way; a newer one or Dành cho bạn puts its skeletons away.
+    let active: Hold | null = null;
 
     async function show(t: string, after: string, replace: boolean) {
       const mine = ++run;
-      const bones = Array.from({ length: FEED_PAGE }, () => skeleton.content.firstElementChild!.cloneNode(true) as HTMLElement);
-      let shownAt = 0;
-      const timer = setTimeout(() => {
-        shownAt = performance.now();
-        if (replace) grid.replaceChildren(...bones);
-        else grid.append(...bones);
-      }, 80);
-      grid.setAttribute('aria-busy', 'true');
+      active?.undo();
+      grid.querySelector('[data-failed]')?.remove();
+      const h = (active = hold(grid, { kind: 'card', n: FEED_PAGE, at: replace ? 'replace' : 'append' }));
       more.hidden = true;
       try {
         const page = await fetchPage(t, after);
-        if (shownAt) await wait(Math.max(0, 350 - (performance.now() - shownAt)));
         if (mine !== run) return;
-        clearTimeout(timer);
-        bones.forEach((b) => b.remove());
+        await h.end();
+        if (mine !== run) return;
         page.cards.forEach((c) => c.setAttribute('data-fresh', ''));
         if (replace) grid.replaceChildren(...page.cards);
         else grid.append(...page.cards);
         next = page.next;
         more.hidden = !next;
       } catch {
-        clearTimeout(timer);
-        bones.forEach((b) => b.remove());
-        more.hidden = !next;
-      } finally {
-        if (mine === run) grid.removeAttribute('aria-busy');
+        if (mine !== run) return;
+        await h.end();
+        if (mine !== run) return;
+        // A tab that did not load shows the error state with Thử lại.
+        const retry = failure(() => show(t, after, replace));
+        if (replace) grid.replaceChildren(retry);
+        else grid.append(retry);
       }
     }
 
@@ -176,6 +171,7 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
       next = '';
       if (tab !== FEED_TABS[0]) return show(tab, '', true);
       run++;
+      active?.undo();
       grid.replaceChildren(...first);
       more.hidden = true;
     });
