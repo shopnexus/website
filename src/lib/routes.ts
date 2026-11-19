@@ -43,9 +43,14 @@ export const API = {
   saved: (id: string) => `/api/saved/${id}`,
   follows: (id: string) => `/api/follows/${id}`,
   area: '/api/area',
+  communes: (province: string) => `/api/communes/${province}`,
   uploads: '/api/uploads',
   watches: '/api/watches',
+  watchAlert: (id: string) => `/api/watches/${id}/alert`,
 } as const;
+
+/** `raw` when it is a path on this site, else `fallback`: no "//host", and no backslash, which browsers read as a slash. */
+export const localPath = (raw: string, fallback: string) => (raw.startsWith('/') && !raw.startsWith('//') && !raw.includes('\\') ? raw : fallback);
 
 /** Đăng nhập, coming back to `back` (a path with its query); `ended` adds the "signed out elsewhere" notice. */
 export const loginHref = (back: string, ended = false) => `${R.login}?next=${encodeURIComponent(back)}${ended ? '&ended' : ''}`;
@@ -58,7 +63,7 @@ export const LINK: Record<string, string> = {
   'Cách mua bằng COD': R.how,
   'Cách đăng tin': R.sell,
   'Gói người bán': R.plans,
-  'Điểm uy tín': R.reputation,
+  'Uy tín': R.reputation,
   'Trợ giúp và an toàn': R.help,
   'Yêu cầu hỗ trợ': R.support,
   'Quy định đăng tin': R.listingRules,

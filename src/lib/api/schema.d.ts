@@ -1984,8 +1984,8 @@ export interface paths {
          *     (role buyer). A first review needs the order completed or failed. It
          *     stays hidden from the other party and the public until they review
          *     too or 7 days after the order closed. A review changes, and a deleted
-         *     one is posted again, only within 7 days of its first submission and
-         *     before the other party replies.
+         *     one is posted again, only while it is hidden, within 7 days of its
+         *     first submission; once it shows, neither side changes it.
          */
         put: operations["putReview"];
         post?: never;
@@ -5301,7 +5301,7 @@ export interface components {
             /** Format: date-time */
             at: string;
         };
-        /** @description The caller's review of the other side of an order. Dates and id are null before the first submission. Deleted reviews carry no stars or text. The seven-day window starts at the original created_at; locked uses the same boundary as edits and deletion, and is true once the subject replied. */
+        /** @description The caller's review of the other side of an order. Dates and id are null before the first submission. Deleted reviews carry no stars or text. change_until is when the review shows or 7 days after the original created_at, whichever comes first; locked uses the same boundary as edits and deletion, and is true once the subject replied. */
         OwnReview: {
             /** @enum {string} */
             state: "none" | "active" | "deleted";
@@ -5583,7 +5583,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            type: "offer" | "counter" | "agreed" | "declined" | "agreement_cancelled" | "offer_voided" | "cod_requested" | "shipped" | "completed" | "failed" | "order_cancelled" | "listing_live" | "listing_rejected" | "followed_listing" | "review" | "suspended" | "unsuspended" | "watch_matched" | "price_dropped";
+            type: "offer" | "counter" | "agreed" | "declined" | "agreement_cancelled" | "offer_voided" | "cod_requested" | "shipped" | "completed" | "failed" | "order_cancelled" | "listing_live" | "listing_rejected" | "followed_listing" | "review" | "review_reply" | "suspended" | "unsuspended" | "watch_matched" | "price_dropped";
             /** @description What the notice says, in Vietnamese. */
             text: string;
             target: components["schemas"]["Target"];
@@ -5651,7 +5651,7 @@ export interface components {
             price_cuts: boolean;
             /** @description A new listing of a seller the caller follows. */
             followed: boolean;
-            /** @description A new review of the caller. */
+            /** @description A review of the caller that shows, or a reply to the caller's review. */
             reviews: boolean;
             quiet: components["schemas"]["QuietHours"];
         };
@@ -6175,7 +6175,7 @@ export interface components {
             reply: components["schemas"]["ReviewReply"] | null;
             /**
              * Format: date-time
-             * @description The first submission; the review changes only for 7 days after it, and not after a reply.
+             * @description The first submission; the review changes only while hidden and for 7 days after it, and not after a reply.
              */
             created_at: string;
             /** Format: date-time */
@@ -11860,7 +11860,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description The order is not completed or failed yet (order_not_delivered), 7 days have passed since the first submission (review_locked), the other party replied (review_closed), or another write of the review came first (try_again). */
+            /** @description The order is not completed or failed yet (order_not_delivered), the review shows or 7 days have passed since the first submission (review_locked), the other party replied (review_closed), or another write of the review came first (try_again). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11909,7 +11909,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description 7 days have passed since the first submission (review_locked), the other party replied (review_closed), or another write of the review came first (try_again). */
+            /** @description the review shows or 7 days have passed since the first submission (review_locked), the other party replied (review_closed), or another write of the review came first (try_again). */
             409: {
                 headers: {
                     [name: string]: unknown;

@@ -1,29 +1,65 @@
 ---
-import Photo from '../../components/Photo.astro';
-// Quyền riêng tư: what others see next to a preview of the public page, then
-// what ShopNexus keeps and who receives it.
+// Quyền riêng tư: what others see next to the buyer's public page as it is,
+// the accounts they block with "Bỏ chặn" (a form post), then what ShopNexus
+// keeps and who receives it.
+import Notice from '../../components/Notice.astro';
+import Avatar from '../../components/Avatar.astro';
 import Icon from '../../components/Icon.astro';
+import Photo from '../../components/Photo.astro';
 import Row from '../../components/account/Row.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
 import SideList from '../../components/account/SideList.astro';
-import { PRIVACY } from '../../data/account';
-import { LISTINGS } from '../../data/listings';
-import Avatar from '../../components/Avatar.astro';
-import { ME } from '../../data/common';
-import { img } from '../../lib/format';
+import { orNull, unwrap } from '../../lib/api/client';
+import { date, ratingText } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
-import { LABEL, PANEL } from '../../lib/ui';
+import { btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
 
-const seen = ['Tên và ảnh đại diện', `Khu vực: ${ME.area}`, 'Hạng uy tín và đánh giá', 'Các tin bạn đăng'];
-const hidden = ['Số điện thoại', 'Địa chỉ nhà, công ty', 'CCCD và ảnh khuôn mặt'];
-const thumbs = [LISTINGS[5], LISTINGS[9], LISTINGS[4]].map((l) => l.photo);
+let error: string | undefined;
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (form.get('step') === 'unblock') {
+    try {
+      await orNull(api.DELETE('/v1/blocks/{account_id}', { params: { path: { account_id: String(form.get('account_id') ?? '') } } }), [404]);
+      return Astro.redirect(`${R.privacy}?done=unblock`, 303);
+    } catch {
+      error = 'Chưa bỏ chặn được. Thử lại sau ít phút.';
+    }
+  }
+}
+
+const [blocks, page] = await Promise.all([
+  unwrap(api.GET('/v1/blocks', { params: { query: { limit: 100 } } })),
+  orNull(api.GET('/v1/screens/seller/{id}', { params: { path: { id: v.id } } })),
+]);
+const s = page?.seller;
+const [rated] = s ? ratingText(s.rating) : ['–'];
+const thumbs = (page?.listings.items ?? []).filter((l) => l.cover_thumb_url).slice(0, 3);
+const done = !error && Astro.url.searchParams.get('done') === 'unblock';
+
+const seen = ['Tên, ảnh và giới thiệu', 'Đánh giá', 'Tin bạn đăng', 'Lúc hoạt động'];
+const hidden = ['Số điện thoại, email', 'Địa chỉ nhận hàng'];
+const POLICY = [
+  { icon: 'database-outline-rounded', title: 'Thông tin ShopNexus lưu', text: 'Số điện thoại, email, địa chỉ, tin bạn đăng, tin nhắn, đơn hàng và đánh giá.' },
+  {
+    icon: 'local-shipping-outline-rounded',
+    title: 'Bên vận chuyển',
+    text: 'Khi có đơn COD, bên vận chuyển nhận tên, số điện thoại và địa chỉ giao nhận của đơn đó.',
+  },
+  { icon: 'photo-camera-outline-rounded', title: 'Ảnh và video khi đăng tin', text: 'AI đọc ảnh và video bạn chọn để điền tên, tình trạng và giá.' },
+  {
+    icon: 'delete-outline-rounded',
+    title: 'Xóa dữ liệu',
+    text: 'Bạn xóa tài khoản trong Tôi › Bảo mật. Tin đăng, trang và địa chỉ của bạn được xóa ngay; đơn, đánh giá và tin nhắn cũ còn lại, ghi là tài khoản đã xóa.',
+  },
+];
 ---
 
-<SettingsFrame title="Quyền riêng tư" page="Quyền riêng tư" meta="Cập nhật 28/10/2026">
+<SettingsFrame title="Quyền riêng tư" page="Quyền riêng tư" meta="Người khác thấy gì và người bạn đã chặn">
   <div class:list={[PANEL, 'p-5']}>
     <h2 class="text-j-20 text-ink">Người khác thấy gì</h2>
     <div class="mt-4 grid grid-cols-1 items-start gap-5 md:grid-cols-2 xl:grid-cols-[1fr_1fr_280px]">
@@ -52,31 +88,73 @@ const thumbs = [LISTINGS[5], LISTINGS[9], LISTINGS[4]].map((l) => l.photo);
             ))
           }
         </ul>
+        <p class="mt-2 text-body-small text-on-surface-variant">Trừ người bán và shipper của đơn COD.</p>
       </div>
-      <div class="rounded-card border border-line bg-card p-4 shadow-soft md:col-span-2 xl:col-span-1">
+      <a href={R.seller(v.id)} class="lift block rounded-card border border-line bg-card p-4 shadow-soft md:col-span-2 xl:col-span-1">
         <div class="flex items-center gap-3">
           <Avatar name={v.name} photo={v.photo} size={48} />
           <div class="min-w-0">
-            <p class="flex items-center gap-1 text-title-medium font-semibold text-ink">
-              {v.name}<Icon name="verified-rounded" size={16} class="text-primary" />
-            </p>
-            <p class="flex items-center gap-1 text-body-small text-on-surface-variant">
-              Bình Thạnh · <Icon name="star-rounded" size={12} class="text-star" />{ME.rating} · Tin cậy
-            </p>
+            <p class="truncate text-title-medium font-semibold text-ink">{v.name}</p>
+            {
+              s && (
+                <p class="flex items-center gap-1 text-body-small text-on-surface-variant">
+                  <Icon name="star-rounded" size={12} class="text-star" />
+                  {rated} · {s.sold} đã bán
+                </p>
+              )
+            }
           </div>
         </div>
-        <div class="mt-3 grid grid-cols-3 gap-1.5">
-          {thumbs.map((p) => <Photo src={img(p, 200, 200)} width={200} height={200} alt="" class="aspect-square w-full rounded-md object-cover" />)}
-        </div>
+        {
+          thumbs.length > 0 && (
+            <div class="mt-3 grid grid-cols-3 gap-1.5">
+              {thumbs.map((l) => (
+                <Photo src={l.cover_thumb_url!} width={200} height={200} alt={l.title} class="aspect-square w-full rounded-md object-cover" />
+              ))}
+            </div>
+          )
+        }
         <p class="mt-2 text-center text-body-small text-on-surface-variant">Trang của bạn, như người khác thấy</p>
-      </div>
+      </a>
     </div>
+  </div>
+
+  <div class:list={[PANEL, 'px-5 py-4']}>
+    <h2 class="text-j-20 text-ink">Đã chặn · {blocks.items.length}</h2>
+    {
+      (error || done) && (
+        <Notice text={error ?? 'Đã bỏ chặn.'} ok={!error} class="mt-3" />
+      )
+    }
+    {
+      blocks.items.length === 0 ? (
+        <p class="py-3 text-body-medium text-on-surface-variant">Bạn chưa chặn ai. Người bị chặn và bạn không nhắn tin hay hỏi mua tin của nhau được.</p>
+      ) : (
+        <div class="mt-1">
+          {blocks.items.map((b, i) => (
+            <div class:list={['flex flex-wrap items-center gap-3 py-3', i > 0 && 'border-t border-line']}>
+              <Avatar name={b.display_name || '?'} size={40} />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-body-large text-ink">{b.display_name || 'Tài khoản đã xóa'}</p>
+                <p class="text-body-small text-on-surface-variant">Chặn {date(b.at)} · không nhắn tin với nhau được</p>
+              </div>
+              <form method="post">
+                <input type="hidden" name="account_id" value={b.account_id} />
+                <button name="step" value="unblock" class={btnCls('line')}>
+                  Bỏ chặn
+                </button>
+              </form>
+            </div>
+          ))}
+        </div>
+      )
+    }
   </div>
 
   <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
     {
-      PRIVACY.map((p, i) => (
-        <section id={`p-${i}`} class:list={[PANEL, 'scroll-mt-24 p-5']}>
+      POLICY.map((p) => (
+        <section class:list={[PANEL, 'p-5']}>
           <span class="grid h-10 w-10 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
             <Icon name={p.icon} size={20} />
           </span>
@@ -88,19 +166,6 @@ const thumbs = [LISTINGS[5], LISTINGS[9], LISTINGS[4]].map((l) => l.photo);
   </div>
 
   <Fragment slot="side">
-    <div class:list={[PANEL, 'p-3']}>
-      <p class={LABEL}>Trên trang này</p>
-      <nav class="mt-2 flex flex-col" aria-label="Trên trang này">
-        {
-          PRIVACY.map((p, i) => (
-            <a href={`#p-${i}`} class="flex items-center gap-2 rounded-full px-3 py-2 text-body-medium text-ink hover:bg-surface-container-low">
-              <Icon name={p.icon} size={18} class="text-on-surface-variant" />
-              {p.title}
-            </a>
-          ))
-        }
-      </nav>
-    </div>
     <SideList title="Cài đặt liên quan">
       <Row icon="shield-outline-rounded" title="Bảo mật" sub="Đăng nhập, thiết bị, xóa tài khoản" href={R.security} class="-mx-2" />
       <Row icon="home-outline-rounded" title="Địa chỉ" sub="Chỉ shipper và người bán của đơn COD thấy" href={R.addresses} class="-mx-2" />

@@ -1,4 +1,5 @@
 ---
+import Notice from '../components/Notice.astro';
 import Photo from '../components/Photo.astro';
 // Đăng nhập. Google, the phone code, or a code mailed to an address
 // (?method=email): the address step sends the code, the code step signs in and
@@ -12,14 +13,14 @@ import { idempotencyKey, unwrap } from '../lib/api/client';
 import { area, near } from '../lib/area';
 import { clock, group, where } from '../lib/format';
 import { newest } from '../lib/feed';
-import { R } from '../lib/routes';
+import { R, localPath } from '../lib/routes';
 import { keepTokens, viewer } from '../lib/session';
-import { deviceName, dropChallenge, readChallenge, sendEmailCode, signInError, signInWithCode } from '../lib/sign-in';
+import { codeError, deviceName, dropChallenge, readChallenge, resendSeconds, sendEmailCode, signInWithCode } from '../lib/sign-in';
 import { btnCls, CONTENT } from '../lib/ui';
 
 // Only paths on this site; "//host" would leave it.
 const raw = Astro.url.searchParams.get('next') ?? '';
-const next = raw.startsWith('/') && !raw.startsWith('//') ? raw : R.home;
+const next = localPath(raw, R.home);
 const here = (params: Record<string, string>) => `${R.login}?${new URLSearchParams({ ...params, ...(raw ? { next: raw } : {}) })}`;
 const emailUrl = here({ method: 'email' });
 
@@ -36,7 +37,7 @@ if (Astro.request.method === 'POST') {
       await sendEmailCode(Astro.locals.api, Astro.cookies, Astro.url, to, key);
       return Astro.redirect(emailUrl, 303);
     } catch (e) {
-      error = signInError(e).text;
+      error = codeError(e).text;
       // A failed resend keeps the code step; the code already sent still works.
       if (!readChallenge(Astro.cookies)) email = to;
     }
@@ -49,7 +50,7 @@ if (Astro.request.method === 'POST') {
       dropChallenge(Astro.cookies);
       return Astro.redirect(done.account.is_new ? R.profileTasks : next, 303);
     } catch (e) {
-      const why = signInError(e);
+      const why = codeError(e);
       error = why.text;
       if (why.restart) {
         dropChallenge(Astro.cookies);
@@ -68,7 +69,7 @@ if (Astro.request.method === 'POST') {
 
 const byEmail = Astro.url.searchParams.get('method') === 'email';
 const challenge = byEmail && !email ? readChallenge(Astro.cookies) : undefined;
-const resendIn = challenge ? Math.max(0, Math.ceil((Date.parse(challenge.resendAt) - Date.now()) / 1000)) : 0;
+const resendIn = challenge ? resendSeconds(challenge) : 0;
 // One key per form as rendered: a double click sends the same action once.
 const key = idempotencyKey();
 
@@ -166,10 +167,7 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
         <h2 class="text-j-28 text-ink">Đăng nhập</h2>
         {
           error && (
-            <p role="alert" class="mt-4 flex items-start gap-2 rounded-tile bg-surface-container-low p-3 text-body-medium text-ink">
-              <Icon name="info-outline-rounded" size={18} class="mt-px shrink-0 text-on-surface-variant" />
-              {error}
-            </p>
+            <Notice text={error} class="mt-4" />
           )
         }
         {
@@ -285,7 +283,7 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
 </Layout>
 
 <script>
-  import { clock } from '../lib/format';
+  import { resendTimer } from '../lib/resend-timer';
 
   // The code boxes: a digit moves to the next box, Backspace to the one before,
   // a pasted code fills them all, and the sixth digit signs in. "Gửi lại sau"
@@ -309,18 +307,5 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
     });
   });
 
-  const timer = document.querySelector<HTMLElement>('[data-resend]');
-  const resend = document.querySelector<HTMLButtonElement>('[data-resend-btn]');
-  if (timer && resend) {
-    let left = Number(timer.dataset.resend);
-    const tick = setInterval(() => {
-      left -= 1;
-      timer.textContent = `Gửi lại sau ${clock(left)}`;
-      if (left <= 0) {
-        clearInterval(tick);
-        timer.remove();
-        resend.disabled = false;
-      }
-    }, 1000);
-  }
+  resendTimer();
 </script>

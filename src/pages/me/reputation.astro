@@ -1,85 +1,71 @@
 ---
-import Photo from '../../components/Photo.astro';
-// Điểm uy tín: the score, the tier track, the buyer's limits, the penalty
-// ladder, ways to earn points and the history; on the side how points count.
-import tierTrusted from '@brand/tier_trusted.webp';
+// Uy tín của bạn: the figures buyers see on the seller page, the buyer's own
+// record over 90 days and the caps every account has.
 import Icon from '../../components/Icon.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
-import { REP_HISTORY, REP_PLUS, SCORE, TIERS } from '../../data/account';
+import { reputation } from '../../lib/profile';
+import { group, ratingText } from '../../lib/format';
+import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 import { LABEL, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
 
-const tier = [...TIERS].reverse().find(([, from]) => SCORE >= from)?.[0];
-const next = TIERS.find(([, from]) => from > SCORE);
-const pct = SCORE / 10;
-const rights = [
-  { value: '2', of: '/5', label: 'Đơn COD đang mở' },
-  { value: '5', of: '/20', label: 'Tin đang đăng' },
+const rep = await reputation(Astro.locals);
+const [rated, ratedLine] = ratingText(rep.rating);
+const [buyerRated, buyerLine] = ratingText(rep.buyer_rating);
+const seller: { value: string; of?: string; label: string }[] = [
+  { value: rated, of: rep.rating.count ? '/5' : undefined, label: ratedLine },
+  { value: group(rep.sold), label: 'đã bán' },
+  { value: rep.reply ? `${rep.reply.percent}%` : '–', label: rep.reply ? 'trả lời trong 24 giờ' : 'Chưa đủ tin nhắn để tính' },
+  { value: group(rep.followers), label: 'người theo dõi' },
 ];
-const ninety = [
-  { value: '0/11', label: 'Từ chối nhận COD' },
-  { value: '0', label: 'Ghi nhận bạn từ chối' },
-  { value: '0', label: 'Ghi nhận chưa trả lời' },
+const buyer = [
+  { value: buyerRated, of: rep.buyer_rating.count ? '/5' : undefined, label: buyerLine },
+  { value: group(rep.figures_90d.cod_orders), label: 'Đơn COD đã đặt' },
+  { value: group(rep.figures_90d.failed), label: 'Đơn giao không thành' },
 ];
-const ladder = ['Hạ hiển thị', 'Giới hạn COD', 'Mất COD', 'Khóa'];
-const boosts = [
-  { icon: 'verified-user-outline-rounded', title: 'Xác minh danh tính', sub: '+100 · một lần', end: 'app' },
-  { icon: 'bolt-rounded', title: 'Trả lời trong 1 giờ', sub: '+20 mỗi tháng · tháng này 9/10 tin', end: '9/10' },
-  { icon: 'handshake-outline-rounded', title: 'Hoàn tất giao dịch', sub: '+10 mỗi lần' },
+const caps = [
+  { ...rep.caps.cod_orders, label: 'Đơn COD đang mở' },
+  { ...rep.caps.listings, label: 'Tin đang đăng' },
 ];
 const stat = 'flex-1 px-4 first:pl-0';
+const figure = 'text-j-26 text-ink tabular-nums';
+const unit = 'text-body-medium font-medium tracking-normal text-on-surface-variant';
 ---
 
-<SettingsFrame title="Điểm uy tín" page="Điểm uy tín" meta="Người mua thấy bậc của bạn trên mọi tin bạn đăng">
-  <div class:list={[PANEL, 'px-5 pb-4 pt-5 md:px-6']}>
-    <div class="flex flex-wrap items-center gap-5">
-      <Photo src={tierTrusted} alt="" class="h-16 w-16 shrink-0 md:h-20 md:w-20" />
-      <div class="flex-1">
-        <p class="text-label-large text-on-surface-variant">Bậc hiện tại · {tier}</p>
-        <p class="tabular-nums">
-          <span class="text-j-32 text-ink md:text-j-32" data-count>{SCORE}</span><span class="text-title-medium text-on-surface-variant">/1000</span>
-        </p>
-      </div>
+<SettingsFrame title="Uy tín của bạn" page="Uy tín" meta={`Tham gia ${new Date(rep.joined_at).getFullYear()} · người mua thấy các số này trên trang của bạn`}>
+  <a href={R.seller(v.id)} class:list={['lift block px-5 pb-5 pt-4 md:px-6', PANEL]}>
+    <span class="flex items-center justify-between gap-3">
+      <span class={LABEL}>Khi bán</span>
+      <span class="flex items-center gap-1 text-label-large text-primary">Trang của bạn<Icon name="chevron-right-rounded" size={18} /></span>
+    </span>
+    <span class="mt-3 grid grid-cols-2 gap-y-4 md:flex md:divide-x md:divide-line">
       {
-        next && (
-          <div class="text-right">
-            <p class="text-title-medium font-semibold text-ink">Còn {next[1] - SCORE} điểm</p>
-            <p class="text-body-small text-on-surface-variant">lên {next[0]}</p>
-          </div>
-        )
-      }
-    </div>
-    <div class="relative mt-5 h-[62px]" role="img" aria-label={`${SCORE} trên 1000 điểm`}>
-      <div class="absolute inset-x-0 top-1.5 h-2 rounded-full bg-surface-container-high"></div>
-      <div class="absolute left-0 top-1.5 h-2 rounded-full bg-brand" style={`width:${pct}%`}></div>
-      <div class="absolute inset-x-0 top-0">
-        {
-          TIERS.map(([t, from]) => (
-            <span class="absolute top-0 -translate-x-1/2 text-center" style={`left:${Math.max(from / 10, 2)}%`}>
-              <span class="mx-auto block h-5 w-px bg-black/15" />
-              <span class:list={['mt-1 block whitespace-nowrap text-label-medium', t === tier ? 'text-ink' : 'text-on-surface-variant']}>{t}</span>
-              <span class="block text-body-small text-on-surface-variant tabular-nums">{from}</span>
+        seller.map((s) => (
+          <span class="block flex-1 pr-4 md:px-5 md:first:pl-0">
+            <span class:list={['block', figure]} data-count>
+              {s.value}
+              {s.of && <span class={unit}>{s.of}</span>}
             </span>
-          ))
-        }
-      </div>
-      <span class="absolute top-0 h-5 w-5 -translate-x-1/2 rounded-full border-4 border-card bg-primary shadow-soft" style={`left:${pct}%`}></span>
-    </div>
-  </div>
+            <span class="block text-body-small text-on-surface-variant">{s.label}</span>
+          </span>
+        ))
+      }
+    </span>
+  </a>
 
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-[2fr_3fr]">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-[3fr_2fr]">
     <div class:list={[PANEL, 'p-5']}>
-      <p class={LABEL}>Quyền của bạn</p>
+      <p class={LABEL}>Khi mua · 90 ngày</p>
       <div class="mt-3 flex divide-x divide-line">
         {
-          rights.map((r) => (
+          buyer.map((r) => (
             <div class={stat}>
-              <p class="text-j-26 text-ink tabular-nums">
+              <p class={figure}>
                 {r.value}
-                <span class="text-body-medium font-medium tracking-normal text-on-surface-variant">{r.of}</span>
+                {r.of && <span class={unit}>{r.of}</span>}
               </p>
               <p class="text-body-small text-on-surface-variant">{r.label}</p>
             </div>
@@ -88,13 +74,16 @@ const stat = 'flex-1 px-4 first:pl-0';
       </div>
     </div>
     <div class:list={[PANEL, 'p-5']}>
-      <p class={LABEL}>Chỉ số 90 ngày</p>
+      <p class={LABEL}>Giới hạn của bạn</p>
       <div class="mt-3 flex divide-x divide-line">
         {
-          ninety.map((r) => (
+          caps.map((c) => (
             <div class={stat}>
-              <p class="text-j-26 text-ink tabular-nums">{r.value}</p>
-              <p class="text-body-small text-on-surface-variant">{r.label}</p>
+              <p class={figure}>
+                {c.used}
+                <span class={unit}>/{c.max}</span>
+              </p>
+              <p class="text-body-small text-on-surface-variant">{c.label}</p>
             </div>
           ))
         }
@@ -102,112 +91,14 @@ const stat = 'flex-1 px-4 first:pl-0';
     </div>
   </div>
 
-  <div class:list={[PANEL, 'p-5']}>
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <p class="text-title-medium font-semibold text-ink">Khi vượt ngưỡng</p>
-      <div class="flex flex-wrap items-center gap-1.5">
-        {
-          ladder.map((t, i) => (
-            <>
-              <span
-                class:list={[
-                  'rounded-full px-3 py-1.5 text-label-medium',
-                  i === 0 ? 'bg-tertiary-fixed text-on-tertiary-fixed-variant' : 'bg-surface-container-low text-on-surface-variant',
-                ]}
-              >
-                {t}
-              </span>
-              {i < ladder.length - 1 && <Icon name="chevron-right-rounded" size={16} class="text-outline" />}
-            </>
-          ))
-        }
-      </div>
-    </div>
-    <p class="mt-2 text-body-small text-on-surface-variant">Vượt ngưỡng thì mất quyền theo thứ tự này. Sạch 30 ngày thì gỡ.</p>
-  </div>
-
-  <p class:list={[LABEL, 'mt-1']}>Tăng điểm</p>
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-    {
-      boosts.map((b) => (
-        <div class:list={[PANEL, 'flex flex-col p-4']}>
-          <div class="flex items-center justify-between">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-              <Icon name={b.icon} size={20} />
-            </span>
-            {b.end === 'app' && <span class="flex h-8 items-center rounded-full bg-mint px-3 text-label-medium whitespace-nowrap text-on-mint">Làm trên app</span>}
-            {b.end && b.end !== 'app' && <span class="text-title-small text-primary tabular-nums">{b.end}</span>}
-          </div>
-          <p class="mt-3 text-title-small text-ink">{b.title}</p>
-          <p class="text-body-small text-on-surface-variant">{b.sub}</p>
-        </div>
-      ))
-    }
-  </div>
-
-  <div class:list={[PANEL, 'p-5']}>
-    <p class="text-title-medium font-semibold text-ink">Lịch sử</p>
-    <ul class="mt-1 grid grid-cols-1 gap-x-8 md:grid-flow-col md:grid-cols-2 md:grid-rows-3">
-      {
-        REP_HISTORY.map((h, i) => (
-          <li class:list={['flex min-w-0 items-center gap-3 py-2.5', i % 3 ? 'border-t border-line' : i > 0 && 'max-md:border-t max-md:border-line']}>
-            <span
-              class:list={[
-                'grid h-9 w-9 shrink-0 place-items-center rounded-full',
-                h.pts < 0 ? 'bg-error/10 text-error' : 'bg-primary/10 text-primary',
-              ]}
-            >
-              <Icon name={h.icon} size={18} />
-            </span>
-            <span class="min-w-0 flex-1 truncate text-body-medium text-ink">{h.text}</span>
-            <span class="text-body-small text-on-surface-variant tabular-nums">{h.date}</span>
-            <span class:list={['w-10 text-right text-title-small tabular-nums', h.pts < 0 ? 'text-error' : 'text-primary']}>
-              {h.pts > 0 ? '+' : '−'}
-              {Math.abs(h.pts)}
-            </span>
-          </li>
-        ))
-      }
-    </ul>
-  </div>
-
   <Fragment slot="side">
     <div class:list={[PANEL, 'p-4']}>
-      <p class={LABEL}>Cách tính điểm</p>
-      <p class="mt-3 px-1 text-label-large text-on-surface-variant">Cộng</p>
-      <ul class="divide-y divide-line px-1">
-        {
-          REP_PLUS.map(([t, val]) => (
-            <li class="flex justify-between py-1.5 text-body-medium">
-              <span class="text-ink">{t}</span>
-              <span class="font-medium text-primary tabular-nums">{val}</span>
-            </li>
-          ))
-        }
-      </ul>
-      <p class="mt-3 px-1 text-label-large text-on-surface-variant">Trừ</p>
-      <ul class="px-1">
-        <li class="flex justify-between py-1.5 text-body-medium">
-          <span class="text-ink">Đánh giá 1–2 sao</span><span class="font-medium text-error tabular-nums">−15</span>
-        </li>
-      </ul>
-      <p class="mt-3 px-1 text-label-large text-on-surface-variant">Bậc</p>
-      <ul class="divide-y divide-line px-1">
-        {
-          TIERS.map(([t, from]) => (
-            <li class="flex justify-between py-1.5 text-body-medium">
-              <span class="text-ink">{t}</span>
-              <span class="text-on-surface-variant tabular-nums">từ {from}</span>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-    <div class:list={[PANEL, 'p-4']}>
       <ul class="flex flex-col gap-2 text-body-small text-on-surface-variant">
-        <li class="flex gap-2"><Icon name="history-rounded" size={16} class="mt-px" />Tính 12 tháng gần nhất, điểm cũ hơn tính một nửa</li>
         <li class="flex gap-2">
-          <Icon name="fact-check-outline-rounded" size={16} class="mt-px" />Chỉ tính việc app ghi nhận được, không tính tranh chấp
+          <Icon name="bolt-rounded" size={16} class="mt-px" />Trả lời tính trên tin nhắn người khác mở về tin của bạn trong 90 ngày, từ 5 cuộc trò chuyện
+        </li>
+        <li class="flex gap-2">
+          <Icon name="sell-outline-rounded" size={16} class="mt-px" />Tin đang đăng gồm cả tin chờ duyệt, bị ẩn, bị từ chối và tin đang giữ cho một đơn
         </li>
       </ul>
     </div>

@@ -39,8 +39,7 @@ export const CATS = [
   },
   {
     "name": "Xe đạp",
-    "icon": "pedal-bike-outline-rounded",
-    "count": "964"
+    "icon": "pedal-bike-outline-rounded"
   },
   {
     "name": "Xe máy",
@@ -59,13 +58,11 @@ export const CATS = [
   },
   {
     "name": "Máy ảnh",
-    "icon": "photo-camera-outline-rounded",
-    "count": "688"
+    "icon": "photo-camera-outline-rounded"
   },
   {
     "name": "Âm thanh",
-    "icon": "headphones-outline-rounded",
-    "count": "912"
+    "icon": "headphones-outline-rounded"
   }
 ];
 
@@ -73,32 +70,26 @@ export const CATS = [
 export const TRENDING = [
   {
     "q": "iPhone 13 Pro",
-    "count": "412",
     "median": "5,3 tr"
   },
   {
     "q": "MacBook Air M1",
-    "count": "268",
     "median": "11,2 tr"
   },
   {
     "q": "Xe đạp trẻ em",
-    "count": "190",
     "median": "850 k"
   },
   {
     "q": "Sofa 3 chỗ",
-    "count": "143",
     "median": "3,9 tr"
   },
   {
     "q": "Máy ảnh film",
-    "count": "96",
     "median": "1,6 tr"
   },
   {
     "q": "Tai nghe Sony",
-    "count": "121",
     "median": "2,9 tr"
   }
 ];
@@ -130,56 +121,47 @@ export const ACCOUNT_NAV = [
   {
     "key": "me",
     "icon": "person-outline-rounded",
-    "label": "Tôi",
-    "count": null
+    "label": "Tôi"
   },
   {
     "key": "listings",
     "icon": "storefront-outline-rounded",
-    "label": "Tin của bạn",
-    "count": "5"
+    "label": "Tin của bạn"
   },
   {
     "key": "orders",
     "icon": "receipt-long-outline-rounded",
-    "label": "Đơn hàng",
-    "count": "2"
+    "label": "Đơn hàng"
   },
   {
     "key": "sales",
     "icon": "inventory-2-outline-rounded",
-    "label": "Đơn bán",
-    "count": "1"
+    "label": "Đơn bán"
   },
   {
     "key": "saved",
     "icon": "favorite-outline-rounded",
-    "label": "Đã lưu",
-    "count": "13"
+    "label": "Đã lưu"
   },
   {
     "key": "messages",
     "icon": "chat-outline-rounded",
-    "label": "Tin nhắn",
-    "count": "3"
+    "label": "Tin nhắn"
   },
   {
     "key": "notifications",
     "icon": "notifications-outline-rounded",
-    "label": "Thông báo",
-    "count": "3"
+    "label": "Thông báo"
   },
   {
     "key": "cod",
     "icon": "local-shipping-outline-rounded",
-    "label": "Thiết lập giao COD",
-    "count": null
+    "label": "Thiết lập giao COD"
   },
   {
     "key": "support",
     "icon": "help-outline-rounded",
-    "label": "Hỗ trợ",
-    "count": "1"
+    "label": "Hỗ trợ"
   }
 ];
 

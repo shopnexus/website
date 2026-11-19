@@ -15,9 +15,9 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const forwardedFor = [ctx.request.headers.get('x-forwarded-for'), ctx.clientAddress].filter(Boolean).join(', ');
   ctx.locals.session = await openSession(ctx.cookies, ctx.url, forwardedFor);
   ctx.locals.api = apiClient(ctx.locals.session);
-  // Pages read the viewer before they stream, while a dead access cookie can
-  // still be dropped. Images, partials and endpoints do without it.
-  const page = ctx.request.method === 'GET' && ctx.request.headers.get('accept')?.includes('text/html');
-  ctx.locals.viewer = page ? await loadViewer(ctx.locals.api, ctx.locals.session, ctx.cookies) : null;
+  // Pages, and the form posts they handle, read the viewer before they stream,
+  // while a dead access cookie can still be dropped. Images, partials and endpoints do without it.
+  const page = ['GET', 'POST'].includes(ctx.request.method) && ctx.request.headers.get('accept')?.includes('text/html');
+  ctx.locals.viewer = page ? await loadViewer(ctx.locals.api, ctx.locals.session, ctx.cookies, ctx.request.method === 'GET') : null;
   return next();
 });

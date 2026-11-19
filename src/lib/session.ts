@@ -23,8 +23,20 @@ export const secondsUntil = (iso: string, margin = 0) => Math.max(1, Math.floor(
 
 /** Keeps a sign-in's or a refresh's tokens. The access cookie ends 30 s before the token does. */
 export function keepTokens(cookies: AstroCookies, url: URL, t: Tokens) {
-  cookies.set(ACCESS, t.access_token, cookie(url, secondsUntil(t.access_token_expires_at, 30)));
+  keepAccess(cookies, url, t);
   cookies.set(REFRESH, t.refresh_token, cookie(url, REFRESH_DAYS * 86400));
+}
+
+/** Keeps a new access token alone, as reauthentication gives; the refresh token stays. */
+export function keepAccess(cookies: AstroCookies, url: URL, t: Pick<Tokens, 'access_token' | 'access_token_expires_at'>) {
+  cookies.set(ACCESS, t.access_token, cookie(url, secondsUntil(t.access_token_expires_at, 30)));
+}
+
+/** A reauthenticated access token, kept and used for the rest of this request. */
+export function renewAccess(ctx: Pick<AstroGlobal, 'cookies' | 'url' | 'locals'>, t: Pick<Tokens, 'access_token' | 'access_token_expires_at'>) {
+  keepAccess(ctx.cookies, ctx.url, t);
+  ctx.locals.session = { ...ctx.locals.session, token: t.access_token };
+  ctx.locals.api = apiClient(ctx.locals.session);
 }
 
 const dropAccess = (cookies: AstroCookies) => cookies.delete(ACCESS, { path: '/' });
@@ -82,19 +94,39 @@ export interface Viewer {
   id: string;
   /** "Tài khoản của bạn" until the profile has a name. */
   name: string;
+  /** Whether the profile has a name of its own. */
+  named: boolean;
+  /** How the account signs in: its phone and email. */
+  identities: Schemas['Identity'][];
   /** The avatar's URL, absent without one. */
   photo?: string;
+  /** Unread messages and notices, for the header's badges. */
+  unread: { messages: number; notifications: number };
 }
 
 /** The signed-in buyer, or null. The middleware reads it before the page renders. */
 export const viewer = (ctx: Pick<AstroGlobal, 'locals'>): Viewer | null => ctx.locals.viewer;
 
 /** The middleware's second step, while cookies can still change. */
-export async function loadViewer(api: Api, session: Session, cookies: AstroCookies): Promise<Viewer | null> {
+/** `counts` false skips the badges' two calls: a form post redirects before anything shows them. */
+export async function loadViewer(api: Api, session: Session, cookies: AstroCookies, counts = true): Promise<Viewer | null> {
   if (!session.token) return null;
   try {
-    const me = await unwrap(api.GET('/v1/accounts/me'));
-    return { id: me.id, name: me.display_name || 'Tài khoản của bạn', photo: me.avatar_url };
+    // The badges are extra: a failure there leaves them at 0.
+    const count = (call: () => Promise<number>) => (counts ? call().catch(() => 0) : Promise.resolve(0));
+    const [me, messages, notifications] = await Promise.all([
+      unwrap(api.GET('/v1/accounts/me')),
+      count(() => unwrap(api.GET('/v1/me/unread')).then((u) => u.unread)),
+      count(() => unwrap(api.GET('/v1/notifications', { params: { query: { limit: 1 } } })).then((n) => n.unread)),
+    ]);
+    return {
+      id: me.id,
+      name: me.display_name || 'Tài khoản của bạn',
+      named: !!me.display_name,
+      photo: me.avatar_url,
+      identities: me.identities,
+      unread: { messages, notifications },
+    };
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) {
       // The access token no longer works; the refresh token decides on the next request.

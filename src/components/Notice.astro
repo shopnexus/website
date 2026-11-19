@@ -1,0 +1,18 @@
+---
+// A line over a form or a list: what went wrong (alert), or that an action
+// went through (ok, a status with a check).
+import Icon from './Icon.astro';
+
+interface Props {
+  text: string;
+  ok?: boolean;
+  class?: string;
+}
+
+const { text, ok = false, class: cls } = Astro.props;
+---
+
+<p role={ok ? 'status' : 'alert'} class:list={['flex items-start gap-2 rounded-tile bg-surface-container-low p-3 text-body-medium text-ink', cls]}>
+  <Icon name={ok ? 'check-circle-outline-rounded' : 'info-outline-rounded'} size={18} class:list={['mt-px shrink-0', ok ? 'text-primary' : 'text-on-surface-variant']} />
+  {text}
+</p>

@@ -13,8 +13,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
-    "api": "openapi-typescript ../server/api/openapi.yaml -o src/lib/api/schema.d.ts",
-    "api:check": "openapi-typescript ../server/api/openapi.yaml -o src/lib/api/schema.d.ts --check"
+    "api": "openapi-typescript ${SERVER_API:-../server/api}/openapi.yaml -o src/lib/api/schema.d.ts",
+    "api:check": "openapi-typescript ${SERVER_API:-../server/api}/openapi.yaml -o src/lib/api/schema.d.ts --check"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.9",

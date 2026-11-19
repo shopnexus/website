@@ -1,66 +1,136 @@
 ---
 import Photo from '../Photo.astro';
-// A saved listing: the filled heart to unsave, a price cut or the AI's note on
-// the photo; sold ones go grey with a link to similar listings.
-import type { SavedItem } from '../../data/orders';
-import { img, money, where } from '../../lib/format';
+// A saved listing: the filled heart to unsave, the cut since it was saved on
+// the photo, and the price alert under it. Sold ones go grey with a link to
+// similar listings; a hidden or deleted one shows only that it is gone.
+import type { Schemas } from '../../lib/api/client';
+import { money } from '../../lib/format';
+import { conditionLabel } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import Icon from '../Icon.astro';
+import Popover from '../Popover.astro';
 import Price from '../Price.astro';
 
 interface Props {
-  it: SavedItem;
+  it: Schemas['SavedListing'];
   /** "lazy" when it sits below the first screen. */
   loading?: 'eager' | 'lazy';
 }
 
 const { it, loading } = Astro.props;
-const sold = it.change === 'sold';
-const note = typeof it.change === 'object' ? ('cut' in it.change ? { icon: 'arrow-downward-rounded', v: it.change.cut } : { icon: 'auto-awesome-rounded', v: it.change.ai }) : null;
+const l = it.listing;
+const gone = !l.title || ['hidden', 'deleted', 'rejected'].includes(l.status);
+const sold = l.status === 'sold';
+const onSale = l.status === 'active';
+const cut = onSale && l.price !== undefined && l.price < it.saved_price ? it.saved_price - l.price : 0;
+const pop = `alert-${it.listing_id}`;
+const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Boolean).join(' · ');
 ---
 
-<article class="lift min-w-0 rounded-card border border-line bg-card p-2">
+<article class="lift relative min-w-0 rounded-card border border-line bg-card p-2">
   <div class="relative overflow-hidden rounded-lg bg-surface-container-high" style="aspect-ratio: 1 / 1">
-    <Photo src={img(it.photo, 400, 400)} width={400} height={400} alt={it.title} loading={loading} fade class:list={['h-full w-full object-cover', sold && 'opacity-60 grayscale']} />
+    {
+      l.cover_thumb_url && !gone ? (
+        <Photo src={l.cover_thumb_url} width={400} height={400} alt={l.title ?? ''} loading={loading} fade class:list={['h-full w-full object-cover', sold && 'opacity-60 grayscale']} />
+      ) : (
+        <span class="grid h-full w-full place-items-center text-on-surface-variant">
+          <Icon name={gone ? 'visibility-off-outline-rounded' : 'image-outline-rounded'} size={28} />
+        </span>
+      )
+    }
     <button
       type="button"
-      class="state-layer absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/85 text-teal backdrop-blur"
+      class="state-layer absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/85 text-teal backdrop-blur"
       aria-label="Bỏ lưu tin"
       aria-pressed="true"
-      data-save
+      data-save={it.listing_id}
     >
       <Icon name="favorite-outline-rounded" size={18} class="save-off" />
       <Icon name="favorite-rounded" size={18} class="save-on" />
     </button>
     {sold && <span class="absolute left-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-label-medium text-white backdrop-blur">Đã bán</span>}
+    {l.status === 'reserved' && <span class="absolute left-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-label-medium text-white backdrop-blur">Đang giao dịch</span>}
     {
-      note && (
+      cut > 0 && (
         <span class="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-label-medium text-photo-accent backdrop-blur">
-          <Icon name={note.icon} size={13} />
-          {note.v}
+          <Icon name="arrow-downward-rounded" size={13} />
+          Giảm {money(cut, true)}
         </span>
       )
     }
   </div>
   <div class="px-1.5 pb-1 pt-2">
     {
-      sold ? (
-        <span class="text-j-16 text-on-surface-variant line-through tabular-nums">{money(it.price, true)}</span>
+      gone ? (
+        <p class="text-body-medium text-on-surface-variant">Tin không còn hiển thị</p>
       ) : (
-        <Price vnd={it.price} size="text-j-16" class="block" />
+        <>
+          {l.price !== undefined &&
+            (sold ? (
+              <span class="text-j-16 text-on-surface-variant line-through tabular-nums">{money(l.price, true)}</span>
+            ) : (
+              <Price vnd={l.price} size="text-j-16" class="block" />
+            ))}
+          <h3 class:list={['line-clamp-1 text-body-medium', sold ? 'text-on-surface-variant' : 'text-ink']}>
+            <a href={R.listing(it.listing_id)} class="after:absolute after:inset-0 after:rounded-card">
+              {l.title}
+            </a>
+          </h3>
+          {meta && <p class="truncate text-body-small text-on-surface-variant">{meta}</p>}
+        </>
       )
     }
-    <h3 class:list={['line-clamp-1 text-body-medium', sold ? 'text-on-surface-variant' : 'text-ink']}>{it.title}</h3>
-    <p class="text-body-small text-on-surface-variant">{it.condition} · {where(it.km, it.area)}</p>
     {
-      sold && (
-        <a
-          href={`${R.search}?q=${encodeURIComponent(it.title)}`}
-          class="mt-1 inline-flex items-center gap-1 text-label-large text-primary hover:underline"
-        >
+      sold && l.title && (
+        <a href={`${R.search}?q=${encodeURIComponent(l.title)}`} class="relative z-10 mt-1 inline-flex items-center gap-1 text-label-large text-primary hover:underline">
           <Icon name="search-rounded" size={15} />
           Xem đồ tương tự
         </a>
+      )
+    }
+    {
+      onSale && (
+        <>
+          <button
+            type="button"
+            popovertarget={pop}
+            class="state-layer relative z-10 -mx-1.5 mt-1 flex h-8 max-w-full items-center gap-1.5 rounded-full px-1.5 text-label-large text-primary"
+          >
+            <Icon name="notifications-outline-rounded" size={16} />
+            <span class="truncate">{it.alert_below ? `Dưới ${money(it.alert_below, true)}` : 'Báo khi giảm giá'}</span>
+          </button>
+          <Popover id={pop} class="w-[288px] p-4" label="Báo khi giảm giá">
+            <form method="post" action={R.saved}>
+              <input type="hidden" name="listing" value={it.listing_id} />
+              <label class="block text-label-large text-on-surface-variant">
+                Báo khi giá dưới (₫)
+                <input
+                  type="number"
+                  name="below"
+                  min="10000"
+                  max="1000000000"
+                  step="1000"
+                  required
+                  value={it.alert_below ?? (l.price !== undefined ? Math.max(10_000, Math.floor((l.price * 0.9) / 1000) * 1000) : undefined)}
+                  class="mt-1.5 h-11 w-full rounded-field bg-surface-container-low px-3 text-body-large text-ink tabular-nums focus:bg-card focus:outline-2 focus:outline-primary"
+                />
+              </label>
+              <p class="mt-1.5 text-body-small text-on-surface-variant">
+                {it.alert_below ? 'Bỏ mức này thì vẫn báo mỗi lần giá xuống thấp hơn lúc lưu.' : 'Không đặt mức thì báo mỗi lần giá xuống thấp hơn lúc lưu.'}
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                {it.alert_below && (
+                  <button type="submit" name="do" value="alert-clear" formnovalidate class="state-layer h-9 rounded-control px-3 text-title-small text-ink">
+                    Bỏ mức
+                  </button>
+                )}
+                <button type="submit" name="do" value="alert" class="state-layer h-9 rounded-control bg-brand px-4 text-title-small text-white">
+                  Lưu
+                </button>
+              </div>
+            </form>
+          </Popover>
+        </>
       )
     }
   </div>

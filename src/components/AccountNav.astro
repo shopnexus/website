@@ -1,10 +1,13 @@
 ---
-import Photo from './Photo.astro';
-// Every account page's side column: who you are, then the account's pages;
-// the current one is an ink pill. Hidden below expanded, where BottomNav's Tôi leads to it.
-import { ACCOUNT_NAV, ME } from '../data/common';
-import { img } from '../lib/format';
+// Every account page's side column: who you are with your rating, then the
+// account's pages with the unread counts; the current one is an ink pill.
+// Hidden below expanded, where BottomNav's Tôi leads to it.
+import { ACCOUNT_NAV } from '../data/common';
+import { ratingText } from '../lib/format';
+import { reputation } from '../lib/profile';
 import { R } from '../lib/routes';
+import { viewer } from '../lib/session';
+import Avatar from './Avatar.astro';
 import Icon from './Icon.astro';
 
 export type AccountKey = (typeof ACCOUNT_NAV)[number]['key'];
@@ -14,6 +17,10 @@ interface Props {
 }
 
 const { active } = Astro.props;
+const me = viewer(Astro)!;
+// The rating and sales line; without it the card keeps the name alone.
+const rep = await reputation(Astro.locals).catch(() => null);
+const count: Partial<Record<AccountKey, number>> = { messages: me.unread.messages, notifications: me.unread.notifications };
 const HREF: Record<string, string> = {
   me: R.me,
   listings: R.myListings,
@@ -29,14 +36,17 @@ const HREF: Record<string, string> = {
 
 <aside class="hidden self-start lg:sticky lg:top-[84px] lg:block">
   <a href={R.me} class="border border-line bg-card flex items-center gap-3 rounded-panel p-3">
-    <Photo src={img(ME.photo, 176, 176)} width={176} height={176} alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-card" />
+    <Avatar name={me.name} photo={me.photo} size={44} class="ring-2 ring-card" />
     <span class="min-w-0">
-      <span class="flex items-center gap-1 truncate text-title-small text-ink">
-        {ME.name}<Icon name="verified-rounded" size={15} class="text-primary" />
-      </span>
-      <span class="flex items-center gap-1 text-body-small text-on-surface-variant">
-        <Icon name="star-rounded" size={13} class="text-star" />{ME.rating} · {ME.sold} đã bán
-      </span>
+      <span class="block truncate text-title-small text-ink">{me.name}</span>
+      {
+        rep && (
+          <span class="flex items-center gap-1 text-body-small text-on-surface-variant">
+            <Icon name="star-rounded" size={13} class="text-star" />
+            {ratingText(rep.rating)[0]} · {rep.sold} đã bán
+          </span>
+        )
+      }
     </span>
   </a>
   <nav class="mt-3 flex flex-col gap-0.5" aria-label="Tài khoản">
@@ -54,15 +64,8 @@ const HREF: Record<string, string> = {
           >
             <Icon name={on ? it.icon.replace('-outline', '') : it.icon} size={17} class={on ? 'text-brand' : 'text-sub'} />
             <span class="flex-1">{it.label}</span>
-            {it.count && (
-              <span
-                class:list={[
-                  'text-body-small tabular-nums',
-                  on ? 'text-on-mint' : 'text-faint',
-                ]}
-              >
-                {it.count}
-              </span>
+            {!!count[it.key] && (
+              <span class:list={['text-body-small tabular-nums', on ? 'text-on-mint' : 'text-faint']}>{count[it.key]}</span>
             )}
           </a>
         );

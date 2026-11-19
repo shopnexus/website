@@ -1,25 +1,33 @@
 ---
-// A switch. Clicking it flips aria-checked; the page reads that.
+// A switch. Clicking it flips aria-checked; the page reads that. With a name
+// it is a checkbox instead, so a form posts it (name=on when on).
 interface Props {
   on?: boolean;
   label: string;
+  name?: string;
 }
 
-const { on = true, label } = Astro.props;
+const { on = true, label, name } = Astro.props;
+const track =
+  'h-7 w-12 shrink-0 rounded-full bg-surface-container-highest transition-colors duration-(--duration-effects-default)';
+const knob =
+  'absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-knob transition-transform duration-(--duration-spatial-fast) ease-spatial-fast';
 ---
 
-<button
-  type="button"
-  role="switch"
-  aria-checked={on ? 'true' : 'false'}
-  aria-label={label}
-  class="group relative h-7 w-12 shrink-0 rounded-full bg-surface-container-highest transition-colors duration-(--duration-effects-default) aria-checked:bg-primary"
-  data-switch
->
-  <span
-    class="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-knob transition-transform duration-(--duration-spatial-fast) ease-spatial-fast group-aria-checked:translate-x-5"
-  ></span>
-</button>
+{
+  name ? (
+    <label class="relative inline-flex shrink-0 cursor-pointer">
+      <span class="sr-only">{label}</span>
+      <input type="checkbox" role="switch" name={name} checked={on} class="peer sr-only" />
+      <span class:list={[track, 'peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary']} />
+      <span class:list={[knob, 'peer-checked:translate-x-5']} />
+    </label>
+  ) : (
+    <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={label} class:list={['group relative', track, 'aria-checked:bg-primary']} data-switch>
+      <span class:list={[knob, 'group-aria-checked:translate-x-5']} />
+    </button>
+  )
+}
 
 <script>
   document.querySelectorAll<HTMLButtonElement>('[data-switch]').forEach((b) =>

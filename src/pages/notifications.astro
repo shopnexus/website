@@ -1,184 +1,270 @@
 ---
-import Photo from '../components/Photo.astro';
-// Thông báo: grouped by day, the unread ones tinted; on the side the browser
-// prompt and the notification settings.
+// Thông báo: the server's notices by day, newest first, the unread ones
+// tinted; opening one marks it read. On the side, the push settings.
 import Icon from '../components/Icon.astro';
 import PageTitle from '../components/PageTitle.astro';
-import Seg from '../components/Seg.astro';
 import Switch from '../components/Switch.astro';
 import AccountShell from '../components/account/AccountShell.astro';
 import Row from '../components/account/Row.astro';
-import { NOTES } from '../data/account';
-import { PROFILE_TASKS, TASKS_DONE } from '../data/common';
-import { img } from '../lib/format';
-import { R } from '../lib/routes';
+import { ApiError, orNull, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
+import { ago, dayLabel } from '../lib/format';
+import { R, localPath } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { btnCls, PANEL } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
 
-const TONES = {
+// The forms post here: open one notice, read all, or save the settings.
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const act = String(f.get('do') ?? '');
+  if (act === 'open') {
+    const id = String(f.get('id') ?? '');
+    const to = String(f.get('to') ?? '');
+    await orNull(api.POST('/v1/notifications/{id}/read', { params: { path: { id } } }));
+    return Astro.redirect(localPath(to, R.notifications), 303);
+  }
+  if (act === 'read-all') {
+    await unwrap(api.POST('/v1/notifications/read-all'));
+    return Astro.redirect(R.notifications, 303);
+  }
+  if (act === 'settings') {
+    const on = (k: string) => f.get(k) === 'on';
+    const body: Schemas['NotificationSettings'] = {
+      messages: on('messages'),
+      offers: on('offers'),
+      orders: on('orders'),
+      price_cuts: on('price_cuts'),
+      followed: on('followed'),
+      reviews: on('reviews'),
+      quiet: { on: on('quiet'), from: String(f.get('quiet_from') ?? ''), to: String(f.get('quiet_to') ?? '') },
+    };
+    try {
+      await unwrap(api.PUT('/v1/me/notification-settings', { body }));
+      return Astro.redirect(`${R.notifications}?settings=saved#settings`, 303);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 400) return Astro.redirect(`${R.notifications}?settings=bad#settings`, 303);
+      throw e;
+    }
+  }
+  return Astro.redirect(R.notifications, 303);
+}
+
+// "Xem thêm" opens the next page in place of the first; a broken cursor reads the first.
+const after = Astro.url.searchParams.get('after') ?? undefined;
+const [listed, settings] = await Promise.all([
+  pageOrFirst(after, (cursor) => api.GET('/v1/notifications', { params: { query: { cursor, limit: 30 } } })),
+  unwrap(api.GET('/v1/me/notification-settings')),
+]);
+const saved = Astro.url.searchParams.get('settings');
+
+type Tone = 'offer' | 'deal' | 'neutral';
+const TONES: Record<Tone, string> = {
   offer: 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
   deal: 'bg-primary/10 text-primary',
   neutral: 'bg-surface-container-low text-on-surface-variant',
 };
-const groups = NOTES.map(([day, items]) => [
-  day,
-  items.map((n) => (n.icon === 'checklist-rounded' ? { ...n, html: `Còn ${PROFILE_TASKS.length - TASKS_DONE} bước để hoàn thiện hồ sơ` } : n)),
-] as const);
-// Photos past the fifth sit below the first screen.
-const later = new Set(groups.flatMap(([, n]) => n).filter((n) => n.photo).slice(5));
-const unread = NOTES.flatMap(([, n]) => n).filter((n) => n.unread).length;
-const counts = [
-  ['4', 'hôm nay'],
-  ['2', 'trả giá'],
-  ['2', 'đơn COD'],
-];
+// By type; the compiler names a type the server adds, and an unknown one at run time gets the bell.
+const LOOK: Record<Schemas['Notification']['type'], [string, Tone]> = {
+  offer: ['sell-outline-rounded', 'offer'],
+  counter: ['sell-outline-rounded', 'offer'],
+  agreed: ['handshake-outline-rounded', 'deal'],
+  declined: ['cancel-outline-rounded', 'neutral'],
+  agreement_cancelled: ['cancel-outline-rounded', 'neutral'],
+  offer_voided: ['cancel-outline-rounded', 'neutral'],
+  cod_requested: ['receipt-long-outline-rounded', 'deal'],
+  shipped: ['local-shipping-outline-rounded', 'deal'],
+  completed: ['check-circle-outline-rounded', 'deal'],
+  failed: ['error-outline-rounded', 'neutral'],
+  order_cancelled: ['cancel-outline-rounded', 'neutral'],
+  listing_live: ['storefront-outline-rounded', 'deal'],
+  listing_rejected: ['report-outline-rounded', 'neutral'],
+  followed_listing: ['person-add-outline-rounded', 'neutral'],
+  review: ['star-outline-rounded', 'neutral'],
+  review_reply: ['reply-rounded', 'neutral'],
+  suspended: ['block-rounded', 'neutral'],
+  unsuspended: ['verified-user-outline-rounded', 'deal'],
+  watch_matched: ['search-rounded', 'deal'],
+  price_dropped: ['trending-down-rounded', 'deal'],
+};
+const look = (k: string) => LOOK[k as keyof typeof LOOK] ?? (['notifications-outline-rounded', 'neutral'] as const);
 
-type Pref = { icon: string; title: string; sub?: string; trail: 'on' | 'off' | 'chevron' | string; href?: string };
+/** The page a notice opens. */
+function href({ kind, id }: Schemas['Target']) {
+  switch (kind) {
+    case 'deal':
+      return `${R.messages}?deal=${id}`;
+    case 'order':
+      return R.order(id);
+    case 'listing':
+      return R.listing(id);
+    case 'seller_reviews':
+      return `${R.seller(id)}#danh-gia`;
+    case 'search_watch':
+      return `${R.search}?watch=${id}`;
+    default:
+      return R.me;
+  }
+}
+
+const groups: [string, Schemas['Notification'][]][] = [];
+for (const n of listed.items) {
+  const label = dayLabel(n.at);
+  const last = groups.at(-1);
+  if (last?.[0] === label) last[1].push(n);
+  else groups.push([label, [n]]);
+}
+
+type Pref = { name: keyof Omit<Schemas['NotificationSettings'], 'quiet'>; icon: string; title: string };
 const prefs: [string, Pref[]][] = [
   [
     'Giao dịch',
     [
-      { icon: 'chat-outline-rounded', title: 'Tin nhắn', trail: 'on' },
-      { icon: 'sell-outline-rounded', title: 'Trả giá và chốt giá', trail: 'on' },
-      { icon: 'local-shipping-outline-rounded', title: 'Đơn hàng và giao hàng', trail: 'on' },
+      { name: 'messages', icon: 'chat-outline-rounded', title: 'Tin nhắn' },
+      { name: 'offers', icon: 'sell-outline-rounded', title: 'Trả giá và chốt giá' },
+      { name: 'orders', icon: 'local-shipping-outline-rounded', title: 'Đơn hàng và giao hàng' },
     ],
   ],
   [
     'Giá và tin mới',
     [
-      { icon: 'trending-down-rounded', title: 'Giảm giá ở tin đã lưu', trail: 'on' },
-      { icon: 'storefront-outline-rounded', title: 'Người bán bạn theo dõi', trail: 'on' },
-      { icon: 'search-rounded', title: 'Tìm kiếm đang theo dõi', sub: 'Bật chuông ở từng tìm kiếm trong Đã lưu', trail: 'chevron', href: R.saved },
+      { name: 'price_cuts', icon: 'trending-down-rounded', title: 'Giảm giá ở tin đã lưu' },
+      { name: 'followed', icon: 'storefront-outline-rounded', title: 'Người bán bạn theo dõi' },
     ],
   ],
-  ['Tài khoản', [{ icon: 'star-outline-rounded', title: 'Đánh giá mới', trail: 'on' }]],
-  [
-    'Giờ yên lặng',
-    [
-      { icon: 'bedtime-outline-rounded', title: 'Tắt tiếng ban đêm', sub: 'Từ 22:00 đến 07:00', trail: 'on' },
-      { icon: 'schedule-outline-rounded', title: 'Bắt đầu', trail: '22:00' },
-      { icon: 'schedule-outline-rounded', title: 'Kết thúc', trail: '07:00' },
-    ],
-  ],
+  ['Đánh giá', [{ name: 'reviews', icon: 'star-outline-rounded', title: 'Đánh giá và trả lời' }]],
 ];
+const row = 'state-layer flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left';
+const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium text-ink tabular-nums focus:bg-card focus:outline-2 focus:outline-primary';
 ---
 
 <AccountShell title="Thông báo · ShopNexus" active="notifications">
   <PageTitle title="Thông báo">
-    <p slot="meta" class="mt-1 flex flex-wrap items-center gap-x-3 text-body-medium text-on-surface-variant">
-      <span class="flex items-center gap-1.5" data-unread-count><span class="h-2 w-2 rounded-full bg-primary"></span>{unread} chưa đọc</span>
-      {
-        counts.map(([n, l]) => (
-          <span>
-            <b class="font-semibold text-ink tabular-nums">{n}</b> {l}
-          </span>
-        ))
-      }
+    <p slot="meta" class="mt-1 flex items-center gap-1.5 text-body-medium text-on-surface-variant">
+      {listed.unread > 0 && <span class="h-2 w-2 rounded-full bg-primary" />}
+      {listed.unread ? `${listed.unread} chưa đọc` : 'Đã đọc hết'}
     </p>
-    <button type="button" class={btnCls('line')} data-read-all><Icon name="done-all-rounded" size={18} />Đánh dấu đã đọc</button>
+    {
+      listed.unread > 0 && (
+        <form method="post">
+          <button type="submit" name="do" value="read-all" class={btnCls('line')}>
+            <Icon name="done-all-rounded" size={18} />
+            Đánh dấu đã đọc
+          </button>
+        </form>
+      )
+    }
   </PageTitle>
-  <div class="max-w-full overflow-x-auto no-scrollbar">
-    <Seg items={['Tất cả', 'Giao dịch', 'Giá và tin mới', 'Tài khoản']} class="border border-line bg-card" name="Loại thông báo" />
-  </div>
   <div class:list={[PANEL, 'p-3']}>
     {
-      groups.map(([day, items], i) => (
-        <section class:list={[i > 0 && 'mt-3 border-t border-line pt-3']} data-group>
-          <h2 class="px-3 pb-1 text-label-medium text-on-surface-variant">{day}</h2>
-          <ul class="flex flex-col gap-0.5">
-            {items.map((n) => (
-              <li
-                class:list={['state-layer flex items-start gap-3 rounded-lg px-3 py-2.5', n.unread && 'bg-primary/5']}
-                data-tab={n.tab}
-                data-unread={n.unread ? '' : undefined}
-              >
-                <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full', TONES[n.tone]]}>
-                  <Icon name={n.icon} size={18} />
-                </span>
-                <div class="min-w-0 flex-1">
-                  <p class="text-body-medium text-ink" set:html={n.html} />
-                  <p class="text-body-small text-on-surface-variant">{n.when}</p>
-                  {n.action && (
-                    <a
-                      href={n.action.href}
-                      class="mt-1.5 inline-flex h-7 items-center rounded-full border border-line bg-card px-3 text-label-medium text-primary hover:bg-surface-container-low"
-                    >
-                      {n.action.label}
-                    </a>
-                  )}
-                </div>
-                {n.photo && <Photo src={img(n.photo, 96, 96)} width={96} height={96} alt="" loading={later.has(n) ? 'lazy' : 'eager'} class="h-12 w-12 shrink-0 rounded-md object-cover" />}
-                <span class="self-center">
-                  {n.unread ? (
-                    <span class="block h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Chưa đọc" data-dot />
-                  ) : (
-                    <span class="block w-2 shrink-0" />
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))
+      groups.length === 0 ? (
+        <div class="flex flex-col items-center px-6 py-12 text-center">
+          <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+            <Icon name="notifications-outline-rounded" size={24} />
+          </span>
+          <p class="mt-3 text-title-medium text-ink">{after ? 'Không còn thông báo cũ hơn' : 'Chưa có thông báo'}</p>
+          <p class="mt-1 text-body-medium text-on-surface-variant">Lời trả giá, đơn COD và tin giảm giá sẽ hiện ở đây.</p>
+        </div>
+      ) : (
+        groups.map(([day, items], i) => (
+          <section class:list={[i > 0 && 'mt-3 border-t border-line pt-3']}>
+            <h2 class="px-3 pb-1 text-label-medium text-on-surface-variant">{day}</h2>
+            <ul class="flex flex-col gap-0.5">
+              {items.map((n) => {
+                const [icon, tone] = look(n.type);
+                const to = href(n.target);
+                const body = (
+                  <>
+                    <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full', TONES[tone]]}>
+                      <Icon name={icon} size={18} />
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-body-medium text-ink">{n.text}</span>
+                      <span class="block text-body-small text-on-surface-variant">{ago(n.at)} trước</span>
+                    </span>
+                    <span class="self-center">
+                      {n.unread ? <span class="block h-2 w-2 rounded-full bg-primary" aria-label="Chưa đọc" /> : <span class="block w-2" />}
+                    </span>
+                  </>
+                );
+                return (
+                  <li>
+                    {n.unread ? (
+                      <form method="post">
+                        <input type="hidden" name="id" value={n.id} />
+                        <input type="hidden" name="to" value={to} />
+                        <button type="submit" name="do" value="open" class:list={[row, 'bg-primary/5']}>
+                          {body}
+                        </button>
+                      </form>
+                    ) : (
+                      <a href={to} class={row}>
+                        {body}
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))
+      )
     }
   </div>
+  {
+    (listed.next_cursor || after) && (
+      <div class="flex justify-center gap-2">
+        {after && (
+          <a href={R.notifications} class={btnCls('line')}>
+            Mới nhất
+          </a>
+        )}
+        {listed.next_cursor && (
+          <a href={`?${new URLSearchParams({ after: listed.next_cursor })}`} class={btnCls('line')}>
+            Xem thêm
+            <Icon name="keyboard-arrow-down-rounded" size={17} />
+          </a>
+        )}
+      </div>
+    )
+  }
 
   <Fragment slot="side">
-    <section
-      class="relative overflow-hidden rounded-panel bg-brand p-5 text-white"
-    >
-      <span class="grid h-10 w-10 place-items-center rounded-full bg-white/20"><Icon name="notifications-active-outline-rounded" size={22} /></span>
-      <p class="mt-3 text-j-20">Không bỏ lỡ lời trả giá</p>
-      <p class="mt-1 text-body-small text-white/85">Bật thông báo trên trình duyệt hoặc tải app để nhận ngay khi có người trả giá.</p>
-      <button type="button" class="state-layer mt-4 h-10 w-full rounded-full bg-white text-label-large text-clay" data-push>Bật thông báo trình duyệt</button>
-    </section>
-    <div class:list={[PANEL, 'p-4']}>
-      <h2 class="px-1 pb-2 text-title-medium font-semibold text-ink">Cài đặt thông báo</h2>
+    <form method="post" id="settings" class:list={[PANEL, 'scroll-mt-24 p-4']}>
+      <h2 class="px-1 text-title-medium font-semibold text-ink">Cài đặt thông báo</h2>
+      <p class="px-1 pb-2 text-body-small text-on-surface-variant">Tắt một mục chỉ tắt thông báo đẩy; thông báo vẫn có ở đây.</p>
       {
         prefs.map(([group, rows], i) => (
           <>
             <p class:list={['px-1 text-label-medium text-on-surface-variant', i > 0 && 'mt-3']}>{group}</p>
-            {rows.map((r) =>
-              r.trail === 'chevron' ? (
-                <Row icon={r.icon} title={r.title} sub={r.sub} href={r.href} class="-mx-2" />
-              ) : (
-                <Row icon={r.icon} title={r.title} sub={r.sub} class="-mx-2">
-                  {r.trail === 'on' || r.trail === 'off' ? (
-                    <Switch slot="trail" on={r.trail === 'on'} label={r.title} />
-                  ) : (
-                    <span slot="trail" class="text-body-medium text-on-surface-variant tabular-nums">
-                      {r.trail}
-                    </span>
-                  )}
-                </Row>
-              ),
-            )}
+            {rows.map((r) => (
+              <Row icon={r.icon} title={r.title} class="-mx-2">
+                <Switch slot="trail" name={r.name} on={settings[r.name]} label={r.title} />
+              </Row>
+            ))}
           </>
         ))
       }
-    </div>
+      <Row icon="search-rounded" title="Tìm kiếm đang theo dõi" sub="Bật chuông ở từng tìm kiếm trong Đã lưu" href={R.saved} class="-mx-2" />
+      <p class="mt-3 px-1 text-label-medium text-on-surface-variant">Giờ yên lặng</p>
+      <Row icon="bedtime-outline-rounded" title="Tắt tiếng ban đêm" sub="Giờ Việt Nam" class="-mx-2">
+        <Switch slot="trail" name="quiet" on={settings.quiet.on} label="Tắt tiếng ban đêm" />
+      </Row>
+      <div class="mt-1 grid grid-cols-2 gap-2 px-1">
+        <label class="flex flex-col gap-1 text-label-medium text-on-surface-variant">
+          Bắt đầu
+          <input type="time" name="quiet_from" value={settings.quiet.from} required class={time} />
+        </label>
+        <label class="flex flex-col gap-1 text-label-medium text-on-surface-variant">
+          Kết thúc
+          <input type="time" name="quiet_to" value={settings.quiet.to} required class={time} />
+        </label>
+      </div>
+      {saved === 'bad' && <p class="mt-3 px-1 text-body-small text-error">Giờ bắt đầu và kết thúc phải khác nhau.</p>}
+      {saved === 'saved' && <p class="mt-3 px-1 text-body-small text-primary">Đã lưu cài đặt.</p>}
+      <button type="submit" name="do" value="settings" class:list={[btnCls('ink'), 'mt-4 w-full']}>Lưu cài đặt</button>
+    </form>
   </Fragment>
 </AccountShell>
-
-<script>
-  // The tabs filter the list; "Đánh dấu đã đọc" clears the unread tint and dots.
-  const TABS = ['all', 'deal', 'price', 'account'];
-  const list = document.querySelectorAll<HTMLElement>('[data-tab]');
-  document.querySelector('[aria-label="Loại thông báo"]')?.addEventListener('seg-change', (e) => {
-    const tab = TABS[(e as CustomEvent<{ index: number }>).detail.index];
-    list.forEach((li) => (li.hidden = tab !== 'all' && li.dataset.tab !== tab));
-    document.querySelectorAll<HTMLElement>('[data-group]').forEach((g) => (g.hidden = !g.querySelector('[data-tab]:not([hidden])')));
-  });
-  document.querySelector('[data-read-all]')?.addEventListener('click', () => {
-    document.querySelectorAll('[data-unread]').forEach((li) => li.classList.remove('bg-primary/5'));
-    document.querySelectorAll('[data-dot]').forEach((d) => d.remove());
-    const c = document.querySelector('[data-unread-count]');
-    if (c?.lastChild) c.lastChild.textContent = '0 chưa đọc';
-  });
-  document.querySelector('[data-push]')?.addEventListener('click', () => {
-    if ('Notification' in window) Notification.requestPermission();
-  });
-</script>

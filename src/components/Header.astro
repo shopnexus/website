@@ -93,13 +93,23 @@ const account = [
             <a href={R.saved} class={iconBtn} aria-label="Đã lưu" title="Đã lưu">
               <Icon name="favorite-outline-rounded" size={19} />
             </a>
-            <a href={R.notifications} class={iconBtn} aria-label="Thông báo, có tin mới" title="Thông báo">
+            <a
+              href={R.notifications}
+              class={iconBtn}
+              aria-label={me.unread.notifications ? 'Thông báo, có tin mới' : 'Thông báo'}
+              title="Thông báo"
+            >
               <Icon name="notifications-outline-rounded" size={19} />
-              <span class="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-page bg-error" />
+              {me.unread.notifications > 0 && <span class="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-page bg-error" />}
             </a>
-            <a href={R.messages} class={iconBtn} aria-label="Tin nhắn, 3 chưa đọc" title="Tin nhắn">
+            <a
+              href={R.messages}
+              class={iconBtn}
+              aria-label={me.unread.messages ? `Tin nhắn, ${me.unread.messages} chưa đọc` : 'Tin nhắn'}
+              title="Tin nhắn"
+            >
               <Icon name="chat-outline-rounded" size={19} />
-              <span class={badge}>3</span>
+              {me.unread.messages > 0 && <span class={badge}>{me.unread.messages > 99 ? '99+' : me.unread.messages}</span>}
             </a>
             <span class="mx-1.5 hidden h-6 w-px bg-field lg:block" />
             <a href={R.post} class={sell}>

@@ -37,8 +37,24 @@ export function ago(iso: string, now = Date.now()) {
 }
 
 /** A seller's rating as a figure and its line: ["4,9", "32 đánh giá"], or a dash without reviews. */
-export const ratingText = (r: { average: number; count: number }): [string, string] =>
-  r.count ? [decimal(r.average), `${r.count} đánh giá`] : ['–', 'Chưa có đánh giá'];
+export const ratingText = (r: { average: number | null; count: number }): [string, string] =>
+  r.count && r.average !== null ? [decimal(r.average), `${r.count} đánh giá`] : ['–', 'Chưa có đánh giá'];
+
+/** Vietnam's time zone, for every date the site shows. */
+export const TZ = 'Asia/Ho_Chi_Minh';
+
+const dayKey = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: TZ });
+
+/** A day as a list heading: Hôm nay, Hôm qua, the weekday within a week, then the date. */
+export function dayLabel(iso: string, now = new Date()) {
+  const d = new Date(iso);
+  const days = Math.round((Date.parse(dayKey(now)) - Date.parse(dayKey(d))) / 86_400_000);
+  if (days <= 0) return 'Hôm nay';
+  if (days === 1) return 'Hôm qua';
+  if (days < 7) return d.toLocaleDateString('vi-VN', { timeZone: TZ, weekday: 'long' }).replace(/^./, (c) => c.toUpperCase());
+  const [y, m, day] = dayKey(d).split('-');
+  return y === dayKey(now).slice(0, 4) ? `${day}/${m}` : `${day}/${m}/${y}`;
+}
 
 /** Seconds as a countdown: 0:45. */
 export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -73,3 +89,14 @@ export function crop(id: string, size: number, fx = 0.5, fy = 0.5, zoom = 1) {
 /** A listing's photo at w×h, cropped when the listing says so. */
 export const listingPhoto = (it: Pick<Listing, 'photo' | 'crop'>, w: number, h = w) =>
   it.crop ? crop(it.photo, Math.max(w, h), ...it.crop) : img(it.photo, w, h);
+
+/** A day as Vietnam writes it, in Vietnam's time: 02/10/2026. */
+export const date = (iso: string) =>
+  new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ });
+
+/** A +84 number as people write it: 0912 345 678, or with the middle hidden: 09•• ••• 678. */
+export function phoneText(e164: string, masked = false) {
+  const d = e164.replace(/^\+84/, '0');
+  if (d.length !== 10) return d;
+  return masked ? `${d.slice(0, 2)}•• ••• ${d.slice(7)}` : `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}`;
+}

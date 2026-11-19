@@ -1,16 +1,17 @@
 ---
-import Photo from '../../components/Photo.astro';
-// Hoàn thiện hồ sơ: the steps left, counted from PROFILE_TASKS. Identity
-// verification needs NFC, so the page shows its steps and a code to open the app.
-import tierTrusted from '@brand/tier_trusted.webp';
+// Hoàn thiện hồ sơ: the steps left and the profile itself. The name and the
+// bio post with the page; the avatar uploads from the browser, then posts its
+// upload id. Adding a phone waits for the app's phone sign-in on the web.
+import Notice from '../../components/Notice.astro';
+import Avatar from '../../components/Avatar.astro';
 import Field from '../../components/Field.astro';
 import Icon from '../../components/Icon.astro';
 import Ring from '../../components/account/Ring.astro';
 import Row from '../../components/account/Row.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
 import SideList from '../../components/account/SideList.astro';
-import { PHONE, SCORE, TIERS } from '../../data/account';
-import { ADDRESS_BOOK, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
+import { ApiError, type Schemas, unwrap } from '../../lib/api/client';
+import { ADDRESS_KIND, TASK, type TaskKey, phoneOf } from '../../lib/profile';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 import { btnCls, LABEL, PANEL } from '../../lib/ui';
@@ -18,181 +19,225 @@ import { btnCls, LABEL, PANEL } from '../../lib/ui';
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
 
-const left = PROFILE_TASKS.length - TASKS_DONE;
-const todo = PROFILE_TASKS.filter((t) => !t.done);
-const done = PROFILE_TASKS.filter((t) => t.done);
-const defaultAddress = ADDRESS_BOOK.find((a) => a.default) ?? ADDRESS_BOOK[0];
-const doneSub: Record<string, string> = {
-  phone: PHONE,
-  avatar: 'Đã thêm',
-  address: `${ADDRESS_BOOK.length} địa chỉ · ${defaultAddress?.label} là mặc định`,
-};
-const doneNames = done.map((t) => (t.key === 'address' ? 'địa chỉ' : t.title.toLowerCase())).join(', ').replace(/, ([^,]*)$/, ' và $1');
-const kycSteps = [
-  { icon: 'badge-outline-rounded', text: 'Chụp 2 mặt CCCD' },
-  { icon: 'nfc-rounded', text: 'Đọc chip trên thẻ' },
-  { icon: 'face-outline-rounded', text: 'Quét khuôn mặt' },
-];
-const unlocks = [
-  { icon: 'sell-outline-rounded', text: 'Đăng tin bán, sau khi xác minh và thiết lập COD' },
-  { icon: 'military-tech-outline-rounded', text: '+100 điểm uy tín khi xác minh danh tính' },
-];
-const next = TIERS.find(([, from]) => from > SCORE);
+const api = Astro.locals.api;
+const NAME_MAX = 50;
+const BIO_MAX = 200;
 
-// A drawn stand-in for the app link's QR code.
-const N = 11;
-const qr = Array.from({ length: N * N }, (_, i) => {
-  const x = i % N;
-  const y = Math.floor(i / N);
-  const corner = (x < 3 && y < 3) || (x > N - 4 && y < 3) || (x < 3 && y > N - 4);
-  return corner || (x * 7 + y * 3 + x * y) % 3 === 0;
-});
+let error: string | undefined;
+let fields: Record<string, string> = {};
+let posted: { name: string; bio: string } | undefined;
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const step = form.get('step');
+  let body: Schemas['AccountUpdate'] | undefined;
+  if (step === 'profile') {
+    posted = { name: String(form.get('display_name') ?? ''), bio: String(form.get('bio') ?? '') };
+    body = { display_name: posted.name, bio: posted.bio };
+  } else if (step === 'avatar' && form.get('avatar_upload_id')) {
+    body = { avatar_upload_id: String(form.get('avatar_upload_id')) };
+  } else if (step === 'remove-avatar') {
+    body = { avatar_upload_id: null };
+  }
+  if (body) {
+    try {
+      await unwrap(api.PATCH('/v1/accounts/me', { body }));
+      return Astro.redirect(`${R.profileTasks}?saved`, 303);
+    } catch (e) {
+      const code = e instanceof ApiError ? e.code : '';
+      if (code === 'invalid_account' && e instanceof ApiError) {
+        fields = Object.fromEntries(
+          Object.keys(e.fields).map((k) => [k, k === 'bio' ? `Tối đa ${BIO_MAX} ký tự.` : `Tên từ 1 đến ${NAME_MAX} ký tự.`]),
+        );
+      } else if (code === 'invalid_upload') error = 'Ảnh này chưa dùng được. Bạn chọn ảnh khác nhé.';
+      else error = 'Chưa lưu được. Bạn thử lại sau nhé.';
+    }
+  }
+}
+
+const screen = await unwrap(api.GET('/v1/screens/profile-tasks'));
+const { account, address, tasks } = screen;
+const phone = phoneOf(account.identities);
+const done = tasks.filter((t) => t.done);
+const todo = tasks.filter((t) => !t.done);
+const name = posted?.name ?? account.display_name;
+const bio = posted?.bio ?? account.bio;
+
+// A step not done: where it is done, and its line. Phone has no place yet.
+const todoRow: Record<TaskKey, { href?: string; sub: string }> = {
+  avatar: { href: '#avatar', sub: 'Người mua dễ nhận ra bạn' },
+  bio: { href: '#bio', sub: 'Vài dòng về bạn và món bạn hay bán' },
+  address: { href: R.addresses, sub: 'Để nhận hàng COD' },
+  phone: { sub: 'Sắp có trên web' },
+};
+const doneSub: Record<TaskKey, string | undefined> = {
+  avatar: 'Đã thêm',
+  bio: 'Đã viết',
+  address: address ? `${ADDRESS_KIND[address.kind].label} là mặc định · ${address.street}` : undefined,
+  phone,
+};
 ---
 
-<SettingsFrame
-  title="Hoàn thiện hồ sơ"
-  page="Hoàn thiện hồ sơ"
-  meta={`${TASKS_DONE}/${PROFILE_TASKS.length} bước · ${doneNames} đã xong`}
->
+<SettingsFrame title="Hoàn thiện hồ sơ" page="Hoàn thiện hồ sơ" meta={`${done.length}/${tasks.length} bước đã xong`}>
   <div class:list={[PANEL, 'p-5']}>
     <div class="flex items-center gap-5">
-      <Ring done={TASKS_DONE} total={PROFILE_TASKS.length} size={84} stroke={8} />
+      <Ring done={done.length} total={tasks.length} size={84} stroke={8} />
       <div class="min-w-0 flex-1">
-        <p class="text-label-large text-on-surface-variant">Còn {left} bước</p>
-        <p class="text-j-24 text-ink md:text-j-26">Lên Người bán tin cậy</p>
-        <p class="mt-1 text-body-medium text-on-surface-variant">Xác minh danh tính và thiết lập giao COD là đủ để đăng tin.</p>
+        <p class="text-label-large text-on-surface-variant">{todo.length ? `Còn ${todo.length} bước` : 'Đã đủ các bước'}</p>
+        <p class="text-j-24 text-ink md:text-j-26">Hồ sơ đủ, người mua dễ tin hơn</p>
       </div>
-      <Photo src={tierTrusted} alt="" class="hidden h-20 w-20 md:block" />
     </div>
   </div>
 
-  <p class:list={[LABEL, 'mt-1']}>Cần làm · {todo.length}</p>
-
   {
-    todo.map((t) =>
-      t.key === 'kyc' ? (
-        <div class:list={[PANEL, 'p-5 ring-2 ring-primary/30']}>
-          <div class="flex flex-wrap items-start gap-4">
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-on-primary">
-              <Icon name={t.icon} size={22} />
-            </span>
-            <div class="min-w-0 flex-1">
-              <p class="flex flex-wrap items-center gap-2 text-title-medium font-semibold text-ink">
-                {t.title}
-                <span class="rounded-full bg-primary/10 px-2 py-0.5 text-label-medium text-primary">+100 điểm uy tín</span>
-              </p>
-              <p class="mt-0.5 text-body-medium text-on-surface-variant">Cần để đăng tin · 2 phút · mã hóa</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                {kycSteps.map((s) => (
-                  <span class="flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-label-medium text-ink">
-                    <Icon name={s.icon} size={16} class="text-primary" />
-                    {s.text}
-                  </span>
-                ))}
-              </div>
-              <p class="mt-3 text-body-small text-on-surface-variant">
-                Cần CCCD gắn chip và điện thoại có NFC, nên bước này làm trên app: Tôi › Xác minh danh tính, hoặc quét mã.
-              </p>
-            </div>
-            <div class="shrink-0 rounded-tile border border-line bg-card p-2.5" role="img" aria-label="Mã mở app ShopNexus">
-              <div class="grid h-[104px] w-[104px] gap-[1.5px]" style={`grid-template-columns:repeat(${N},1fr)`}>
-                {qr.map((on) => <span class:list={['rounded-[2px]', on && 'bg-ink']} />)}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : t.key === 'cod' ? (
-        <a href={R.codSetup} class:list={['lift flex flex-wrap items-center gap-4 p-5', PANEL]}>
-          <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
-            <Icon name={t.icon} size={22} />
-          </span>
-          <span class="min-w-0 flex-1">
-            <span class="block text-title-medium font-semibold text-ink">{t.title}</span>
-            <span class="block text-body-medium text-on-surface-variant">Cần để đăng tin · nhận tiền COD</span>
-          </span>
-          <span class={btnCls('ink')}>
-            Thiết lập
-            <Icon name="arrow-forward-rounded" size={16} />
-          </span>
-        </a>
-      ) : (
-        <form class:list={[PANEL, 'p-5']}>
-          <p class="flex items-center gap-2 text-title-medium font-semibold text-ink">
-            <Icon name={t.icon} size={20} class="text-on-surface-variant" />
-            {t.title}
-          </p>
-          <Field label="Vài dòng về bạn" tall class="mt-3">
-            <textarea
-              name="bio"
-              rows="3"
-              maxlength="150"
-              placeholder="VD: hay bán đồ công nghệ đã dùng kỹ, giao trong ngày ở Bình Thạnh"
-              class="min-w-0 flex-1 resize-none bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
-              data-bio
-            />
-          </Field>
-          <p class="mt-1 px-1 text-right text-body-small text-on-surface-variant tabular-nums" data-bio-count>
-            0/150
-          </p>
-          <div class="mt-2 flex items-center justify-between">
-            <button type="button" class={btnCls('tonal')}>
-              <Icon name="auto-awesome-rounded" size={18} />
-              Viết giúp
-            </button>
-            <button type="submit" class={btnCls('ink')}>
-              Lưu
-            </button>
-          </div>
-        </form>
-      ),
+    todo.length > 0 && (
+      <div class:list={[PANEL, 'p-3']}>
+        <p class:list={[LABEL, 'px-2 pb-1 pt-1']}>Cần làm · {todo.length}</p>
+        {todo.map((t) => (
+          <Row icon={TASK[t.key].icon} title={TASK[t.key].title} sub={todoRow[t.key].sub} href={todoRow[t.key].href} chevron={!!todoRow[t.key].href} />
+        ))}
+      </div>
     )
   }
 
-  <Fragment slot="side">
-    <SideList title={`Đã xong · ${TASKS_DONE}`}>
-      {
-        done.map((t) => (
-          <Row
-            icon={t.icon}
-            title={t.title}
-            sub={doneSub[t.key]}
-            href={t.key === 'address' ? R.addresses : undefined}
-            tone="bg-primary/10 text-primary"
-            class="-mx-2"
-          >
-            <Icon slot="trail" name="check-circle-rounded" size={20} class="text-primary" />
-          </Row>
-        ))
-      }
-    </SideList>
-    <div class:list={[PANEL, 'p-4']}>
-      <p class={LABEL}>Mỗi bước mở ra</p>
-      <ul class="mt-2 flex flex-col gap-2.5 px-1 text-body-medium text-ink">
+  <div class:list={[PANEL, 'p-5']}>
+    <p class="text-title-medium font-semibold text-ink">Hồ sơ</p>
+    {
+      error && (
+        <Notice text={error} class="mt-3" />
+      )
+    }
+    <form method="post" id="avatar" class="mt-4 flex flex-wrap items-center gap-4" data-avatar-form>
+      <Avatar name={v.name} photo={v.photo} size={72} />
+      <input type="hidden" name="avatar_upload_id" data-avatar-id />
+      <button type="submit" name="step" value="avatar" hidden data-avatar-submit>Lưu ảnh</button>
+      <div class="flex flex-wrap items-center gap-2">
+        <label class:list={[btnCls('tonal'), 'cursor-pointer']}>
+          <Icon name="photo-camera-outline-rounded" size={18} />
+          {v.photo ? 'Đổi ảnh' : 'Thêm ảnh'}
+          <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-avatar-input />
+        </label>
         {
-          unlocks.map((u) => (
-            <li class="flex gap-2">
-              <Icon name={u.icon} size={18} class="mt-0.5 text-primary" />
-              <span>{u.text}</span>
-            </li>
-          ))
+          v.photo && (
+            <button type="submit" name="step" value="remove-avatar" class={btnCls('ghost')}>
+              Gỡ ảnh
+            </button>
+          )
         }
-      </ul>
-    </div>
+      </div>
+      <p class="w-full text-body-small text-on-surface-variant empty:hidden" aria-live="polite" data-avatar-status></p>
+    </form>
+
+    <form method="post" class="mt-5 flex flex-col gap-3">
+      <input type="hidden" name="step" value="profile" />
+      <div>
+      <Field label="Tên hiển thị">
+        <input
+          name="display_name"
+          value={name}
+          maxlength={NAME_MAX}
+          autocomplete="nickname"
+          placeholder="VD: Khánh Linh"
+          class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+        />
+      </Field>
+      {fields.display_name && <p class="mt-1 px-1 text-body-small text-error">{fields.display_name}</p>}
+      </div>
+      <div>
+        <Field label="Vài dòng về bạn" tall>
+          <textarea
+            id="bio"
+            name="bio"
+            rows="3"
+            maxlength={BIO_MAX}
+            placeholder="VD: hay bán đồ công nghệ đã dùng kỹ, giao trong ngày ở Bình Thạnh"
+            class="min-w-0 flex-1 resize-none bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+            data-bio>{bio}</textarea
+          >
+        </Field>
+        <p class="mt-1 flex gap-3 px-1 text-body-small">
+          <span class="flex-1 text-error">{fields.bio}</span>
+          <span class="text-on-surface-variant tabular-nums" data-bio-count>{[...bio].length}/{BIO_MAX}</span>
+        </p>
+      </div>
+      <div class="flex justify-end">
+        <button type="submit" class={btnCls('ink')}>Lưu</button>
+      </div>
+    </form>
+  </div>
+
+  <Fragment slot="side">
+    {
+      done.length > 0 && (
+        <SideList title={`Đã xong · ${done.length}`}>
+          {done.map((t) => (
+            <Row
+              icon={TASK[t.key].icon}
+              title={TASK[t.key].title}
+              sub={doneSub[t.key]}
+              href={t.key === 'address' ? R.addresses : undefined}
+              tone="bg-primary/10 text-primary"
+              class="-mx-2"
+            >
+              <Icon slot="trail" name="check-circle-rounded" size={20} class="text-primary" />
+            </Row>
+          ))}
+        </SideList>
+      )
+    }
     <a href={R.reputation} class:list={['lift flex items-center gap-3 p-4', PANEL]}>
-      <span class="text-j-28 text-ink tabular-nums" data-count>{SCORE}</span>
-      <span class="flex-1 text-body-medium text-ink">
-        Điểm uy tín
-        {next && <span class="block text-body-small text-on-surface-variant">Còn {next[1] - SCORE} điểm lên {next[0]}</span>}
+      <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+        <Icon name="military-tech-outline-rounded" size={20} />
       </span>
+      <span class="flex-1 text-body-medium text-ink">Uy tín của bạn</span>
       <Icon name="chevron-right-rounded" size={20} class="text-on-surface-variant" />
     </a>
   </Fragment>
 </SettingsFrame>
 
 <script>
+  import { snack } from '../../lib/snackbar';
+  import { R, loginHref } from '../../lib/routes';
+  import { UploadError, uploadPhoto } from '../../lib/upload';
+
   const bio = document.querySelector<HTMLTextAreaElement>('[data-bio]');
   const count = document.querySelector('[data-bio-count]');
   bio?.addEventListener('input', () => {
-    if (count) count.textContent = `${bio.value.length}/150`;
+    if (count) count.textContent = `${[...bio.value].length}/${bio.maxLength}`;
+  });
+
+  // After a save the page comes back with ?saved: say so once.
+  const url = new URL(location.href);
+  if (url.searchParams.has('saved')) {
+    snack({ text: 'Đã lưu hồ sơ' });
+    url.searchParams.delete('saved');
+    history.replaceState(history.state, '', url);
+  }
+
+  // A chosen photo uploads, then its upload id posts with the avatar form.
+  const form = document.querySelector<HTMLFormElement>('[data-avatar-form]');
+  const input = document.querySelector<HTMLInputElement>('[data-avatar-input]');
+  const status = document.querySelector<HTMLElement>('[data-avatar-status]');
+  const words: Record<UploadError['reason'], string> = {
+    'sign-in': 'Phiên đăng nhập đã hết. Đăng nhập lại nhé.',
+    type: 'Chọn ảnh JPEG, PNG hoặc WebP.',
+    size: 'Ảnh lớn hơn 15 MB.',
+    failed: 'Chưa tải được ảnh lên. Thử lại sau.',
+  };
+  input?.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    if (!file || !form || !status) return;
+    status.textContent = 'Đang tải ảnh lên…';
+    input.disabled = true;
+    try {
+      form.querySelector<HTMLInputElement>('[data-avatar-id]')!.value = await uploadPhoto(file);
+      status.textContent = 'Đang lưu ảnh…';
+      form.requestSubmit(form.querySelector<HTMLButtonElement>('[data-avatar-submit]'));
+    } catch (e) {
+      const reason = e instanceof UploadError ? e.reason : 'failed';
+      if (reason === 'sign-in') location.href = loginHref(R.profileTasks);
+      status.textContent = words[reason];
+      input.disabled = false;
+      input.value = '';
+    }
   });
 </script>

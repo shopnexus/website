@@ -16,6 +16,7 @@ import { unwrap } from '../lib/api/client';
 import { area } from '../lib/area';
 import { categories } from '../lib/catalog';
 import { homeScreen } from '../lib/feed';
+import { TZ } from '../lib/format';
 import { R } from '../lib/routes';
 import { viewer } from '../lib/session';
 import { CONTENT } from '../lib/ui';
@@ -31,9 +32,9 @@ const counts = new Map(home.categories.map((c) => [c.code, c.count]));
 const rail = cats.map((c) => ({ code: c.code, name: c.name, icon: c.icon, count: counts.get(c.code) ?? 0 }));
 const place = area(Astro.cookies);
 const now = new Date();
-const hour = +now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
+const hour = +now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: TZ });
 const part = hour < 11 ? 'Sáng' : hour < 18 ? 'Chiều' : 'Tối';
-const day = now.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' });
+const day = now.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'numeric', timeZone: TZ });
 const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'];
 ---
 

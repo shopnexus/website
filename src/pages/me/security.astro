@@ -1,139 +1,374 @@
 ---
-import Photo from '../../components/Photo.astro';
-// Bảo mật: sign-in methods, signed-in devices, blocked people and "Xóa tài khoản".
+// Bảo mật: how the account signs in, the signed-in devices and "Xóa tài khoản".
+// Signing the other devices out, adding an email and deleting the account need
+// a sign-in within 15 minutes; past that the server answers reauth_required,
+// the page mails a code to the account's email, and the code runs the action.
+// Every step is a form post. A phone, and signing in again by phone, wait for Firebase.
+import Notice from '../../components/Notice.astro';
 import Icon from '../../components/Icon.astro';
-import GoogleG from '../../components/GoogleG.astro';
 import Row from '../../components/account/Row.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
 import SideList from '../../components/account/SideList.astro';
-import { PHONE } from '../../data/account';
-import { img } from '../../lib/format';
+import { ApiError, idempotencyKey, orNull, unwrap } from '../../lib/api/client';
+import { identity } from '../../lib/profile';
+import { ago, clock, date, phoneText } from '../../lib/format';
 import { R } from '../../lib/routes';
-import { requireViewer } from '../../lib/session';
+import { dropTokens, renewAccess, requireViewer } from '../../lib/session';
+import { type CodeFlow, codeError, dropChallenge, emailProof, readChallenge, resendSeconds, sendEmailCode } from '../../lib/sign-in';
 import { btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+let api = Astro.locals.api;
+const { cookies, url } = Astro;
 
-const devices = [
-  { icon: 'computer-outline-rounded', title: 'Chrome trên Windows', sub: 'TP.HCM · đang dùng', here: true },
-  { icon: 'phone-android-outline-rounded', title: 'Pixel 9 · app ShopNexus', sub: 'TP.HCM · hôm nay 08:12' },
-  { icon: 'phone-android-outline-rounded', title: 'Galaxy A55 · app ShopNexus', sub: 'TP.HCM · hôm nay 07:40' },
-  { icon: 'tablet-outline-rounded', title: 'Galaxy Tab S9', sub: 'Đồng Nai · 3 ngày trước' },
-];
-const recent = [
-  { icon: 'login-rounded', title: 'Đăng nhập trên Chrome', sub: 'Hôm nay 09:02 · TP.HCM', tone: 'bg-primary/10 text-primary' },
-  { icon: 'sms-outline-rounded', title: `Mã SMS gửi tới ${PHONE}`, sub: 'Hôm nay 09:01' },
-  { icon: 'link-rounded', title: 'Liên kết Google', sub: '28/09 · Pixel 9' },
-];
+// The code that proves it is still the owner, and the code that adds an email.
+const REAUTH: CodeFlow = { name: 'sn_ra', path: R.security };
+const ADD_EMAIL: CodeFlow = { name: 'sn_ae', path: R.security };
+const ADD = 'add-email:';
+/** What a reauthentication goes on to do, for its sentence. */
+const AFTER: Record<string, string> = { others: 'đăng xuất các thiết bị khác', delete: 'xóa tài khoản', email: 'thêm email' };
+const afterKey = (then = '') => (then.startsWith(ADD) ? 'email' : then);
+
+const email = identity(v.identities, 'email');
+const phone = identity(v.identities, 'phone');
+
+const actionError = (e: unknown) => {
+  switch (e instanceof ApiError ? e.code : '') {
+    case 'orders_open':
+      return 'Bạn còn đơn đang chờ hoặc đang giao. Xóa tài khoản khi các đơn đã xong nhé.';
+    case 'identity_taken':
+      return 'Email này đã đăng nhập một tài khoản khác.';
+    case 'identity_kind_taken':
+      return 'Tài khoản đã có email.';
+    case 'wrong_account':
+      return 'Mã này không phải của email trong tài khoản.';
+    default:
+      return codeError(e, 'Chưa làm được. Thử lại sau ít phút.').text;
+  }
+};
+
+/** Runs `then`: signs the others out, deletes the account, or mails the code that adds an email. */
+async function run(then: string, key: string): Promise<Response> {
+  if (then === 'others') {
+    await unwrap(api.DELETE('/v1/auth/sessions/others'));
+    return Astro.redirect(`${R.security}?done=others`, 303);
+  }
+  if (then === 'delete') {
+    await unwrap(api.DELETE('/v1/accounts/me'));
+    dropTokens(cookies);
+    return Astro.redirect(R.home, 303);
+  }
+  await sendEmailCode(api, cookies, url, then.slice(ADD.length), key, { flow: ADD_EMAIL, mine: true });
+  return Astro.redirect(R.security, 303);
+}
+
+/** run, and when the sign-in is too old, a code to the account's email first. */
+async function guarded(then: string, key: string): Promise<Response> {
+  try {
+    return await run(then, key);
+  } catch (e) {
+    if (!(e instanceof ApiError && e.code === 'reauth_required')) throw e;
+    if (!email) throw new ApiError(428, 'reauth_by_phone');
+    await sendEmailCode(api, cookies, url, email, idempotencyKey(), { flow: REAUTH, then });
+    return Astro.redirect(R.security, 303);
+  }
+}
+
+let error: string | undefined;
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const key = String(form.get('key') ?? '') || idempotencyKey();
+  const step = String(form.get('step') ?? '');
+  try {
+    switch (step) {
+      case 'device': {
+        await orNull(api.DELETE('/v1/auth/sessions/{id}', { params: { path: { id: String(form.get('id') ?? '') } } }), [404]);
+        return Astro.redirect(`${R.security}?done=device`, 303);
+      }
+      case 'others':
+      case 'delete':
+        return await guarded(step, key);
+      case 'add-email':
+        return await guarded(ADD + String(form.get('email') ?? ''), key);
+      case 'reauth-code': {
+        const c = readChallenge(cookies, REAUTH);
+        if (!c) return Astro.redirect(R.security, 303);
+        let t;
+        try {
+          t = await unwrap(api.POST('/v1/auth/sessions/current/reauthenticate', { params: { header: { 'Idempotency-Key': key } }, body: emailProof(c, String(form.get('code') ?? '')) }));
+        } catch (e) {
+          if (codeError(e).restart) dropChallenge(cookies, REAUTH);
+          throw e;
+        }
+        // The new token passes the check; this request goes on with it.
+        renewAccess(Astro, t);
+        dropChallenge(cookies, REAUTH);
+        api = Astro.locals.api;
+        return await run(c.then ?? '', idempotencyKey());
+      }
+      case 'reauth-resend': {
+        const c = readChallenge(cookies, REAUTH);
+        if (c) await sendEmailCode(api, cookies, url, c.email, key, { flow: REAUTH, then: c.then });
+        return Astro.redirect(R.security, 303);
+      }
+      case 'reauth-cancel':
+        dropChallenge(cookies, REAUTH);
+        return Astro.redirect(R.security, 303);
+      case 'email-code': {
+        const c = readChallenge(cookies, ADD_EMAIL);
+        if (!c) return Astro.redirect(R.security, 303);
+        try {
+          await unwrap(api.POST('/v1/accounts/me/identities', { params: { header: { 'Idempotency-Key': key } }, body: emailProof(c, String(form.get('code') ?? '')) }));
+        } catch (e) {
+          if (e instanceof ApiError && e.code === 'reauth_required') {
+            dropChallenge(cookies, ADD_EMAIL);
+            return await guarded(ADD + c.email, key);
+          }
+          if (codeError(e).restart || (e instanceof ApiError && e.status === 409)) dropChallenge(cookies, ADD_EMAIL);
+          throw e;
+        }
+        dropChallenge(cookies, ADD_EMAIL);
+        return Astro.redirect(`${R.security}?done=email`, 303);
+      }
+      case 'email-resend': {
+        const c = readChallenge(cookies, ADD_EMAIL);
+        return c ? await guarded(ADD + c.email, key) : Astro.redirect(R.security, 303);
+      }
+      case 'email-cancel':
+        dropChallenge(cookies, ADD_EMAIL);
+        return Astro.redirect(R.security, 303);
+    }
+  } catch (e) {
+    error =
+      e instanceof ApiError && e.code === 'reauth_by_phone'
+        ? 'Việc này cần xác nhận lại bằng số điện thoại, việc web chưa làm được. Bạn thêm email trong app ShopNexus, hoặc thêm ngay trong 15 phút sau khi đăng nhập.'
+        : actionError(e);
+  }
+}
+
+const sessions = (await unwrap(api.GET('/v1/auth/sessions', { params: { query: { limit: 100 } } }))).items;
+const reauth = readChallenge(cookies, REAUTH);
+const adding = reauth ? undefined : readChallenge(cookies, ADD_EMAIL);
+const wantsEmail = !email && Astro.url.searchParams.has('add-email');
+const confirmDelete = Astro.url.searchParams.has('confirm-delete');
+const code = reauth ?? adding;
+const resendIn = code ? resendSeconds(code) : 0;
+const DONE: Record<string, string> = { others: 'Đã đăng xuất các thiết bị khác.', device: 'Đã đăng xuất thiết bị.', email: 'Đã thêm email.' };
+const done = !error ? DONE[Astro.url.searchParams.get('done') ?? ''] : undefined;
+const key = idempotencyKey();
+const methods = [phone && 'Số điện thoại', email && 'Email'].filter(Boolean);
+
 const line = 'flex flex-wrap items-center gap-3 py-3';
 const bubble = 'grid h-10 w-10 shrink-0 place-items-center rounded-full';
+const link = 'state-layer h-8 rounded-control px-2 text-label-large text-primary';
+const codeInput =
+  'h-12 w-40 rounded-field border border-line bg-card px-4 text-center text-j-20 tracking-[0.3em] text-ink tabular-nums outline-none focus:border-primary focus:ring-4 focus:ring-primary/10';
 ---
 
-<SettingsFrame title="Bảo mật" page="Bảo mật" meta="Cách đăng nhập, thiết bị và người bạn đã chặn">
+<SettingsFrame title="Bảo mật" page="Bảo mật" meta="Cách đăng nhập, thiết bị và tài khoản">
+  {
+    (error || done) && (
+      <Notice text={(error ?? done)!} ok={!error} />
+    )
+  }
+
+  {
+    code && (
+      <form method="post" class:list={[PANEL, 'px-5 py-4']} aria-labelledby="code-title">
+        <input type="hidden" name="key" value={key} />
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="code-title" class="text-j-20 text-ink">
+            {reauth ? 'Xác nhận là bạn' : 'Nhập mã 6 số'}
+          </h2>
+          {resendIn > 0 && (
+            <span class="text-body-small text-on-surface-variant tabular-nums" data-resend={resendIn}>
+              Gửi lại sau {clock(resendIn)}
+            </span>
+          )}
+        </div>
+        <p class="mt-1 text-body-medium text-on-surface-variant">
+          {reauth ? `Mã đã gửi tới ${code.email}. Nhập mã để ${AFTER[afterKey(reauth.then)] ?? 'tiếp tục'}.` : `Mã đã gửi tới ${code.email}.`}
+        </p>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <label>
+            <span class="sr-only">Mã 6 số</span>
+            <input name="code" inputmode="numeric" autocomplete="one-time-code" required pattern="[0-9]{6}" maxlength={6} class={codeInput} />
+          </label>
+          <button name="step" value={reauth ? 'reauth-code' : 'email-code'} class={btnCls('ink', 'lg')}>
+            Xác nhận
+          </button>
+        </div>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <button name="step" value={reauth ? 'reauth-resend' : 'email-resend'} formnovalidate class={link} disabled={resendIn > 0} data-resend-btn>
+            Gửi lại mã
+          </button>
+          <button name="step" value={reauth ? 'reauth-cancel' : 'email-cancel'} formnovalidate class={link}>
+            Hủy
+          </button>
+        </div>
+      </form>
+    )
+  }
+
   <div class:list={[PANEL, 'px-5 py-4']}>
     <h2 class="text-j-20 text-ink">Đăng nhập</h2>
     <div class="mt-1">
       <div class={line}>
-        <span class:list={[bubble, 'bg-primary/10 text-primary']}><Icon name="phone-android-outline-rounded" size={20} /></span>
+        <span class:list={[bubble, phone ? 'bg-primary/10 text-primary' : 'bg-surface-container-low text-on-surface-variant']}>
+          <Icon name="phone-android-outline-rounded" size={20} />
+        </span>
         <div class="min-w-0 flex-1">
           <p class="text-body-large text-ink">Số điện thoại</p>
-          <p class="text-body-small text-on-surface-variant">{PHONE} · đã xác minh · người khác không thấy số này</p>
+          <p class="text-body-small text-on-surface-variant">
+            {phone ? `${phoneText(phone)} · người khác không thấy số này` : 'Chưa thêm · đăng tin, hỏi mua và nhắn tin cần số điện thoại'}
+          </p>
         </div>
-        <button type="button" class={btnCls('line')}>Đổi số</button>
       </div>
       <div class:list={[line, 'border-t border-line']}>
-        <span class:list={[bubble, 'bg-surface-container-low']}><GoogleG /></span>
-        <div class="min-w-0 flex-1">
-          <p class="text-body-large text-ink">Google</p>
-          <p class="text-body-small text-on-surface-variant">k•••@gmail.com · đăng nhập một chạm</p>
-        </div>
-        <button type="button" class={btnCls('ghost')}>Gỡ liên kết</button>
-      </div>
-      <div class:list={[line, 'border-t border-line']}>
-        <span class:list={[bubble, 'bg-surface-container-low text-on-surface-variant']}><Icon name="mail-outline-rounded" size={20} /></span>
+        <span class:list={[bubble, email ? 'bg-primary/10 text-primary' : 'bg-surface-container-low text-on-surface-variant']}>
+          <Icon name="mail-outline-rounded" size={20} />
+        </span>
         <div class="min-w-0 flex-1">
           <p class="text-body-large text-ink">Email</p>
-          <p class="text-body-small text-on-surface-variant">Chưa thêm · đăng nhập khi không có điện thoại bên cạnh</p>
+          <p class="text-body-small text-on-surface-variant">{email ?? 'Chưa thêm · đăng nhập khi không có điện thoại bên cạnh'}</p>
         </div>
-        <button type="button" class={btnCls('ink')}><Icon name="add-rounded" size={18} />Thêm</button>
+        {
+          !email && !wantsEmail && !adding && (
+            <a href={`${R.security}?add-email`} class={btnCls('ink')}>
+              <Icon name="add-rounded" size={18} />
+              Thêm
+            </a>
+          )
+        }
       </div>
+      {
+        wantsEmail && !adding && (
+          <form method="post" action={`${R.security}?add-email`} class="flex flex-wrap items-end gap-2 pb-3">
+            <input type="hidden" name="key" value={key} />
+            <label class="min-w-[220px] flex-1">
+              <span class="mb-1.5 block text-label-large text-on-surface-variant">Email mới</span>
+              <input
+                name="email"
+                type="email"
+                required
+                autocomplete="email"
+                placeholder="ban@email.com"
+                class="h-12 w-full rounded-field bg-surface-container-low px-4 text-body-large text-ink outline-none placeholder:text-faint focus:bg-card focus:ring-2 focus:ring-primary"
+              />
+            </label>
+            <a href={R.security} class={btnCls('line', 'lg')}>
+              Hủy
+            </a>
+            <button name="step" value="add-email" class={btnCls('ink', 'lg')}>
+              Gửi mã
+            </button>
+          </form>
+        )
+      }
     </div>
   </div>
 
   <div class:list={[PANEL, 'px-5 py-4']}>
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h2 class="text-j-20 text-ink">Thiết bị đang đăng nhập · {devices.length}</h2>
-      <button type="button" class={btnCls('line')}><Icon name="logout-rounded" size={18} />Đăng xuất các thiết bị khác</button>
+      <h2 class="text-j-20 text-ink">Thiết bị đang đăng nhập · {sessions.length}</h2>
+      {
+        sessions.length > 1 && (
+          <form method="post">
+            <input type="hidden" name="key" value={key} />
+            <button name="step" value="others" class={btnCls('line')}>
+              <Icon name="logout-rounded" size={18} />
+              Đăng xuất các thiết bị khác
+            </button>
+          </form>
+        )
+      }
     </div>
     <div class="mt-1">
       {
-        devices.map((d, i) => (
+        sessions.map((s, i) => (
           <div class:list={[line, i > 0 && 'border-t border-line']}>
             <span class:list={[bubble, 'bg-surface-container-low text-on-surface-variant']}>
-              <Icon name={d.icon} size={20} />
+              <Icon name={/Android|iOS|app/i.test(s.device_name) ? 'phone-android-outline-rounded' : 'computer-outline-rounded'} size={20} />
             </span>
             <div class="min-w-0 flex-1">
               <p class="flex flex-wrap items-center gap-2 text-body-large text-ink">
-                {d.title}
-                {d.here && <span class="rounded-full bg-primary/10 px-2 py-0.5 text-label-medium text-primary">Thiết bị này</span>}
+                {s.device_name || 'Thiết bị'}
+                {s.current && <span class="rounded-full bg-primary/10 px-2 py-0.5 text-label-medium text-primary">Thiết bị này</span>}
               </p>
-              <p class="text-body-small text-on-surface-variant">{d.sub}</p>
+              <p class="text-body-small text-on-surface-variant">
+                {s.current ? 'Đang dùng' : `Dùng ${ago(s.last_used_at)} trước`} · đăng nhập {date(s.created_at)}
+              </p>
             </div>
-            {!d.here && (
-              <button type="button" class="state-layer h-9 rounded-control px-3 text-label-large text-error">
-                Đăng xuất
-              </button>
+            {!s.current && (
+              <form method="post">
+                <input type="hidden" name="id" value={s.id} />
+                <button name="step" value="device" class="state-layer h-9 rounded-control px-3 text-label-large text-error">
+                  Đăng xuất
+                </button>
+              </form>
             )}
           </div>
         ))
       }
     </div>
-    <p class="mt-1 flex gap-2 rounded-field bg-surface-container-low px-3 py-2.5 text-body-small text-on-surface-variant">
-      <Icon name="info-outline-rounded" size={16} class="mt-px" />Thiết bị này vẫn đăng nhập. Đăng nhập đã hơn 15 phút thì bạn đăng nhập lại một lần trước khi đăng xuất các thiết bị khác.
-    </p>
+    {
+      sessions.length > 1 && (
+        <p class="mt-1 flex gap-2 rounded-field bg-surface-container-low px-3 py-2.5 text-body-small text-on-surface-variant">
+          <Icon name="info-outline-rounded" size={16} class="mt-px shrink-0" />
+          Thiết bị này vẫn đăng nhập. Đăng nhập đã hơn 15 phút thì ShopNexus gửi mã tới email của bạn để xác nhận trước.
+        </p>
+      )
+    }
   </div>
 
-  <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
-    <div class:list={[PANEL, 'p-5']}>
-      <h2 class="text-title-medium font-semibold text-ink">Đã chặn · 1</h2>
-      <div class="mt-3 flex items-center gap-3">
-        <Photo src={img('1556740758-90de374c12ad', 96, 96)} width={96} height={96} alt="" loading="lazy" class="h-10 w-10 rounded-full object-cover" />
-        <div class="min-w-0 flex-1">
-          <p class="text-body-large text-ink">Thanh Lý 24h</p>
-          <p class="text-body-small text-on-surface-variant">Chặn 02/10 · không nhắn được cho bạn</p>
-        </div>
-        <button type="button" class={btnCls('line')}>Bỏ chặn</button>
-      </div>
-    </div>
-    <section class="rounded-panel border border-error/20 bg-error/5 p-5">
-      <h2 class="flex items-center gap-2 text-title-medium font-semibold text-error">
-        <Icon name="delete-forever-outline-rounded" size={20} />Xóa tài khoản
-      </h2>
-      <p class="mt-2 text-body-medium text-on-surface-variant">
-        Tin đăng và trang của bạn được gỡ ngay. ShopNexus lưu ghi nhận của các đơn đã xong trong 12 tháng.
-      </p>
-      <button type="button" class="state-layer mt-3 h-10 rounded-control border border-error/40 px-4 text-label-large text-error">Xóa tài khoản</button>
-    </section>
-  </div>
+  <section id="delete" class="scroll-mt-24 rounded-panel border border-error/20 bg-error/5 p-5">
+    <h2 class="flex items-center gap-2 text-title-medium font-semibold text-error">
+      <Icon name="delete-forever-outline-rounded" size={20} />Xóa tài khoản
+    </h2>
+    <p class="mt-2 text-body-medium text-on-surface-variant">
+      Tin đăng, trang, địa chỉ và cách đăng nhập của bạn được xóa ngay, và mọi thiết bị đăng xuất. Các đơn, đánh giá và tin nhắn cũ vẫn còn, ghi là tài khoản đã xóa.
+    </p>
+    {
+      confirmDelete ? (
+        <form method="post" class="mt-3 flex flex-wrap items-center gap-2">
+          <input type="hidden" name="key" value={key} />
+          <span class="text-body-medium text-ink">Xóa vĩnh viễn? Việc này không hoàn tác được.</span>
+          <a href={R.security} class={btnCls('line')}>
+            Giữ tài khoản
+          </a>
+          <button name="step" value="delete" class="state-layer h-10 rounded-control bg-error px-4 text-label-large text-on-error">
+            Xóa vĩnh viễn
+          </button>
+        </form>
+      ) : (
+        <a href={`${R.security}?confirm-delete#delete`} class="state-layer mt-3 inline-flex h-10 items-center rounded-control border border-error/40 px-4 text-label-large text-error">
+          Xóa tài khoản
+        </a>
+      )
+    }
+  </section>
 
   <Fragment slot="side">
     <div class:list={[PANEL, 'p-4']}>
       <div class="flex items-center gap-3">
         <span class:list={[bubble, 'bg-primary text-on-primary']}><Icon name="verified-user-outline-rounded" size={22} /></span>
         <div>
-          <p class="text-title-medium font-semibold text-ink">2 cách đăng nhập</p>
-          <p class="text-body-small text-on-surface-variant">Số điện thoại và Google</p>
+          <p class="text-title-medium font-semibold text-ink">{methods.length} cách đăng nhập</p>
+          <p class="text-body-small text-on-surface-variant">{methods.join(' và ')}</p>
         </div>
       </div>
-      <p class="mt-3 text-body-small text-on-surface-variant">Đăng tin, hỏi mua và nhắn tin cần một số điện thoại đã xác minh.</p>
+      {!phone && <p class="mt-3 text-body-small text-on-surface-variant">Đăng tin, hỏi mua và nhắn tin cần một số điện thoại đã xác minh.</p>}
     </div>
-    <SideList title="Hoạt động gần đây">
-      {recent.map((r) => <Row icon={r.icon} title={r.title} sub={r.sub} tone={r.tone} chevron={false} class="-mx-2" />)}
-    </SideList>
     <SideList title="Liên quan">
-      <Row icon="lock-outline-rounded" title="Quyền riêng tư" sub="Người khác thấy gì về bạn" href={R.privacy} class="-mx-2" />
+      <Row icon="lock-outline-rounded" title="Quyền riêng tư" sub="Người đã chặn, người khác thấy gì" href={R.privacy} class="-mx-2" />
       <Row icon="help-outline-rounded" title="Thấy đăng nhập lạ?" sub="Gửi yêu cầu hỗ trợ" href={R.support} class="-mx-2" />
     </SideList>
   </Fragment>
 </SettingsFrame>
+
+<script>
+  import { resendTimer } from '../../lib/resend-timer';
+
+  resendTimer();
+</script>

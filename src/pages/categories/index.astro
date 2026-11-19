@@ -37,7 +37,7 @@ const counts = new Map(home.categories.flatMap((c) => [[c.code, c.count] as cons
       <SearchField placeholder="Tìm trong mọi danh mục: xe đẩy gấp gọn, dưới 1 triệu" />
     </section>
     <section class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {cats.map((c) => <CategoryTile c={c} counts={counts} />)}
+      {cats.map((c, i) => <CategoryTile c={c} counts={counts} loading={i < 12 ? 'eager' : 'lazy'} />)}
       <article class="flex flex-col justify-between rounded-panel bg-brand p-5 text-white">
         <div>
           <p class="text-j-16">Không chắc thuộc mục nào?</p>
@@ -60,7 +60,7 @@ const counts = new Map(home.categories.flatMap((c) => [[c.code, c.count] as cons
     <section class="mt-10">
       <SectionTitle title="Vừa đăng trong mọi danh mục" link="Xem tất cả" href={`${R.search}?sort=newest`} />
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {fresh.map((it, i) => <MiniRow item={it} loading={i < 3 ? 'eager' : 'lazy'} />)}
+        {fresh.map((it) => <MiniRow item={it} loading="lazy" />)}
       </div>
     </section>
   </main>

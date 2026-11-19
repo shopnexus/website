@@ -4,5 +4,6 @@ declare namespace App {
     api: import('./lib/api/client').Api;
     session: import('./lib/session').Session;
     viewer: import('./lib/session').Viewer | null;
+    reputation?: Promise<import('./lib/api/client').Schemas['ReputationScreen']>;
   }
 }

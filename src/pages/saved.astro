@@ -1,142 +1,203 @@
 ---
-import Photo from '../components/Photo.astro';
-// Đã lưu: saved searches with their new listings, then saved listings by
-// category, with the three phones compared side by side.
+// Đã lưu: the saved searches with their new listings and bells, then the
+// saved listings, newest save first, a page at a time.
+import Notice from '../components/Notice.astro';
 import Icon from '../components/Icon.astro';
 import PageTitle from '../components/PageTitle.astro';
-import Switch from '../components/Switch.astro';
 import AccountFrame from '../components/orders/AccountFrame.astro';
-import IconBtn from '../components/orders/IconBtn.astro';
 import SavedCard from '../components/orders/SavedCard.astro';
-import { COMPARE, SAVED_GROUPS, SAVED_SEARCHES } from '../data/orders';
-import { img } from '../lib/format';
+import { ApiError, orNull, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
+import { categoryName } from '../lib/catalog';
+import { money } from '../lib/format';
+import { conditionLabel, isId } from '../lib/listing';
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { btnCls } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
 
-// The first 8 cards fill the first screen; the rest load lazily.
-const later = new Set(SAVED_GROUPS.flatMap((g) => g.items).slice(8));
-const count = SAVED_GROUPS.reduce((n, g) => n + g.items.length, 0);
-const cuts = SAVED_GROUPS.flatMap((g) => g.items).filter((it) => typeof it.change === 'object' && 'cut' in it.change).length;
-// On wide windows each group spans as many of the five columns as it has cards.
-const SPAN: Record<number, string> = { 2: 'xl:col-span-2', 3: 'xl:col-span-3' };
-const COLS: Record<number, string> = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3' };
+// The forms post here: a listing's price alert, and forgetting a search.
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const act = String(f.get('do') ?? '');
+  const listing = String(f.get('listing') ?? '');
+  const watch = String(f.get('watch') ?? '');
+  const path = { params: { path: { listing_id: listing } } };
+  try {
+    if (act === 'alert' && isId(listing)) {
+      const below = Number(String(f.get('below') ?? '').replace(/\D/g, ''));
+      await unwrap(api.PUT('/v1/saved/{listing_id}/alert', { ...path, body: { below } }));
+    } else if (act === 'alert-clear' && isId(listing)) {
+      await unwrap(api.DELETE('/v1/saved/{listing_id}/alert', path));
+    } else if (act === 'forget' && isId(watch)) {
+      await unwrap(api.DELETE('/v1/search/watches/{id}', { params: { path: { id: watch } } }));
+    }
+  } catch (e) {
+    // A level out of range, a listing no longer on sale, or a search already gone.
+    if (!(e instanceof ApiError) || ![400, 404, 409].includes(e.status)) throw e;
+    return Astro.redirect(`${R.saved}?failed=${act === 'forget' ? 'forget' : 'alert'}`, 303);
+  }
+  return Astro.redirect(R.saved, 303);
+}
+
+// "Xem thêm" opens the next page of saves in place of the first; a broken cursor reads the first.
+const after = Astro.url.searchParams.get('after') ?? undefined;
+const [saved, watches] = await Promise.all([
+  pageOrFirst(after, (cursor) => api.GET('/v1/saved', { params: { query: { cursor, limit: 24 } } })),
+  unwrap(api.GET('/v1/search/watches')).then((r) => r.items),
+]);
+const failed = Astro.url.searchParams.get('failed');
+
+/** A watch's filters and place, as one line. */
+async function filtersLine(w: Schemas['SearchWatch']) {
+  const f = w.filters;
+  const price =
+    f.price_min !== undefined && f.price_max !== undefined
+      ? `${money(f.price_min, true)} – ${money(f.price_max, true)}`
+      : f.price_min !== undefined
+        ? `Từ ${money(f.price_min, true)}`
+        : f.price_max !== undefined
+          ? `Dưới ${money(f.price_max, true)}`
+          : '';
+  const parts = [
+    f.category ? ((await categoryName(f.category).catch(() => undefined)) ?? '') : '',
+    price,
+    (f.conditions ?? []).map(conditionLabel).join(', '),
+    f.offers_only ? 'Trả giá được' : '',
+    w.area ? `${w.area.name}${w.radius_km ? ` · ${w.radius_km} km` : ''}` : '',
+  ];
+  return parts.filter(Boolean).join(' · ') || 'Mọi nơi';
+}
+const lines = await Promise.all(watches.map(filtersLine));
+const count = `${saved.items.length}${saved.next_cursor ? '+' : ''} tin`;
 ---
 
 <AccountFrame title="Đã lưu" description="Tin và tìm kiếm bạn đã lưu." active="saved">
-  <PageTitle title="Đã lưu" meta={`${count} tin · ${SAVED_SEARCHES.length} tìm kiếm · ${cuts} tin vừa giảm giá`}>
-    <div class="border border-line bg-card flex items-center gap-3 rounded-full py-1.5 pl-4 pr-1.5">
-      <Icon name="trending-down-rounded" size={18} class="text-primary" />
-      <span class="text-label-large text-ink">Báo khi giảm giá</span>
-      <Switch on label="Báo khi giảm giá" />
-    </div>
-  </PageTitle>
+  <PageTitle title="Đã lưu" meta={after ? 'Tin đã lưu cũ hơn' : `${count} · ${watches.length} tìm kiếm`} />
 
-  <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
-    {
-      SAVED_SEARCHES.map((s) => (
-        <div class="lift relative flex items-center gap-3 rounded-card border border-line bg-card p-3">
-          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
-            <Icon name="search-rounded" size={20} />
-          </span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-title-small text-ink">
-              <a href={`${R.search}?q=${encodeURIComponent(s.q)}`} class="after:absolute after:inset-0 after:rounded-card">
-                {s.q}
-              </a>
-            </p>
-            <p class="text-body-small text-on-surface-variant">{s.where}</p>
-          </div>
-          {s.fresh ? (
-            <span class="shrink-0 rounded-full bg-primary px-2.5 py-0.5 text-label-medium text-on-primary">{s.fresh}</span>
-          ) : (
-            <span class="shrink-0 text-body-small text-on-surface-variant">Chưa có tin mới</span>
-          )}
-          <IconBtn label="Tắt thông báo" icon="notifications-active-rounded" class="relative z-10 text-primary" />
-        </div>
-      ))
-    }
-  </div>
+  {
+    failed && (
+      <Notice
+        text={failed === 'forget' ? 'Chưa xóa được tìm kiếm này. Tải lại trang rồi thử lại.' : 'Chưa đặt được mức báo giá. Tin có thể đã ngừng bán, hoặc mức giá chưa hợp lệ.'}
+        class="mt-4"
+      />
+    )
+  }
 
-  <div class="mt-6 grid grid-cols-1 gap-x-3 gap-y-6 xl:grid-cols-5">
-    {
-      SAVED_GROUPS.map((g) => (
-        <>
-          <section class:list={['min-w-0', SPAN[g.items.length]]}>
-            <div class="mb-2 flex h-8 items-center justify-between pl-1">
-              <h2 class="text-title-small text-ink">
-                {g.name} <span class="font-normal text-on-surface-variant tabular-nums">{g.items.length}</span>
-              </h2>
-              {g.name === 'Điện thoại' && (
-                <a href="#so-sanh" class:list={[btnCls('line'), 'h-8 px-3']}>
-                  <Icon name="compare-arrows-rounded" size={18} />
-                  So sánh
-                </a>
-              )}
-            </div>
-            <div class:list={['grid grid-cols-2 gap-3 md:grid-cols-3', COLS[g.items.length]]}>
-              {g.items.map((it) => (
-                <SavedCard it={it} loading={later.has(it) ? 'lazy' : 'eager'} />
-              ))}
-            </div>
-          </section>
-          {g.name === 'Điện thoại' && (
-            <section id="so-sanh" class="flex min-w-0 flex-col rounded-panel border border-line bg-card p-4 xl:col-span-2">
-              <h2 class="text-title-small text-ink">So sánh 3 điện thoại</h2>
-              <div class="overflow-x-auto">
-                <table class="mt-2 w-full">
-                  <thead>
-                    <tr>
-                      <th class="w-[72px]" />
-                      {COMPARE.cols.map((c) => (
-                        <th class="px-1 pb-1.5 text-left align-bottom font-normal">
-                          <Photo src={img(c.photo, 80, 80)} width={80} height={80} alt="" class="h-7 w-7 rounded-sm object-cover" />
-                          <span class="mt-1 block text-label-medium text-ink">{c.name}</span>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {COMPARE.rows.map((label, r) => (
-                      <tr class="border-t border-line">
-                        <td class="py-1.5 pr-1 text-body-small text-on-surface-variant">{label}</td>
-                        {COMPARE.cols.map((c, j) => (
-                          <td class="px-1 py-1.5 text-body-small">
-                            <span
-                              class:list={[
-                                'inline-flex items-center gap-1.5 whitespace-nowrap tabular-nums',
-                                COMPARE.best[r] === j ? 'rounded-full bg-secondary-container px-2 text-on-secondary-container' : 'text-ink',
-                              ]}
-                            >
-                              {c.cells[r]}
-                            </span>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div class="mt-3 flex items-center gap-3 rounded-tile bg-mint p-3">
-                <p class="min-w-0 flex-1 text-body-small text-on-surface-variant">
-                  <b class="flex items-center gap-1 text-label-large text-on-surface">
-                    <Icon name="auto-awesome-rounded" size={15} class="text-primary" />
-                    iPhone 13 Pro đáng tiền nhất
-                  </b>
-                  Pin 88%, như mới, người bán Xuất sắc.
+  {
+    !after && watches.length > 0 && (
+      <section class="mt-5">
+        <h2 class="mb-2 pl-1 text-title-small text-ink">
+          Tìm kiếm đang theo dõi <span class="font-normal text-on-surface-variant tabular-nums">{watches.length}</span>
+        </h2>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          {watches.map((w, i) => (
+            <div class="lift relative flex items-center gap-3 rounded-card border border-line bg-card p-3">
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary-container text-on-secondary-container">
+                <Icon name="search-rounded" size={20} />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-title-small text-ink">
+                  <a href={`${R.search}?watch=${w.id}`} class="after:absolute after:inset-0 after:rounded-card">
+                    {w.query}
+                  </a>
                 </p>
-                <a href={R.messages} class:list={[btnCls('ink', 'sm'), 'px-3']}>
-                  <Icon name="chat-outline-rounded" size={18} />
-                  Nhắn
-                </a>
+                <p class="truncate text-body-small text-on-surface-variant">{lines[i]}</p>
               </div>
-            </section>
-          )}
-        </>
-      ))
-    }
-  </div>
+              {w.new_count ? (
+                <span class="shrink-0 rounded-full bg-primary px-2.5 py-0.5 text-label-medium text-on-primary tabular-nums">
+                  {w.new_count >= 99 ? '99+' : w.new_count} tin mới
+                </span>
+              ) : (
+                <span class="shrink-0 text-body-small text-on-surface-variant">Chưa có tin mới</span>
+              )}
+              <button
+                type="button"
+                class="group state-layer relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full text-on-surface-variant aria-pressed:text-primary"
+                aria-pressed={w.alert ? 'true' : 'false'}
+                aria-label="Báo khi có tin mới"
+                data-watch-alert={w.id}
+              >
+                <span class="hidden group-aria-pressed:block"><Icon name="notifications-outline-rounded" size={20} /></span>
+                <span class="group-aria-pressed:hidden"><Icon name="notifications-off-outline-rounded" size={20} /></span>
+              </button>
+              <form method="post" class="relative z-10">
+                <input type="hidden" name="watch" value={w.id} />
+                <button
+                  type="submit"
+                  name="do"
+                  value="forget"
+                  class="state-layer grid h-9 w-9 shrink-0 place-items-center rounded-full text-on-surface-variant"
+                  aria-label={`Bỏ theo dõi “${w.query}”`}
+                >
+                  <Icon name="delete-outline-rounded" size={20} />
+                </button>
+              </form>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    saved.items.length ? (
+      <section class="mt-6">
+        {!after && watches.length > 0 && <h2 class="mb-2 pl-1 text-title-small text-ink">Tin đã lưu</h2>}
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          {saved.items.map((it, i) => (
+            <SavedCard it={it} loading={i < 8 ? 'eager' : 'lazy'} />
+          ))}
+        </div>
+      </section>
+    ) : (
+      <div class="mt-6 flex flex-col items-center rounded-panel border border-line bg-card px-6 py-12 text-center">
+        <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+          <Icon name="favorite-outline-rounded" size={24} />
+        </span>
+        <p class="mt-3 text-title-medium text-ink">{after ? 'Không còn tin cũ hơn' : 'Chưa lưu tin nào'}</p>
+        <p class="mt-1 text-body-medium text-on-surface-variant">Bấm trái tim trên một tin để lưu, ShopNexus sẽ báo khi giá giảm.</p>
+        <a href={R.home} class:list={[btnCls('ink'), 'mt-4']}>Khám phá tin</a>
+      </div>
+    )
+  }
+  {
+    (saved.next_cursor || after) && (
+      <div class="mt-8 flex justify-center gap-2">
+        {after && (
+          <a href={R.saved} class={btnCls('line')}>
+            Mới lưu nhất
+          </a>
+        )}
+        {saved.next_cursor && (
+          <a href={`?${new URLSearchParams({ after: saved.next_cursor })}`} class={btnCls('line')}>
+            Xem thêm tin
+            <Icon name="keyboard-arrow-down-rounded" size={17} />
+          </a>
+        )}
+      </div>
+    )
+  }
 </AccountFrame>
+
+<script>
+  import { API } from '../lib/routes';
+  import { snack } from '../lib/snackbar';
+  import { toggleRemote } from '../lib/toggle';
+
+  // A search's bell mutes or unmutes it through /api/watches/<id>/alert; a failed call puts it back.
+  document.querySelectorAll<HTMLButtonElement>('[data-watch-alert]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(on));
+      if (await toggleRemote(API.watchAlert(b.dataset.watchAlert!), on)) {
+        snack({ text: on ? 'Sẽ báo khi có tin mới' : 'Đã tắt thông báo tìm kiếm này' });
+      } else {
+        b.setAttribute('aria-pressed', String(!on));
+        snack({ text: 'Chưa đổi được. Thử lại sau.', icon: 'error-outline-rounded', error: true });
+      }
+    }),
+  );
+</script>

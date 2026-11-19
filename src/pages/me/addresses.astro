@@ -1,140 +1,311 @@
 ---
-// Địa chỉ: the address book as cards, the one being edited in a form under them.
+// Địa chỉ: the address book as cards, the default first; ?new or ?edit=<id>
+// opens the form under them. Every action is a form post, so the page works
+// without script; the script only refills the communes when the province changes.
+import { communes, provinces } from '../../lib/regions';
+import Notice from '../../components/Notice.astro';
 import Field from '../../components/Field.astro';
 import Icon from '../../components/Icon.astro';
-import Switch from '../../components/Switch.astro';
-import Row from '../../components/account/Row.astro';
-import SideList from '../../components/account/SideList.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
-import { PHONE } from '../../data/account';
-import { ADDRESS_BOOK } from '../../data/common';
+import { ApiError, type Schemas, idempotencyKey, unwrap } from '../../lib/api/client';
+import { phoneText } from '../../lib/format';
+import { ADDRESS_KIND, identity } from '../../lib/profile';
+import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
-import { btnCls, LABEL, PANEL } from '../../lib/ui';
+import { btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
 
-const main = ADDRESS_BOOK.find((a) => a.default) ?? ADDRESS_BOOK[0];
-const editing = ADDRESS_BOOK.find((a) => !a.default) ?? main;
-const kinds = [
-  { label: 'Nhà', icon: 'home-outline-rounded' },
-  { label: 'Công ty', icon: 'work-outline-rounded' },
-  { label: 'Khác', icon: 'location-on-outline-rounded' },
-];
-const recent = [
-  { title: 'Tai nghe Sony WH-1000XM4', sub: 'Giao tới Nhà', when: '09/10' },
-  { title: 'Kệ gỗ nhỏ 3 tầng', sub: 'Giao tới Công ty', when: '02/10' },
-  { title: 'Máy xay sinh tố 2L', sub: 'Giao tới Nhà', when: '21/09' },
-];
+type Kind = keyof typeof ADDRESS_KIND;
+const kindOf = (k: string): Kind => (k in ADDRESS_KIND ? (k as Kind) : 'other');
+
+const FIELD_TEXT: Record<string, string> = {
+  name: 'Tên người nhận từ 1 đến 50 ký tự.',
+  phone: 'Số di động Việt Nam chưa đúng.',
+  street: 'Số nhà, đường từ 1 đến 200 ký tự.',
+  commune_code: 'Chọn phường, xã.',
+};
+
+/** The form as typed: the saved address, the posted values after a failed save, or a new one. */
+interface Draft {
+  id?: string;
+  kind: Kind;
+  name: string;
+  phone: string;
+  street: string;
+  province: string;
+  commune: string;
+  isDefault: boolean;
+}
+
+let error: string | undefined;
+let fields: Record<string, string> = {};
+let posted: Draft | undefined;
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const get = (k: string) => String(form.get(k) ?? '');
+  const step = get('step');
+  const id = get('id');
+  try {
+    if (step === 'default') {
+      await unwrap(api.POST('/v1/addresses/{id}/default', { params: { path: { id } } }));
+      return Astro.redirect(R.addresses, 303);
+    }
+    if (step === 'delete') {
+      await unwrap(api.DELETE('/v1/addresses/{id}', { params: { path: { id } } }));
+      return Astro.redirect(R.addresses, 303);
+    }
+    posted = {
+      id: id || undefined,
+      kind: kindOf(get('kind')),
+      name: get('name'),
+      phone: get('phone'),
+      street: get('street'),
+      province: get('province'),
+      commune: get('commune'),
+      isDefault: form.has('is_default'),
+    };
+    // "Chọn" without script: the same form again, with the province's communes.
+    if (step === 'save') {
+      const body = { name: posted.name, phone: posted.phone, street: posted.street, commune_code: posted.commune, kind: posted.kind, is_default: posted.isDefault };
+      await unwrap(
+        posted.id
+          ? api.PUT('/v1/addresses/{id}', { params: { path: { id: posted.id } }, body })
+          : api.POST('/v1/addresses', { params: { header: { 'Idempotency-Key': get('key') || idempotencyKey() } }, body }),
+      );
+      return Astro.redirect(R.addresses, 303);
+    }
+  } catch (e) {
+    if (e instanceof ApiError && e.code === 'address_not_found') return Astro.redirect(R.addresses, 303);
+    if (e instanceof ApiError && e.code === 'invalid_address') {
+      fields = Object.fromEntries(Object.keys(e.fields).map((k) => [k, FIELD_TEXT[k] ?? 'Mục này chưa đúng.']));
+      error = 'Kiểm tra lại các mục được đánh dấu.';
+    } else if (e instanceof ApiError && e.code === 'address_limit_reached') {
+      error = 'Bạn đã có 10 địa chỉ. Xóa bớt một địa chỉ để thêm mới.';
+    } else if (e instanceof ApiError && e.code === 'try_again') {
+      error = 'Địa chỉ vừa đổi ở nơi khác. Thử lưu lại.';
+    } else {
+      error = 'Chưa lưu được. Thử lại sau ít phút.';
+    }
+  }
+}
+
+const [book, regions] = await Promise.all([unwrap(api.GET('/v1/addresses')), provinces()]);
+const list = book.items;
+const main = list.find((a) => a.is_default);
+const provinceOf = (a: Schemas['Address']) => regions.find((r) => r.name === a.province)?.code ?? '';
+
+const editId = Astro.url.searchParams.get('edit');
+const editing = editId ? list.find((a) => a.id === editId) : undefined;
+const adding = Astro.url.searchParams.has('new') || list.length === 0;
+let draft: Draft | undefined = posted;
+if (!draft && editing) {
+  draft = { id: editing.id, kind: kindOf(editing.kind), name: editing.name, phone: phoneText(editing.phone), street: editing.street, province: provinceOf(editing), commune: editing.commune_code, isDefault: editing.is_default };
+} else if (!draft && adding) {
+  // A new address starts with the account's name and phone.
+  const phone = identity(v.identities, 'phone');
+  draft = { kind: 'home', name: v.named ? v.name : '', phone: phone ? phoneText(phone) : '', street: '', province: '', commune: '', isDefault: list.length === 0 };
+}
+const choices = draft?.province
+  ? await communes(draft.province).catch(() => [])
+  : [];
+const old = draft?.id ? list.find((a) => a.id === draft.id) : undefined;
+const key = idempotencyKey();
+
 const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none';
 const select = `${input} appearance-none cursor-pointer`;
+const bad = 'mt-1 block px-1 text-body-small text-error';
 ---
 
-<SettingsFrame title="Địa chỉ của tôi" page="Địa chỉ" meta={`${ADDRESS_BOOK.length} địa chỉ · ${main.label} là mặc định`}>
-  <button slot="end" type="button" class={btnCls('ink')}><Icon name="add-rounded" size={18} />Thêm địa chỉ</button>
+<SettingsFrame title="Địa chỉ của tôi" page="Địa chỉ" meta={main ? `${list.length} địa chỉ · ${ADDRESS_KIND[kindOf(main.kind)].label} là mặc định` : 'Chưa có địa chỉ'}>
+  {
+    list.length > 0 && (
+      <a slot="end" href={`${R.addresses}?new`} class={btnCls('ink')}>
+        <Icon name="add-rounded" size={18} />
+        Thêm địa chỉ
+      </a>
+    )
+  }
 
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-    {
-      ADDRESS_BOOK.map((a) => (
-        <article class:list={[PANEL, 'p-4', a === editing && !a.default && 'ring-2 ring-primary/40']}>
-          <div class="flex items-start gap-3">
-            <span
-              class:list={[
-                'grid h-11 w-11 shrink-0 place-items-center rounded-full',
-                a.default ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant',
-              ]}
-            >
-              <Icon name={a.icon} size={22} />
-            </span>
-            <div class="min-w-0 flex-1">
-              <p class="flex items-center gap-2 text-title-medium font-semibold text-ink">
-                {a.label}
-                {a.default && <span class="rounded-full bg-secondary-container px-2 py-0.5 text-label-medium text-on-secondary-container">Mặc định</span>}
-              </p>
-              <p class="mt-1 text-body-large text-ink">{a.street}</p>
-              <p class="text-body-medium text-on-surface-variant">{a.ward}</p>
-              <p class="mt-1 text-body-small text-on-surface-variant">
-                {v.name} · {PHONE} · {a.delivered}
-              </p>
-            </div>
-          </div>
-          <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
-            <button type="button" class={btnCls('line')}>
-              <Icon name="edit-outline-rounded" size={18} />Sửa
-            </button>
-            {a.default ? (
-              <span class="px-2 text-body-small text-on-surface-variant">Đang là địa chỉ mặc định</span>
-            ) : (
-              <>
-                <button type="button" class={btnCls('ghost')}>Đặt làm mặc định</button>
-                <button
-                  type="button"
-                  class="state-layer ml-auto grid h-10 w-10 place-items-center rounded-full text-error"
-                  aria-label={`Xóa ${a.label}`}
+  {
+    error && !draft && (
+      <Notice text={error} />
+    )
+  }
+
+  {
+    list.length > 0 && (
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {list.map((a) => {
+          const k = ADDRESS_KIND[kindOf(a.kind)];
+          return (
+            <article class:list={[PANEL, 'p-4', a.id === draft?.id && 'ring-2 ring-primary/40']}>
+              <div class="flex items-start gap-3">
+                <span
+                  class:list={[
+                    'grid h-11 w-11 shrink-0 place-items-center rounded-full',
+                    a.is_default ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant',
+                  ]}
                 >
-                  <Icon name="delete-outline-rounded" size={20} />
-                </button>
-              </>
-            )}
-          </div>
-        </article>
-      ))
-    }
-  </div>
+                  <Icon name={k.icon} size={22} />
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="flex items-center gap-2 text-title-medium font-semibold text-ink">
+                    {k.label}
+                    {a.is_default && <span class="rounded-full bg-secondary-container px-2 py-0.5 text-label-medium text-on-secondary-container">Mặc định</span>}
+                  </p>
+                  <p class="mt-1 text-body-large text-ink">{a.street}</p>
+                  <p class="text-body-medium text-on-surface-variant">
+                    {a.commune}, {a.province}
+                  </p>
+                  <p class="mt-1 text-body-small text-on-surface-variant">
+                    {a.name} · {phoneText(a.phone)}
+                  </p>
+                </div>
+                {!a.is_default && (
+                  <form method="post" class="-mr-2 -mt-2">
+                    <input type="hidden" name="id" value={a.id} />
+                    <button
+                      name="step"
+                      value="delete"
+                      class="state-layer grid h-10 w-10 place-items-center rounded-full text-on-surface-variant"
+                      aria-label={`Xóa ${k.label}: ${a.street}`}
+                      data-confirm="Xóa địa chỉ này?"
+                    >
+                      <Icon name="delete-outline-rounded" size={20} />
+                    </button>
+                  </form>
+                )}
+              </div>
+              <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                <a href={`${R.addresses}?edit=${a.id}`} class={btnCls('line')}>
+                  <Icon name="edit-outline-rounded" size={18} />
+                  Sửa
+                </a>
+                {a.is_default ? (
+                  <span class="px-2 text-body-small text-on-surface-variant">Đang là địa chỉ mặc định</span>
+                ) : (
+                  <form method="post">
+                    <input type="hidden" name="id" value={a.id} />
+                    <button name="step" value="default" class={btnCls('ghost')}>
+                      Đặt làm mặc định
+                    </button>
+                  </form>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )
+  }
 
-  <form class:list={[PANEL, 'p-5']} aria-labelledby="edit-title">
-    <div class="flex items-center justify-between">
-      <h2 id="edit-title" class="text-j-20 text-ink">Sửa địa chỉ {editing.label}</h2>
-      <button type="button" class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Đóng">
-        <Icon name="close-rounded" size={20} />
-      </button>
-    </div>
-    <div class="mt-4 flex flex-wrap gap-2" role="radiogroup" aria-label="Loại địa chỉ">
-      {
-        kinds.map((k) => (
-          <label
-            class="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-label-large text-ink has-checked:border-transparent has-checked:bg-mint has-checked:text-on-mint"
-          >
-            <input type="radio" name="kind" value={k.label} class="sr-only" checked={k.label === editing.label} />
-            <Icon name={k.icon} size={17} />
-            {k.label}
+  {
+    draft && (
+      <form method="post" action={draft.id ? `${R.addresses}?edit=${draft.id}` : `${R.addresses}?new`} class:list={[PANEL, 'p-5']} aria-labelledby="edit-title">
+        <input type="hidden" name="key" value={key} />
+        {draft.id && <input type="hidden" name="id" value={draft.id} />}
+        <div class="flex items-center justify-between">
+          <h2 id="edit-title" class="text-j-20 text-ink">
+            {old ? `Sửa địa chỉ ${ADDRESS_KIND[kindOf(old.kind)].label}` : 'Thêm địa chỉ'}
+          </h2>
+          {list.length > 0 && (
+            <a href={R.addresses} class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Đóng">
+              <Icon name="close-rounded" size={20} />
+            </a>
+          )}
+        </div>
+        {error && (
+          <Notice text={error} class="mt-3" />
+        )}
+        <fieldset class="mt-4 flex flex-wrap gap-2">
+          <legend class="sr-only">Loại địa chỉ</legend>
+          {Object.entries(ADDRESS_KIND).map(([value, k]) => (
+            <label class="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-label-large text-ink has-checked:border-transparent has-checked:bg-mint has-checked:text-on-mint has-focus-visible:ring-2 has-focus-visible:ring-primary">
+              <input type="radio" name="kind" value={value} class="sr-only" checked={value === draft.kind} />
+              <Icon name={k.icon} size={17} />
+              {k.label}
+            </label>
+          ))}
+        </fieldset>
+        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div>
+            <Field label="Người nhận">
+              <input name="name" value={draft.name} required maxlength={50} autocomplete="name" class={input} />
+            </Field>
+            {fields.name && <span class={bad}>{fields.name}</span>}
+          </div>
+          <div>
+            <Field label="Số điện thoại">
+              <input name="phone" type="tel" inputmode="tel" value={draft.phone} required autocomplete="tel-national" class:list={[input, 'tabular-nums']} />
+            </Field>
+            {fields.phone && <span class={bad}>{fields.phone}</span>}
+          </div>
+          <div class="md:col-span-2">
+            <Field label="Số nhà, đường">
+              <input name="street" value={draft.street} required maxlength={200} autocomplete="street-address" class={input} />
+            </Field>
+            {fields.street && <span class={bad}>{fields.street}</span>}
+          </div>
+          <div>
+            <Field label="Tỉnh, thành phố">
+              <select name="province" required class={select} data-province>
+                <option value="" disabled selected={!draft.province}>
+                  Chọn tỉnh, thành phố
+                </option>
+                {regions.map((p) => (
+                  <option value={p.code} selected={p.code === draft.province}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
+            </Field>
+            <noscript>
+              <button name="step" value="province" formnovalidate class="state-layer mt-1 h-8 rounded-control px-2 text-label-large text-primary">
+                Chọn phường, xã của tỉnh này
+              </button>
+            </noscript>
+          </div>
+          <div>
+            <Field label="Phường, xã">
+              <select name="commune" required class={select} data-commune>
+                <option value="" disabled selected={!choices.some((c) => c.code === draft.commune)}>
+                  {draft.province ? 'Chọn phường, xã' : 'Chọn tỉnh trước'}
+                </option>
+                {choices.map((c) => (
+                  <option value={c.code} selected={c.code === draft.commune}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
+            </Field>
+            {fields.commune_code && <span class={bad}>{fields.commune_code}</span>}
+          </div>
+        </div>
+        {!old?.is_default && (
+          <label class="mt-4 flex cursor-pointer items-center justify-between gap-3 rounded-lg bg-surface-container-low px-4 py-3">
+            <span class="text-body-large text-ink">Đặt làm địa chỉ mặc định</span>
+            <input type="checkbox" name="is_default" checked={draft.isDefault} class="peer sr-only" />
+            <span class="relative h-7 w-12 shrink-0 rounded-full bg-surface-container-highest transition-colors duration-(--duration-effects-default) peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-knob after:transition-transform after:duration-(--duration-spatial-fast) after:ease-spatial-fast peer-checked:after:translate-x-5" />
           </label>
-        ))
-      }
-    </div>
-    <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-      <Field label="Người nhận"><input name="name" value={v.name} class={input} /></Field>
-      <Field label="Số điện thoại">
-        <input name="phone" value={PHONE} class={input} readonly />
-        <span slot="trail" class="text-label-medium text-primary">Đã xác minh</span>
-      </Field>
-      <Field label="Số nhà, đường" class="md:col-span-2"><input name="street" value={editing.street} class={input} /></Field>
-      <Field label="Phường, xã">
-        <select name="ward" class={select}>
-          <option>Phường Sài Gòn</option>
-          <option>Phường Bình Thạnh</option>
-          <option>Phường Bến Thành</option>
-        </select>
-        <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
-      </Field>
-      <Field label="Tỉnh, thành phố">
-        <select name="city" class={select}>
-          <option>TP.HCM</option>
-          <option>Hà Nội</option>
-          <option>Đà Nẵng</option>
-        </select>
-        <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
-      </Field>
-    </div>
-    <div class="mt-4 flex items-center justify-between gap-3 rounded-lg bg-surface-container-low px-4 py-3">
-      <span class="text-body-large text-ink">Đặt làm địa chỉ mặc định</span>
-      <Switch on={false} label="Đặt làm địa chỉ mặc định" />
-    </div>
-    <div class="mt-4 flex justify-end gap-2">
-      <button type="button" class={btnCls('line')}>Hủy</button>
-      <button type="submit" class={btnCls('ink')}>Lưu</button>
-    </div>
-  </form>
+        )}
+        <div class="mt-4 flex justify-end gap-2">
+          {list.length > 0 && (
+            <a href={R.addresses} class={btnCls('line')}>
+              Hủy
+            </a>
+          )}
+          <button name="step" value="save" class={btnCls('ink')}>
+            Lưu
+          </button>
+        </div>
+      </form>
+    )
+  }
 
   <Fragment slot="side">
     <div class:list={[PANEL, 'p-4']}>
@@ -143,20 +314,29 @@ const select = `${input} appearance-none cursor-pointer`;
         <span>Chỉ shipper và người bán của đơn COD thấy địa chỉ. Tin gần bạn dùng vị trí của máy, không dùng địa chỉ.</span>
       </p>
     </div>
-    <SideList title="Giao gần đây">
-      {
-        recent.map((r) => (
-          <Row icon="receipt-long-outline-rounded" title={r.title} sub={r.sub} class="-mx-2">
-            <span slot="trail" class="text-body-small text-on-surface-variant tabular-nums">
-              {r.when}
-            </span>
-          </Row>
-        ))
-      }
-    </SideList>
-    <div class:list={[PANEL, 'p-4']}>
-      <p class={LABEL}>Khi mua bằng COD</p>
-      <p class="mt-2 px-1 text-body-medium text-on-surface-variant">Chạm một địa chỉ để giao đơn này đến đó. Địa chỉ mặc định không đổi.</p>
-    </div>
   </Fragment>
 </SettingsFrame>
+
+<script>
+  import { API } from '../../lib/routes';
+
+  // A new province refills the communes from the server.
+  const province = document.querySelector<HTMLSelectElement>('[data-province]');
+  const commune = document.querySelector<HTMLSelectElement>('[data-commune]');
+  province?.addEventListener('change', async () => {
+    if (!commune) return;
+    commune.replaceChildren(new Option('Đang tải…', '', true, true));
+    const res = await fetch(API.communes(province.value)).catch(() => null);
+    const items: { code: string; name: string }[] = res?.ok ? await res.json() : [];
+    const first = new Option(items.length ? 'Chọn phường, xã' : 'Chưa tải được. Chọn lại tỉnh.', '', true, true);
+    first.disabled = true;
+    commune.replaceChildren(first, ...items.map((c) => new Option(c.name, c.code)));
+  });
+
+  // Deleting asks once.
+  document.querySelectorAll<HTMLButtonElement>('[data-confirm]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      if (!confirm(b.dataset.confirm)) e.preventDefault();
+    }),
+  );
+</script>

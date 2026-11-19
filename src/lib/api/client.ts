@@ -60,5 +60,10 @@ export async function orNull<T>(call: Promise<Result<T>>, missing = [400, 404]):
   });
 }
 
+/** The page after `after`, or the first page when there is no cursor or the server refuses it. */
+export async function pageOrFirst<T>(after: string | undefined, page: (cursor?: string) => Promise<Result<T>>): Promise<T> {
+  return (after ? await orNull(page(after)) : null) ?? unwrap(page());
+}
+
 /** A fresh Idempotency-Key, for a write the server may see twice. */
 export const idempotencyKey = () => crypto.randomUUID();

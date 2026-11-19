@@ -1,5 +1,5 @@
 // Mock content for the orders and selling pages: Đơn hàng, an order, Đơn bán,
-// Tin của bạn, Đã lưu, Thiết lập giao COD and Hỗ trợ. It comes from
+// Tin của bạn, Thiết lập giao COD and Hỗ trợ. It comes from
 // .superdesign/tools/build_j_orders.py and build_j_flows.py (support).
 
 import { R } from '../lib/routes';
@@ -204,61 +204,6 @@ export const RECENTLY_SOLD: { photo: string; title: string; who: string; when: s
 ];
 
 export const SOLD_COUNT = 14;
-
-// ---------------------------------------------------------------- Đã lưu --
-
-export interface SavedItem {
-  photo: string;
-  price: number;
-  title: string;
-  condition: string;
-  km: number;
-  area: string;
-  /** A price cut, the AI's judgment, or sold. */
-  change?: { cut: string } | { ai: string } | 'sold';
-}
-
-export const SAVED_GROUPS: { name: string; items: SavedItem[] }[] = [
-  { name: 'Xe đạp', items: [
-    { photo: '1505705694340-019e1e335916', price: 2_100_000, title: 'Xe đạp single speed trắng size 52', condition: 'Như mới', km: 1.2, area: 'Bình Thạnh', change: { cut: 'Giảm 300k' } },
-    { photo: '1529422643029-d4585747aaf2', price: 2_900_000, title: 'Giant Escape 3 size M', condition: 'Đã dùng', km: 2.5, area: 'Q.3', change: { ai: 'Rẻ hơn 9%' } },
-    { photo: '1571068316344-75bc76f77890', price: 2_600_000, title: 'Xe đạp cổ điển khung thép, yên da', condition: 'Đã dùng', km: 3.8, area: 'Q.2', change: 'sold' },
-  ] },
-  { name: 'Nội thất', items: [
-    { photo: '1586023492125-27b2c045efd7', price: 1_600_000, title: 'Ghế bành bọc vải vàng mù tạt', condition: 'Đã dùng', km: 5.5, area: 'Q.2' },
-    { photo: '1580480055273-228ff5388ef8', price: 950_000, title: 'Ghế xoay vải be chân gỗ', condition: 'Như mới', km: 3.9, area: 'Bình Thạnh' },
-  ] },
-  { name: 'Điện thoại', items: [
-    { photo: '1632661674596-df8be070a5c5', price: 5_200_000, title: 'iPhone 13 Pro 128GB', condition: 'Như mới', km: 1.6, area: 'Phú Nhuận', change: { cut: 'Giảm 400k' } },
-    { photo: '1616348436168-de43ad0db179', price: 6_900_000, title: 'iPhone 12 128GB', condition: 'Đã dùng', km: 0.8, area: 'Q.1' },
-    { photo: '1610945415295-d9bbf067e59c', price: 7_500_000, title: 'Galaxy S21 Ultra 256GB', condition: 'Đã dùng', km: 5.1, area: 'Tân Bình' },
-  ] },
-  { name: 'Đồ điện tử', items: [
-    { photo: '1526170375885-4d8ecf77b99f', price: 1_750_000, title: 'Máy ảnh Polaroid OneStep 2', condition: 'Như mới', km: 1.8, area: 'Phú Nhuận' },
-    { photo: '1546868871-7041f2a55e12', price: 4_500_000, title: 'Apple Watch Series 7 45mm', condition: 'Đã dùng', km: 1.6, area: 'Q.3' },
-    { photo: '1516035069371-29a1b244cc32', price: 26_500_000, title: 'Sony A7 III kèm lens 28-70 và 50mm f/1.8', condition: 'Đã dùng', km: 1140, area: 'Hà Nội' },
-  ] },
-  { name: 'Thời trang', items: [
-    { photo: '1542291026-7eec264c27ff', price: 1_290_000, title: 'Giày Nike Free RN size 42', condition: 'Mới', km: 2.2, area: 'Q.10' },
-    { photo: '1460353581641-37baddab0fa2', price: 850_000, title: 'Giày Nike Air Max size 41', condition: 'Đã dùng', km: 4.4, area: 'Q.5', change: { cut: 'Giảm 100k' } },
-  ] },
-];
-
-export const SAVED_SEARCHES = [
-  { q: 'xe đạp đi làm dưới 3 triệu', where: 'Bình Thạnh · 5 km', fresh: '4 tin mới' },
-  { q: 'iPhone 128GB dưới 8 triệu', where: 'TP.HCM', fresh: null },
-];
-
-/** So sánh 3 điện thoại: one column per phone; best is the winning column per row. */
-export const COMPARE = {
-  cols: [
-    { photo: '1632661674596-df8be070a5c5', name: 'iPhone 13 Pro', cells: ['5,2 tr', 'Như mới', '88%', '1,6 km', 'Xuất sắc'] },
-    { photo: '1616348436168-de43ad0db179', name: 'iPhone 12', cells: ['6,9 tr', 'Đã dùng', '84%', '0,8 km', 'Tin cậy'] },
-    { photo: '1610945415295-d9bbf067e59c', name: 'Galaxy S21 Ultra', cells: ['7,5 tr', 'Đã dùng', '81%', '5,1 km', 'Mới'] },
-  ],
-  rows: ['Giá', 'Tình trạng', 'Pin', 'Cách bạn', 'Người bán'],
-  best: [0, 0, 0, 1, 0],
-};
 
 // ---------------------------------------------------- Thiết lập giao COD --
 
