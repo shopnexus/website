@@ -26,6 +26,7 @@ const theirs = open && open.by !== d.role;
 const range = d.offer_range ?? undefined;
 const active = d.listing.status === 'active';
 const agreed = d.agreed_price ?? undefined;
+const openOrder = d.order?.status === 'pending' || d.order?.status === 'shipped';
 
 let price = d.listing.price;
 let lead = 'sell-outline-rounded';
@@ -38,10 +39,11 @@ if (d.status === 'negotiating' && open) {
 } else if (d.status !== 'negotiating' && agreed) {
   price = agreed;
   lead = 'handshake-outline-rounded';
-  caption = d.status === 'sold' ? 'Đã bán' : d.order ? `Đã chốt · ${ORDER_STATUS[d.order.status][1]}` : 'Đã chốt';
+  caption = d.status === 'sold' ? 'Đã bán' : d.order && openOrder ? `Đã chốt · ${ORDER_STATUS[d.order.status][1]}` : 'Đã chốt';
 }
 const note = active ? '' : LISTING_STATUS[d.listing.status];
 const canCancel = d.status === 'agreed' && (!d.order || d.order.status === 'pending');
+const canCod = d.status === 'agreed' && buyer && !openOrder && active;
 const canOffer = d.status === 'negotiating' && !!range && !(open && !theirs);
 const self = chatHref(d.conversation_id, d.id);
 const offerHref = chatHref(d.conversation_id, d.id, { offer: '1' });
@@ -127,10 +129,22 @@ const leadCls = 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-tertia
             Hủy giá đã chốt
           </button>
         )}
+        {d.order && (
+          <a href={R.order(d.order.id)} class={btnCls(canCod ? 'line' : 'ink')}>
+            <Icon name="receipt-long-outline-rounded" size={18} />
+            Xem đơn
+          </a>
+        )}
+        {canCod && (
+          <a href={chatHref(d.conversation_id, d.id, { cod: '1' })} class={btnCls('ink')}>
+            <Icon name="local-shipping-outline-rounded" size={18} />
+            Đặt giao COD
+          </a>
+        )}
       </div>
     </form>
     <p class="mt-1 pl-11 text-body-small text-on-surface-variant">
-      {[caption, note, d.status === 'agreed' && buyer && !d.order && active ? 'Đặt giao COD trong app ShopNexus' : ''].filter(Boolean).join(' · ')}
+      {[caption, note, canCod ? 'Trả tiền cho shipper khi nhận hàng' : ''].filter(Boolean).join(' · ')}
     </p>
     {
       canOffer && (

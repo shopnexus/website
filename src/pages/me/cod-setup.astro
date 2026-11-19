@@ -1,53 +1,95 @@
 ---
-// Thiết lập giao COD: where the shipper picks up and who sends, then the
-// linked carrier account; the last card sums up what buyers will get. There
-// is no payout step: the carrier pays the COD into the seller's own account.
+// Thiết lập giao COD: where the shipper picks up and the number they call,
+// then the carrier accounts in the seller's own name (GHTK, GHN). There is
+// no payout step: the carrier pays the COD into the seller's own account.
+// Every action is a form post; a refusal comes back as ?error=.
 import Icon from '../../components/Icon.astro';
+import Notice from '../../components/Notice.astro';
 import AccountFrame from '../../components/orders/AccountFrame.astro';
-import Face from '../../components/orders/Face.astro';
-import ListRow from '../../components/orders/ListRow.astro';
+import ConfirmPop from '../../components/orders/ConfirmPop.astro';
 import Option from '../../components/orders/Option.astro';
 import StepHead from '../../components/orders/StepHead.astro';
-import { ADDRESS_BOOK } from '../../data/common';
-import { HOME_LINE, SENDER } from '../../data/orders';
+import { unwrap } from '../../lib/api/client';
+import { date, phoneText } from '../../lib/format';
+import { CARRIER, LINKED, orderCode, orderError } from '../../lib/orders';
+import { identity } from '../../lib/profile';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 import { btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const p = Astro.url.searchParams;
 
-const home = ADDRESS_BOOK[0];
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const s = (k: string) => String(f.get(k) ?? '').trim();
+  const carrier = s('carrier') === 'ghn' ? 'ghn' : 'ghtk';
+  const back = new URLSearchParams();
+  try {
+    switch (s('do')) {
+      case 'pickup':
+        await unwrap(api.PUT('/v1/me/shipping-settings', { body: { pickup: { address_id: s('address_id'), phone: s('phone') } } }));
+        back.set('done', 'pickup');
+        break;
+      case 'clear':
+        await unwrap(api.PUT('/v1/me/shipping-settings', { body: { pickup: null } }));
+        break;
+      case 'link': {
+        // GHTK takes the email and password, used once; GHN its token and ShopId.
+        const body = carrier === 'ghtk' ? { email: s('email'), password: String(f.get('password') ?? '') } : { token: s('token'), shop_id: s('shop_id') };
+        await unwrap(api.PUT('/v1/carrier-accounts/{carrier}', { params: { path: { carrier } }, body }));
+        back.set('done', `link:${carrier}`);
+        break;
+      }
+      case 'unlink':
+        await unwrap(api.DELETE('/v1/carrier-accounts/{carrier}', { params: { path: { carrier } } }));
+        break;
+    }
+  } catch (e) {
+    back.set('error', orderCode(e));
+    if (s('do') === 'link' || s('do') === 'unlink') back.set('carrier', carrier);
+    if (s('do') === 'pickup') back.set('phone', s('phone').slice(0, 20));
+  }
+  return Astro.redirect(back.size ? `${R.codSetup}?${back}` : R.codSetup, 303);
+}
+
+const setup = await unwrap(api.GET('/v1/screens/cod-setup'));
+const pickup = setup.settings.pickup;
+const pickupAt = pickup ? setup.addresses.find((a) => a.id === pickup.address_id) : undefined;
+const chosen = pickup?.address_id ?? setup.addresses.find((a) => a.is_default)?.id ?? setup.addresses[0]?.id;
+const accountPhone = identity(setup.account.identities, 'phone');
+const phone = p.get('phone') ?? (pickup ? phoneText(pickup.phone) : accountPhone ? phoneText(accountPhone) : '');
+const linked = setup.carrier_accounts;
+const unlinked = LINKED.filter((c) => !linked.some((a) => a.carrier === c));
+const error = p.get('error') ?? '';
+const [doneKind, doneCarrier = ''] = (p.get('done') ?? '').split(':');
+const doneText = doneKind === 'pickup' ? 'Đã lưu địa chỉ lấy hàng.' : doneKind === 'link' ? `Đã kết nối ${CARRIER[doneCarrier as 'ghtk'] ?? ''}.` : '';
+const errorText = error === 'shipments_open' ? `Còn đơn đang giao qua ${CARRIER[p.get('carrier') as 'ghtk'] ?? 'hãng này'}, chưa gỡ được.` : orderError(error);
+const ready = !!pickup && linked.length > 0;
 const steps = [
-  { name: 'Địa chỉ lấy hàng', d: `${home.label} · ${home.street}`, state: 'done' },
-  { name: 'Bên vận chuyển', d: `GHTK · ${SENDER.shop}`, state: 'active' },
-  { name: 'Sẵn sàng giao COD', d: 'Người mua chọn được COD', state: 'next' },
+  { name: 'Địa chỉ lấy hàng', d: pickupAt ? `${pickupAt.street}, ${pickupAt.commune}` : 'Chưa chọn', state: pickup ? 'done' : 'active' },
+  { name: 'Bên vận chuyển', d: linked.length ? linked.map((a) => `${CARRIER[a.carrier]} · ${a.shop_code}`).join(', ') : 'Chưa liên kết', state: linked.length ? 'done' : pickup ? 'active' : 'next' },
+  { name: 'Sẵn sàng giao COD', d: ready ? 'Người mua chọn được COD' : 'Xong hai bước trên', state: ready ? 'done' : 'next' },
 ] as const;
-const summary = [
-  { icon: 'location-on-outline-rounded', k: 'Lấy hàng tại', v: HOME_LINE },
-  { icon: 'local-shipping-outline-rounded', k: 'Bên vận chuyển', v: `GHTK · ${SENDER.shop}` },
-  { icon: 'call-outline-rounded', k: 'Shipper gọi', v: SENDER.phone },
-];
 const label = 'mb-2 text-label-large text-ink';
+const field = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 focus-within:ring-2 focus-within:ring-primary';
+const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none';
 ---
 
 <AccountFrame title="Thiết lập giao COD" description="Địa chỉ lấy hàng và bên vận chuyển cho đơn COD." active="cod">
-  <section class="border border-line bg-card rounded-card p-5 shadow-soft md:p-6">
-    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between xl:gap-8">
-      <div>
-        <p class="flex items-center gap-3 text-label-medium text-on-surface-variant">
-          <span class="flex items-center gap-1"><Icon name="timer-outline-rounded" size={15} />3 phút</span>
-          <span class="flex items-center gap-1"><Icon name="event-repeat-outline-rounded" size={15} />Làm một lần</span>
-          <a href={R.me} class="text-primary hover:underline">Để sau</a>
-        </p>
-        <h1 class="mt-1 text-j-32 text-ink lg:text-j-28">Thiết lập giao COD</h1>
-      </div>
-    </div>
-    <ol class="mt-5 flex flex-col gap-3 border-t border-white/70 pt-4 md:flex-row md:items-center md:gap-4">
+  <section class="rounded-card border border-line bg-card p-5 shadow-soft md:p-6">
+    <p class="flex items-center gap-3 text-label-medium text-on-surface-variant">
+      <span class="flex items-center gap-1"><Icon name="timer-outline-rounded" size={15} />3 phút</span>
+      <span class="flex items-center gap-1"><Icon name="event-repeat-outline-rounded" size={15} />Làm một lần</span>
+    </p>
+    <h1 class="mt-1 text-j-32 text-ink lg:text-j-28">Thiết lập giao COD</h1>
+    <ol class="mt-5 flex flex-col gap-3 border-t border-line pt-4 md:flex-row md:items-center md:gap-4">
       {
         steps.map((s, i) => (
           <>
-            <li class="flex items-center gap-2.5">
+            <li class="flex min-w-0 items-center gap-2.5">
               <span
                 class:list={[
                   'grid h-7 w-7 shrink-0 place-items-center rounded-full text-label-medium',
@@ -56,136 +98,178 @@ const label = 'mb-2 text-label-large text-ink';
                   s.state === 'next' && 'bg-surface-container-high text-on-surface-variant',
                 ]}
               >
-                {s.state === 'done' ? <Icon name="check-rounded" size={16} /> : s.state === 'next' ? <Icon name="flag-outline-rounded" size={15} /> : i + 1}
+                {s.state === 'done' ? <Icon name="check-rounded" size={16} /> : i + 1}
               </span>
-              <span class="whitespace-nowrap">
+              <span class="min-w-0">
                 <span class="block text-label-large text-ink">{s.name}</span>
-                <span class="block text-body-small text-on-surface-variant">{s.d}</span>
+                <span class="block truncate text-body-small text-on-surface-variant">{s.d}</span>
               </span>
             </li>
-            {i < 2 && <span class:list={['hidden h-[3px] min-w-10 flex-1 rounded-full md:block', i === 0 ? 'bg-primary' : 'bg-black/10']} />}
+            {i < 2 && <span class:list={['hidden h-[3px] min-w-10 flex-1 rounded-full md:block', s.state === 'done' ? 'bg-primary' : 'bg-black/10']} />}
           </>
         ))
       }
     </ol>
   </section>
 
+  {(error || doneText) && <Notice text={error ? errorText : doneText} ok={!error} class="mt-4" />}
+
   <section class:list={[PANEL, 'mt-4 p-5']}>
-    <StepHead n={1} title="Địa chỉ lấy hàng" state="done">
-      <span class="text-body-small text-on-surface-variant">Xong · {home.label}</span>
+    <StepHead n={1} title="Địa chỉ lấy hàng" state={pickup ? 'done' : 'active'}>
+      {pickupAt && <span class="text-body-small text-on-surface-variant">Đã lưu</span>}
     </StepHead>
-    <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
+    <form method="post" action={R.codSetup} class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
       <div>
         <p class={label}>Lấy hàng tại</p>
         <div class="flex flex-col gap-2" role="radiogroup" aria-label="Lấy hàng tại">
           {
-            ADDRESS_BOOK.map((a, i) => (
-              <Option name="pickup-at" sub={`${a.street}, ${a.ward}`} on={i === 0}>
-                <span slot="title" class="flex items-center gap-1.5">
-                  <Icon name={a.icon} size={17} class="text-on-surface-variant" />
-                  {a.label}
-                </span>
-                {i === 0 && (
-                  <a slot="end" href={R.addresses} class:list={[btnCls('ghost'), 'h-8 px-2']}>
-                    <Icon name="edit-outline-rounded" size={18} />
-                    Sửa
-                  </a>
-                )}
-              </Option>
+            setup.addresses.map((a) => (
+              <Option name="address_id" value={a.id} t={a.name} sub={`${a.street}, ${a.commune}, ${a.province}`} on={a.id === chosen} />
             ))
           }
-          <Option name="pickup-at">
-            <span slot="title" class="flex items-center gap-1.5">
-              <Icon name="add-rounded" size={17} class="text-primary" />Địa chỉ mới
-            </span>
-          </Option>
+          <a href={`${R.addresses}?new`} class="flex min-h-[52px] items-center gap-2 rounded-lg border border-dashed border-line px-3.5 text-body-medium text-primary hover:bg-card">
+            <Icon name="add-rounded" size={18} />Địa chỉ mới
+          </a>
         </div>
       </div>
       <div>
         <p class={label}>Người gửi</p>
-        <div class="rounded-tile border border-line bg-card px-4 py-1">
-          <div class="flex min-h-[56px] items-center gap-3 py-2">
-            <Face name="Khánh Linh" size={36} />
-            <span class="min-w-0 flex-1">
-              <span class="flex items-center gap-1 text-body-medium text-ink">
-                {SENDER.name}<Icon name="verified-rounded" size={15} class="text-primary" />
-              </span>
-              <span class="block text-body-small text-on-surface-variant">Tên trên CCCD</span>
-            </span>
-          </div>
-          <div class="border-t border-line">
-            <ListRow icon="call-outline-rounded" main={SENDER.phone} sub="Shipper gọi số này khi đến lấy">
-              <button type="button" class:list={[btnCls('ghost'), 'h-8 px-2']}><Icon name="edit-outline-rounded" size={18} />Sửa</button>
-            </ListRow>
-          </div>
+        <div class="rounded-tile border border-line bg-card px-4 py-3">
+          <p class="text-body-medium text-ink">{setup.account.display_name || 'Chưa có tên'}</p>
+          <p class="text-body-small text-on-surface-variant">Tên đăng ký với hãng vận chuyển</p>
+        </div>
+        <label class="mt-4 block">
+          <span class={`block ${label}`}>Số điện thoại</span>
+          <span class={field}>
+            <Icon name="call-outline-rounded" size={18} class="text-on-surface-variant" />
+            <input name="phone" value={phone} inputmode="tel" autocomplete="tel" required maxlength="20" class={input} />
+          </span>
+        </label>
+        <p class="mt-1.5 text-body-small text-on-surface-variant">Shipper gọi số này khi đến lấy</p>
+        <div class="mt-4 flex justify-end gap-2">
+          {
+            pickup && (
+              <button type="submit" form="clear-pickup" class={btnCls('ghost')}>
+                Bỏ địa chỉ đã lưu
+              </button>
+            )
+          }
+          <button type="submit" name="do" value="pickup" class={btnCls('ink')} disabled={!setup.addresses.length}>Lưu</button>
         </div>
       </div>
-    </div>
+    </form>
+    {/* Its own form, so Enter in the phone field saves rather than clears. */}
+    <form method="post" action={R.codSetup} id="clear-pickup" hidden>
+      <input type="hidden" name="do" value="clear" />
+    </form>
   </section>
 
-  <section class="mt-4 rounded-panel border border-white bg-card p-5 shadow-glow">
-    <StepHead n={2} title="Bên vận chuyển" state="active" />
+  <section class:list={[PANEL, 'mt-4 p-5']}>
+    <StepHead n={2} title="Bên vận chuyển" state={linked.length ? 'done' : pickup ? 'active' : 'next'} />
+    <p class="mt-1 pl-12 text-body-medium text-on-surface-variant">Kết nối tài khoản bạn đã có. Hãng thu tiền COD và trả về tài khoản này.</p>
     <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
       <div>
         <p class={label}>Tài khoản đã liên kết</p>
-        <div class="relative flex min-h-[60px] items-center gap-3 rounded-tile border border-primary/40 bg-card px-3.5 py-2 ring-1 ring-primary/30" data-unlink>
-          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ghtk text-label-medium font-semibold text-white">GH</span>
-          <span class="min-w-0 flex-1">
-            <span class="block text-body-medium text-ink">GHTK · {SENDER.shop}</span>
-            <span class="flex items-center gap-1 text-body-small text-primary">
-              <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>Đã liên kết · 18 đơn đã gửi
-            </span>
-          </span>
-          <button type="button" class:list={[btnCls('line'), 'h-8 px-3']} aria-haspopup="dialog" aria-expanded="false" data-unlink-open>
-            Gỡ liên kết
-          </button>
-          <div
-            role="dialog"
-            aria-labelledby="unlink-title"
-            class="absolute right-0 top-[calc(100%+8px)] z-20 hidden w-[290px] max-w-full rounded-card bg-card/95 p-4 shadow-float ring-1 ring-line backdrop-blur"
-            data-unlink-dialog
-          >
-            <h3 id="unlink-title" class="text-title-small text-ink">Gỡ liên kết GHTK?</h3>
-            <p class="mt-1 text-body-medium text-on-surface-variant">Các đơn đã gửi vẫn giữ nguyên.</p>
-            <div class="mt-3 flex justify-end gap-1">
-              <button type="button" class={btnCls('ghost')} data-unlink-close>Giữ lại</button>
-              <button type="button" class:list={[btnCls('line'), 'text-error!']}>Gỡ liên kết</button>
-            </div>
-          </div>
+        {!linked.length && <p class="text-body-medium text-on-surface-variant">Chưa có.</p>}
+        <div class="flex flex-col gap-2">
+          {
+            linked.map((a) => (
+              <div class="flex min-h-[60px] items-center gap-3 rounded-tile border border-primary/40 bg-card px-3.5 py-2 ring-1 ring-primary/30">
+                <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full text-label-medium font-semibold text-white', a.carrier === 'ghtk' ? 'bg-ghtk' : 'bg-ghn']}>
+                  {a.carrier === 'ghtk' ? 'GH' : 'GHN'}
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-body-medium text-ink">
+                    {CARRIER[a.carrier]} · {a.shop_code}
+                  </span>
+                  <span class="flex items-center gap-1 text-body-small text-primary">
+                    <span class="h-1.5 w-1.5 rounded-full bg-primary" />
+                    Đã liên kết · {date(a.linked_at)}
+                  </span>
+                </span>
+                <button type="button" popovertarget={`unlink-${a.carrier}`} class:list={[btnCls('line', 'sm'), 'h-8 px-3']}>
+                  Gỡ liên kết
+                </button>
+                <ConfirmPop id={`unlink-${a.carrier}`} title={`Gỡ liên kết ${CARRIER[a.carrier]}?`} text="Các đơn đã gửi vẫn giữ nguyên." action={R.codSetup} value="unlink" confirm="Gỡ liên kết">
+                  <input type="hidden" name="carrier" value={a.carrier} />
+                </ConfirmPop>
+              </div>
+            ))
+          }
         </div>
       </div>
       <div>
-        <p class={label}>Liên kết thêm</p>
-        <div class="flex min-h-[60px] items-center gap-3 rounded-tile border border-line bg-card/60 px-3.5 py-2">
-          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ghn text-label-medium font-semibold text-white">GHN</span>
-          <span class="min-w-0 flex-1">
-            <span class="block text-body-medium text-ink">GHN</span>
-            <span class="block text-body-small text-on-surface-variant">Dán mã API và mã cửa hàng</span>
-          </span>
-          <button type="button" class:list={[btnCls('tonal'), 'h-8 px-3']}>Kết nối GHN</button>
+        {unlinked.length > 0 && <p class={label}>Liên kết thêm</p>}
+        <div class="flex flex-col gap-3">
+          {
+            unlinked.map((c) => (
+              <details class="group rounded-tile border border-line bg-card/60 px-3.5 py-2" open={p.get('carrier') === c && !!error}>
+                <summary class="flex min-h-[44px] cursor-pointer list-none items-center gap-3">
+                  <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full text-label-medium font-semibold text-white', c === 'ghtk' ? 'bg-ghtk' : 'bg-ghn']}>
+                    {c === 'ghtk' ? 'GH' : 'GHN'}
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-body-medium text-ink">{CARRIER[c]}</span>
+                    <span class="block text-body-small text-on-surface-variant">{c === 'ghtk' ? 'Đăng nhập tài khoản đã có' : 'Dán mã API và mã cửa hàng'}</span>
+                  </span>
+                  <span class:list={[btnCls('tonal', 'sm'), 'h-8 px-3 group-open:hidden']}>{c === 'ghtk' ? 'Đăng nhập GHTK' : 'Kết nối GHN'}</span>
+                </summary>
+                <form method="post" action={R.codSetup} class="flex flex-col gap-3 pb-2 pt-3">
+                  <input type="hidden" name="carrier" value={c} />
+                  {c === 'ghtk' ? (
+                    <>
+                      <div class={field}>
+                        <input aria-label="Email" name="email" type="email" required maxlength="254" autocomplete="off" placeholder="Email đăng ký GHTK" class={input} />
+                      </div>
+                      <div class={field}>
+                        <input aria-label="Mật khẩu" name="password" type="password" required maxlength="200" autocomplete="off" placeholder="Mật khẩu" class={input} />
+                      </div>
+                      <p class="text-body-small text-on-surface-variant">ShopNexus không lưu mật khẩu GHTK.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div class={field}>
+                        <input aria-label="Mã API (Token)" name="token" required minlength="8" maxlength="200" autocomplete="off" placeholder="Mã API (Token)" class={input} />
+                      </div>
+                      <div class={field}>
+                        <input aria-label="Mã cửa hàng (ShopId)" name="shop_id" required inputmode="numeric" pattern="[0-9]{4,}" maxlength="50" autocomplete="off" placeholder="Mã cửa hàng (ShopId)" class={input} />
+                      </div>
+                      <p class="text-body-small text-on-surface-variant">Lấy cả hai trong phần cài đặt tài khoản trên trang GHN.</p>
+                    </>
+                  )}
+                  <div class="flex justify-end">
+                    <button type="submit" name="do" value="link" class={btnCls('ink')}>Kết nối</button>
+                  </div>
+                </form>
+              </details>
+            ))
+          }
         </div>
-        <button type="button" class:list={[btnCls('ghost'), '-ml-2 mt-1']}><Icon name="add-rounded" size={18} />Hãng của bạn chưa có?</button>
+        <a href={`${R.support}?new=carrier_request`} class:list={[btnCls('ghost'), '-ml-2 mt-2 w-fit']}>
+          <Icon name="add-rounded" size={18} />Hãng của bạn chưa có?
+        </a>
       </div>
-    </div>
-    <div class="mt-5 flex justify-end border-t border-line pt-4">
-      <button type="button" class:list={[btnCls('primary'), 'h-11 px-7']}>Tiếp tục<Icon name="arrow-forward-rounded" size={18} /></button>
     </div>
   </section>
 
-  <section
-    class="mt-4 grid grid-cols-1 items-center gap-6 rounded-panel border border-dashed border-black/15 bg-card/50 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
-  >
+  <section class="mt-4 grid grid-cols-1 items-center gap-6 rounded-panel border border-dashed border-black/15 bg-card/50 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
     <div>
-      <StepHead n={3} title="Sẵn sàng giao COD" state="next" />
-      <p class="mt-2 pl-12 text-body-medium text-on-surface-variant">Người mua chọn được COD với mọi tin của bạn.</p>
+      <StepHead n={3} title="Sẵn sàng giao COD" state={ready ? 'done' : 'next'} />
+      <p class="mt-2 pl-12 text-body-medium text-on-surface-variant">
+        {ready ? 'Người mua chọn được COD với tin của bạn.' : 'Xong hai bước trên thì người mua chọn được COD với tin của bạn.'}
+      </p>
     </div>
     <div class="rounded-tile border border-line bg-card px-4">
       {
-        summary.map((r, i) => (
+        [
+          ['location-on-outline-rounded', 'Lấy hàng tại', pickupAt ? `${pickupAt.street}, ${pickupAt.commune}` : 'Chưa chọn'],
+          ['local-shipping-outline-rounded', 'Bên vận chuyển', linked.length ? linked.map((a) => CARRIER[a.carrier]).join(', ') : 'Chưa liên kết'],
+          ['call-outline-rounded', 'Shipper gọi', pickup ? phoneText(pickup.phone) : 'Chưa có'],
+        ].map(([icon, k, val], i) => (
           <div class:list={['flex items-center gap-3 py-2.5', i > 0 && 'border-t border-line']}>
-            <Icon name={r.icon} size={18} class="text-on-surface-variant" />
-            <span class="w-28 shrink-0 text-body-small text-on-surface-variant">{r.k}</span>
-            <span class="min-w-0 text-body-medium text-ink">{r.v}</span>
+            <Icon name={icon} size={18} class="text-on-surface-variant" />
+            <span class="w-28 shrink-0 text-body-small text-on-surface-variant">{k}</span>
+            <span class="min-w-0 text-body-medium text-ink">{val}</span>
           </div>
         ))
       }
@@ -194,16 +278,10 @@ const label = 'mb-2 text-label-large text-ink';
 </AccountFrame>
 
 <script>
-  // "Gỡ liên kết" asks first in a small dialog under the button.
-  document.querySelectorAll<HTMLElement>('[data-unlink]').forEach((box) => {
-    const open = box.querySelector<HTMLButtonElement>('[data-unlink-open]')!;
-    const dialog = box.querySelector<HTMLElement>('[data-unlink-dialog]')!;
-    const set = (on: boolean) => {
-      dialog.classList.toggle('hidden', !on);
-      open.setAttribute('aria-expanded', String(on));
-    };
-    open.addEventListener('click', () => set(dialog.classList.contains('hidden')));
-    box.querySelector('[data-unlink-close]')!.addEventListener('click', () => set(false));
-    document.addEventListener('keydown', (e) => e.key === 'Escape' && set(false));
-  });
+  // ?done= and ?error= are for this render only.
+  const u = new URL(location.href);
+  if (['done', 'error', 'phone', 'carrier'].some((k) => u.searchParams.has(k))) {
+    ['done', 'error', 'phone', 'carrier'].forEach((k) => u.searchParams.delete(k));
+    history.replaceState(history.state, '', u);
+  }
 </script>

@@ -11,6 +11,7 @@ import Icon from '../components/Icon.astro';
 import Notice from '../components/Notice.astro';
 import Photo from '../components/Photo.astro';
 import Seg from '../components/Seg.astro';
+import CodDialog from '../components/account/chat/CodDialog.astro';
 import Composer from '../components/account/chat/Composer.astro';
 import DealCard from '../components/account/chat/DealCard.astro';
 import DealConsole from '../components/account/chat/DealConsole.astro';
@@ -19,7 +20,7 @@ import PaneHead from '../components/account/chat/PaneHead.astro';
 import ReportDialog from '../components/account/chat/ReportDialog.astro';
 import Thread from '../components/account/chat/Thread.astro';
 import Layout from '../layouts/Layout.astro';
-import { type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
+import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
 import { group } from '../lib/format';
 import { isId } from '../lib/listing';
 import { activeText, chatHref, errorCode, errorText, loadMessages, openDeal, personName, shortTitle, thread } from '../lib/messages';
@@ -87,6 +88,21 @@ if (Astro.request.method === 'POST') {
       case 'cancel':
         await unwrap(api.POST('/v1/deals/{id}/cancel', path));
         break;
+      // Giao COD: the order opens on its own page.
+      case 'cod': {
+        extra.cod = '1';
+        extra.address = s('address_id');
+        // requestCod takes no Idempotency-Key: a repeat that finds the order open goes to it.
+        const d = await unwrap(api.POST('/v1/deals/{id}/cod', { ...path, body: { address_id: s('address_id') } })).catch(async (e) => {
+          const now = e instanceof ApiError && (e.code === 'move_not_allowed' || e.code === 'deal_changed') ? await orNull(api.GET('/v1/deals/{id}', path)) : null;
+          if (now?.order?.status === 'pending') return now;
+          throw e;
+        });
+        if (d.order) return Astro.redirect(`${R.order(d.order.id)}?done=sent`, 303);
+        delete extra.cod;
+        delete extra.address;
+        break;
+      }
       // Unread and archived leave the chat, or opening it would read it again.
       case 'unread':
         await unwrap(api.POST('/v1/conversations/{id}/unread', { params: { path: { id: chat } } }));
@@ -160,6 +176,16 @@ const other = chat ? personName(chat.other) : '';
 const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id) : [];
 const deal = m.deal;
 const warning = chat?.scam_warning && !chat.scam_warning.dismissed ? chat.scam_warning : null;
+// ?cod=1 opens Giao COD over the chat, for the buyer of an agreed deal.
+const address = p.get('address') ?? '';
+const cod =
+  deal && p.get('cod') === '1' && deal.role === 'buyer' && deal.status === 'agreed'
+    ? await Promise.all([
+        orNull(api.GET('/v1/screens/cod-checkout/{deal_id}', { params: { path: { deal_id: deal.id }, query: { address_id: isId(address) ? address : undefined } } }))
+          .then((c) => c ?? orNull(api.GET('/v1/screens/cod-checkout/{deal_id}', { params: { path: { deal_id: deal.id } } }))),
+        unwrap(api.GET('/v1/addresses')).then((b) => b.items),
+      ]).then(([checkout, addresses]) => (checkout ? { checkout, addresses } : null))
+    : null;
 // Whether the block is the viewer's, so "Bỏ chặn" can lift it.
 // The server answers only with the whole list, so it is paged through.
 async function blocks(id: string) {
@@ -339,7 +365,7 @@ const detail = !!(chat || start || confirm);
               ))}
             </div>
             <div data-part="alert" class="px-3 pt-2 empty:hidden">
-              {error && (
+              {error && !cod && (
                 <Notice text={errorText(error)}>
                   {error === 'phone_required' && (
                     <a href={R.security} class="ml-1 text-primary underline">
@@ -480,6 +506,7 @@ const detail = !!(chat || start || confirm);
       <ReportDialog name={other} account={chat.other.id} chat={chat.id} signals={warning?.signals ?? []} sent={p.get('reported') === '1'} />
     )
   }
+  {cod && <CodDialog checkout={cod.checkout} addresses={cod.addresses} seller={other} error={error || undefined} />}
 </Layout>
 
 <script>
@@ -504,7 +531,7 @@ const detail = !!(chat || start || confirm);
   // at its end with no older pages open; otherwise "Có tin mới" holds it.
   const clean = () => {
     const u = new URL(location.href);
-    ['error', 'offer', 'ask', 'reported'].forEach((k) => u.searchParams.delete(k));
+    ['error', 'offer', 'ask', 'reported', 'cod', 'address'].forEach((k) => u.searchParams.delete(k));
     return u;
   };
   const pill = $<HTMLButtonElement>('[data-news]');
@@ -716,6 +743,24 @@ const detail = !!(chat || start || confirm);
       dlg.showModal();
       history.replaceState(null, '', clean());
     }
+  }
+
+  // ------------------------------------------------------------ Giao COD --
+  // It renders open over the chat; here it becomes modal, and closing it
+  // leaves ?cod= behind.
+  const codDlg = $<HTMLDialogElement>('#cod');
+  if (codDlg) {
+    codDlg.close();
+    codDlg.showModal();
+    history.replaceState(null, '', clean());
+    // The form fills the dialog, so a click on the dialog itself is the backdrop.
+    codDlg.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t === codDlg || t.closest('[data-close]')) {
+        e.preventDefault();
+        codDlg.close();
+      }
+    });
   }
 
   // --------------------------------------------------------- the composer --

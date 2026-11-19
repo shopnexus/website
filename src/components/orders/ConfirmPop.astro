@@ -1,0 +1,38 @@
+---
+// A question before a step that cannot be undone, as a popover in the middle
+// of the window: a button with popovertarget opens it, no script needed. The
+// default slot holds the form's hidden fields; the submit sends do=<value>.
+interface Props {
+  id: string;
+  title: string;
+  text: string;
+  /** The form's action and the do= value its button sends. */
+  action: string;
+  value: string;
+  confirm: string;
+}
+
+const { id, title, text, action, value, confirm } = Astro.props;
+---
+
+<div
+  id={id}
+  popover="auto"
+  role="dialog"
+  aria-labelledby={`${id}-title`}
+  class="m-auto w-[min(420px,calc(100vw-32px))] rounded-card border-0 bg-card p-6 text-on-surface shadow-pop backdrop:bg-black/30"
+>
+  <h2 id={`${id}-title`} class="text-headline-small">{title}</h2>
+  <p class="mt-2 text-body-medium text-on-surface-variant">{text}</p>
+  <form method="post" action={action} class="mt-6 flex justify-end gap-2" data-once>
+    <slot />
+    <button type="button" popovertarget={id} popovertargetaction="hide" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">Quay lại</button>
+    <button type="submit" name="do" value={value} class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">{confirm}</button>
+  </form>
+</div>
+
+<script>
+  import { submitOnce } from '../../lib/once';
+
+  submitOnce();
+</script>

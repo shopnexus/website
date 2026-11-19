@@ -1,0 +1,232 @@
+---
+// The seller's shipment for a pending order: through a linked carrier
+// (weight, service with its fee, how and where it is picked up) or "Tự gửi",
+// a code made on a carrier's own app, read back from the carrier. edit: the
+// manual code's correction alone. The fields are query keys too: the script
+// asks the partial for fresh fees and preview as they change; without it,
+// "Tính lại phí" reloads the page with them.
+import type { Schemas } from '../../lib/api/client';
+import { CARRIER } from '../../lib/orders';
+import { R } from '../../lib/routes';
+import { SERVICES, type ShipInput, type ShipReads } from '../../lib/ship';
+import { btnCls, PANEL } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import Option from './Option.astro';
+import ShipReadout from './ShipReadout.astro';
+
+interface Props {
+  order: Schemas['Order'];
+  setup: Schemas['CodSetupScreen'];
+  input: ShipInput;
+  reads: ShipReads;
+  edit?: boolean;
+  /** The Idempotency-Key of this render's form. */
+  idem: string;
+}
+
+const { order, setup, input: i, reads, edit = false, idem } = Astro.props;
+const linked = setup.carrier_accounts.map((a) => a.carrier);
+const account = (c: string) => setup.carrier_accounts.find((a) => a.carrier === c);
+const here = R.order(order.id);
+const tabHref = (via: string) => `${here}?${new URLSearchParams({ via, weight: i.weight })}`;
+const label = 'mb-2 text-label-large text-ink';
+const savedAddress = setup.settings.pickup ? setup.addresses.find((a) => a.id === setup.settings.pickup!.address_id) : undefined;
+const pickups = reads.pickups && 'ok' in reads.pickups ? reads.pickups.ok : [];
+const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 ring-primary/30 focus-within:ring-2';
+---
+
+{
+  linked.length === 0 ? (
+    <section class:list={[PANEL, 'flex flex-col items-start gap-3 p-5']}>
+      <h2 class="text-title-small text-ink">Chưa liên kết hãng vận chuyển</h2>
+      <p class="text-body-medium text-on-surface-variant">Liên kết GHTK hoặc GHN để tạo đơn và để ShopNexus đọc được mã vận đơn.</p>
+      <a href={R.codSetup} class={btnCls('ink')}>
+        <Icon name="local-shipping-outline-rounded" size={18} />
+        Liên kết hãng
+      </a>
+    </section>
+  ) : (
+    <form method="post" action={here} id="ship" class:list={[PANEL, 'p-5']} data-ship data-once data-price={order.price}>
+      <input type="hidden" name="key" value={idem} />
+      {
+        edit ? (
+          <>
+            <input type="hidden" name="via" value="manual" />
+            <input type="hidden" name="edit" value="1" />
+            <h2 class="text-title-small text-ink">Sửa mã vận đơn</h2>
+            <p class="mt-1 text-body-small text-on-surface-variant">Sửa được tới khi hãng giao xong.</p>
+          </>
+        ) : (
+          <>
+            <input type="hidden" name="via" value={i.via} />
+            <h2 class="text-title-small text-ink">Gửi bằng</h2>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <nav class="inline-flex rounded-control bg-black/[.04] p-0.5" aria-label="Gửi bằng">
+                {[...linked, 'manual' as const].map((c) => (
+                  <a
+                    href={tabHref(c)}
+                    aria-current={i.via === c ? 'page' : undefined}
+                    class="flex h-8 items-center rounded-sm px-4 text-title-small text-sub aria-[current]:bg-card aria-[current]:text-ink aria-[current]:shadow-knob"
+                  >
+                    {c === 'manual' ? 'Tự gửi' : CARRIER[c]}
+                  </a>
+                ))}
+              </nav>
+              <p class="text-body-small text-on-surface-variant">
+                {i.via === 'manual'
+                  ? 'Đã tạo đơn trong app của hãng? Nhập mã vận đơn'
+                  : `Tạo vận đơn trên tài khoản ${CARRIER[i.via]} ${account(i.via)?.shop_code ?? ''} của bạn`}
+              </p>
+            </div>
+          </>
+        )
+      }
+
+      {
+        i.via === 'manual' ? (
+          <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 border-t border-line pt-5 md:grid-cols-2">
+            <div>
+              <p class={label}>Hãng</p>
+              <div class="flex flex-col gap-2" role="radiogroup" aria-label="Hãng">
+                {linked.map((c) => (
+                  <Option name="carrier" value={c} t={CARRIER[c]} sub={`Tài khoản ${account(c)?.shop_code ?? ''}`} on={i.carrier === c} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <label class="block">
+                <span class={`block ${label}`}>Mã vận đơn</span>
+                <span class={inputBox}>
+                  <input
+                    name="code"
+                    value={i.code}
+                    required
+                    maxlength="50"
+                    autocomplete="off"
+                    spellcheck="false"
+                    class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none"
+                  />
+                </span>
+              </label>
+              <div class="mt-3" data-part="preview" aria-live="polite">
+                <ShipReadout part="preview" reads={reads} carrier={i.carrier} price={order.price} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 border-t border-line pt-5 md:grid-cols-2">
+            <div>
+              <label class="block">
+                <span class={`block ${label}`}>Khối lượng</span>
+                <span class={inputBox}>
+                  <input
+                    name="weight"
+                    value={i.weight}
+                    inputmode="decimal"
+                    required
+                    autocomplete="off"
+                    class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none tabular-nums"
+                  />
+                  <span class="text-body-medium text-on-surface-variant">kg</span>
+                </span>
+              </label>
+              <p class="mt-1.5 text-body-small text-on-surface-variant">Từ 1 g tới 20 kg, gồm cả hộp.</p>
+            </div>
+            <div>
+              <p class={label}>Dịch vụ</p>
+              <div class="flex flex-col gap-2" role="radiogroup" aria-label="Dịch vụ">
+                {SERVICES[i.via].map((s) => (
+                  <Option name="service" value={s.key} t={s.name} sub={s.days} on={i.service === s.key}>
+                    <span slot="end" class="shrink-0 text-title-small text-ink tabular-nums" data-fee={s.key}>
+                      <ShipReadout part="fee" reads={reads} service={s.key} />
+                    </span>
+                  </Option>
+                ))}
+              </div>
+              <p class="mt-1.5 text-body-small text-on-surface-variant" data-part="fee-note">
+                <ShipReadout part="fee-note" reads={reads} />
+              </p>
+            </div>
+            <div>
+              <p class={label}>Cách lấy hàng</p>
+              <div class="flex flex-col gap-2" role="radiogroup" aria-label="Cách lấy hàng">
+                <Option name="way" value="home" t="Lấy tại nhà" sub="Shipper tới lấy" on={i.way === 'home'} />
+                <Option name="way" value="post_office" t="Gửi tại bưu cục" sub="Bạn mang ra bưu cục gần nhất" on={i.way === 'post_office'} />
+              </div>
+            </div>
+            <div>
+              <p class={label}>{i.way === 'home' ? 'Lấy hàng tại' : 'Gửi từ'}</p>
+              <div class="flex flex-col gap-2" role="radiogroup" aria-label="Lấy hàng tại">
+                {savedAddress && <Option name="from" value="saved" t="Địa chỉ đã lưu" sub={`${savedAddress.street}, ${savedAddress.commune}`} on={i.from === 'saved'} />}
+                {pickups.length > 0 && <p class="mt-1 text-label-medium text-on-surface-variant">Kho trên {CARRIER[i.via]}</p>}
+                {pickups.map((p) => (
+                  <Option name="from" value={`point:${p.id}`} t={p.name} sub={p.address} on={i.from === `point:${p.id}`} />
+                ))}
+                {setup.addresses.filter((a) => a.id !== savedAddress?.id).length > 0 && (
+                  <p class="mt-1 text-label-medium text-on-surface-variant">Địa chỉ của bạn</p>
+                )}
+                {setup.addresses
+                  .filter((a) => a.id !== savedAddress?.id)
+                  .map((a) => (
+                    <Option name="from" value={`address:${a.id}`} t={a.name} sub={`${a.street}, ${a.commune}`} on={i.from === `address:${a.id}`} />
+                  ))}
+                <Option name="from" value="" t={`Kho mặc định trên ${CARRIER[i.via]}`} on={!i.from} />
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      <div class="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4">
+        {edit && (
+          <a href={here} class={btnCls('ghost')}>
+            Thôi
+          </a>
+        )}
+        <button type="submit" formmethod="get" formaction={here} class={btnCls('line')} data-refresh>
+          {i.via === 'manual' ? 'Kiểm tra mã' : 'Tính lại phí'}
+        </button>
+        <button type="submit" name="do" value={edit ? 'code' : 'ship'} class:list={[btnCls('ink', 'lg'), 'px-6']}>
+          <Icon name="receipt-long-outline-rounded" size={18} />
+          {edit ? 'Lưu mã' : i.via === 'manual' ? 'Xác nhận' : 'Tạo đơn'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+<script>
+  import { submitOnce } from '../../lib/once';
+
+  submitOnce();
+  // Ask the partial (/orders/<id>/ship) for the fees and the preview as the
+  // fields change, and put them in. The address keeps the fields for a reload.
+  const form = document.querySelector<HTMLFormElement>('[data-ship]');
+  if (form) {
+    form.querySelector<HTMLElement>('[data-refresh]')!.hidden = true;
+    let timer = 0;
+    let run = 0;
+    const refresh = async () => {
+      const mine = ++run;
+      const q = new URLSearchParams();
+      for (const [k, v] of new FormData(form)) if (k !== 'key' && k !== 'do') q.set(k, String(v));
+      const url = `${location.pathname}?${q}`;
+      const res = await fetch(`${location.pathname}/ship?${q}&price=${form.dataset.price}`, { headers: { accept: 'text/html' } }).catch(() => null);
+      if (!res?.ok || mine !== run) return;
+      const doc = new DOMParser().parseFromString(await res.text(), 'text/html').querySelector('template')?.content;
+      if (!doc) return;
+      for (const el of form.querySelectorAll<HTMLElement>('[data-fee], [data-part]')) {
+        const sel = el.dataset.fee ? `[data-fee="${el.dataset.fee}"]` : `[data-part="${el.dataset.part}"]`;
+        const fresh = doc.querySelector(sel);
+        if (fresh) el.innerHTML = fresh.innerHTML;
+      }
+      history.replaceState(history.state, '', url);
+    };
+    const later = () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(refresh, 400);
+    };
+    form.addEventListener('input', later);
+    form.addEventListener('change', later);
+  }
+</script>

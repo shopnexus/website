@@ -1,0 +1,55 @@
+---
+// What the carrier read for the shipment form: a service's fee, the note
+// under the fees, or a manual code's preview. ShipForm and its partial
+// (/orders/<id>/ship) both draw them, so the script can swap them in.
+import { money } from '../../lib/format';
+import { CARRIER, SHIPMENT_STATUS, orderError } from '../../lib/orders';
+import type { ShipReads } from '../../lib/ship';
+
+interface Props {
+  part: 'fee' | 'fee-note' | 'preview';
+  reads: ShipReads;
+  /** fee: the service's key. */
+  service?: string;
+  /** preview: the carrier asked and the agreed price. */
+  carrier?: string;
+  price?: number;
+}
+
+const { part, reads, service = '', carrier = '', price = 0 } = Astro.props;
+const f = reads.fees[service];
+const feeError = Object.values(reads.fees).find((x) => 'error' in x && x.error !== 'invalid_shipment');
+const preview = reads.preview && 'ok' in reads.preview ? reads.preview.ok : null;
+const previewError = reads.preview && 'error' in reads.preview ? reads.preview.error : '';
+---
+
+{part === 'fee' && (f && 'ok' in f ? money(f.ok) : '–')}
+{part === 'fee-note' && (feeError && 'error' in feeError ? orderError(feeError.error) : 'Người mua trả phí ship cho shipper.')}
+{
+  part === 'preview' &&
+    (previewError === 'shipment_not_found' ? (
+      <p class="text-body-small text-error">{CARRIER[carrier as 'ghtk'] ?? 'Hãng'} không có mã này</p>
+    ) : previewError ? (
+      <p class="text-body-small text-on-surface-variant">{orderError(previewError)}</p>
+    ) : preview ? (
+      <div class="rounded-tile bg-surface-container-low p-3 text-body-small text-on-surface-variant">
+        <p class="text-label-large text-ink">{CARRIER[preview.carrier]} báo</p>
+        <p class="mt-1">
+          {preview.recipient_name} · {preview.district}
+        </p>
+        <p>COD {money(preview.cod_amount)}</p>
+        <p>
+          {SHIPMENT_STATUS[preview.status]}
+          {preview.fee !== undefined && ` · phí ship ${money(preview.fee)}`}
+        </p>
+        {preview.status === 'failed' && <p class="mt-2 text-error">{CARRIER[preview.carrier]} báo mã này giao không thành</p>}
+        {preview.cod_amount !== price && (
+          <p class="mt-2 text-ink">
+            COD trên đơn {money(preview.cod_amount)}, khác giá đã chốt {money(price)}
+          </p>
+        )}
+      </div>
+    ) : (
+      <p class="text-body-small text-on-surface-variant">ShopNexus đọc mã từ tài khoản hãng của bạn.</p>
+    ))
+}

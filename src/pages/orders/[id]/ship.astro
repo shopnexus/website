@@ -1,0 +1,28 @@
+---
+// The shipment form's carrier reads for the fields in the query: each
+// service's fee and the note under them, or a manual code's preview. The
+// form's script swaps them in, so typing a weight or a code reads only these.
+import ShipReadout from '../../../components/orders/ShipReadout.astro';
+import { isId } from '../../../lib/listing';
+import { LINKED } from '../../../lib/orders';
+import { requireViewer } from '../../../lib/session';
+import { SERVICES, shipInput, shipReads } from '../../../lib/ship';
+
+export const partial = true;
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const id = Astro.params.id ?? '';
+if (!isId(id)) return new Response(null, { status: 400 });
+const p = Astro.url.searchParams;
+const input = shipInput((k) => p.get(k), LINKED, p.get('from') === 'saved');
+const reads = await shipReads(Astro.locals.api, id, input, false);
+// The agreed price only matters for a preview's COD check; the order page has it.
+const price = Number(p.get('price') ?? 0);
+---
+
+<template data-ship-reads>
+  {input.via !== 'manual' && SERVICES[input.via].map((s) => <span data-fee={s.key}><ShipReadout part="fee" reads={reads} service={s.key} /></span>)}
+  {input.via !== 'manual' && <p data-part="fee-note"><ShipReadout part="fee-note" reads={reads} /></p>}
+  {input.via === 'manual' && <div data-part="preview"><ShipReadout part="preview" reads={reads} carrier={input.carrier} price={price} /></div>}
+</template>

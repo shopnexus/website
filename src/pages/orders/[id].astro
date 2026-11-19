@@ -1,66 +1,212 @@
 ---
-// One COD order, from the buyer's side: the state and the four steps, what to
-// check at the door, the carrier's timeline, the waybill and the address,
-// and on the right what the buyer hands the shipper.
+// One COD order, from either side. The state and the four steps; for the
+// seller of a pending order, the shipment form; the order's timeline, the
+// waybill and where it goes; the reviews once it closed; on the right what
+// the buyer hands the shipper, and the moves the viewer can make now. Every
+// move is a form post here; a refusal comes back as ?error=.
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
+import Notice from '../../components/Notice.astro';
 import PhaseTrack from '../../components/PhaseTrack.astro';
 import Chip from '../../components/orders/Chip.astro';
+import ConfirmPop from '../../components/orders/ConfirmPop.astro';
 import HeroCard from '../../components/orders/HeroCard.astro';
 import IconBtn from '../../components/orders/IconBtn.astro';
 import ListRow from '../../components/orders/ListRow.astro';
+import ReviewPanel from '../../components/orders/ReviewPanel.astro';
 import SectionLabel from '../../components/orders/SectionLabel.astro';
+import ShipForm from '../../components/orders/ShipForm.astro';
 import SummaryAside from '../../components/orders/SummaryAside.astro';
 import Layout from '../../layouts/Layout.astro';
-import { ORDERS } from '../../data/orders';
+import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../../lib/api/client';
 import { money } from '../../lib/format';
+import { isId } from '../../lib/listing';
+import { chatHref, personName } from '../../lib/messages';
+import { CARRIER, LINKED, SHIPMENT_STATUS, at, cancelText, orderCode, orderError, orderState, recipientLines, timeline, trackUrl } from '../../lib/orders';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
+import { SHIP_KEYS, draft, shipInput, shipReads } from '../../lib/ship';
 import { btnCls, CONTENT, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const id = Astro.params.id ?? '';
+if (!isId(id)) return Astro.rewrite('/404');
+const here = R.order(id);
+const p = Astro.url.searchParams;
 
-const o = ORDERS[Astro.params.id ?? ''];
-if (!o) return Astro.rewrite('/404');
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const s = (k: string) => String(f.get(k) ?? '').trim();
+  const path = { params: { path: { order_id: id } } };
+  const key = { 'Idempotency-Key': s('key') || idempotencyKey() };
+  const back = new URLSearchParams();
+  try {
+    switch (s('do')) {
+      case 'confirm':
+        await unwrap(api.POST('/v1/orders/{order_id}/confirm', { params: { ...path.params, header: key } }));
+        back.set('done', 'confirm');
+        break;
+      case 'cancel':
+        await unwrap(api.POST('/v1/orders/{order_id}/cancel', path));
+        back.set('done', 'cancel');
+        break;
+      case 'review':
+        await unwrap(api.PUT('/v1/orders/{order_id}/review', { ...path, body: { stars: Number(s('stars')), text: s('text') } }));
+        back.set('done', 'review');
+        break;
+      case 'unreview':
+        await unwrap(api.DELETE('/v1/orders/{order_id}/review', path));
+        break;
+      case 'report': {
+        const t = await unwrap(
+          api.POST('/v1/support/tickets', { params: { header: key }, body: { kind: 'not_received', order_id: id, body: s('body') || undefined } }),
+        );
+        return Astro.redirect(`${R.support}?ticket=${t.id}`, 303);
+      }
+      case 'ship':
+      case 'code': {
+        const get = (k: string) => (f.has(k) ? s(k) : null);
+        const input = shipInput(get, LINKED, get('from') === 'saved');
+        if (s('do') === 'ship') {
+          const deal = await unwrap(api.POST('/v1/orders/{order_id}/shipment', { params: { ...path.params, header: key }, body: draft(input) }));
+          const made = deal.order?.shipment;
+          back.set('done', `${made?.mode === 'manual' ? 'told' : 'ship'}:${made?.carrier ?? ''}`);
+        } else {
+          await unwrap(api.PUT('/v1/orders/{order_id}/shipment', { ...path, body: { carrier: input.carrier, tracking_code: input.code } }));
+          back.set('done', 'code');
+        }
+        break;
+      }
+    }
+  } catch (e) {
+    // A second click on cancel finds it done: the page says so.
+    if (s('do') === 'cancel' && e instanceof ApiError && e.code === 'move_not_allowed') {
+      const now = await orNull(api.GET('/v1/screens/order/{order_id}', path));
+      if (now?.order.status === 'cancelled' && now.order.cancelled_by === now.deal.role) return Astro.redirect(`${here}?done=cancel`, 303);
+    }
+    back.set('error', orderCode(e));
+    // The shipment's fields come back, so the form shows what was typed.
+    for (const k of [...SHIP_KEYS, 'edit']) if (f.has(k)) back.set(k, s(k));
+  }
+  return Astro.redirect(back.size ? `${here}?${back}` : here, 303);
+}
+
+const screen = await orNull(api.GET('/v1/screens/order/{order_id}', { params: { path: { order_id: id } } }));
+if (!screen) return Astro.rewrite('/404');
+const { order: o, deal, counterpart, own_review: own, their_review: their } = screen;
+const role = deal.role;
+const buyer = role === 'buyer';
+const other = personName(counterpart);
+const current = deal.order?.id === o.id;
+const ship = o.shipment;
+const carrier = ship ? CARRIER[ship.carrier] : '';
+const state = orderState(o, role, other, own.state === 'active' ? own.stars : undefined);
+const chat = chatHref(deal.conversation_id, deal.id);
+const error = p.get('error') ?? '';
+const done = p.get('done') ?? '';
+
+// The seller's shipment form: a pending order's, or a manual code's correction.
+const editable = !buyer && current && o.status === 'shipped' && ship?.mode === 'manual' && (ship.status === 'pending_pickup' || ship.status === 'in_transit');
+const editing = editable && p.get('edit') === '1';
+const shipping = !buyer && current && o.status === 'pending';
+let form: { setup: Schemas['CodSetupScreen']; input: ReturnType<typeof shipInput>; reads: Awaited<ReturnType<typeof shipReads>> } | null = null;
+if (shipping || editing) {
+  const setup = await unwrap(api.GET('/v1/screens/cod-setup'));
+  const linked = setup.carrier_accounts.map((a) => a.carrier);
+  const get = (k: string) => (editing && k === 'via' ? 'manual' : p.get(k));
+  const input = shipInput(get, linked, !!setup.settings.pickup);
+  // The correction starts from the code as it stands.
+  if (editing && ship && !p.has('code')) {
+    input.code = ship.tracking_code;
+    if (linked.includes(ship.carrier as 'ghtk')) input.carrier = ship.carrier;
+  }
+  form = { setup, input, reads: linked.length ? await shipReads(api, o.id, input) : { pickups: null, fees: {}, preview: null } };
+}
+
+// The headline and its fact chip, as the app words them.
+let heading = state.label;
+let fact = '';
+if (o.status === 'pending') {
+  heading = buyer ? 'Chờ người bán tạo đơn' : `Tạo đơn cho ${other}`;
+  fact = buyer ? `Gửi yêu cầu ${at(o.requested_at)}` : `Chờ từ ${at(o.requested_at)}`;
+} else if (o.status === 'shipped') {
+  fact = `${carrier} · ${ship?.tracking_code ?? ''}`;
+} else if (o.status === 'completed') {
+  heading = buyer ? 'Đã nhận hàng' : `${other} đã nhận hàng`;
+  fact = buyer ? `Đã trả ${money(o.price + (ship?.fee ?? 0))} cho shipper` : `${carrier} trả tiền COD về tài khoản của bạn`;
+} else if (o.status === 'failed') {
+  fact = 'Tin đã mở bán lại';
+} else {
+  heading = 'Đã hủy đơn';
+  fact = cancelText(o, role, other);
+}
+const times = [deal.agreed_at, o.shipped_at, o.status === 'completed' ? o.closed_at : undefined, own.state === 'active' ? own.created_at : undefined].map((t) => (t ? at(t) : ''));
+const to = recipientLines(o.recipient);
+const steps = timeline(o, role, other);
+const track = ship ? trackUrl(ship.carrier, ship.tracking_code) : undefined;
+
+// What the buyer hands the shipper: the price, plus the fee once the carrier gave one.
+const fee = ship?.fee;
+const total = o.status === 'cancelled' || o.status === 'failed' ? null : { label: buyer ? 'Trả khi nhận' : 'Người mua trả shipper', vnd: o.price + (fee ?? 0), note: fee === undefined ? '+ phí ship' : undefined };
+const lines = [
+  { k: buyer ? 'Tiền hàng' : 'Tiền hàng COD', v: money(o.price), deal: true },
+  { k: ship ? `Phí ship · ${carrier}` : 'Phí ship', v: fee !== undefined ? money(fee) : ship ? 'Hãng báo sau' : buyer ? 'Có khi người bán tạo đơn' : 'Có khi bạn tạo đơn' },
+];
+
+// The buyer reports "chưa nhận" while it ships, or for 7 days after the system completed it.
+const recent = o.completed_by === 'system' && o.closed_at && Date.now() - Date.parse(o.closed_at) < 7 * 86_400_000;
+const canReport = buyer && current && !screen.ticket && (o.status === 'shipped' || recent);
+const reviews = o.status === 'completed' || o.status === 'failed';
+const DONE: Record<string, string> = {
+  sent: `Đã gửi yêu cầu COD cho ${other}.`,
+  confirm: 'Đã nhận hàng. Cảm ơn bạn!',
+  cancel: 'Đã hủy đơn.',
+  review: 'Đã gửi đánh giá.',
+  code: 'Đã sửa mã vận đơn.',
+};
+const [doneKind, doneCarrier = ''] = done.split(':');
+const doneName = CARRIER[doneCarrier as 'ghtk'] ?? '';
+const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKind === 'told' ? `Đã báo ${doneName} mã vận đơn.` : DONE[done];
 ---
 
-<Layout title={`Đơn COD · ${o.short} · ShopNexus`} description={`${o.heading} · ${o.carrier} ${o.code}`} section={null}>
+<Layout title={`${buyer ? 'Đơn COD' : 'Đơn bán'} · ${deal.listing.title} · ShopNexus`} description={`${heading} · ${o.code}`} section={null}>
   <main class:list={[CONTENT, 'pt-5']}>
-    <Crumbs parts={[['Tôi', R.me], ['Đơn hàng', R.orders], [o.short]]} />
-    <HeroCard photo={o.photo} heading={o.heading}>
+    <Crumbs parts={[['Tôi', R.me], [buyer ? 'Đơn mua' : 'Đơn bán', buyer ? R.orders : R.sales], [o.code]]} />
+    <HeroCard photo={deal.listing.cover_thumb_url} heading={heading}>
       <Fragment slot="chips">
-        <Chip icon="local-shipping-outline-rounded" label={`${o.carrier} · ${o.code}`}>
-          <IconBtn slot="end" label="Sao chép" icon="content-copy-outline-rounded" size="h-6 w-6" iconSize={16} />
-        </Chip>
-        <Chip icon="schedule-outline-rounded" label={o.eta} />
+        {fact && <Chip icon={state.icon} label={fact} />}
+        {!current && <Chip icon="history-rounded" label="Đơn cũ của giao dịch" />}
       </Fragment>
-      <PhaseTrack current={o.phase} times={o.times} />
+      <PhaseTrack current={state.phase} times={times} />
     </HeroCard>
+
+    {(error || doneText) && <Notice text={error ? orderError(error) : doneText!} ok={!error} class="mt-4" />}
 
     <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
       <div class="flex min-w-0 flex-col gap-4">
+        {form && <ShipForm order={o} setup={form.setup} input={form.input} reads={form.reads} edit={editing} idem={idempotencyKey()} />}
+        {reviews && <ReviewPanel own={own} their={their} other={other} role={role} action={here} editing={p.get('review') === 'edit'} />}
         <div class="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
           <section class:list={[PANEL, 'p-5']}>
             <SectionLabel title="Hành trình">
-              <span class="flex items-center gap-1.5 text-label-medium text-primary">
-                <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>{o.updated}
-              </span>
+              {ship && <span class="text-label-medium text-primary">{carrier} · {SHIPMENT_STATUS[ship.status]}</span>}
             </SectionLabel>
             <ol class="mt-3">
               {
-                o.events.map((e, i) => (
+                steps.map((e, i) => (
                   <li class="relative flex gap-3 pb-4 last:pb-0">
-                    {i < o.events.length - 1 && <span class="absolute bottom-0 left-[7px] top-5 w-px bg-black/10" />}
+                    {i < steps.length - 1 && <span class="absolute bottom-0 left-[7px] top-5 w-px bg-black/10" />}
                     <span
                       class:list={[
                         'relative mt-1 h-[15px] w-[15px] shrink-0 rounded-full',
-                        e.now ? 'bg-primary ring-4 ring-primary/15' : 'border-2 border-outline-variant bg-card',
+                        i === 0 ? 'bg-primary ring-4 ring-primary/15' : 'border-2 border-outline-variant bg-card',
                       ]}
                     />
                     <span class="min-w-0 flex-1">
-                      <span class:list={['block text-body-medium text-ink', e.now && 'font-medium']}>{e.title}</span>
-                      <span class="block text-body-small text-on-surface-variant">{e.sub}</span>
+                      <span class:list={['block text-body-medium text-ink', i === 0 && 'font-medium']}>{e.title}</span>
+                      {e.sub && <span class="block text-body-small text-on-surface-variant">{e.sub}</span>}
                     </span>
                     <span class="shrink-0 text-body-small text-on-surface-variant tabular-nums">{e.when}</span>
                   </li>
@@ -71,53 +217,177 @@ if (!o) return Astro.rewrite('/404');
           <div class="flex flex-col gap-4">
             <section class:list={[PANEL, 'px-5 py-3']}>
               <SectionLabel title="Vận đơn" />
-              <ListRow icon="receipt-long-outline-rounded" main={`${o.carrier} · ${o.code}`} sub={`${o.service} · 1–2 ngày`}>
-                <a
-                  href={`https://i.ghtk.vn/${o.code}`}
-                  class="state-layer flex h-9 items-center rounded-control px-3 text-label-large text-primary"
-                  rel="noopener"
-                  target="_blank">Tra mã</a
-                >
-                <IconBtn label="Sao chép" icon="content-copy-outline-rounded" />
-              </ListRow>
-              <ListRow icon="tag-rounded" main={o.ref} sub="Mã đơn ShopNexus">
-                <IconBtn label="Sao chép" icon="content-copy-outline-rounded" />
+              {
+                ship ? (
+                  <ListRow
+                    icon="receipt-long-outline-rounded"
+                    main={ship.tracking_code}
+                    sub={buyer ? carrier : ship.mode === 'linked' ? `Tạo trên tài khoản ${carrier}` : `Tự gửi · nhập từ app ${carrier}`}
+                  >
+                    {track && (
+                      <a href={track} class="state-layer flex h-9 items-center rounded-control px-3 text-label-large text-primary" rel="noopener" target="_blank">
+                        Tra mã
+                      </a>
+                    )}
+                    <IconBtn label="Sao chép mã vận đơn" icon="content-copy-outline-rounded" copy={ship.tracking_code} />
+                  </ListRow>
+                ) : (
+                  <ListRow icon="receipt-long-outline-rounded" main="Chưa có vận đơn" sub={buyer ? 'Người bán tạo đơn thì có mã ở đây' : 'Tạo đơn để có mã vận đơn'} />
+                )
+              }
+              {
+                editable && !editing && (
+                  <p class="flex flex-wrap items-center justify-between gap-2 border-t border-line py-2 text-body-small text-on-surface-variant">
+                    Nhập nhầm mã? Sửa được tới khi hãng giao xong
+                    <a href={`${here}?edit=1`} class={btnCls('ghost', 'sm')}>Sửa mã</a>
+                  </p>
+                )
+              }
+              <ListRow icon="tag-rounded" main={o.code} sub="Mã đơn ShopNexus">
+                <IconBtn label="Sao chép mã đơn" icon="content-copy-outline-rounded" copy={o.code} />
               </ListRow>
             </section>
             <section class:list={[PANEL, 'px-5 py-3']}>
               <SectionLabel title="Giao đến" />
-              <ListRow icon="location-on-outline-rounded" main={o.to.line} sub={o.to.who}>
-                <IconBtn label="Sao chép" icon="content-copy-outline-rounded" />
+              <ListRow icon="location-on-outline-rounded" main={to.line} sub={to.who}>
+                {o.recipient.street && <IconBtn label="Sao chép địa chỉ" icon="content-copy-outline-rounded" copy={`${to.line}\n${to.who}`} />}
               </ListRow>
-              <ListRow icon="schedule-outline-rounded" main={o.to.window} sub="Shipper gọi trước khi tới" />
             </section>
           </div>
         </div>
       </div>
 
       <SummaryAside
-        photo={o.photo}
-        item={o.title}
+        photo={deal.listing.cover_thumb_url}
+        item={deal.listing.title}
         itemPrice={`Giá chốt ${money(o.price)}`}
-        person={o.seller.name}
-        chatHref={R.messages}
-        totalLabel="Trả khi nhận"
-        total={o.price + o.ship}
-        lines={[
-          { k: 'Tiền hàng', v: money(o.price), deal: true },
-          { k: `Phí ship · ${o.carrier} ${o.service}`, v: money(o.ship) },
-        ]}
+        person={other}
+        personPhoto={counterpart.avatar_url}
+        personSub={buyer ? 'Người bán' : 'Người mua · giao COD'}
+        chatHref={chat}
+        total={total}
+        lines={lines}
       >
-        <Fragment slot="person">
-          {o.seller.rating}<Icon name="star-rounded" size={13} class="text-star" />· {o.seller.sold} đã bán
-        </Fragment>
-        <Fragment slot="actions">
-          <a href={R.support} class={btnCls('ghost')}><Icon name="help-outline-rounded" size={18} />Báo chưa nhận</a>
-          <button type="button" class:list={[btnCls('primary'), 'h-11 flex-1']}>
-            <Icon name="package-2-outline-rounded" size={18} />Đã nhận hàng
-          </button>
-        </Fragment>
+        {
+          !buyer && ship && o.status !== 'cancelled' && (
+            <div slot="extra" class="mt-4 flex items-center gap-3 rounded-lg bg-surface-container-low px-3.5 py-3">
+              <Icon name="account-balance-outline-rounded" size={20} class="text-primary" />
+              <span class="min-w-0 flex-1">
+                <span class="block text-body-medium text-ink">Tiền COD về tài khoản {carrier}</span>
+                <span class="block text-body-small text-on-surface-variant">Tài khoản đứng tên bạn</span>
+              </span>
+            </div>
+          )
+        }
+        {
+          buyer && o.status === 'pending' && (
+            <p slot="extra" class="mt-3 text-body-small text-on-surface-variant">Bạn xem hàng rồi mới trả tiền cho shipper.</p>
+          )
+        }
+        {
+          current && (o.status === 'pending' || o.status === 'shipped' || canReport || screen.ticket) && (
+            <Fragment slot="actions">
+              {screen.ticket && (
+                <a href={`${R.support}?ticket=${screen.ticket.id}`} class={btnCls('ghost')}>
+                  <Icon name="support-agent-outline-rounded" size={18} />
+                  Xem yêu cầu
+                </a>
+              )}
+              {canReport && (
+                <button type="button" popovertarget="report" class={btnCls('ghost')}>
+                  <Icon name="help-outline-rounded" size={18} />
+                  Báo chưa nhận hàng
+                </button>
+              )}
+              {o.status === 'pending' && (
+                <button type="button" popovertarget="cancel" class={btnCls('line')}>
+                  Hủy đơn
+                </button>
+              )}
+              <span class="flex-1" />
+              {buyer && o.status === 'shipped' && (
+                <button type="button" popovertarget="confirm" class:list={[btnCls('primary'), 'h-11']}>
+                  <Icon name="package-2-outline-rounded" size={18} />
+                  Đã nhận hàng
+                </button>
+              )}
+            </Fragment>
+          )
+        }
       </SummaryAside>
     </div>
   </main>
+
+  {o.status === 'pending' && current && <ConfirmPop id="cancel" title="Hủy đơn?" text={`${other} sẽ được báo.`} action={here} value="cancel" confirm="Hủy đơn" />}
+  {
+    buyer && o.status === 'shipped' && current && (
+      <ConfirmPop
+        id="confirm"
+        title="Đã nhận hàng?"
+        text={`Đơn hoàn tất và ${other} được báo. Không đổi lại được.`}
+        action={here}
+        value="confirm"
+        confirm="Đã nhận hàng"
+      >
+        <input type="hidden" name="key" value={idempotencyKey()} />
+      </ConfirmPop>
+    )
+  }
+  {
+    canReport && (
+      <div
+        id="report"
+        popover="auto"
+        role="dialog"
+        aria-labelledby="report-title"
+        class="m-auto w-[min(480px,calc(100vw-32px))] rounded-card border-0 bg-card p-6 text-on-surface shadow-pop backdrop:bg-black/30"
+      >
+        <h2 id="report-title" class="text-headline-small">Báo chưa nhận hàng</h2>
+        <p class="mt-1 text-body-medium text-on-surface-variant">
+          {deal.listing.title} · {carrier} {ship?.tracking_code}
+          {ship?.delivered_at && <span class="block">{carrier} báo đã giao · {at(ship.delivered_at)}</span>}
+        </p>
+        <form method="post" action={here} class="mt-4" data-once>
+          <input type="hidden" name="key" value={idempotencyKey()} />
+          <label class="block rounded-tile border border-line bg-card px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
+            <span class="block text-body-small text-on-surface-variant">Chuyện gì đã xảy ra (không bắt buộc)</span>
+            <textarea name="body" rows="3" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
+          </label>
+          <p class="mt-3 flex items-start gap-2 text-body-small text-on-surface-variant">
+            <Icon name="balance-rounded" size={16} class="mt-0.5 shrink-0" />
+            {other} không thấy báo cáo này. Đơn giữ nguyên. Hệ thống không phân xử giữa người mua và người bán.
+          </p>
+          <div class="mt-6 flex justify-end gap-2">
+            <button type="button" popovertarget="report" popovertargetaction="hide" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">
+              Quay lại
+            </button>
+            <button type="submit" name="do" value="report" class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">
+              Gửi cho ShopNexus
+            </button>
+          </div>
+        </form>
+      </div>
+    )
+  }
 </Layout>
+
+<script>
+  import { snack } from '../../lib/snackbar';
+
+  // Copy buttons need the clipboard, so they show with the script.
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    b.hidden = false;
+    b.addEventListener('click', () =>
+      navigator.clipboard.writeText(b.dataset.copy ?? '').then(
+        () => snack({ text: 'Đã sao chép' }),
+        () => snack({ text: 'Chưa sao chép được', error: true }),
+      ),
+    );
+  }
+  // ?done= and ?error= are for this render only.
+  const u = new URL(location.href);
+  if (u.searchParams.has('done') || u.searchParams.has('error')) {
+    ['done', 'error'].forEach((k) => u.searchParams.delete(k));
+    history.replaceState(history.state, '', u);
+  }
+</script>

@@ -1,69 +1,66 @@
 ---
-import Photo from '../Photo.astro';
-// One order on Đơn hàng: photo, title and price, the seller, the steps and the state.
-import type { OrderRow } from '../../data/orders';
-import { img } from '../../lib/format';
+// One order on Đơn mua or Đơn bán: photo, title and price, the other person,
+// the steps and the state. The whole card opens the order.
+import type { Schemas } from '../../lib/api/client';
+import { personName } from '../../lib/messages';
+import { type Role, CARRIER, orderState, orderWhen } from '../../lib/orders';
+import { R } from '../../lib/routes';
+import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
 import PhaseBar from '../PhaseBar.astro';
+import Photo from '../Photo.astro';
 import Price from '../Price.astro';
-import Face from './Face.astro';
 
 interface Props {
-  o: OrderRow;
-  href: string;
+  item: Schemas['OrdersScreenItem'];
+  role: Role;
   /** "lazy" when it sits below the first screen. */
   loading?: 'eager' | 'lazy';
 }
 
-const { o, href, loading } = Astro.props;
-const active = !o.muted && o.phase < 3;
+const { item, role, loading } = Astro.props;
+const o = item.order;
+const who = personName(item.counterpart);
+const review = item.own_review;
+const state = orderState(o, role, who, review.state === 'active' ? review.stars : undefined);
+const ship = o.shipment ? CARRIER[o.shipment.carrier] : '';
+// A closed order still to review says so beside its state, while it can be.
+const toReview = (o.status === 'completed' || o.status === 'failed') && review.state === 'none' && !review.locked;
 ---
 
 <article
-  class:list={[
-    'lift relative flex items-center gap-3 rounded-card border border-line bg-card p-2 pr-3 md:gap-4 md:pr-4',
-    o.muted && 'opacity-60',
-  ]}
+  class:list={['lift relative flex items-center gap-3 rounded-card border border-line bg-card p-2 pr-3 md:gap-4 md:pr-4', !state.open && o.status !== 'completed' && 'opacity-60']}
 >
-  <Photo src={img(o.photo, 200, 200)} width={200} height={200} alt="" loading={loading} class="h-16 w-16 shrink-0 rounded-lg object-cover md:h-[84px] md:w-[84px]" />
+  {
+    o.listing.cover_thumb_url ? (
+      <Photo src={o.listing.cover_thumb_url} width={200} height={200} alt="" loading={loading} class="h-16 w-16 shrink-0 rounded-lg object-cover md:h-[84px] md:w-[84px]" />
+    ) : (
+      <span class="h-16 w-16 shrink-0 rounded-lg bg-soft md:h-[84px] md:w-[84px]" />
+    )
+  }
   <div class="min-w-0 flex-1">
     <div class="flex items-baseline gap-4">
       <h3 class="min-w-0 flex-1 truncate text-title-small text-ink">
-        <a href={href} class="after:absolute after:inset-0 after:rounded-card">{o.title}</a>
+        <a href={R.order(o.id)} class="after:absolute after:inset-0 after:rounded-card">{o.listing.title}</a>
       </h3>
       <Price vnd={o.price} size="text-j-16" />
     </div>
     <p class="mt-0.5 flex items-center gap-1.5 truncate text-body-small text-on-surface-variant">
-      <Face name={o.who} size={18} loading={loading} />{o.who}<span>·</span>COD<span>·</span>{o.when}
+      <Avatar name={who} photo={item.counterpart.avatar_url} size={18} loading={loading} />{who}<span>·</span>{ship || 'COD'}<span>·</span>{orderWhen(o)}
     </p>
     <div class="mt-2 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-1">
-      <PhaseBar current={o.phase} />
+      <PhaseBar current={state.phase} />
       <span
         class:list={[
           'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-label-medium',
-          active ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant',
+          state.open ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant',
         ]}
       >
-        <Icon name={o.icon} size={15} class={o.star ? 'text-star' : ''} />{o.status}
+        <Icon name={state.icon} size={15} class={state.phase === 4 ? 'text-star' : ''} />{state.label}
       </span>
+      {toReview && <span class="text-label-medium text-primary">Chờ bạn đánh giá</span>}
       <span class="flex-1"></span>
-      {
-        o.rate ? (
-          <div class="relative z-10 flex" role="radiogroup" aria-label={`Đánh giá ${o.who}`}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button
-                type="button"
-                class="state-layer grid h-8 w-8 place-items-center rounded-full text-outline-variant hover:text-star"
-                aria-label={`${n} sao`}
-              >
-                <Icon name="star-rounded" size={22} />
-              </button>
-            ))}
-          </div>
-        ) : (
-          <Icon name="chevron-right-rounded" size={22} class="hidden text-on-surface-variant md:block" />
-        )
-      }
+      <Icon name="chevron-right-rounded" size={22} class="hidden text-on-surface-variant md:block" />
     </div>
   </div>
 </article>

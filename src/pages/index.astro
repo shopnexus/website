@@ -1,7 +1,8 @@
 ---
 // Trang chủ (K2). From expanded up a rail on the left holds the categories,
 // the buyer's saved searches and lists, and how COD works; the column on the
-// right greets the buyer, then the feed under its tabs, and the listings like
+// right greets the buyer, shows the order on its way and the deal waiting
+// on them, then the feed under its tabs, and the listings like
 // what they viewed last. The header carries the search field, so the page
 // has no search hero.
 import Icon from '../components/Icon.astro';
@@ -11,6 +12,7 @@ import Photo from '../components/Photo.astro';
 import Price from '../components/Price.astro';
 import Seg from '../components/Seg.astro';
 import HomeRail from '../components/home/HomeRail.astro';
+import HomeTiles from '../components/home/HomeTiles.astro';
 import Layout from '../layouts/Layout.astro';
 import { unwrap } from '../lib/api/client';
 import { area } from '../lib/area';
@@ -49,6 +51,8 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
         </div>
         {place && <p class="text-body-large text-sub">Quanh {place.name}</p>}
       </div>
+
+      {me && <HomeTiles />}
 
       <nav class="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 lg:hidden" aria-label="Danh mục">
         {

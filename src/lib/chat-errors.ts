@@ -1,7 +1,8 @@
 // The server's refusals in chat and deals, as Tin nhắn and Chat nhanh say
 // them. No server imports, so the page scripts can use it too.
 
-const ERRORS: Record<string, string> = {
+/** Chat and deal refusals; lib/orders.ts adds the order ones over them. */
+export const CHAT_ERRORS: Record<string, string> = {
   phone_required: 'Nhắn tin và trả giá cần số điện thoại trong tài khoản.',
   blocked: 'Không nhắn được vì có lệnh chặn giữa hai bạn.',
   account_suspended: 'Tài khoản của bạn đang bị tạm khóa.',
@@ -19,7 +20,10 @@ const ERRORS: Record<string, string> = {
   conversation_not_found: 'Không tìm thấy cuộc trò chuyện này.',
   deal_not_found: 'Không tìm thấy giao dịch này.',
   conversation_is_support: 'Cuộc trò chuyện hỗ trợ luôn ở trong Tin nhắn.',
+  cod_limit_reached: 'Bạn đang có 3 đơn COD chưa xong. Nhận hoặc hủy bớt một đơn rồi đặt tiếp.',
+  pickup_not_configured: 'Người bán chưa sẵn sàng giao COD. Nhắn người bán nhé.',
+  address_not_found: 'Địa chỉ này không còn. Chọn địa chỉ khác nhé.',
 };
 
 /** A server code as a sentence; an unknown one is the general failure. */
-export const errorText = (code: string) => ERRORS[code] ?? 'Chưa làm được. Thử lại sau ít phút.';
+export const errorText = (code: string) => CHAT_ERRORS[code] ?? 'Chưa làm được. Thử lại sau ít phút.';

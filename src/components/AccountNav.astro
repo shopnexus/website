@@ -3,6 +3,7 @@
 // account's pages with the unread counts; the current one is an ink pill.
 // Hidden below expanded, where BottomNav's Tôi leads to it.
 import { ACCOUNT_NAV } from '../data/common';
+import { unwrap } from '../lib/api/client';
 import { ratingText } from '../lib/format';
 import { reputation } from '../lib/profile';
 import { R } from '../lib/routes';
@@ -18,9 +19,12 @@ interface Props {
 
 const { active } = Astro.props;
 const me = viewer(Astro)!;
-// The rating and sales line; without it the card keeps the name alone.
-const rep = await reputation(Astro.locals).catch(() => null);
-const count: Partial<Record<AccountKey, number>> = { messages: me.unread.messages, notifications: me.unread.notifications };
+// The rating and sales line, and support's unread replies; without them the card keeps the name alone.
+const [rep, support] = await Promise.all([
+  reputation(Astro.locals).catch(() => null),
+  unwrap(Astro.locals.api.GET('/v1/support/summary')).catch(() => null),
+]);
+const count: Partial<Record<AccountKey, number>> = { messages: me.unread.messages, notifications: me.unread.notifications, support: support?.unread };
 const HREF: Record<string, string> = {
   me: R.me,
   listings: R.myListings,

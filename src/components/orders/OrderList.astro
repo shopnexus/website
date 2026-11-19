@@ -1,0 +1,112 @@
+---
+// Đơn mua and Đơn bán: one side's orders, newest first, a page at a time,
+// with the other side a tab away. On the right, the buyer's open COD orders
+// against their cap, or the seller's orders waiting for a shipment.
+import type { Schemas } from '../../lib/api/client';
+import { reputation } from '../../lib/profile';
+import type { Role } from '../../lib/orders';
+import { R } from '../../lib/routes';
+import { btnCls, PANEL } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import PageTitle from '../PageTitle.astro';
+import AccountFrame from './AccountFrame.astro';
+import OrderRow from './OrderRow.astro';
+
+interface Props {
+  role: Role;
+  screen: Schemas['OrdersScreen'];
+  /** This page came from a cursor, so "Mới nhất" leads back to the first. */
+  paged: boolean;
+}
+
+const { role, screen, paged } = Astro.props;
+const buyer = role === 'buyer';
+const here = buyer ? R.orders : R.sales;
+const items = screen.items;
+const count = `${items.length}${screen.next_cursor ? '+' : ''}`;
+// The buyer's cap is on Uy tín, which the account nav reads anyway.
+const cap = buyer ? await reputation(Astro.locals).then((r) => r.caps.cod_orders).catch(() => null) : null;
+// The server gives no count by state, so this page's first pending order stands for them.
+const pending = buyer ? undefined : items.find((i) => i.order.status === 'pending');
+const tab = 'flex h-8 items-center rounded-sm px-4 text-title-small text-sub aria-[current]:bg-card aria-[current]:text-ink aria-[current]:shadow-knob';
+---
+
+<AccountFrame title={buyer ? 'Đơn mua' : 'Đơn bán'} description="Đơn mua và đơn bán giao COD của bạn." active={buyer ? 'orders' : 'sales'}>
+  <PageTitle title="Đơn hàng" meta={items.length ? `${count} đơn ${buyer ? 'mua' : 'bán'}` : undefined}>
+    <nav class="inline-flex rounded-control bg-black/[.04] p-0.5" aria-label="Loại đơn">
+      <a href={R.orders} class={tab} aria-current={buyer ? 'page' : undefined}>Mua</a>
+      <a href={R.sales} class={tab} aria-current={buyer ? undefined : 'page'}>Bán</a>
+    </nav>
+  </PageTitle>
+  <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
+    <section class="flex min-w-0 flex-col gap-3">
+      {
+        items.length ? (
+          items.map((it, i) => <OrderRow item={it} role={role} loading={i < 5 ? 'eager' : 'lazy'} />)
+        ) : (
+          <div class:list={[PANEL, 'flex flex-col items-center gap-3 px-6 py-12 text-center']}>
+            <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+              <Icon name="receipt-long-outline-rounded" size={24} />
+            </span>
+            <p class="text-body-large text-on-surface-variant">{buyer ? 'Chưa có đơn mua nào.' : 'Chưa có đơn bán nào.'}</p>
+            <a href={R.home} class={btnCls('line')}>Khám phá tin đang bán</a>
+          </div>
+        )
+      }
+      {
+        (paged || screen.next_cursor) && (
+          <div class="mt-2 flex justify-center gap-2">
+            {paged && <a href={here} class={btnCls('ghost')}>Mới nhất</a>}
+            {screen.next_cursor && (
+              <a href={`${here}?after=${screen.next_cursor}`} class={btnCls('line')}>
+                Xem thêm đơn
+                <Icon name="keyboard-arrow-down-rounded" size={17} />
+              </a>
+            )}
+          </div>
+        )
+      }
+    </section>
+    <aside class="flex flex-col gap-4 self-start xl:sticky xl:top-[84px]">
+      {
+        cap && (
+          <div class:list={[PANEL, 'p-5']}>
+            <p class="text-title-small text-ink">Đơn COD đang mở</p>
+            <p class="mt-2">
+              <span class="text-j-30 text-ink tabular-nums">{cap.used}</span>
+              <span class="text-title-large text-on-surface-variant">/{cap.max}</span>
+            </p>
+            <div class="mt-3 flex gap-1.5">
+              {Array.from({ length: cap.max }, (_, i) => (
+                <span class:list={['h-2 flex-1 rounded-full', i < cap.used ? 'bg-brand' : 'bg-surface-container-high']} />
+              ))}
+            </div>
+            <p class="mt-3 text-body-small text-on-surface-variant">Nhận hoặc hủy một đơn thì đặt thêm được.</p>
+          </div>
+        )
+      }
+      {
+        !buyer && (
+          <div class="flex items-center gap-3 rounded-panel border border-line bg-card p-4">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-white">
+              <Icon name="local-shipping-outline-rounded" size={20} />
+            </span>
+            <p class="min-w-0 flex-1 text-body-medium text-ink">
+              {pending ? <>Có đơn <b class="font-semibold">chờ bạn tạo đơn</b></> : 'Hãng vận chuyển và nơi lấy hàng'}
+            </p>
+            <a
+              href={pending ? R.order(pending.order.id) : R.codSetup}
+              class="state-layer grid h-9 w-9 place-items-center rounded-full bg-card text-primary"
+              aria-label={pending ? 'Mở đơn chờ tạo' : 'Mở Thiết lập giao COD'}
+            >
+              <Icon name="arrow-forward-rounded" size={18} />
+            </a>
+          </div>
+        )
+      }
+      <p class="px-1 text-body-small text-on-surface-variant">
+        {buyer ? 'Bạn trả tiền cho shipper khi nhận và xem hàng.' : 'Hãng thu tiền COD và trả về tài khoản của bạn ở hãng.'}
+      </p>
+    </aside>
+  </div>
+</AccountFrame>

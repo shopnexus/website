@@ -1,137 +1,16 @@
 ---
-// Đơn bán: the seller creates the shipment for a sale on one screen, through
-// a linked carrier (GHTK, GHN) or "Tự gửi", and sees what the buyer will hand
-// the shipper and when the carrier pays the COD out.
-import Crumbs from '../components/Crumbs.astro';
-import Icon from '../components/Icon.astro';
-import PhaseTrack from '../components/PhaseTrack.astro';
-import Seg from '../components/Seg.astro';
-import Chip from '../components/orders/Chip.astro';
-import HeroCard from '../components/orders/HeroCard.astro';
-import IconBtn from '../components/orders/IconBtn.astro';
-import ListRow from '../components/orders/ListRow.astro';
-import Option from '../components/orders/Option.astro';
-import SectionLabel from '../components/orders/SectionLabel.astro';
-import SummaryAside from '../components/orders/SummaryAside.astro';
-import Layout from '../layouts/Layout.astro';
-import { SALE } from '../data/orders';
-import { money } from '../lib/format';
-import { R } from '../lib/routes';
+// Đơn bán: the seller's COD orders, newest first (?after= pages on). Each
+// opens the order, where a pending one gets its shipment.
+import OrderList from '../components/orders/OrderList.astro';
+import { pageOrFirst } from '../lib/api/client';
 import { requireViewer } from '../lib/session';
-import { btnCls, CONTENT, PANEL } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
-
-const s = SALE;
-const label = 'mb-2 text-label-large text-ink';
+const after = Astro.url.searchParams.get('after') ?? undefined;
+const screen = await pageOrFirst(after, (cursor) =>
+  Astro.locals.api.GET('/v1/screens/orders', { params: { query: { role: 'selling', cursor, limit: 20 } } }),
+);
 ---
 
-<Layout title={`Đơn bán · ${s.title} · ShopNexus`} description={`Tạo đơn cho ${s.buyer}`} section={null}>
-  <main class:list={[CONTENT, 'pt-5']}>
-    <Crumbs parts={[['Tôi', R.me], ['Đơn hàng', R.orders], ['Bán', R.orders], [s.title]]} />
-    <HeroCard photo={s.photo} heading={`Tạo đơn cho ${s.buyer}`}>
-      <Fragment slot="chips">
-        <Chip icon="schedule-outline-rounded" label={`Chờ từ ${s.since}`} />
-        <Chip icon="handshake-outline-rounded" label={`Chốt ${money(s.price)}`} />
-      </Fragment>
-      <div class="flex items-center gap-6">
-        <PhaseTrack current={1} times={[s.since, '', '', '']} />
-        <button type="button" class={btnCls('line')}>Hủy đơn</button>
-      </div>
-    </HeroCard>
-
-    <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
-      <div class="flex min-w-0 flex-col gap-4">
-        <section class:list={[PANEL, 'px-5 py-3']}>
-          <SectionLabel title="Giao đến" />
-          <ListRow icon="location-on-outline-rounded" main={s.to.line} sub={s.to.who}>
-            <IconBtn label="Sao chép" icon="content-copy-outline-rounded" />
-          </ListRow>
-        </section>
-        <section class:list={[PANEL, 'p-5']}>
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="text-title-small text-ink">Gửi bằng</h2>
-            <button type="button" class:list={[btnCls('ghost'), '-mr-2']}>
-              <Icon name="add-business-outline-rounded" size={18} />Hãng của bạn chưa có?
-            </button>
-          </div>
-          <div class="mt-2 flex flex-wrap items-center gap-3">
-            <Seg items={['GHTK', 'GHN', 'Tự gửi']} class="bg-black/[.04]" name="Gửi bằng" />
-            <p class="text-body-small text-on-surface-variant">Tạo vận đơn trên tài khoản GHTK {s.account} của bạn</p>
-          </div>
-          <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 border-t border-line pt-5 md:grid-cols-2">
-            <div>
-              <p class={label}>Khối lượng</p>
-              <label class="flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 ring-primary/30 focus-within:ring-2">
-                <input
-                  value="2"
-                  inputmode="decimal"
-                  aria-label="Khối lượng, kg"
-                  class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none tabular-nums"
-                />
-                <span class="text-body-medium text-on-surface-variant">kg</span>
-              </label>
-              <p class="mt-1.5 text-body-small text-on-surface-variant">Ghế đôn gói thùng thường nặng 1,5–2,5 kg</p>
-            </div>
-            <div>
-              <p class={label}>Dịch vụ</p>
-              <div class="flex flex-col gap-2" role="radiogroup" aria-label="Dịch vụ">
-                {s.services.map((o) => <Option name="service" t={o.t} sub={o.sub} end={o.end} on={o.on} />)}
-              </div>
-            </div>
-            <div>
-              <p class={label}>Cách lấy hàng</p>
-              <div class="flex flex-col gap-2" role="radiogroup" aria-label="Cách lấy hàng">
-                {s.pickupWays.map((o) => <Option name="pickup-way" t={o.t} sub={o.sub} on={o.on} />)}
-                <p class="flex min-h-[52px] items-center gap-2 rounded-lg bg-surface-container-low px-3.5 text-body-small text-on-surface-variant">
-                  <Icon name="schedule-outline-rounded" size={18} />Tạo trước 11:00, shipper lấy trong chiều nay
-                </p>
-              </div>
-            </div>
-            <div>
-              <p class:list={[label, 'flex flex-wrap items-center justify-between gap-x-3']}>
-                Lấy hàng tại<span class="text-body-small font-normal text-on-surface-variant">Kho trên GHTK · địa chỉ của bạn</span>
-              </p>
-              <div class="flex flex-col gap-2" role="radiogroup" aria-label="Lấy hàng tại">
-                {s.pickupAt.map((o) => <Option name="pickup-at" t={o.t} sub={o.sub} on={o.on} />)}
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <SummaryAside
-        photo={s.photo}
-        item={s.title}
-        itemPrice={`Giá chốt ${money(s.price)}`}
-        person={s.buyer}
-        chatHref={R.messages}
-        totalLabel="Người mua trả shipper"
-        total={s.price + s.ship}
-        lines={[
-          { k: 'Tiền hàng COD', v: money(s.price), deal: true },
-          { k: 'Phí ship người mua trả', v: money(s.ship) },
-        ]}
-      >
-        <Fragment slot="person">{s.buyerArea} · giao COD</Fragment>
-        <div slot="extra" class="mt-4 flex items-center gap-3 rounded-lg bg-surface-container-low px-3.5 py-3">
-          <Icon name="account-balance-outline-rounded" size={20} class="text-primary" />
-          <span class="min-w-0 flex-1">
-            <span class="block text-body-medium text-ink">Tiền COD về tài khoản GHTK</span>
-            <span class="block text-body-small text-on-surface-variant">GHTK {s.account} · đứng tên bạn</span>
-          </span>
-        </div>
-        <Fragment slot="actions">
-          <span class="flex items-center gap-1.5 pl-2 text-body-small text-on-surface-variant">
-            <Icon name="tag-rounded" size={15} />{s.ref}
-          </span>
-          <span class="flex-1"></span>
-          <button type="button" class:list={[btnCls('primary'), 'h-11 px-6']}>
-            <Icon name="receipt-long-outline-rounded" size={18} />Tạo đơn
-          </button>
-        </Fragment>
-      </SummaryAside>
-    </div>
-  </main>
-</Layout>
+<OrderList role="seller" screen={screen} paged={!!after} />

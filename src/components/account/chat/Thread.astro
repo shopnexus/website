@@ -9,9 +9,10 @@ interface Props {
   items: ThreadItem[];
   me: string;
   other: string;
+  replies?: boolean;
 }
 
-const { items, me, other } = Astro.props;
+const { items, me, other, replies } = Astro.props;
 ---
 
 {
@@ -21,7 +22,7 @@ const { items, me, other } = Astro.props;
         {it.label}
       </p>
     ) : it.kind === 'group' ? (
-      <Bubbles side={it.side} messages={it.messages} time={it.time} me={me} other={other} />
+      <Bubbles side={it.side} messages={it.messages} time={it.time} me={me} other={other} replies={replies} />
     ) : it.kind === 'move' ? (
       <PriceMove side={it.side} amount={it.amount} time={it.time} kind={it.accept ? 'accept' : 'offer'} />
     ) : (

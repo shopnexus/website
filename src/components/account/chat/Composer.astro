@@ -12,13 +12,15 @@ interface Props {
   deal?: string;
   /** A question to start with, from a listing's "Hỏi nhanh". */
   text?: string;
+  /** Where the form posts; Tin nhắn by default, Hỗ trợ for a ticket's chat. */
+  action?: string;
 }
 
-const { peer, chat, deal, text } = Astro.props;
+const { peer, chat, deal, text, action = R.messages } = Astro.props;
 const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
 ---
 
-<form method="post" action={R.messages} class="px-3 pb-3 pt-2" data-composer>
+<form method="post" action={action} class="px-3 pb-3 pt-2" data-composer>
   <input type="hidden" name="do" value="send" />
   <input type="hidden" name="chat" value={chat} />
   {deal && <input type="hidden" name="deal" value={deal} />}

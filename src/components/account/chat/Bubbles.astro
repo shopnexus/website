@@ -13,9 +13,11 @@ interface Props {
   /** The account's id and the other person's name, for the quotes. */
   me: string;
   other: string;
+  /** The hover "Trả lời", which Tin nhắn's script runs. */
+  replies?: boolean;
 }
 
-const { side, messages, time, me, other } = Astro.props;
+const { side, messages, time, me, other, replies = true } = Astro.props;
 const mine = side === 'mine';
 const n = messages.length;
 const who = (id: string) => (id === me ? 'Bạn' : other);
@@ -63,7 +65,7 @@ const who = (id: string) => (id === me ? 'Bạn' : other);
           {m.text && <span class="whitespace-pre-line break-words" data-text>{m.text}</span>}
           {m.status === 'failed' && m.failure && <span class="mt-1 block text-body-small">{m.failure}</span>}
         </div>
-        {m.status === 'sent' && (
+        {replies && m.status === 'sent' && (
           <button
             type="button"
             class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-container-high text-on-surface-variant opacity-0 transition-opacity group-focus-within/msg:opacity-100 group-hover/msg:opacity-100"

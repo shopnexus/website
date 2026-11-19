@@ -1,71 +1,82 @@
 ---
-import Photo from '../Photo.astro';
-// The sticky card on the right of an order screen: the item and the other
-// person, the sum the buyer hands the shipper, how it splits.
-// Slot "person" is the person's sub line, "extra" sits under the split and
-// "actions" fills the grey bar at the bottom.
-import { group, img } from '../../lib/format';
+// The sticky card on the right of an order: the item and the other person,
+// the sum the buyer hands the shipper and how it splits. Slot "extra" sits
+// under the split and "actions" fills the grey bar at the bottom.
+import { group } from '../../lib/format';
+import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
-import Face from './Face.astro';
+import Photo from '../Photo.astro';
 
 interface Props {
-  photo: string;
+  photo?: string;
   item: string;
   itemPrice: string;
   person: string;
+  personPhoto?: string;
+  personSub: string;
   chatHref: string;
-  totalLabel: string;
-  total: number;
-  /** The split: label, value; deal marks the price agreed in chat (tertiary, handshake). */
+  /** The sum and its label; null hides the money (a cancelled order). */
+  total: { label: string; vnd: number; note?: string } | null;
+  /** The split: label, value; deal marks the price agreed in chat. */
   lines: { k: string; v: string; deal?: boolean }[];
 }
 
-const { photo, item, itemPrice, person, chatHref, totalLabel, total, lines } = Astro.props;
+const { photo, item, itemPrice, person, personPhoto, personSub, chatHref, total, lines } = Astro.props;
 ---
 
 <aside class="self-start overflow-hidden rounded-card border border-line bg-card shadow-soft lg:sticky lg:top-[84px]">
   <div class="flex items-center gap-3 p-4">
-    <Photo src={img(photo, 160, 160)} width={160} height={160} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
+    {
+      photo ? (
+        <Photo src={photo} width={160} height={160} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
+      ) : (
+        <span class="h-14 w-14 shrink-0 rounded-field bg-soft" />
+      )
+    }
     <div class="min-w-0 flex-1">
       <p class="truncate text-title-small text-ink">{item}</p>
       <p class="text-body-small text-on-surface-variant tabular-nums">{itemPrice}</p>
     </div>
   </div>
   <div class="mx-4 flex items-center gap-3 rounded-tile bg-surface-container-low p-2.5">
-    <Face name={person} size={36} />
+    <Avatar name={person} photo={personPhoto} size={36} />
     <div class="min-w-0 flex-1">
-      <p class="text-title-small text-ink">{person}</p>
-      <p class="flex items-center gap-1 text-body-small text-on-surface-variant"><slot name="person" /></p>
+      <p class="truncate text-title-small text-ink">{person}</p>
+      <p class="text-body-small text-on-surface-variant">{personSub}</p>
     </div>
     <a href={chatHref} class="state-layer flex h-9 items-center gap-1.5 rounded-control bg-card px-3 text-label-large text-primary">
       <Icon name="chat-outline-rounded" size={17} />Nhắn
     </a>
   </div>
   <div class="p-5">
-    <p class="text-body-medium text-on-surface-variant">{totalLabel}</p>
-    <p class="mt-0.5">
-      <span class="text-j-30 text-ink tabular-nums">{group(total)}</span><span
-        class="ml-1 text-title-medium text-on-surface-variant">₫</span
-      >
-    </p>
-    <div class="mt-3 flex flex-col gap-1.5 border-b border-line pb-4 text-body-medium">
-      {
-        lines.map((l) => (
-          <p class="flex justify-between gap-3">
-            <span class="text-on-surface-variant">{l.k}</span>
-            <span class:list={['flex items-center gap-1.5 tabular-nums', l.deal ? 'text-tertiary' : 'text-ink']}>
-              {l.deal && <Icon name="handshake-outline-rounded" size={16} />}
-              {l.v}
-            </span>
+    {
+      total && (
+        <>
+          <p class="text-body-medium text-on-surface-variant">{total.label}</p>
+          <p class="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
+            <span class="text-j-30 text-ink tabular-nums">{group(total.vnd)}</span>
+            <span class="text-title-medium text-on-surface-variant">₫</span>
+            {total.note && <span class="text-body-small text-on-surface-variant">{total.note}</span>}
           </p>
-        ))
-      }
-    </div>
+          <div class="mt-3 flex flex-col gap-1.5 border-b border-line pb-4 text-body-medium">
+            {lines.map((l) => (
+              <p class="flex justify-between gap-3">
+                <span class="text-on-surface-variant">{l.k}</span>
+                <span class:list={['flex items-center gap-1.5 tabular-nums', l.deal ? 'text-tertiary' : 'text-ink']}>
+                  {l.deal && <Icon name="handshake-outline-rounded" size={16} />}
+                  {l.v}
+                </span>
+              </p>
+            ))}
+          </div>
+        </>
+      )
+    }
     <slot name="extra" />
   </div>
   {
     Astro.slots.has('actions') && (
-      <div class="flex items-center gap-2 border-t border-line bg-surface-container-low/60 p-3">
+      <div class="flex flex-wrap items-center gap-2 border-t border-line bg-surface-container-low/60 p-3">
         <slot name="actions" />
       </div>
     )

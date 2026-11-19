@@ -1,0 +1,111 @@
+---
+// The two reviews of a closed order: the viewer's of the other person, with
+// its form while it can change, and theirs of the viewer once it shows.
+// Each review hides until both are in or 7 days pass.
+import type { Schemas } from '../../lib/api/client';
+import { date } from '../../lib/format';
+import { btnCls, PANEL } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import ConfirmPop from './ConfirmPop.astro';
+
+interface Props {
+  own: Schemas['OwnReview'];
+  their: Schemas['TheirReview'] | null;
+  other: string;
+  /** buyer: the viewer reviews the seller. */
+  role: 'buyer' | 'seller';
+  action: string;
+  /** The form shows over an active review (?review=edit). */
+  editing: boolean;
+}
+
+const { own, their, other, role, action, editing } = Astro.props;
+const open = !own.locked && (own.state !== 'active' || editing);
+const shows = (iso: string | null | undefined) => !!iso && Date.parse(iso) <= Date.now();
+const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-star [&>label:has(:checked)~label]:text-star [&>label:hover]:text-star [&>label:hover~label]:text-star';
+---
+
+<section class:list={[PANEL, 'p-5']}>
+  <h2 class="text-title-small text-ink">{role === 'buyer' ? `Đánh giá ${other}` : `Đánh giá người mua ${other}`}</h2>
+  {
+    open ? (
+      <form method="post" action={action} class="mt-3">
+        <fieldset>
+          <legend class="sr-only">Số sao</legend>
+          <div class={stars}>
+            {[5, 4, 3, 2, 1].map((n) => (
+              <label class="state-layer grid h-10 w-10 cursor-pointer place-items-center rounded-full text-outline-variant has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary">
+                <input type="radio" name="stars" value={n} required checked={own.stars === n} class="sr-only" />
+                <Icon name="star-rounded" size={28} />
+                <span class="sr-only">{n} sao</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label class="mt-3 block rounded-tile border border-line bg-card px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
+          <span class="block text-body-small text-on-surface-variant">Nhận xét (không bắt buộc)</span>
+          <textarea name="text" rows="3" maxlength="500" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none">{own.text ?? ''}</textarea>
+        </label>
+        <p class="mt-2 text-body-small text-on-surface-variant">Đánh giá hiện khi {other} cũng đánh giá, hoặc sau 7 ngày. Sửa được tới lúc đó.</p>
+        <div class="mt-3 flex justify-end gap-2">
+          {editing && <a href={action} class={btnCls('ghost')}>Thôi</a>}
+          <button type="submit" name="do" value="review" class={btnCls('ink')}>
+            <Icon name="send-rounded" size={16} />
+            Gửi đánh giá
+          </button>
+        </div>
+      </form>
+    ) : own.state === 'active' ? (
+      <div class="mt-2">
+        <p class="flex items-center gap-0.5 text-star" aria-label={`${own.stars} sao`}>
+          {[1, 2, 3, 4, 5].map((n) => <Icon name={n <= (own.stars ?? 0) ? 'star-rounded' : 'star-outline-rounded'} size={20} />)}
+        </p>
+        {own.text && <p class="mt-1 text-body-large text-ink">{own.text}</p>}
+        {own.reply && (
+          <p class="mt-2 rounded-tile bg-surface-container-low p-3 text-body-medium text-ink">
+            <span class="block text-label-medium text-on-surface-variant">{other} trả lời</span>
+            {own.reply.text}
+          </p>
+        )}
+        <p class="mt-2 text-body-small text-on-surface-variant">
+          {shows(own.visible_at) ? 'Đang hiện trên trang của người này.' : own.visible_at ? `Hiện từ ${date(own.visible_at)}.` : ''}
+          {!own.locked && own.change_until && ` Sửa được tới ${date(own.change_until)}.`}
+        </p>
+        {!own.locked && (
+          <div class="mt-3 flex gap-2">
+            <a href={`${action}?review=edit`} class={btnCls('line', 'sm')}>
+              <Icon name="edit-outline-rounded" size={16} />
+              Sửa
+            </a>
+            <button type="button" popovertarget="unreview" class={btnCls('ghost', 'sm')}>
+              <Icon name="delete-outline-rounded" size={16} />
+              Xóa
+            </button>
+            <ConfirmPop id="unreview" title="Xóa đánh giá?" text={`${other} và mọi người sẽ không thấy đánh giá này.`} action={action} value="unreview" confirm="Xóa" />
+          </div>
+        )}
+      </div>
+    ) : (
+      <p class="mt-2 text-body-medium text-on-surface-variant">{own.state === 'deleted' ? 'Bạn đã xóa đánh giá.' : 'Đã hết hạn đánh giá đơn này.'}</p>
+    )
+  }
+
+  <div class="mt-4 border-t border-line pt-4">
+    <p class="text-label-large text-ink">{other} đánh giá bạn</p>
+    {
+      !their ? (
+        <p class="mt-1 text-body-medium text-on-surface-variant">Chưa có.</p>
+      ) : their.state === 'hidden' ? (
+        <p class="mt-1 text-body-medium text-on-surface-variant">Đã có. Hiện khi bạn đánh giá, hoặc từ {date(their.visible_at!)}.</p>
+      ) : (
+        <div class="mt-1">
+          <p class="flex items-center gap-0.5 text-star" aria-label={`${their.stars} sao`}>
+            {[1, 2, 3, 4, 5].map((n) => <Icon name={n <= (their.stars ?? 0) ? 'star-rounded' : 'star-outline-rounded'} size={18} />)}
+          </p>
+          {their.text && <p class="mt-1 text-body-large text-ink">{their.text}</p>}
+          {their.reply && <p class="mt-2 text-body-small text-on-surface-variant">Bạn trả lời: {their.reply.text}</p>}
+        </div>
+      )
+    }
+  </div>
+</section>

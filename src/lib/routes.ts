@@ -11,7 +11,7 @@ export const R = {
   seller: (id: string) => `/sellers/${id}`, // seller
   how: '/how-to-buy', // how
   sell: '/how-to-sell', // sell
-  cod: '/cod', // cod; redirects to the dialog in Tin nhắn
+  cod: (deal: string) => `/cod?deal=${deal}`, // cod; redirects to the dialog in Tin nhắn
   help: '/help', // help
   plans: '/plans', // plans
   listingRules: '/listing-rules', // listing-rules

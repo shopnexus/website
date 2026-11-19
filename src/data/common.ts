@@ -114,9 +114,7 @@ export const PHASES = [
   }
 ];
 
-/** Every account page's side nav. Counts are what waits in each place and match the pages:
- * 5 tin đang bán, 2 đơn COD đang mở, 1 đơn bán chờ tạo đơn, 13 tin đã lưu,
- * 3 tin nhắn và 3 thông báo chưa đọc, 1 yêu cầu hỗ trợ có trả lời. */
+/** Every account page's side nav. */
 export const ACCOUNT_NAV = [
   {
     "key": "me",
@@ -131,7 +129,7 @@ export const ACCOUNT_NAV = [
   {
     "key": "orders",
     "icon": "receipt-long-outline-rounded",
-    "label": "Đơn hàng"
+    "label": "Đơn mua"
   },
   {
     "key": "sales",
@@ -164,64 +162,3 @@ export const ACCOUNT_NAV = [
     "label": "Hỗ trợ"
   }
 ];
-
-/** One address book, so Tôi, Địa chỉ, Hoàn thiện hồ sơ and Thiết lập giao COD agree. */
-export const ADDRESS_BOOK = [
-  {
-    "icon": "home-outline-rounded",
-    "label": "Nhà",
-    "street": "12 Nguyễn Gia Trí",
-    "ward": "Phường Bình Thạnh, TP.HCM",
-    "default": true,
-    "delivered": "6 đơn đã giao"
-  },
-  {
-    "icon": "work-outline-rounded",
-    "label": "Công ty",
-    "street": "Tầng 8, 2 Hải Triều",
-    "ward": "Phường Sài Gòn, TP.HCM",
-    "default": false,
-    "delivered": "2 đơn đã giao"
-  }
-];
-
-/** Hoàn thiện hồ sơ's steps. The address step is done once the book has an address. */
-export const PROFILE_TASKS = [
-  {
-    "key": "phone",
-    "icon": "phone-android-outline-rounded",
-    "title": "Số điện thoại",
-    "done": true
-  },
-  {
-    "key": "avatar",
-    "icon": "account-circle-outline-rounded",
-    "title": "Ảnh đại diện",
-    "done": true
-  },
-  {
-    "key": "address",
-    "icon": "home-outline-rounded",
-    "title": "Địa chỉ nhận hàng",
-    "done": ADDRESS_BOOK.length > 0
-  },
-  {
-    "key": "kyc",
-    "icon": "verified-user-outline-rounded",
-    "title": "Xác minh danh tính",
-    "done": false
-  },
-  {
-    "key": "cod",
-    "icon": "local-shipping-outline-rounded",
-    "title": "Thiết lập giao COD",
-    "done": false
-  },
-  {
-    "key": "bio",
-    "icon": "edit-note-rounded",
-    "title": "Giới thiệu bản thân",
-    "done": false
-  }
-];
-export const TASKS_DONE = PROFILE_TASKS.filter((t) => t.done).length;

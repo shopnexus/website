@@ -1,0 +1,64 @@
+---
+// Home's two shortcuts over the feed, for a signed-in buyer: the order on
+// its way, and the deal waiting on them (the seller's price to answer, or a
+// price agreed and COD still to ask for). Each shows only when there is one.
+import { unwrap } from '../../lib/api/client';
+import { money } from '../../lib/format';
+import { chatHref } from '../../lib/messages';
+import { R } from '../../lib/routes';
+import Photo from '../Photo.astro';
+
+const api = Astro.locals.api;
+// The server filters neither list by state, so the newest pages stand in for all.
+const [orders, deals] = await Promise.all([
+  unwrap(api.GET('/v1/screens/orders', { params: { query: { role: 'buying', limit: 10 } } })).catch(() => null),
+  unwrap(api.GET('/v1/me/deals', { params: { query: { role: 'buying', limit: 20 } } })).catch(() => null),
+]);
+const order = orders?.items.find((i) => i.order.status === 'shipped')?.order;
+const deal = deals?.items.find(
+  (d) =>
+    d.listing.status === 'active' &&
+    ((d.status === 'negotiating' && d.open_price?.by === 'seller') ||
+      (d.status === 'agreed' && d.order?.status !== 'pending' && d.order?.status !== 'shipped')),
+);
+const tile = 'lift flex items-center gap-3.5 rounded-card border border-line bg-card px-4 py-3.5';
+const action = 'shrink-0 rounded-control border border-field bg-card px-3.5 py-2 text-title-small text-ink';
+const thumb = 'h-12 w-12 shrink-0 rounded-control object-cover';
+---
+
+{
+  (order || deal) && (
+    <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+      {order && (
+        <a href={R.order(order.id)} class={tile}>
+          {order.listing.cover_thumb_url ? <Photo src={order.listing.cover_thumb_url} width={96} height={96} alt="" class={thumb} /> : <span class:list={[thumb, 'bg-soft']} />}
+          <span class="min-w-0 flex-1">
+            <span class="flex items-center gap-1.5 text-body-small text-faint">
+              <span class="h-1.5 w-1.5 rounded-full bg-primary" />
+              Đơn đang giao
+            </span>
+            <span class="mt-0.5 block truncate text-title-medium text-ink">{order.listing.title}</span>
+            <span class="block text-body-small text-sub">Trả {money(order.price + (order.shipment?.fee ?? 0))} khi nhận</span>
+          </span>
+          <span class={action}>Xem đơn</span>
+        </a>
+      )}
+      {deal && (
+        <a href={deal.status === 'agreed' ? chatHref(deal.conversation_id, deal.id, { cod: '1' }) : chatHref(deal.conversation_id, deal.id)} class={tile}>
+          {deal.listing.cover_thumb_url ? <Photo src={deal.listing.cover_thumb_url} width={96} height={96} alt="" class={thumb} /> : <span class:list={[thumb, 'bg-soft']} />}
+          <span class="min-w-0 flex-1">
+            <span class="flex items-center gap-1.5 text-body-small text-faint">
+              <span class="h-1.5 w-1.5 rounded-full bg-brand" />
+              {deal.status === 'agreed' ? 'Đã chốt giá' : 'Đang trả giá'}
+            </span>
+            <span class="mt-0.5 block truncate text-title-medium text-ink">{deal.listing.title}</span>
+            <span class="block text-body-small text-sub">
+              {deal.status === 'agreed' ? `Chốt ${money(deal.agreed_price ?? deal.listing.price)}, đặt giao COD` : `Người bán trả lại ${money(deal.open_price!.amount)}`}
+            </span>
+          </span>
+          <span class={action}>{deal.status === 'agreed' ? 'Đặt COD' : 'Trả lời'}</span>
+        </a>
+      )}
+    </div>
+  )
+}

@@ -1,90 +1,136 @@
 ---
-// "Chọn giao COD" from the deal console: the request opens over the chat, so
-// the buyer never leaves it. Where to deliver, what to check at the door,
-// what they pay the shipper, then sent. The app's bottom sheet, a dialog on
-// a wide window, like ReportDialog.
-import { DEAL, SELLER } from '../../../data/flows';
-import { crop } from '../../../lib/format';
+// "Đặt giao COD" on an agreed deal: the request opens over the chat
+// (?cod=1), so the buyer never leaves it. Where to deliver, what they pay
+// the shipper, their open COD orders against the cap, then sent as a form
+// post. It renders open; the script makes it modal, and "Đóng" without the
+// script is a link back to the chat.
+import type { Schemas } from '../../../lib/api/client';
+import { money } from '../../../lib/format';
+import { chatHref, errorText } from '../../../lib/messages';
+import { ADDRESS_KIND } from '../../../lib/profile';
+import { R } from '../../../lib/routes';
 import Icon from '../../Icon.astro';
+import Notice from '../../Notice.astro';
 import Photo from '../../Photo.astro';
 import Price from '../../Price.astro';
 
 interface Props {
-  name: string;
+  checkout: Schemas['CodCheckoutScreen'];
+  addresses: Schemas['Address'][];
+  seller: string;
+  error?: string;
 }
 
-const { name } = Astro.props;
-const addresses = [
-  { tag: 'Nhà', text: 'Vinhomes Grand Park, tòa S5.02, 512 Nguyễn Xiển, Long Bình, TP.HCM', on: true },
-  { tag: 'Công ty', text: '88 Nguyễn Gia Trí, Phường 25, Bình Thạnh, TP.HCM', on: false },
-];
+const { checkout, addresses, seller, error } = Astro.props;
+const d = checkout.deal;
+const price = d.agreed_price ?? d.listing.price;
+const cap = checkout.cod_orders;
+const full = cap.used >= cap.max;
+const est = checkout.shipping_estimate;
+const picked = checkout.address?.id;
+const back = chatHref(d.conversation_id, d.id);
 const close = 'state-layer -mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
 const h3 = 'text-title-small text-ink';
 ---
 
 <dialog
   id="cod"
-  class="m-auto max-h-[calc(100dvh-32px)] w-[min(520px,calc(100vw-32px))] overflow-y-auto rounded-card border-0 bg-card/95 p-6 text-on-surface backdrop-blur-[20px] backdrop:bg-black/30 backdrop:backdrop-blur-[2px]"
+  open
+  class="z-50 m-auto max-h-[calc(100dvh-32px)] w-[min(520px,calc(100vw-32px))] overflow-y-auto rounded-card border-0 bg-card/95 p-0 text-on-surface shadow-pop backdrop-blur-[20px] backdrop:bg-black/30 backdrop:backdrop-blur-[2px] max-lg:fixed max-lg:inset-4"
   aria-labelledby="cod-title"
+  data-back={back}
 >
-  <div data-pane="form">
+  <form method="post" action={R.messages} class="p-6" data-once>
+    <input type="hidden" name="do" value="cod" />
+    <input type="hidden" name="chat" value={d.conversation_id} />
+    <input type="hidden" name="deal" value={d.id} />
     <div class="flex items-center justify-between">
       <h2 id="cod-title" class="text-headline-small">Giao COD</h2>
-      <button type="button" data-close class={close} aria-label="Đóng"><Icon name="close-rounded" size={22} /></button>
+      <a href={back} data-close class={close} aria-label="Đóng"><Icon name="close-rounded" size={22} /></a>
     </div>
 
     <div class="mt-3 flex items-center gap-3">
-      <Photo src={crop(DEAL.photo, 112, 0.5, 0.52, 1.25)} width={112} height={112} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
-      <div class="min-w-0 flex-1">
-        <p class="truncate text-body-large text-ink">{DEAL.title}</p>
-        <p class="flex items-center gap-1 text-label-medium text-tertiary"><Icon name="handshake-outline-rounded" size={15} />Đã chốt với {SELLER.name}</p>
-      </div>
-      <Price vnd={DEAL.agreed} size="text-j-20" short={false} />
-    </div>
-
-    <p class:list={[h3, 'mt-6']}>Giao đến</p>
-    <p class="text-body-small text-on-surface-variant">{name} · 09•• ••• 812</p>
-    <div class="mt-2 flex flex-col gap-2">
       {
-        addresses.map((a) => (
-          <label class="group flex cursor-pointer items-center gap-3 rounded-tile bg-surface-container-low p-3 has-[:checked]:bg-card has-[:checked]:ring-2 has-[:checked]:ring-primary">
-            <input type="radio" name="cod-dia-chi" value={a.tag} checked={a.on} class="sr-only" />
-            <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-outline-variant group-has-[:checked]:border-primary">
-              <span class="hidden h-2.5 w-2.5 rounded-full bg-primary group-has-[:checked]:block" />
-            </span>
-            <span class="min-w-0 flex-1">
-              <span class="block text-label-medium text-on-surface-variant">{a.tag}</span>
-              <span class="block truncate text-body-medium text-ink">{a.text}</span>
-            </span>
-          </label>
-        ))
+        d.listing.cover_thumb_url ? (
+          <Photo src={d.listing.cover_thumb_url} width={112} height={112} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
+        ) : (
+          <span class="h-14 w-14 shrink-0 rounded-field bg-soft" />
+        )
       }
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-body-large text-ink">{d.listing.title}</p>
+        <p class="flex items-center gap-1 text-label-medium text-tertiary"><Icon name="handshake-outline-rounded" size={15} />Đã chốt với {seller}</p>
+      </div>
+      <Price vnd={price} size="text-j-20" short={false} />
     </div>
 
+    {error && <Notice text={errorText(error)} class="mt-4" />}
 
-    <div class="mt-6 flex items-end justify-between gap-3 rounded-tile bg-peach-wash p-4">
-      <p class="text-body-small text-on-tertiary-fixed-variant">Trả cho shipper khi nhận</p>
+    <fieldset class="mt-6">
+      <legend class={h3}>Giao đến</legend>
+      {
+        addresses.length ? (
+          <div class="mt-2 flex flex-col gap-2">
+            {addresses.map((a) => (
+              <label class="group flex cursor-pointer items-center gap-3 rounded-tile bg-surface-container-low p-3 has-[:checked]:bg-card has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary">
+                <input type="radio" name="address_id" value={a.id} checked={a.id === picked} required class="sr-only" />
+                <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-outline-variant group-has-[:checked]:border-primary">
+                  <span class="hidden h-2.5 w-2.5 rounded-full bg-primary group-has-[:checked]:block" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-label-medium text-on-surface-variant">
+                    {ADDRESS_KIND[a.kind].label} · {a.name}
+                  </span>
+                  <span class="block truncate text-body-medium text-ink">
+                    {a.street}, {a.commune}, {a.province}
+                  </span>
+                </span>
+              </label>
+            ))}
+            <a href={R.addresses} class="self-start px-1 text-label-large text-primary hover:underline">Sửa sổ địa chỉ</a>
+          </div>
+        ) : (
+          <a href={`${R.addresses}?new`} class="state-layer mt-2 flex items-center gap-3 rounded-tile bg-surface-container-low p-3 text-body-medium text-primary">
+            <Icon name="add-rounded" size={20} />
+            Thêm địa chỉ
+          </a>
+        )
+      }
+    </fieldset>
+
+    <div class="mt-6 flex flex-col gap-1.5 text-body-medium">
+      <p class="flex justify-between gap-3"><span class="text-on-surface-variant">Tiền hàng</span><span class="tabular-nums text-ink">{money(price)}</span></p>
+      <p class="flex justify-between gap-3">
+        <span class="text-on-surface-variant">Phí ship</span>
+        <span class="tabular-nums text-ink">{est ? `${money(est.low)}–${money(est.high)}` : 'Chưa có'}</span>
+      </p>
+      <p class="text-body-small text-on-surface-variant">{est ? 'Phí ship ước tính. Có phí thật khi người bán tạo đơn.' : 'Có phí ship khi người bán tạo đơn.'}</p>
+    </div>
+
+    <div class="mt-4 flex items-end justify-between gap-3 rounded-tile bg-peach-wash p-4">
+      <p class="text-body-small text-on-tertiary-fixed-variant">Trả cho shipper khi nhận, sau khi xem hàng</p>
       <p class="flex items-baseline gap-1.5">
-        <Price vnd={DEAL.agreed} size="text-j-24" short={false} /><span class="text-body-small text-on-surface-variant">+ phí ship</span>
+        <Price vnd={price} size="text-j-24" short={false} /><span class="text-body-small text-on-surface-variant">+ phí ship</span>
       </p>
     </div>
 
-    <button type="button" data-go="sent" class="state-layer mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand text-label-large text-white">
+    <p class="mt-4 flex items-center gap-2 text-body-small text-on-surface-variant">
+      <Icon name="receipt-long-outline-rounded" size={16} />
+      {full ? `Đơn COD đang mở: đã đủ ${cap.used}/${cap.max}` : `Đơn COD đang mở: ${cap.used + 1}/${cap.max}`}
+    </p>
+
+    <button
+      type="submit"
+      disabled={full || !addresses.length}
+      class="state-layer mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand text-label-large text-white disabled:opacity-40"
+    >
       <Icon name="send-rounded" size={18} />Gửi yêu cầu COD
     </button>
-  </div>
-
-  <div data-pane="sent" hidden>
-    <div class="flex items-center justify-between">
-      <h2 class="text-headline-small">Đã gửi yêu cầu COD</h2>
-      <button type="button" data-close class={close} aria-label="Đóng"><Icon name="close-rounded" size={22} /></button>
-    </div>
-    <div class="mt-3 flex items-center gap-4">
-      <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-container text-on-primary-container"><Icon name="check-rounded" size={24} /></span>
-      <p class="text-body-medium text-on-surface-variant">{SELLER.name} tạo đơn thì bạn thấy phí ship ở đây.</p>
-    </div>
-    <div class="mt-6 flex justify-end">
-      <button type="button" data-close class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">Xong</button>
-    </div>
-  </div>
+  </form>
 </dialog>
+
+<script>
+  import { submitOnce } from '../../../lib/once';
+
+  submitOnce(document.getElementById('cod') ?? undefined);
+</script>

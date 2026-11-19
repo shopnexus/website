@@ -4,19 +4,20 @@
 // "title" replaces the plain title; slot "end" replaces the plain end figure.
 interface Props {
   name: string;
+  value?: string;
   t?: string;
   sub?: string;
   end?: string;
   on?: boolean;
 }
 
-const { name, t, sub, end, on = false } = Astro.props;
+const { name, value, t, sub, end, on = false } = Astro.props;
 ---
 
 <label
   class="group flex min-h-[52px] cursor-pointer items-center gap-3 rounded-lg border border-line bg-card/60 px-3.5 py-2 hover:bg-card has-[:checked]:border-primary/40 has-[:checked]:bg-card has-[:checked]:ring-1 has-[:checked]:ring-primary/30 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary"
 >
-  <input type="radio" name={name} checked={on} class="sr-only" />
+  <input type="radio" name={name} value={value} checked={on} class="sr-only" />
   <span
     class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-outline-variant bg-card group-has-[:checked]:border-primary group-has-[:checked]:bg-transparent"
   >

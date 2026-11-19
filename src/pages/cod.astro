@@ -1,6 +1,15 @@
 ---
-// Giao COD waits for the next phase; an old link opens Tin nhắn.
+// /cod?deal=<id>: Giao COD for that deal, over its chat in Tin nhắn; an old
+// link without one opens Tin nhắn.
+import { orNull } from '../lib/api/client';
+import { isId } from '../lib/listing';
+import { chatHref } from '../lib/messages';
 import { R } from '../lib/routes';
+import { requireViewer } from '../lib/session';
 
-return Astro.redirect(R.messages);
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const id = Astro.url.searchParams.get('deal') ?? '';
+const d = isId(id) ? await orNull(Astro.locals.api.GET('/v1/deals/{id}', { params: { path: { id } } })) : null;
+return Astro.redirect(d ? chatHref(d.conversation_id, d.id, { cod: '1' }) : R.messages);
 ---

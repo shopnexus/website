@@ -1,26 +1,91 @@
 ---
-import Photo from '../components/Photo.astro';
-// Hỗ trợ: each ticket is its own chat with ShopNexus. The tickets on the left,
-// the open one's chat in the middle, the order in it and the carrier's
-// timeline on the right. Support stays out of Tin nhắn.
+// Hỗ trợ: each ticket is its own chat with ShopNexus. The tickets on the
+// left, the open one's chat in the middle (?ticket=), its order and history
+// on the right. ?new opens the form for a new ticket. Every write is a form
+// post here; there is no socket, so a reload shows new replies.
 import Icon from '../components/Icon.astro';
-import Price from '../components/Price.astro';
-import Seg from '../components/Seg.astro';
+import Notice from '../components/Notice.astro';
+import Photo from '../components/Photo.astro';
+import Composer from '../components/account/chat/Composer.astro';
+import Thread from '../components/account/chat/Thread.astro';
 import Official from '../components/orders/Official.astro';
 import Layout from '../layouts/Layout.astro';
-import { NO_ARBITRATION, ORDERS, QUICK_QUESTIONS, REPORT, SUPPORT_REPLY, SUPPORT_TRACK, TICKET_KINDS, TICKETS } from '../data/orders';
-import { img } from '../lib/format';
+import { type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
+import { isId } from '../lib/listing';
+import { errorCode, thread, when } from '../lib/messages';
+import { CARRIER, TICKET_KIND, at, isCarrier, orderError, ticketSubject } from '../lib/orders';
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { btnCls, CONTENT_WIDE, PANEL } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const p = Astro.url.searchParams;
+const NO_ARBITRATION = 'Hệ thống không phân xử giữa người mua và người bán.';
+const QUICK = [
+  ['Tôi có phải trả tiền trước không?', `${R.how}#faq`],
+  ['Mở ra thấy không đúng mô tả thì sao?', `${R.how}#faq`],
+  ['Hãng báo đã giao mà tôi chưa nhận?', `${R.how}#faq`],
+  ['Tôi hủy đơn được không?', `${R.how}#faq`],
+];
 
-const order = ORDERS.o1;
-const open = TICKETS.filter((t) => t.open);
-const done = TICKETS.filter((t) => !t.open);
-const current = TICKET_KINDS[TICKETS[0].kind];
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const s = (k: string) => String(f.get(k) ?? '').trim();
+  const key = { 'Idempotency-Key': s('key') || idempotencyKey() };
+  const ticket = p.get('ticket') ?? '';
+  try {
+    if (s('do') === 'send' && isId(s('chat')) && s('text')) {
+      await unwrap(api.POST('/v1/conversations/{id}/messages', { params: { path: { id: s('chat') }, header: key }, body: { text: s('text') } }));
+      return Astro.redirect(`${R.support}?ticket=${ticket}`, 303);
+    }
+    if (s('do') === 'new') {
+      const kind = s('kind') === 'carrier_request' ? 'carrier_request' : 'other';
+      const body = { kind, carrier_name: kind === 'carrier_request' ? s('carrier_name') : undefined, body: s('body') || undefined } as const;
+      const t = await unwrap(api.POST('/v1/support/tickets', { params: { header: key }, body }));
+      return Astro.redirect(`${R.support}?ticket=${t.id}`, 303);
+    }
+  } catch (e) {
+    const back = new URLSearchParams({ error: errorCode(e) });
+    if (s('do') === 'new') {
+      back.set('new', s('kind'));
+      if (s('carrier_name')) back.set('carrier_name', s('carrier_name').slice(0, 50));
+    } else back.set('ticket', ticket);
+    return Astro.redirect(`${R.support}?${back}`, 303);
+  }
+  return Astro.redirect(R.support, 303);
+}
+
+const list = (await unwrap(api.GET('/v1/support/tickets'))).items;
+const open = list.filter((t) => t.ticket.status === 'open');
+const done = list.filter((t) => t.ticket.status === 'resolved');
+const creating = p.has('new') || !list.length;
+const want = p.get('ticket');
+const row = creating ? undefined : (list.find((t) => t.ticket.id === want) ?? list[0]);
+const ticket = row?.ticket;
+const chat = ticket ? await orNull(api.GET('/v1/screens/chat/{conversation_id}', { params: { path: { conversation_id: ticket.conversation_id } } })) : null;
+// Reading the chat marks it read, on this site's own navigation only.
+const site = Astro.request.headers.get('sec-fetch-site');
+if (chat && row && row.unread > 0 && (site === 'same-origin' || site === 'none')) {
+  const newest = chat.messages.items.find((m) => m.status === 'sent');
+  if (newest) await orNull(api.POST('/v1/conversations/{id}/read', { params: { path: { id: chat.id } }, body: { message_id: newest.id } }));
+  row.unread = 0;
+}
+const items = chat ? thread([...chat.messages.items].reverse(), { ...chat, deals: [] }, v.id) : [];
+const error = p.get('error') ?? '';
+const newKind = p.get('new') === 'carrier_request' ? 'carrier_request' : 'other';
+
+/** A ticket row's last line: who wrote last and what. */
+function lastLine(t: Schemas['TicketListItem']) {
+  const m = t.last_message;
+  if (!m) return '';
+  const body = m.text || (m.photos.length ? `${m.photos.length} ảnh` : '');
+  return m.sender_id === me ? `Bạn: ${body}` : body;
+}
+const me = v.id;
+const EVENT = { opened: 'Đã gửi yêu cầu', resolved: 'Đã xử lý xong', reopened: 'Mở lại yêu cầu' } as const;
+const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none';
 ---
 
 <Layout title="Hỗ trợ · ShopNexus" description="Yêu cầu hỗ trợ của bạn với ShopNexus." section={null}>
@@ -30,70 +95,66 @@ const current = TICKET_KINDS[TICKETS[0].kind];
         <h1 class="text-j-28 text-ink lg:text-j-30">Hỗ trợ</h1>
         <p class="mt-1 flex items-start gap-1.5 text-body-medium text-on-surface-variant">
           <Icon name="balance-rounded" size={16} class="mt-0.5" />
-          <span>{NO_ARBITRATION} Thường trả lời trong 2 giờ.</span>
+          <span>{NO_ARBITRATION}</span>
         </p>
       </div>
-      <button type="button" class={btnCls('ink', 'lg')}><Icon name="edit-outline-rounded" size={18} />Yêu cầu mới</button>
+      <a href={`${R.support}?new`} class={btnCls('ink', 'lg')}><Icon name="edit-outline-rounded" size={18} />Yêu cầu mới</a>
     </div>
 
     <div class="mt-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:h-[660px] xl:grid-cols-[340px_minmax(0,1fr)_300px]">
       <div class="flex flex-col gap-4">
-        <section class="border border-line bg-card flex flex-col rounded-panel p-3">
-          <div class="px-1">
-            <Seg
-              items={[`Đang xử lý · ${open.length}`, `Đã xử lý · ${done.length}`]}
-              class="flex w-full bg-black/[.04]"
-              itemClass="flex-1 text-label-large"
-              name="Yêu cầu"
-            />
-          </div>
+        <section class="flex flex-col rounded-panel border border-line bg-card p-3">
+          {!list.length && <p class="px-2 py-3 text-body-medium text-on-surface-variant">Chưa có yêu cầu nào</p>}
           {
-            [open, done].map((list, g) => (
-              <>
-                {g === 1 && <p class="mb-1 mt-5 px-3 text-label-medium text-on-surface-variant">Đã xử lý</p>}
-                <div class:list={['flex flex-col gap-1', g === 0 ? 'mt-3' : 'opacity-80']}>
-                  {list.map((t) => {
-                    const k = TICKET_KINDS[t.kind];
-                    const sel = t === TICKETS[0];
-                    return (
-                      <a
-                        href="#"
-                        aria-current={sel ? 'true' : undefined}
-                        class:list={['flex gap-3 rounded-tile p-2.5', sel ? 'bg-card shadow-soft' : 'hover:bg-card/70']}
-                      >
-                        <span
-                          class:list={[
-                            'grid h-10 w-10 shrink-0 place-items-center rounded-full',
-                            sel
-                              ? 'bg-brand text-white'
-                              : t.open
-                                ? 'bg-secondary-container text-on-secondary-container'
-                                : 'bg-surface-container-low text-on-surface-variant',
-                          ]}
+            [open, done].map((group, g) =>
+              group.length ? (
+                <>
+                  <p class:list={['mb-1 px-3 text-label-medium text-on-surface-variant', g === 1 && open.length > 0 && 'mt-5']}>{g === 0 ? 'Đang xử lý' : 'Đã xử lý'}</p>
+                  <div class:list={['flex flex-col gap-1', g === 1 && 'opacity-80']}>
+                    {group.map((t) => {
+                      const k = TICKET_KIND[t.ticket.kind];
+                      const sel = t.ticket.id === ticket?.id;
+                      return (
+                        <a
+                          href={`${R.support}?ticket=${t.ticket.id}`}
+                          aria-current={sel ? 'true' : undefined}
+                          class:list={['flex gap-3 rounded-tile p-2.5', sel ? 'bg-card shadow-soft ring-1 ring-line' : 'hover:bg-hover']}
                         >
-                          <Icon name={k.icon} size={20} />
-                        </span>
-                        <span class="min-w-0 flex-1">
-                          <span class="flex items-baseline gap-2">
-                            <span class="min-w-0 flex-1 truncate text-title-small text-ink">{k.name}</span>
-                            <span class="shrink-0 text-body-small text-on-surface-variant">{t.when}</span>
+                          <span
+                            class:list={[
+                              'grid h-10 w-10 shrink-0 place-items-center rounded-full',
+                              sel ? 'bg-brand text-white' : g === 0 ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-low text-on-surface-variant',
+                            ]}
+                          >
+                            <Icon name={k.icon} size={20} />
                           </span>
-                          <span class="block truncate text-body-small text-on-surface-variant">{t.subject}</span>
-                          <span class="block truncate text-body-medium text-on-surface-variant">{t.last}</span>
-                        </span>
-                      </a>
-                    );
-                  })}
-                </div>
-              </>
-            ))
+                          <span class="min-w-0 flex-1">
+                            <span class="flex items-baseline gap-2">
+                              <span class="min-w-0 flex-1 truncate text-title-small text-ink">{k.name}</span>
+                              <span class="shrink-0 text-body-small text-on-surface-variant">{when(t.last_message?.created_at ?? t.ticket.opened_at)}</span>
+                            </span>
+                            <span class="block truncate text-body-small text-on-surface-variant">{ticketSubject(t)}</span>
+                            <span class="flex items-center gap-2">
+                              <span class="min-w-0 flex-1 truncate text-body-medium text-on-surface-variant">{lastLine(t)}</span>
+                              {t.unread > 0 && (
+                                <span class="grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1.5 text-label-small text-white tabular-nums">{t.unread}</span>
+                              )}
+                            </span>
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : null,
+            )
           }
         </section>
         <section class:list={[PANEL, 'p-3']}>
           <p class="px-2 pb-1 pt-1 text-label-medium text-on-surface-variant">Hỏi nhanh</p>
           {
-            QUICK_QUESTIONS.map((q) => (
-              <a href={`${R.how}#faq`} class="flex items-center gap-2 rounded-field px-2 py-2 text-body-medium text-ink hover:bg-surface-container-low">
+            QUICK.map(([q, href]) => (
+              <a href={href} class="flex items-center gap-2 rounded-field px-2 py-2 text-body-medium text-ink hover:bg-surface-container-low">
                 <Icon name="help-outline-rounded" size={18} class="text-on-surface-variant" />
                 <span class="min-w-0 flex-1 truncate">{q}</span>
                 <Icon name="chevron-right-rounded" size={18} class="text-on-surface-variant" />
@@ -103,103 +164,149 @@ const current = TICKET_KINDS[TICKETS[0].kind];
         </section>
       </div>
 
-      <section class:list={[PANEL, 'flex min-h-0 flex-col overflow-hidden xl:h-full']}>
-        <div class="flex h-16 shrink-0 items-center gap-3 border-b border-line px-4">
-          <Official size={38} />
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-title-medium text-ink">{current.name}</p>
-            <p class="flex items-center gap-1 text-body-small text-on-surface-variant">
-              ShopNexus<Icon name="verified-rounded" size={14} class="text-primary" />· Đang xử lý
-            </p>
-          </div>
-          <span class="shrink-0 rounded-full bg-secondary-container px-2.5 py-1 text-label-medium text-on-secondary-container">Đang xử lý</span>
-        </div>
-        <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-5 md:px-6">
-          <p class="mx-auto flex w-fit items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1 text-center text-body-small text-on-surface-variant">
-            <Icon name="balance-rounded" size={14} />{NO_ARBITRATION}
-          </p>
-          <p class="text-center text-label-medium text-on-surface-variant">Hôm nay</p>
-          <div class="flex flex-col items-end">
-            <article class="w-full max-w-[400px] rounded-card rounded-br-2xs border border-line bg-card p-4 shadow-soft">
-              <p class="flex items-center gap-2 text-title-small text-ink">
-                <Icon name={current.icon} size={18} class="text-primary" />{current.name}
+      <section class:list={[PANEL, 'flex min-h-[480px] flex-col overflow-hidden xl:h-full']}>
+        {
+          creating || !ticket ? (
+            <form method="post" action={R.support} class="flex flex-1 flex-col gap-4 overflow-y-auto p-5 md:p-6">
+              <input type="hidden" name="do" value="new" />
+              <input type="hidden" name="key" value={idempotencyKey()} />
+              <div class="flex items-center gap-3">
+                <Official size={38} />
+                <div>
+                  <h2 class="text-title-medium text-ink">Yêu cầu mới</h2>
+                  <p class="text-body-small text-on-surface-variant">ShopNexus trả lời trong chat Hỗ trợ.</p>
+                </div>
+              </div>
+              {error && <Notice text={orderError(error)} />}
+              <fieldset class="flex flex-col gap-2">
+                <legend class="mb-2 text-label-large text-ink">Bạn cần gì?</legend>
+                {[
+                  ['other', 'Yêu cầu khác', 'Hỏi hoặc báo lỗi cho ShopNexus'],
+                  ['carrier_request', 'Xin thêm hãng', 'Hãng bạn hay gửi chưa có trên ShopNexus'],
+                ].map(([k, t, sub]) => (
+                  <label class="group flex cursor-pointer items-center gap-3 rounded-lg border border-line bg-card/60 px-3.5 py-2.5 has-[:checked]:border-primary/40 has-[:checked]:bg-card has-[:checked]:ring-1 has-[:checked]:ring-primary/30 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary">
+                    <input type="radio" name="kind" value={k} checked={newKind === k} class="sr-only" />
+                    <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-outline-variant group-has-[:checked]:border-primary">
+                      <span class="hidden h-2.5 w-2.5 rounded-full bg-primary group-has-[:checked]:block" />
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-body-medium text-ink">{t}</span>
+                      <span class="block text-body-small text-on-surface-variant">{sub}</span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+              <label class="flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 focus-within:ring-2 focus-within:ring-primary">
+                <span class="sr-only">Tên hãng</span>
+                <input name="carrier_name" maxlength="50" value={p.get('carrier_name') ?? ''} placeholder="Tên hãng (khi xin thêm hãng)" class={input} />
+              </label>
+              <label class="block rounded-lg border border-line bg-card px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
+                <span class="block text-body-small text-on-surface-variant">Nội dung</span>
+                <textarea name="body" rows="5" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
+              </label>
+              <p class="text-body-small text-on-surface-variant">
+                Chưa nhận được hàng? Báo từ trang <a href={R.orders} class="text-primary underline">đơn hàng</a> để ShopNexus xem cùng đơn.
               </p>
-              <div class="mt-3 flex items-center gap-3 rounded-field bg-surface-container-low p-2">
-                <Photo src={img(order.photo, 112, 112)} width={112} height={112} alt="" class="h-11 w-11 shrink-0 rounded-sm object-cover" />
-                <span class="min-w-0">
-                  <span class="block truncate text-title-small text-ink">{order.title}</span>
-                  <span class="block text-body-small text-on-surface-variant">{order.carrier} · {order.code}</span>
+              <div class="flex justify-end">
+                <button type="submit" class={btnCls('ink')}>
+                  <Icon name="send-rounded" size={16} />
+                  Gửi yêu cầu
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <div class="flex h-16 shrink-0 items-center gap-3 border-b border-line px-4">
+                <Official size={38} />
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-title-medium text-ink">{TICKET_KIND[ticket.kind].name}</p>
+                  <p class="flex items-center gap-1 text-body-small text-on-surface-variant">
+                    ShopNexus
+                    <Icon name="verified-rounded" size={14} class="text-primary" />
+                  </p>
+                </div>
+                <span
+                  class:list={[
+                    'shrink-0 rounded-full px-2.5 py-1 text-label-medium',
+                    ticket.status === 'open' ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-low text-on-surface-variant',
+                  ]}
+                >
+                  {ticket.status === 'open' ? 'Đang xử lý' : 'Đã xử lý'}
                 </span>
               </div>
-              <p class="mt-3 text-body-large text-ink">{REPORT}</p>
-            </article>
-            <p class="mt-1 px-2 text-body-small text-on-surface-variant">08:12 · Đã xem</p>
-          </div>
-          <div class="flex items-end gap-2">
-            <Official size={30} />
-            <div class="flex min-w-0 flex-col gap-1">
-              {
-                SUPPORT_REPLY.map((t, i) => (
-                  <p class:list={['w-fit max-w-[440px] rounded-card bg-surface-container-low px-4 py-2.5 text-body-large text-ink', i > 0 && 'rounded-tl-2xs']}>
-                    {t}
-                  </p>
-                ))
-              }
-              <p class="px-2 text-body-small text-on-surface-variant">09:05</p>
-            </div>
-          </div>
-          <div class="flex flex-col items-end">
-            <p class="max-w-[440px] rounded-card rounded-br-2xs bg-teal px-4 py-2.5 text-body-large text-white">Ok bạn, để mình hỏi bảo vệ rồi báo lại nhé.</p>
-            <p class="mt-1 px-2 text-body-small text-on-surface-variant">09:11 · Đã xem</p>
-          </div>
-        </div>
-        <form class="flex shrink-0 items-center gap-2 p-3" onsubmit="return false">
-          <button type="button" class="state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Đính kèm">
-            <Icon name="add-circle-outline-rounded" size={22} />
-          </button>
-          <input
-            placeholder="Nhắn ShopNexus"
-            aria-label="Nhắn ShopNexus"
-            class="h-11 min-w-0 flex-1 rounded-full bg-surface-container-low px-4 text-body-large text-ink outline-none placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary"
-          />
-          <button type="submit" class="state-layer grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand text-white" aria-label="Gửi">
-            <Icon name="send-rounded" size={18} />
-          </button>
-        </form>
+              <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 py-5 md:px-6" data-thread>
+                <p class="mx-auto flex w-fit items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1 text-center text-body-small text-on-surface-variant">
+                  <Icon name="balance-rounded" size={14} />
+                  {NO_ARBITRATION}
+                </p>
+                {items.length ? <Thread items={items} me={v.id} other="ShopNexus" replies={false} /> : <p class="m-auto text-body-medium text-on-surface-variant">Chưa có tin nhắn.</p>}
+              </div>
+              {error && <Notice text={orderError(error)} class="mx-3" />}
+              {chat && <Composer peer="ShopNexus" chat={chat.id} action={`${R.support}?ticket=${ticket.id}`} />}
+            </>
+          )
+        }
       </section>
 
-      <aside class="flex flex-col gap-4 lg:col-span-2 lg:grid lg:grid-cols-2 xl:col-span-1 xl:flex">
-        <div class:list={[PANEL, 'p-4']}>
-          <p class="text-label-medium text-on-surface-variant">Đơn trong yêu cầu</p>
-          <div class="mt-2 flex items-center gap-3">
-            <Photo src={img(order.photo, 112, 112)} width={112} height={112} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
-            <div class="min-w-0">
-              <p class="truncate text-title-small text-ink">{order.title}</p>
-              <Price vnd={order.price} size="text-j-15" />
+      {
+        ticket && !creating && (
+          <aside class="flex flex-col gap-4 lg:col-span-2 lg:grid lg:grid-cols-2 xl:col-span-1 xl:flex">
+            {ticket.order && (
+              <div class:list={[PANEL, 'p-4']}>
+                <p class="text-label-medium text-on-surface-variant">Đơn trong yêu cầu</p>
+                <div class="mt-2 flex items-center gap-3">
+                  {ticket.order.photo_url ? (
+                    <Photo src={ticket.order.photo_url} width={112} height={112} alt="" class="h-14 w-14 shrink-0 rounded-field object-cover" />
+                  ) : (
+                    <span class="h-14 w-14 shrink-0 rounded-field bg-soft" />
+                  )}
+                  <div class="min-w-0">
+                    <p class="truncate text-title-small text-ink">{ticket.order.title}</p>
+                    {ticket.order.tracking_code && (
+                      <p class="truncate text-body-small text-on-surface-variant">
+                        {isCarrier(ticket.order.carrier ?? '') ? CARRIER[ticket.order.carrier as 'ghtk'] : ticket.order.carrier} · {ticket.order.tracking_code}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <a href={R.order(ticket.order.id)} class:list={[btnCls('line'), 'mt-3 w-full']}>Mở đơn</a>
+              </div>
+            )}
+            {ticket.carrier_name && (
+              <div class:list={[PANEL, 'p-4']}>
+                <p class="text-label-medium text-on-surface-variant">Hãng bạn xin thêm</p>
+                <p class="mt-1 text-title-small text-ink">{ticket.carrier_name}</p>
+              </div>
+            )}
+            <div class:list={[PANEL, 'p-4']}>
+              <p class="text-label-medium text-on-surface-variant">Lịch sử</p>
+              <ol class="mt-3">
+                {ticket.events.map((e, i) => (
+                  <li class="relative flex gap-3 pb-4 last:pb-0">
+                    {i < ticket.events.length - 1 && <span class="absolute left-[7px] top-4 h-full w-0.5 bg-black/[.06]" />}
+                    <span class:list={['relative mt-1 h-4 w-4 shrink-0 rounded-full', e.kind === 'resolved' ? 'bg-primary' : 'border-2 border-primary bg-card']} />
+                    <span>
+                      <span class="block text-title-small text-ink">{EVENT[e.kind]}</span>
+                      <span class="block text-body-small text-on-surface-variant">{at(e.at)}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
             </div>
-          </div>
-          <a href={R.order('o1')} class:list={[btnCls('line'), 'mt-3 w-full']}>Mở đơn</a>
-        </div>
-        <div class:list={[PANEL, 'p-4']}>
-          <p class="flex items-center justify-between gap-3 text-label-medium text-on-surface-variant">
-            <span>Lịch trình {order.carrier}</span><span class="tabular-nums">{order.code}</span>
-          </p>
-          <ol class="mt-3">
-            {
-              SUPPORT_TRACK.map((s, i) => (
-                <li class="relative flex gap-3 pb-4 last:pb-0">
-                  {i < SUPPORT_TRACK.length - 1 && <span class="absolute left-[7px] top-4 h-full w-0.5 bg-black/[.06]" />}
-                  <span class:list={['relative mt-1 h-4 w-4 shrink-0 rounded-full', s.ok ? 'bg-primary' : 'border-2 border-tertiary bg-card']} />
-                  <span>
-                    <span class:list={['block text-title-small', s.ok ? 'text-ink' : 'text-tertiary']}>{s.title}</span>
-                    <span class="block text-body-small text-on-surface-variant">{s.sub}</span>
-                  </span>
-                </li>
-              ))
-            }
-          </ol>
-        </div>
-      </aside>
+          </aside>
+        )
+      }
     </div>
   </main>
 </Layout>
+
+<script>
+  // The thread opens at its newest message; ?error= is for this render only.
+  const t = document.querySelector<HTMLElement>('[data-thread]');
+  if (t) t.scrollTop = t.scrollHeight;
+  const u = new URL(location.href);
+  if (u.searchParams.has('error')) {
+    u.searchParams.delete('error');
+    history.replaceState(history.state, '', u);
+  }
+</script>
