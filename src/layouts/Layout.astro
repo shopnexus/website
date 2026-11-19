@@ -20,11 +20,13 @@ interface Props {
   footer?: boolean;
   /** Hides the compact "Đăng tin" button on the posting pages. */
   fab?: boolean;
+  /** The header lines up with a page that uses CONTENT_WIDE. */
+  wide?: boolean;
   /** Open Graph image. */
   image?: string;
 }
 
-const { title, description, section = null, search, footer = true, fab = true, image } = Astro.props;
+const { title, description, section = null, search, footer = true, fab = true, wide = false, image } = Astro.props;
 ---
 
 <html lang="vi" data-theme={theme(Astro)}>
@@ -91,7 +93,7 @@ const { title, description, section = null, search, footer = true, fab = true, i
   <body class="min-h-dvh font-sans text-body-large">
     <div class="relative min-h-dvh overflow-x-clip pb-40 lg:pb-0">
       <div class="relative z-10">
-        <Header section={section} search={search} />
+        <Header section={section} search={search} wide={wide} />
         <slot />
         {footer && <Footer />}
       </div>

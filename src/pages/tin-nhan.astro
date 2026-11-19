@@ -19,7 +19,7 @@ import ReportDialog from '../components/account/chat/ReportDialog.astro';
 import { DEALS, INBOX, SCAM_ITEM, SCAMMER, SELLER, THUMB } from '../data/account';
 import Layout from '../layouts/Layout.astro';
 import { requireViewer } from '../lib/session';
-import { CONTENT } from '../lib/ui';
+import { CONTENT_WIDE } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
@@ -38,8 +38,8 @@ const row = 'mt-1 flex items-baseline justify-between';
 const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden xl:flex';
 ---
 
-<Layout title="Tin nhắn · ShopNexus" description="Tin nhắn mua bán trên ShopNexus." section={null} footer={false}>
-  <main class={CONTENT}>
+<Layout title="Tin nhắn · ShopNexus" description="Tin nhắn mua bán trên ShopNexus." section={null} footer={false} wide>
+  <main class={CONTENT_WIDE}>
     <div
       class="mt-4 grid grid-cols-1 gap-4 lg:h-[calc(100dvh-96px)] lg:min-h-[760px] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)_312px]"
     >

@@ -7,6 +7,7 @@ import Photo from './Photo.astro';
 import brandMark from '@brand/brand_mark.svg';
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
+import { CONTENT, CONTENT_WIDE } from '../lib/ui';
 import { viewer } from '../lib/session';
 import Icon from './Icon.astro';
 
@@ -16,15 +17,17 @@ interface Props {
   /** BottomNav marks it; the bar itself has no section links. */
   section: Section | null;
   search?: { q: string; photo?: string };
+  /** Lines up with a page that uses CONTENT_WIDE. */
+  wide?: boolean;
 }
 
-const { search } = Astro.props;
+const { search, wide = false } = Astro.props;
 const me = viewer(Astro);
 const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounded-control text-ink hover:bg-hover lg:grid';
 ---
 
 <header class="glass sticky top-0 z-30 border-b border-line">
-  <div class="mx-auto flex h-16 max-w-[1280px] items-center gap-3 px-4 md:px-6 lg:gap-4 lg:px-8">
+  <div class:list={[wide ? CONTENT_WIDE : CONTENT, 'flex h-16 items-center gap-3 lg:gap-4']}>
     <a href={R.home} class="flex shrink-0 items-center gap-2 lg:pr-2">
       <Photo src={brandMark} alt="" class="h-8 w-8" />
       <span class="text-j-16 text-ink max-md:sr-only">ShopNexus</span>

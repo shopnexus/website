@@ -8,6 +8,8 @@ export const H2 = 'text-j-18 text-ink';
 export const LABEL = 'px-1 text-body-small text-faint';
 /** The main column's width and gutters, under the header. */
 export const CONTENT = 'mx-auto w-full max-w-[1280px] px-4 md:px-6 lg:px-8';
+/** CONTENT at 1600 px, for Tin nhắn. The extra width goes to the chat pane. */
+export const CONTENT_WIDE = 'mx-auto w-full max-w-[1600px] px-4 md:px-6 lg:px-8';
 
 const LOOK = {
   ink: 'bg-brand text-white hover:bg-brand-hover',
