@@ -1,0 +1,29 @@
+---
+// The listing page while it is on its way: the same grid as listings/[slug],
+// a gallery frame that takes the tapped card's photo, and the price panel as
+// shimmering lines. Layout.astro keeps it in a template and shows it on a tap.
+import { CONTENT, PANEL } from '../../lib/ui';
+---
+
+<div class="fixed inset-x-0 bottom-0 z-20 overflow-hidden bg-page" aria-hidden="true" data-page-skeleton>
+  <div class={CONTENT}>
+    <div class="flex h-8 items-center pt-5 box-content">
+      <div class="skeleton h-3 w-40 rounded-full"></div>
+    </div>
+    <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-x-8">
+      <div class="min-w-0 rounded-card border border-line bg-card p-2">
+        <div class="overflow-hidden rounded-card bg-surface-container-high" style="aspect-ratio: 16 / 10.5">
+          <img alt="" class="h-full w-full object-cover" data-skeleton-photo />
+        </div>
+      </div>
+      <div class:list={[PANEL, 'self-start p-5 lg:p-6']}>
+        <div class="skeleton h-4 w-2/5 rounded-full"></div>
+        <div class="skeleton mt-4 h-5 w-11/12 rounded-full"></div>
+        <div class="skeleton mt-2 h-5 w-3/5 rounded-full"></div>
+        <div class="skeleton mt-4 h-8 w-1/2 rounded-full"></div>
+        <div class="skeleton mt-5 h-11 w-full rounded-control"></div>
+        <div class="skeleton mt-2 h-11 w-full rounded-control"></div>
+      </div>
+    </div>
+  </div>
+</div>
