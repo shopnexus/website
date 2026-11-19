@@ -36,6 +36,7 @@
     "@iconify-json/material-symbols": "^1.2.97",
     "@svgr/core": "^8.1.0",
     "@svgr/plugin-jsx": "^8.1.0",
+    "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "openapi-typescript": "^7.13.0",
