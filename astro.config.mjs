@@ -12,6 +12,11 @@ export default defineConfig({
   // `export const prerender = true`.
   output: 'server',
   adapter: node({ mode: 'standalone' }),
+  // Hosts Astro.url may take from the request. Without them it is localhost,
+  // and the chat socket's address with it.
+  security: {
+    allowedDomains: [{ hostname: 'shopnexus.id.vn' }, { hostname: '*.shopnexus.id.vn' }, { hostname: 'shopnexus.localhost' }],
+  },
   integrations: [react()],
   vite: {
     // The mascot art, favicon and app icons live in the brand submodule
