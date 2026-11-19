@@ -92,7 +92,7 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
             <h2 class="text-j-16 text-ink">Vì bạn đã xem {home.viewed.category}</h2>
             <div class="no-scrollbar mt-4 flex gap-4 overflow-x-auto">
               {home.viewed.items.map((it) => (
-                <a href={R.listing(it.id)} class="w-[132px] shrink-0">
+                <a href={R.listing(it.slug)} class="w-[132px] shrink-0">
                   <span class="block aspect-square w-full overflow-hidden rounded-tile bg-soft">
                     {it.photo && <Photo src={it.photo} width={264} height={264} alt="" loading="lazy" class="h-full w-full object-cover" />}
                   </span>

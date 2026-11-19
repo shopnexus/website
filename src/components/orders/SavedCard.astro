@@ -72,7 +72,7 @@ const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Bool
               <Price vnd={l.price} size="text-j-16" class="block" />
             ))}
           <h3 class:list={['line-clamp-1 text-body-medium', sold ? 'text-on-surface-variant' : 'text-ink']}>
-            <a href={R.listing(it.listing_id)} class="after:absolute after:inset-0 after:rounded-card">
+            <a href={R.listing(it.listing.slug ?? it.listing_id)} class="after:absolute after:inset-0 after:rounded-card">
               {l.title}
             </a>
           </h3>

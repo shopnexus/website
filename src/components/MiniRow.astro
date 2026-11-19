@@ -15,7 +15,7 @@ interface Props {
 const { item, loading } = Astro.props;
 ---
 
-<a href={R.listing(item.id)} class="lift flex items-center gap-3 rounded-tile border border-line bg-card p-1.5 pr-3">
+<a href={R.listing(item.slug)} class="lift flex items-center gap-3 rounded-tile border border-line bg-card p-1.5 pr-3">
   <span class="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-soft">
     {item.photo && <Photo src={item.photo} width={120} height={120} alt="" loading={loading} class="h-full w-full object-cover" />}
   </span>

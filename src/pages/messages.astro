@@ -263,7 +263,7 @@ const detail = !!(chat || start || confirm);
               photo={chat.other.avatar_url}
               thumb={deal?.listing.cover_thumb_url}
               sub={activeText(chat.other)}
-              href={deal && (deal.listing.status === 'active' || deal.listing.status === 'reserved') ? R.listing(deal.listing.id) : undefined}
+              href={deal && (deal.listing.status === 'active' || deal.listing.status === 'reserved') ? R.listing(deal.listing.slug) : undefined}
             >
               {!official && (
                 <Fragment slot="menu">

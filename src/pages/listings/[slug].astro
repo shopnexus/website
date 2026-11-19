@@ -19,28 +19,27 @@ import { orNull, unwrap } from '../../lib/api/client';
 import { near } from '../../lib/area';
 import { categories } from '../../lib/catalog';
 import { ago, decimal, group, ratingText, where } from '../../lib/format';
-import { CONDITIONS, card, conditionLabel, isId } from '../../lib/listing';
+import { CONDITIONS, card, conditionLabel } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
 import { CONTENT, PANEL, btnCls } from '../../lib/ui';
 
-const id = Astro.params.id ?? '';
+const slug = Astro.params.slug ?? '';
 const api = Astro.locals.api;
-// Similar listings need only the id, so they load beside the listing.
-const [screen, similar] = isId(id)
-  ? await Promise.all([
-      orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id }, query: near(Astro.cookies) } })),
-      unwrap(api.GET('/v1/search', { params: { query: { like: id, limit: 6, ...near(Astro.cookies) } } }))
-        .then((r) => r.items.filter((s) => s.id !== id).slice(0, 5).map(card))
-        .catch(() => []),
-    ])
-  : [null, []];
+// The server finds the listing by an ID or by the code that ends a slug;
+// any address but the current slug moves there for good.
+const screen = await orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id: slug }, query: near(Astro.cookies) } }));
+if (screen && screen.listing.slug !== slug) return Astro.redirect(R.listing(screen.listing.slug) + Astro.url.search, 301);
 if (!screen) Astro.response.status = 404;
 
 const it = screen?.listing;
+const id = it?.id ?? '';
 const seller = screen?.seller;
-const [others, reviews, cats] = it
+const [similar, others, reviews, cats] = it
   ? await Promise.all([
+      unwrap(api.GET('/v1/search', { params: { query: { like: id, limit: 6, ...near(Astro.cookies) } } }))
+        .then((r) => r.items.filter((s) => s.id !== id).slice(0, 5).map(card))
+        .catch(() => []),
       unwrap(api.GET('/v1/sellers/{id}/listings', { params: { path: { id: it.seller_id }, query: { limit: 4, ...near(Astro.cookies) } } }))
         .then((r) => r.items.filter((o) => o.id !== it.id).slice(0, 3).map(card))
         .catch(() => []),
@@ -49,7 +48,7 @@ const [others, reviews, cats] = it
         .catch(() => []),
       categories().catch(() => []),
     ])
-  : [[], [], []];
+  : [[], [], [], []];
 
 const me = viewer(Astro);
 const mine = !!me && me.id === it?.seller_id;
@@ -208,7 +207,7 @@ const ld = it && {
                   <p class="mt-4 text-body-small text-faint">Tin khác của {seller.display_name}</p>
                   <div class="mt-2 grid grid-cols-3 gap-2">
                     {others.map((o) => (
-                      <a href={R.listing(o.id)} class="min-w-0">
+                      <a href={R.listing(o.slug)} class="min-w-0">
                         <span class="block aspect-square w-full overflow-hidden rounded-control bg-soft">
                           {o.photo && <Photo src={o.photo} width={200} height={200} alt={o.title} class="h-full w-full object-cover" />}
                         </span>

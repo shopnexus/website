@@ -3,6 +3,8 @@ import type { Schemas } from './api/client';
 /** A listing as cards and rows show it: the app's ListingSummary. */
 export interface Card {
   id: string;
+  /** The end of its address, R.listing(slug). */
+  slug: string;
   /** The cover's URL; absent while the photos are processed. */
   photo?: string;
   /** In đồng. */
@@ -33,6 +35,7 @@ export const conditionLabel = (c: string) => CONDITIONS[c as Condition] ?? CONDI
 
 export const card = (it: Schemas['SearchItem']): Card => ({
   id: it.id,
+  slug: it.slug,
   photo: it.cover_thumb_url,
   price: it.price,
   title: it.title,

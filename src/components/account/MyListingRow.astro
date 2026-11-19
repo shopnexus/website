@@ -63,7 +63,7 @@ const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
     }
     <div class="min-w-0 flex-1">
       <h3 class="truncate text-title-small text-ink">
-        {pub ? <a href={R.listing(l.id)} class="hover:underline">{l.title}</a> : l.title}
+        {pub ? <a href={R.listing(l.slug)} class="hover:underline">{l.title}</a> : l.title}
       </h3>
       <div class="mt-0.5 flex items-center gap-3 overflow-hidden whitespace-nowrap">
         <Price vnd={l.price} size="text-j-15" />

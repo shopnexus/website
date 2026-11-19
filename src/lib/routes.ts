@@ -7,7 +7,8 @@ export const R = {
   photoSearch: '/photo-search', // photo-search
   categories: '/categories', // categories
   category: (code: string) => `/categories/${code}`, // category
-  listing: (id: string) => `/listings/${id}`, // detail-c, not-found
+  /** A slug, or an ID the page redirects to the slug. */
+  listing: (slug: string) => `/listings/${slug}`, // detail-c, not-found
   seller: (id: string) => `/sellers/${id}`, // seller
   how: '/how-to-buy', // how
   sell: '/how-to-sell', // sell

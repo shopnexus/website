@@ -4946,6 +4946,14 @@ export interface components {
                 lng: number;
             };
         };
+        /**
+         * @description The end of the listing's web address, /listings/{slug}: the title
+         *     without accents in lowercase words joined by hyphens, then the
+         *     listing's 8-character code. Only the code finds the listing, so an
+         *     address written before a title edit still works.
+         * @example xe-dap-giant-escape-3-k7m2qx9a
+         */
+        ListingSlug: string;
         Region: {
             code: string;
             display_name: string;
@@ -4994,6 +5002,7 @@ export interface components {
         Listing: {
             /** Format: uuid */
             id: string;
+            slug: components["schemas"]["ListingSlug"];
             /** Format: uuid */
             seller_id: string;
             title: string;
@@ -5120,6 +5129,7 @@ export interface components {
         DealListing: {
             /** Format: uuid */
             id: string;
+            slug: components["schemas"]["ListingSlug"];
             title: string;
             /** Format: int64 */
             price: number;
@@ -5897,6 +5907,7 @@ export interface components {
             listing?: {
                 /** Format: uuid */
                 id: string;
+                slug: components["schemas"]["ListingSlug"];
                 title: string;
                 /** Format: int64 */
                 price: number;
@@ -6145,6 +6156,7 @@ export interface components {
         SearchItem: {
             /** Format: uuid */
             id: string;
+            slug: components["schemas"]["ListingSlug"];
             /** Format: uuid */
             seller_id: string;
             title: string;
@@ -6596,6 +6608,7 @@ export interface components {
             alert_below?: number;
             /** @description The listing as it is now. A hidden or deleted listing shows its status alone. */
             listing: {
+                slug?: components["schemas"]["ListingSlug"];
                 title?: string;
                 /** Format: int64 */
                 price?: number;
@@ -11977,6 +11990,7 @@ export interface operations {
             };
             header?: never;
             path: {
+                /** @description The listing's ID, or the slug of its web address (ListingSlug). */
                 id: string;
             };
             cookie?: never;

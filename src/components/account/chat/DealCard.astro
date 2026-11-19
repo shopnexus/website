@@ -62,7 +62,7 @@ const theirs = open && open.by !== d.role;
   }
   {
     (l.status === 'active' || l.status === 'reserved') && (
-      <a href={R.listing(l.id)} class="state-layer mt-4 flex h-10 items-center justify-center rounded-full border border-outline-variant text-label-large text-primary">
+      <a href={R.listing(l.slug)} class="state-layer mt-4 flex h-10 items-center justify-center rounded-full border border-outline-variant text-label-large text-primary">
         Xem tin
       </a>
     )

@@ -11,7 +11,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 
 /** Where a ref leads on the website. */
 export function refHref(r: Ref): string {
-  if (r.listing) return R.listing(r.listing.id);
+  if (r.listing) return R.listing(r.listing.slug);
   if (r.seller) return R.seller(r.seller.id);
   if (r.order) return R.order(r.order.id);
   if (r.category) return R.category(r.category.code);

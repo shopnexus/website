@@ -22,7 +22,7 @@ const meta = [item.condition, where(item.km, item.area)].join(' · ');
   <div class="flex min-w-0 flex-1 flex-col justify-center py-1">
     <Price vnd={item.price} size="text-j-20" />
     <h3 class="mt-0.5 line-clamp-2 text-body-large text-ink">
-      <a href={R.listing(item.id)} class="after:absolute after:inset-0 after:rounded-card">{item.title}</a>
+      <a href={R.listing(item.slug)} class="after:absolute after:inset-0 after:rounded-card">{item.title}</a>
     </h3>
     <p class="mt-1.5 flex items-center gap-1 text-body-small text-on-surface-variant">
       <Icon name="near-me-outline-rounded" size={13} />{meta}
