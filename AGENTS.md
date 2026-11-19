@@ -29,7 +29,7 @@ ShopNexus holds no money: the only deal path is cash on delivery with inspection
 
 ## Astro audit
 
-After a UI change, run the rules of the dev toolbar's Audit app and fix what they flag. `~/shopnexus/tmp/astro-audit/run.mjs <checkout>` runs them on every route, signed out and signed in, at 1280×800 and 390×844, against `astro dev --port 4391`. It groups the hits by source line. `a11y-invalid-href` is skipped while the links are mock `#` links.
+After a UI change, run the rules of the dev toolbar's Audit app and fix what they flag. `~/shopnexus/tmp/astro-audit/run.mjs <checkout>` runs them on every route, signed out and signed in, at 1280×800 and 390×844, against `astro dev --port 4391`. It groups the hits by source line. Every rule counts, `a11y-invalid-href` included: the site has no mock `#` links left.
 
 - Images use `src/components/Photo.astro`, a wrapper around Astro's `Image` that loads eagerly unless the caller passes `loading="lazy"`.
 - A list component takes a `loading` prop. The caller passes `lazy` from the row where the list leaves the first screen at both sizes.
