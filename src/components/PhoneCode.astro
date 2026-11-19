@@ -1,0 +1,42 @@
+---
+// The texted code's step, hidden until lib/phone-flow.ts shows it: where the
+// code went, the resend countdown, the code boxes, the main button, "Gửi lại
+// mã" and optionally "Đổi số". The slot adds to the row of small buttons.
+import { btnCls } from '../lib/ui';
+import CodeBoxes from './CodeBoxes.astro';
+
+interface Props {
+  submitLabel: string;
+  /** Shows "Đổi số", for a number the buyer typed. */
+  change?: boolean;
+  /** A full-width button and boxes, as in the sign-in card. */
+  wide?: boolean;
+  title?: string;
+}
+
+const { submitLabel, change = false, wide = false, title } = Astro.props;
+const link = 'state-layer h-8 rounded-control px-2 text-label-large text-primary';
+---
+
+<form hidden data-phone-code>
+  <div class="mt-3 flex flex-wrap items-baseline justify-between gap-2">
+    {title ? <h3 class="text-title-medium font-semibold text-ink">{title}</h3> : <p class="text-body-medium text-on-surface-variant">Mã đã nhắn tới <span data-phone-to></span>.</p>}
+    <span class="text-body-small text-on-surface-variant tabular-nums" data-phone-timer></span>
+  </div>
+  {title && <p class="mt-0.5 text-body-small text-on-surface-variant">Gửi tới <span data-phone-to></span></p>}
+  <div class:list={[!wide && 'max-w-[360px]']}>
+    <CodeBoxes />
+  </div>
+  <button class:list={[btnCls('ink', 'lg'), 'mt-4', wide && 'w-full']} data-code-submit>{submitLabel}</button>
+  <div class:list={['mt-2 flex flex-wrap gap-2', wide && 'justify-between']}>
+    {
+      change && (
+        <button type="button" class={link} data-phone-change>
+          Đổi số
+        </button>
+      )
+    }
+    <button type="button" class={link} disabled data-phone-resend>Gửi lại mã</button>
+    <slot />
+  </div>
+</form>

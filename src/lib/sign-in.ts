@@ -5,7 +5,8 @@ import { cookie, secondsUntil } from './session';
 
 // Codes mailed to an address: Đăng nhập signs in with one, Bảo mật adds an
 // email or signs in again with one. The challenge between the two steps
-// waits in a short cookie on the page that asked.
+// waits in a short cookie on the page that asked. Google and phone proofs
+// come from the browser (lib/firebase.ts) as a token in a form post.
 
 /** Where a challenge waits: its cookie's name and path. */
 export interface CodeFlow {
@@ -59,11 +60,27 @@ export async function sendEmailCode(api: Api, cookies: AstroCookies, url: URL, r
 /** The proof a typed code makes, for sign-in, reauthentication or a new identity. */
 export const emailProof = (c: Challenge, code: string) => ({ email_code: { challenge_id: c.id, code: code.replace(/\D/g, '') } });
 
-export function signInWithCode(api: Api, c: Challenge, code: string, key: string, device: string): Promise<Schemas['SignIn']> {
+/** A token the browser got from Firebase: a Google ID token, or Firebase's ID token for a phone number. */
+export type TokenKind = 'google' | 'phone';
+
+/** A posted `kind` field as a TokenKind, or undefined. */
+export const tokenKind = (v: unknown): TokenKind | undefined => (v === 'google' || v === 'phone' ? v : undefined);
+
+/** The proof a Firebase token makes; undefined when the form carried no token. */
+export function tokenProof(kind: TokenKind, token: unknown) {
+  const t = typeof token === 'string' ? token : '';
+  if (!t) return undefined;
+  return kind === 'google' ? { google_token: t } : { phone_token: t };
+}
+
+/** One proof of the owner, as sign-in, reauthentication and a new identity take it. */
+export type Proof = ReturnType<typeof emailProof> | NonNullable<ReturnType<typeof tokenProof>>;
+
+export function signIn(api: Api, proof: Proof, key: string, device: string): Promise<Schemas['SignIn']> {
   return unwrap(
     api.POST('/v1/auth/sign-in', {
       params: { header: { 'Idempotency-Key': key } },
-      body: { ...emailProof(c, code), device_name: device },
+      body: { ...proof, device_name: device },
     }),
   );
 }
@@ -95,6 +112,14 @@ export function codeError(e: unknown, fallback = 'Chưa đăng nhập được. 
       return { text: 'Sai mã quá nhiều lần. Gửi mã mới nhé.', restart: true };
     case 'account_suspended':
       return { text: 'Tài khoản này đang bị khóa.' };
+    case 'invalid_google_token':
+      return { text: 'Chưa xác minh được tài khoản Google. Thử lại nhé.' };
+    case 'invalid_phone_token':
+      return { text: 'Chưa xác minh được số điện thoại. Gửi mã mới nhé.' };
+    case 'invalid_phone':
+      return { text: 'Số này không phải số di động Việt Nam.' };
+    case 'unavailable':
+      return { text: 'Đăng nhập đang bận. Thử lại sau ít phút.' };
     default:
       return { text: fallback };
   }

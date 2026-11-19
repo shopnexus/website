@@ -49,11 +49,14 @@ export const API = {
   watchAlert: (id: string) => `/api/watches/${id}/alert`,
 } as const;
 
-/** `raw` when it is a path on this site, else `fallback`: no "//host", and no backslash, which browsers read as a slash. */
-export const localPath = (raw: string, fallback: string) => (raw.startsWith('/') && !raw.startsWith('//') && !raw.includes('\\') ? raw : fallback);
+/**
+ * `raw` when it is a path on this site, else `fallback`. No "//host", no backslash (read as a
+ * slash), and no control character: browsers strip tab and newline, so "/\t/host" is "//host".
+ */
+export const localPath = (raw: string, fallback: string) => (/^\/(?![/\\])/.test(raw) && !/[\x00-\x1f\x7f\\]/.test(raw) ? raw : fallback);
 
-/** Đăng nhập, coming back to `back` (a path with its query); `ended` adds the "signed out elsewhere" notice. */
-export const loginHref = (back: string, ended = false) => `${R.login}?next=${encodeURIComponent(back)}${ended ? '&ended' : ''}`;
+/** Đăng nhập, coming back to `back` (a path with its query); `ended`, the server's code, adds a notice of why the session ended. */
+export const loginHref = (back: string, ended?: string) => `${R.login}?next=${encodeURIComponent(back)}${ended ? `&ended=${ended}` : ''}`;
 
 /** Footer and other link lists, by label. */
 export const LINK: Record<string, string> = {

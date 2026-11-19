@@ -21,6 +21,8 @@ holds the mascot art, the favicon and the app icons; pages import them as
 
 The buyer's access and refresh tokens are httpOnly cookies. `src/middleware.ts` refreshes the access token when its cookie has expired, and the browser never reads either token.
 
+Đăng nhập takes a code mailed to an email address, a Google account or a phone number. The email steps are form posts and work without JavaScript. Google and the phone use Firebase Authentication in the browser (`src/lib/firebase.ts`): the page gets a Google ID token, or Firebase's ID token after the texted code, and posts it to the site, which signs in with the Go server and keeps the server's tokens. The Firebase client keeps its state in memory and signs out after each proof. The SDK loads only on Đăng nhập and Bảo mật: as the page opens where it shows the Google button, which stays disabled until then so Google's popup opens inside the click, and otherwise when a code is first sent. A Firebase token goes to the server in the request that posts it and is never kept in a cookie. Each domain the site runs on must be in the Firebase project's authorized domains.
+
 `bun run check` type-checks the project and `bun run build` writes the server to `dist/`.
 
 ## Design

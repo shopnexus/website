@@ -1,7 +1,7 @@
 ---
 // Hoàn thiện hồ sơ: the steps left and the profile itself. The name and the
 // bio post with the page; the avatar uploads from the browser, then posts its
-// upload id. Adding a phone waits for the app's phone sign-in on the web.
+// upload id. The phone is added on Bảo mật, by a code texted to it.
 import Notice from '../../components/Notice.astro';
 import Avatar from '../../components/Avatar.astro';
 import Field from '../../components/Field.astro';
@@ -62,12 +62,12 @@ const todo = tasks.filter((t) => !t.done);
 const name = posted?.name ?? account.display_name;
 const bio = posted?.bio ?? account.bio;
 
-// A step not done: where it is done, and its line. Phone has no place yet.
+// A step not done: where it is done, and its line.
 const todoRow: Record<TaskKey, { href?: string; sub: string }> = {
   avatar: { href: '#avatar', sub: 'Người mua dễ nhận ra bạn' },
   bio: { href: '#bio', sub: 'Vài dòng về bạn và món bạn hay bán' },
   address: { href: R.addresses, sub: 'Để nhận hàng COD' },
-  phone: { sub: 'Sắp có trên web' },
+  phone: { href: `${R.security}?add-phone`, sub: 'Đăng tin, hỏi mua và nhắn tin cần số này' },
 };
 const doneSub: Record<TaskKey, string | undefined> = {
   avatar: 'Đã thêm',

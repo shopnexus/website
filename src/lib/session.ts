@@ -89,6 +89,19 @@ export async function openSession(cookies: AstroCookies, url: URL, forwardedFor:
   return { forwardedFor };
 }
 
+/**
+ * Seconds since the session last proved its owner, from the access token's auth_time;
+ * Infinity when unknown. The server still decides: this only picks the next step.
+ */
+export function authAge(token?: string) {
+  try {
+    const { auth_time } = JSON.parse(Buffer.from(token!.split('.')[1], 'base64url').toString()) as { auth_time?: number };
+    return typeof auth_time === 'number' ? Date.now() / 1000 - auth_time : Infinity;
+  } catch {
+    return Infinity;
+  }
+}
+
 /** The signed-in buyer as the header and the account pages show them. */
 export interface Viewer {
   id: string;
@@ -144,5 +157,5 @@ export function requireViewer(ctx: Pick<AstroGlobal, 'locals' | 'url' | 'redirec
   return ctx.redirect(loginUrl(ctx.url, ctx.locals.session.ended));
 }
 
-/** Đăng nhập, coming back to `url`; `?het-phien` when another device signed this one out. */
-export const loginUrl = (url: URL, ended?: string) => loginHref(url.pathname + url.search, ended === 'session_revoked');
+/** Đăng nhập, coming back to `url`, with `&ended=` when another device signed this one out or the account is suspended. */
+export const loginUrl = (url: URL, ended?: string) => loginHref(url.pathname + url.search, ended === 'session_revoked' || ended === 'account_suspended' ? ended : undefined);

@@ -94,6 +94,14 @@ export const listingPhoto = (it: Pick<Listing, 'photo' | 'crop'>, w: number, h =
 export const date = (iso: string) =>
   new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ });
 
+/** "0912 345 678", "912345678" or "+84 912…" as +84912345678; undefined when it is not a Vietnamese mobile number. */
+export function vnMobile(raw: string) {
+  let d = raw.replace(/\D/g, '');
+  if (d.startsWith('84') && d.length === 11) d = d.slice(2);
+  else if (d.startsWith('0')) d = d.slice(1);
+  return /^[35789]\d{8}$/.test(d) ? `+84${d}` : undefined;
+}
+
 /** A +84 number as people write it: 0912 345 678, or with the middle hidden: 09•• ••• 678. */
 export function phoneText(e164: string, masked = false) {
   const d = e164.replace(/^\+84/, '0');

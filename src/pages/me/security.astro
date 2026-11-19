@@ -3,8 +3,13 @@
 // Signing the other devices out, adding an email and deleting the account need
 // a sign-in within 15 minutes; past that the server answers reauth_required,
 // the page mails a code to the account's email, and the code runs the action.
-// Every step is a form post. A phone, and signing in again by phone, wait for Firebase.
+// Without an email the proof is a code texted to the account's phone, and a
+// Google account can prove it instead of the mailed code. Adding a phone
+// proves the owner first, then texts the new number and posts its token at
+// once. Firebase runs those in the browser; everything else is a form post.
+import CodeBoxes from '../../components/CodeBoxes.astro';
 import Notice from '../../components/Notice.astro';
+import PhoneCode from '../../components/PhoneCode.astro';
 import Icon from '../../components/Icon.astro';
 import Row from '../../components/account/Row.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
@@ -13,8 +18,8 @@ import { ApiError, idempotencyKey, orNull, unwrap } from '../../lib/api/client';
 import { identity } from '../../lib/profile';
 import { ago, clock, date, phoneText } from '../../lib/format';
 import { R } from '../../lib/routes';
-import { dropTokens, renewAccess, requireViewer } from '../../lib/session';
-import { type CodeFlow, codeError, dropChallenge, emailProof, readChallenge, resendSeconds, sendEmailCode } from '../../lib/sign-in';
+import { authAge, cookie, dropTokens, renewAccess, requireViewer } from '../../lib/session';
+import { type CodeFlow, codeError, dropChallenge, emailProof, type Proof, readChallenge, resendSeconds, sendEmailCode, tokenKind, tokenProof } from '../../lib/sign-in';
 import { btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
@@ -26,30 +31,44 @@ const { cookies, url } = Astro;
 const REAUTH: CodeFlow = { name: 'sn_ra', path: R.security };
 const ADD_EMAIL: CodeFlow = { name: 'sn_ae', path: R.security };
 const ADD = 'add-email:';
+// The phone's texted step opens only with a sign-in this recent, so the server's
+// 15 minutes still hold when its token comes back.
+const PHONE_WINDOW = 12 * 60;
+// Without an email the proof is a texted code; what it goes on to do waits here.
+const REAUTH_PHONE = { name: 'sn_rp', path: R.security };
 /** What a reauthentication goes on to do, for its sentence. */
-const AFTER: Record<string, string> = { others: 'đăng xuất các thiết bị khác', delete: 'xóa tài khoản', email: 'thêm email' };
+const AFTER: Record<string, string> = { others: 'đăng xuất các thiết bị khác', delete: 'xóa tài khoản', email: 'thêm email', 'add-phone': 'thêm số điện thoại' };
 const afterKey = (then = '') => (then.startsWith(ADD) ? 'email' : then);
 
 const email = identity(v.identities, 'email');
 const phone = identity(v.identities, 'phone');
 
-const actionError = (e: unknown) => {
+/** The line for a failed step: `proof` is what proved the owner, `adds` what the action adds. */
+const actionError = (e: unknown, proof: 'email' | 'phone' | 'google', adds: 'email' | 'phone') => {
   switch (e instanceof ApiError ? e.code : '') {
     case 'orders_open':
       return 'Bạn còn đơn đang chờ hoặc đang giao. Xóa tài khoản khi các đơn đã xong nhé.';
     case 'identity_taken':
-      return 'Email này đã đăng nhập một tài khoản khác.';
+      return adds === 'phone' ? 'Số này đã đăng nhập một tài khoản khác.' : 'Email này đã đăng nhập một tài khoản khác.';
     case 'identity_kind_taken':
-      return 'Tài khoản đã có email.';
+      return adds === 'phone' ? 'Tài khoản đã có số điện thoại.' : 'Tài khoản đã có email.';
     case 'wrong_account':
-      return 'Mã này không phải của email trong tài khoản.';
+      return proof === 'google'
+        ? 'Tài khoản Google này không phải email trong tài khoản.'
+        : proof === 'phone'
+          ? 'Số này không phải số trong tài khoản.'
+          : 'Mã này không phải của email trong tài khoản.';
     default:
       return codeError(e, 'Chưa làm được. Thử lại sau ít phút.').text;
   }
 };
 
-/** Runs `then`: signs the others out, deletes the account, or mails the code that adds an email. */
+/** Runs `then`: signs the others out, deletes the account, opens the phone's texted step, or mails the code that adds an email. */
 async function run(then: string, key: string): Promise<Response> {
+  if (then === 'add-phone') {
+    if (authAge(Astro.locals.session.token) > PHONE_WINDOW) throw new ApiError(428, 'reauth_required');
+    return Astro.redirect(`${R.security}?add-phone`, 303);
+  }
   if (then === 'others') {
     await unwrap(api.DELETE('/v1/auth/sessions/others'));
     return Astro.redirect(`${R.security}?done=others`, 303);
@@ -63,16 +82,30 @@ async function run(then: string, key: string): Promise<Response> {
   return Astro.redirect(R.security, 303);
 }
 
-/** run, and when the sign-in is too old, a code to the account's email first. */
+/** run, and when the sign-in is too old, a code to the account's email (or its phone) first. */
 async function guarded(then: string, key: string): Promise<Response> {
   try {
     return await run(then, key);
   } catch (e) {
     if (!(e instanceof ApiError && e.code === 'reauth_required')) throw e;
-    if (!email) throw new ApiError(428, 'reauth_by_phone');
-    await sendEmailCode(api, cookies, url, email, idempotencyKey(), { flow: REAUTH, then });
+    if (email) await sendEmailCode(api, cookies, url, email, idempotencyKey(), { flow: REAUTH, then });
+    else cookies.set(REAUTH_PHONE.name, then, cookie(url, 600, REAUTH_PHONE.path));
     return Astro.redirect(R.security, 303);
   }
+}
+
+const dropReauth = () => {
+  dropChallenge(cookies, REAUTH);
+  cookies.delete(REAUTH_PHONE.name, { path: REAUTH_PHONE.path });
+};
+
+/** Proves the owner again, then runs `then` with the new token for the rest of this request. */
+async function reauthThen(proof: Proof, then: string, key: string): Promise<Response> {
+  const t = await unwrap(api.POST('/v1/auth/sessions/current/reauthenticate', { params: { header: { 'Idempotency-Key': key } }, body: proof }));
+  renewAccess(Astro, t);
+  dropReauth();
+  api = Astro.locals.api;
+  return run(then, idempotencyKey());
 }
 
 let error: string | undefined;
@@ -80,6 +113,10 @@ if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   const key = String(form.get('key') ?? '') || idempotencyKey();
   const step = String(form.get('step') ?? '');
+  const kind = tokenKind(form.get('kind'));
+  const proofKind = kind ?? 'email';
+  // What the action adds, for the wording of identity errors.
+  const adds = step === 'add-phone' ? 'phone' : 'email';
   try {
     switch (step) {
       case 'device': {
@@ -91,21 +128,39 @@ if (Astro.request.method === 'POST') {
         return await guarded(step, key);
       case 'add-email':
         return await guarded(ADD + String(form.get('email') ?? ''), key);
+      case 'add-phone-start':
+        return await guarded('add-phone', key);
+      case 'add-phone': {
+        // The token Firebase gave for the texted code, spent at once and never kept.
+        const proof = tokenProof('phone', form.get('token'));
+        if (!proof) throw new ApiError(400, 'needs_script');
+        try {
+          await unwrap(api.POST('/v1/accounts/me/identities', { params: { header: { 'Idempotency-Key': key } }, body: proof }));
+        } catch (e) {
+          // The sign-in aged meanwhile: prove the owner, then text the number again.
+          if (e instanceof ApiError && e.code === 'reauth_required') return await guarded('add-phone', key);
+          throw e;
+        }
+        return Astro.redirect(`${R.security}?done=phone`, 303);
+      }
+      case 'reauth-token': {
+        // Google, or the code texted to the account's phone, in place of the mailed code.
+        const then = readChallenge(cookies, REAUTH)?.then ?? cookies.get(REAUTH_PHONE.name)?.value;
+        const proof = kind && tokenProof(kind, form.get('token'));
+        if (then === undefined) return Astro.redirect(R.security, 303);
+        if (!proof) throw new ApiError(400, 'needs_script');
+        return await reauthThen(proof, then, key);
+      }
       case 'reauth-code': {
         const c = readChallenge(cookies, REAUTH);
         if (!c) return Astro.redirect(R.security, 303);
-        let t;
         try {
-          t = await unwrap(api.POST('/v1/auth/sessions/current/reauthenticate', { params: { header: { 'Idempotency-Key': key } }, body: emailProof(c, String(form.get('code') ?? '')) }));
+          return await reauthThen(emailProof(c, form.getAll('code').join('')), c.then ?? '', key);
         } catch (e) {
+          // A spent code needs a new one; a failure after the proof leaves nothing to drop.
           if (codeError(e).restart) dropChallenge(cookies, REAUTH);
           throw e;
         }
-        // The new token passes the check; this request goes on with it.
-        renewAccess(Astro, t);
-        dropChallenge(cookies, REAUTH);
-        api = Astro.locals.api;
-        return await run(c.then ?? '', idempotencyKey());
       }
       case 'reauth-resend': {
         const c = readChallenge(cookies, REAUTH);
@@ -113,13 +168,13 @@ if (Astro.request.method === 'POST') {
         return Astro.redirect(R.security, 303);
       }
       case 'reauth-cancel':
-        dropChallenge(cookies, REAUTH);
+        dropReauth();
         return Astro.redirect(R.security, 303);
       case 'email-code': {
         const c = readChallenge(cookies, ADD_EMAIL);
         if (!c) return Astro.redirect(R.security, 303);
         try {
-          await unwrap(api.POST('/v1/accounts/me/identities', { params: { header: { 'Idempotency-Key': key } }, body: emailProof(c, String(form.get('code') ?? '')) }));
+          await unwrap(api.POST('/v1/accounts/me/identities', { params: { header: { 'Idempotency-Key': key } }, body: emailProof(c, form.getAll('code').join('')) }));
         } catch (e) {
           if (e instanceof ApiError && e.code === 'reauth_required') {
             dropChallenge(cookies, ADD_EMAIL);
@@ -141,20 +196,36 @@ if (Astro.request.method === 'POST') {
     }
   } catch (e) {
     error =
-      e instanceof ApiError && e.code === 'reauth_by_phone'
-        ? 'Việc này cần xác nhận lại bằng số điện thoại, việc web chưa làm được. Bạn thêm email trong app ShopNexus, hoặc thêm ngay trong 15 phút sau khi đăng nhập.'
-        : actionError(e);
+      e instanceof ApiError && e.code === 'needs_script'
+        ? 'Việc này cần bật JavaScript để nhận mã qua tin nhắn.'
+        : actionError(e, proofKind, adds);
   }
 }
 
 const sessions = (await unwrap(api.GET('/v1/auth/sessions', { params: { query: { limit: 100 } } }))).items;
-const reauth = readChallenge(cookies, REAUTH);
-const adding = reauth ? undefined : readChallenge(cookies, ADD_EMAIL);
-const wantsEmail = !email && Astro.url.searchParams.has('add-email');
+// One flow at a time, the first that applies: proving the owner (mailed code, or
+// texted when the account has no email), the code that adds an email, the new
+// email's form, or the new phone's texted step while the sign-in is recent.
+const reauthMail = readChallenge(cookies, REAUTH);
+const reauthText = phone ? cookies.get(REAUTH_PHONE.name)?.value : undefined;
+const addCode = readChallenge(cookies, ADD_EMAIL);
+const asks = (k: string) => Astro.url.searchParams.has(k);
+const mode: 'reauth-email' | 'reauth-phone' | 'add-email-code' | 'add-email' | 'add-phone' | null = reauthMail
+  ? 'reauth-email'
+  : reauthText !== undefined
+    ? 'reauth-phone'
+    : addCode
+      ? 'add-email-code'
+      : !email && asks('add-email')
+        ? 'add-email'
+        : !phone && asks('add-phone') && authAge(Astro.locals.session.token) <= PHONE_WINDOW
+          ? 'add-phone'
+          : null;
+const reauth = mode === 'reauth-email' ? reauthMail : undefined;
 const confirmDelete = Astro.url.searchParams.has('confirm-delete');
-const code = reauth ?? adding;
+const code = mode === 'reauth-email' ? reauthMail : mode === 'add-email-code' ? addCode : undefined;
 const resendIn = code ? resendSeconds(code) : 0;
-const DONE: Record<string, string> = { others: 'Đã đăng xuất các thiết bị khác.', device: 'Đã đăng xuất thiết bị.', email: 'Đã thêm email.' };
+const DONE: Record<string, string> = { others: 'Đã đăng xuất các thiết bị khác.', device: 'Đã đăng xuất thiết bị.', email: 'Đã thêm email.', phone: 'Đã thêm số điện thoại.' };
 const done = !error ? DONE[Astro.url.searchParams.get('done') ?? ''] : undefined;
 const key = idempotencyKey();
 const methods = [phone && 'Số điện thoại', email && 'Email'].filter(Boolean);
@@ -162,14 +233,45 @@ const methods = [phone && 'Số điện thoại', email && 'Email'].filter(Boole
 const line = 'flex flex-wrap items-center gap-3 py-3';
 const bubble = 'grid h-10 w-10 shrink-0 place-items-center rounded-full';
 const link = 'state-layer h-8 rounded-control px-2 text-label-large text-primary';
-const codeInput =
-  'h-12 w-40 rounded-field border border-line bg-card px-4 text-center text-j-20 tracking-[0.3em] text-ink tabular-nums outline-none focus:border-primary focus:ring-4 focus:ring-primary/10';
+const boxes = 'max-w-[360px]';
 ---
 
 <SettingsFrame title="Bảo mật" page="Bảo mật" meta="Cách đăng nhập, thiết bị và tài khoản">
+  {/* One alert line, for the server's errors and the script's. */}
+  <div hidden={!error} data-alert>
+    <Notice text={error ?? ''} />
+  </div>
   {
-    (error || done) && (
-      <Notice text={(error ?? done)!} ok={!error} />
+    done && (
+      <div data-done>
+        <Notice text={done} ok />
+      </div>
+    )
+  }
+
+  {
+    mode === 'reauth-phone' && phone && (
+      <section class:list={[PANEL, 'px-5 py-4']} aria-labelledby="phone-reauth-title" data-phone-flow data-number={phone} data-step="reauth-token">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="phone-reauth-title" class="text-j-20 text-ink">Xác nhận là bạn</h2>
+        </div>
+        <p class="mt-1 text-body-medium text-on-surface-variant">
+          ShopNexus nhắn mã tới {phoneText(phone)}. Nhập mã để {AFTER[afterKey(reauthText)] ?? 'tiếp tục'}.
+        </p>
+        <noscript>
+          <p class="mt-1 text-body-small text-on-surface-variant">Nhận mã qua tin nhắn cần bật JavaScript.</p>
+        </noscript>
+        <form method="post" class="mt-3" data-phone-start>
+          <input type="hidden" name="key" value={key} />
+          <button name="step" value="reauth-token" class={btnCls('ink', 'lg')}>
+            Gửi mã
+          </button>
+        </form>
+        <PhoneCode submitLabel="Xác nhận" />
+        <form method="post" class="mt-2">
+          <button name="step" value="reauth-cancel" class={link}>Hủy</button>
+        </form>
+      </section>
     )
   }
 
@@ -190,12 +292,11 @@ const codeInput =
         <p class="mt-1 text-body-medium text-on-surface-variant">
           {reauth ? `Mã đã gửi tới ${code.email}. Nhập mã để ${AFTER[afterKey(reauth.then)] ?? 'tiếp tục'}.` : `Mã đã gửi tới ${code.email}.`}
         </p>
-        <div class="mt-3 flex flex-wrap items-center gap-2">
-          <label>
-            <span class="sr-only">Mã 6 số</span>
-            <input name="code" inputmode="numeric" autocomplete="one-time-code" required pattern="[0-9]{6}" maxlength={6} class={codeInput} />
-          </label>
-          <button name="step" value={reauth ? 'reauth-code' : 'email-code'} class={btnCls('ink', 'lg')}>
+        <div class={boxes}>
+          <CodeBoxes />
+        </div>
+        <div class="mt-3">
+          <button name="step" value={reauth ? 'reauth-code' : 'email-code'} class={btnCls('ink', 'lg')} data-code-submit>
             Xác nhận
           </button>
         </div>
@@ -203,6 +304,11 @@ const codeInput =
           <button name="step" value={reauth ? 'reauth-resend' : 'email-resend'} formnovalidate class={link} disabled={resendIn > 0} data-resend-btn>
             Gửi lại mã
           </button>
+          {reauth && (
+            <button type="button" class={link} hidden data-google-reauth>
+              Dùng Google
+            </button>
+          )}
           <button name="step" value={reauth ? 'reauth-cancel' : 'email-cancel'} formnovalidate class={link}>
             Hủy
           </button>
@@ -224,7 +330,54 @@ const codeInput =
             {phone ? `${phoneText(phone)} · người khác không thấy số này` : 'Chưa thêm · đăng tin, hỏi mua và nhắn tin cần số điện thoại'}
           </p>
         </div>
+        {
+          !phone && mode === null && (
+            <form method="post">
+              <input type="hidden" name="key" value={key} />
+              <button name="step" value="add-phone-start" class={btnCls('ink')}>
+                <Icon name="add-rounded" size={18} />
+                Thêm
+              </button>
+            </form>
+          )
+        }
       </div>
+      {
+        mode === 'add-phone' && (
+          <div class="pb-3" data-phone-flow data-step="add-phone">
+            <form method="post" action={`${R.security}?add-phone`} class="flex flex-wrap items-end gap-2" data-phone-start>
+              <input type="hidden" name="key" value={key} />
+              <label class="min-w-[220px] flex-1">
+                <span class="mb-1.5 block text-label-large text-on-surface-variant">Số điện thoại</span>
+                <span class="flex h-12 items-center gap-2 rounded-field bg-surface-container-low pl-1.5 pr-4 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary">
+                  <span class="flex h-9 items-center rounded-full bg-card px-3 text-label-large text-ink">+84</span>
+                  <input
+                    name="phone"
+                    type="tel"
+                    inputmode="tel"
+                    required
+                    autocomplete="tel-national"
+                    placeholder="912 345 678"
+                    class="min-w-0 flex-1 bg-transparent text-body-large text-ink tabular-nums outline-none placeholder:text-faint"
+                  />
+                </span>
+              </label>
+              <a href={R.security} class={btnCls('line', 'lg')}>
+                Hủy
+              </a>
+              <button name="step" value="add-phone" class={btnCls('ink', 'lg')}>
+                Gửi mã
+              </button>
+            </form>
+            <noscript>
+              <p class="mt-2 text-body-small text-on-surface-variant">Nhận mã qua tin nhắn cần bật JavaScript.</p>
+            </noscript>
+            <PhoneCode submitLabel="Xác nhận" change>
+              <a href={R.security} class:list={[link, 'inline-flex items-center']}>Hủy</a>
+            </PhoneCode>
+          </div>
+        )
+      }
       <div class:list={[line, 'border-t border-line']}>
         <span class:list={[bubble, email ? 'bg-primary/10 text-primary' : 'bg-surface-container-low text-on-surface-variant']}>
           <Icon name="mail-outline-rounded" size={20} />
@@ -234,7 +387,7 @@ const codeInput =
           <p class="text-body-small text-on-surface-variant">{email ?? 'Chưa thêm · đăng nhập khi không có điện thoại bên cạnh'}</p>
         </div>
         {
-          !email && !wantsEmail && !adding && (
+          !email && mode === null && (
             <a href={`${R.security}?add-email`} class={btnCls('ink')}>
               <Icon name="add-rounded" size={18} />
               Thêm
@@ -243,7 +396,7 @@ const codeInput =
         }
       </div>
       {
-        wantsEmail && !adding && (
+        mode === 'add-email' && (
           <form method="post" action={`${R.security}?add-email`} class="flex flex-wrap items-end gap-2 pb-3">
             <input type="hidden" name="key" value={key} />
             <label class="min-w-[220px] flex-1">
@@ -316,7 +469,7 @@ const codeInput =
       sessions.length > 1 && (
         <p class="mt-1 flex gap-2 rounded-field bg-surface-container-low px-3 py-2.5 text-body-small text-on-surface-variant">
           <Icon name="info-outline-rounded" size={16} class="mt-px shrink-0" />
-          Thiết bị này vẫn đăng nhập. Đăng nhập đã hơn 15 phút thì ShopNexus gửi mã tới email của bạn để xác nhận trước.
+          Thiết bị này vẫn đăng nhập. Đăng nhập đã hơn 15 phút thì ShopNexus gửi mã tới {email ? 'email' : 'số điện thoại'} của bạn để xác nhận trước.
         </p>
       )
     }
@@ -365,10 +518,31 @@ const codeInput =
       <Row icon="help-outline-rounded" title="Thấy đăng nhập lạ?" sub="Gửi yêu cầu hỗ trợ" href={R.support} class="-mx-2" />
     </SideList>
   </Fragment>
+
+  <form method="post" hidden data-token-form>
+    <input type="hidden" name="key" value={key} />
+    <input type="hidden" name="step" />
+    <input type="hidden" name="kind" />
+    <input type="hidden" name="token" />
+  </form>
 </SettingsFrame>
 
 <script>
-  import { resendTimer } from '../../lib/resend-timer';
+  import { codeBoxes } from '../../lib/code-boxes';
+  import { phoneFlow } from '../../lib/phone-flow';
+  import { alertLine, googleButton, postToken, resendTimer, stepper } from '../../lib/proof-form';
 
+  codeBoxes();
   resendTimer();
+
+  // Adding a phone, and the proof by phone or by Google: Firebase runs in the
+  // browser and the token form posts what it gave, with the flow's step.
+  const tokenForm = document.querySelector<HTMLFormElement>('[data-token-form]')!;
+  const say = alertLine(document.querySelector('[data-alert]'));
+  const step = stepper(say);
+  const google = document.querySelector<HTMLButtonElement>('[data-google-reauth]');
+  if (google) googleButton(google, step, say, (token) => postToken(tokenForm, 'google', token, 'reauth-token'));
+  document.querySelectorAll<HTMLElement>('[data-phone-flow]').forEach((root) =>
+    phoneFlow(root, step, (token) => postToken(tokenForm, 'phone', token, root.dataset.step)),
+  );
 </script>
