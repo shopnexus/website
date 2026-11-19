@@ -1,0 +1,44 @@
+---
+// A chat's scrolling thread, the same on Tin nhắn and Hỗ trợ: "Tin cũ hơn",
+// the newest page as data-part="thread" and the "Có tin mới" pill. The slot
+// goes above the messages. lib/chat-pane drives it.
+import type { ThreadItem } from '../../../lib/messages';
+import Icon from '../../Icon.astro';
+import Thread from './Thread.astro';
+
+interface Props {
+  items: ThreadItem[];
+  me: string;
+  other: string;
+  /** The older page's cursor, absent at the start. */
+  next?: string;
+  /** The newest message's id. */
+  last?: string;
+  /** This render marked the chat read. */
+  marked?: boolean;
+  /** Shown while there is no message. */
+  empty: string;
+}
+
+const { items, me, other, next, last, marked, empty } = Astro.props;
+---
+
+<div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4" data-thread>
+  <slot />
+  <div class="flex justify-center" hidden={!next} data-older-wrap>
+    <button type="button" class="state-layer h-9 rounded-control px-4 text-label-large text-primary" data-older={next ?? ''}>Tin cũ hơn</button>
+  </div>
+  <div class="flex flex-col gap-2" data-older-pages></div>
+  <div class="flex flex-col gap-2" data-part="thread" data-next={next ?? ''} data-last={last ?? ''} data-marked={marked ? '' : undefined}>
+    {items.length ? <Thread items={items} me={me} other={other} /> : <p class="m-auto py-10 text-center text-body-medium text-on-surface-variant">{empty}</p>}
+  </div>
+  <button
+    type="button"
+    class="state-layer sticky bottom-1 flex h-9 items-center gap-1.5 self-center rounded-full bg-secondary-container px-4 text-label-large text-on-secondary-container shadow-float"
+    hidden
+    data-news
+  >
+    <Icon name="arrow-downward-rounded" size={16} />
+    Có tin mới
+  </button>
+</div>

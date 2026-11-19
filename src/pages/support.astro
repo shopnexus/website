@@ -7,7 +7,7 @@ import Icon from '../components/Icon.astro';
 import Notice from '../components/Notice.astro';
 import Photo from '../components/Photo.astro';
 import Composer from '../components/account/chat/Composer.astro';
-import Thread from '../components/account/chat/Thread.astro';
+import ChatThread from '../components/account/chat/ChatThread.astro';
 import Official from '../components/orders/Official.astro';
 import Layout from '../layouts/Layout.astro';
 import { type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
@@ -36,8 +36,13 @@ if (Astro.request.method === 'POST') {
   const key = { 'Idempotency-Key': s('key') || idempotencyKey() };
   const ticket = p.get('ticket') ?? '';
   try {
-    if (s('do') === 'send' && isId(s('chat')) && s('text')) {
-      await unwrap(api.POST('/v1/conversations/{id}/messages', { params: { path: { id: s('chat') }, header: key }, body: { text: s('text') } }));
+    if (s('do') === 'send' && isId(s('chat'))) {
+      const photos = f.getAll('photos').map(String).filter(isId).slice(0, 4);
+      const reply = s('reply_to');
+      if (s('text') || photos.length) {
+        const body = { text: s('text') || undefined, photos: photos.length ? photos : undefined, reply_to: isId(reply) ? reply : undefined };
+        await unwrap(api.POST('/v1/conversations/{id}/messages', { params: { path: { id: s('chat') }, header: key }, body }));
+      }
       return Astro.redirect(`${R.support}?ticket=${ticket}`, 303);
     }
     if (s('do') === 'new') {
@@ -67,9 +72,13 @@ const ticket = row?.ticket;
 const chat = ticket ? await orNull(api.GET('/v1/screens/chat/{conversation_id}', { params: { path: { conversation_id: ticket.conversation_id } } })) : null;
 // Reading the chat marks it read, on this site's own navigation only.
 const site = Astro.request.headers.get('sec-fetch-site');
+let marked = false;
 if (chat && row && row.unread > 0 && (site === 'same-origin' || site === 'none')) {
   const newest = chat.messages.items.find((m) => m.status === 'sent');
-  if (newest) await orNull(api.POST('/v1/conversations/{id}/read', { params: { path: { id: chat.id } }, body: { message_id: newest.id } }));
+  if (newest) {
+    await orNull(api.POST('/v1/conversations/{id}/read', { params: { path: { id: chat.id } }, body: { message_id: newest.id } }));
+    marked = true;
+  }
   row.unread = 0;
 }
 const items = chat ? thread([...chat.messages.items].reverse(), { ...chat, deals: [] }, v.id) : [];
@@ -103,7 +112,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 
     <div class="mt-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:h-[660px] xl:grid-cols-[340px_minmax(0,1fr)_300px]">
       <div class="flex flex-col gap-4">
-        <section class="flex flex-col rounded-panel border border-line bg-card p-3">
+        <section class="flex flex-col rounded-panel border border-line bg-card p-3" data-part="tickets">
           {!list.length && <p class="px-2 py-3 text-body-medium text-on-surface-variant">Chưa có yêu cầu nào</p>}
           {
             [open, done].map((group, g) =>
@@ -118,6 +127,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                         <a
                           href={`${R.support}?ticket=${t.ticket.id}`}
                           aria-current={sel ? 'true' : undefined}
+                          data-conv={t.ticket.conversation_id}
                           class:list={['flex gap-3 rounded-tile p-2.5', sel ? 'bg-card shadow-soft ring-1 ring-line' : 'hover:bg-hover']}
                         >
                           <span
@@ -164,7 +174,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
         </section>
       </div>
 
-      <section class:list={[PANEL, 'flex min-h-[480px] flex-col overflow-hidden xl:h-full']}>
+      <section class:list={[PANEL, 'flex min-h-[480px] flex-col overflow-hidden xl:h-full']} data-chat={chat?.id}>
         {
           creating || !ticket ? (
             <form method="post" action={R.support} class="flex flex-1 flex-col gap-4 overflow-y-auto p-5 md:p-6">
@@ -226,6 +236,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                   </p>
                 </div>
                 <span
+                  data-part="status"
                   class:list={[
                     'shrink-0 rounded-full px-2.5 py-1 text-label-medium',
                     ticket.status === 'open' ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-low text-on-surface-variant',
@@ -234,14 +245,26 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                   {ticket.status === 'open' ? 'Đang xử lý' : 'Đã xử lý'}
                 </span>
               </div>
-              <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 py-5 md:px-6" data-thread>
+              <ChatThread
+                items={items}
+                me={v.id}
+                other="ShopNexus"
+                next={chat?.messages.next_cursor ?? undefined}
+                last={chat?.messages.items[0]?.id}
+                marked={marked}
+                empty="Chưa có tin nhắn."
+              >
                 <p class="mx-auto flex w-fit items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1 text-center text-body-small text-on-surface-variant">
                   <Icon name="balance-rounded" size={14} />
                   {NO_ARBITRATION}
                 </p>
-                {items.length ? <Thread items={items} me={v.id} other="ShopNexus" replies={false} /> : <p class="m-auto text-body-medium text-on-surface-variant">Chưa có tin nhắn.</p>}
+              </ChatThread>
+              <div data-part="alert" class="px-3 pt-2 empty:hidden">
+                {error && <Notice text={orderError(error)} />}
               </div>
-              {error && <Notice text={orderError(error)} class="mx-3" />}
+              <p class="px-6 pt-1 text-body-small text-on-surface-variant" hidden data-typing>
+                ShopNexus đang nhập…
+              </p>
               {chat && <Composer peer="ShopNexus" chat={chat.id} action={`${R.support}?ticket=${ticket.id}`} />}
             </>
           )
@@ -250,7 +273,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 
       {
         ticket && !creating && (
-          <aside class="flex flex-col gap-4 lg:col-span-2 lg:grid lg:grid-cols-2 xl:col-span-1 xl:flex">
+          <aside class="flex flex-col gap-4 lg:col-span-2 lg:grid lg:grid-cols-2 xl:col-span-1 xl:flex" data-part="side">
             {ticket.order && (
               <div class:list={[PANEL, 'p-4']}>
                 <p class="text-label-medium text-on-surface-variant">Đơn trong yêu cầu</p>
@@ -301,9 +324,17 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 </Layout>
 
 <script>
-  // The thread opens at its newest message; ?error= is for this render only.
-  const t = document.querySelector<HTMLElement>('[data-thread]');
-  if (t) t.scrollTop = t.scrollHeight;
+  import { mountChatPane } from '../lib/chat-pane';
+
+  // The chat is lib/chat-pane's, as on Tin nhắn; a change to another ticket's chat refreshes the list.
+  mountChatPane({
+    clean: () => {
+      const u = new URL(location.href);
+      ['error', 'key'].forEach((k) => u.searchParams.delete(k));
+      return u;
+    },
+    elsewhere: (u) => (u.conversation_id && document.querySelector(`[data-conv="${u.conversation_id}"]`) ? 'page' : null),
+  });
   const u = new URL(location.href);
   if (u.searchParams.has('error')) {
     u.searchParams.delete('error');
