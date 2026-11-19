@@ -180,7 +180,7 @@ const ld = {
               <div class="mt-2 grid grid-cols-3 gap-2">
                 {SELLING.slice(0, 3).map((o) => (
                   <a href={R.listing(o.id)} class="min-w-0">
-                    <Photo src={img(o.photo, 200, 200)} width={200} height={200} alt={o.title} loading="lazy" class="aspect-square w-full rounded-control object-cover" />
+                    <Photo src={img(o.photo, 200, 200)} width={200} height={200} alt={o.title} class="aspect-square w-full rounded-control object-cover" />
                     <Price vnd={o.price} size="text-j-15" class="mt-1 block text-[13px]" />
                   </a>
                 ))}
