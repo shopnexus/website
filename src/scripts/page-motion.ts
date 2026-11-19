@@ -8,6 +8,10 @@ import { API, R } from '../lib/routes';
 import { toggleRemote } from '../lib/toggle';
 import { snack } from '../lib/snackbar';
 
+// iOS Safari shows :active on touch only when the page listens for touchstart;
+// motion.css draws every press with it.
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 // Save: the heart fills and pops with a ring, /api/saved/<id> saves on the server,
 // and the snackbar offers the list or the undo. A guest goes to Đăng nhập;
 // a failed call puts the heart back.

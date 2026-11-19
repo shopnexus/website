@@ -83,7 +83,9 @@ the mark sits at the start of the header.
 M3 state layer (`state-layer`: 8 % on hover, 10 % on focus and press). Every
 control shows a 2 px `primary` focus ring on keyboard focus. Touch targets
 stay at least 48 px on a coarse pointer; with a fine pointer a dense control
-may go to 40 px.
+may go to 40 px. A control drawn smaller still takes a 44 px target on a
+coarse pointer: a state layer does, and `tap` adds it to a small link. Hover
+styles apply only where the pointer can hover, so a tap leaves nothing lit.
 
 **Pages, not screens.** Each listing, category, seller and search has its own
 URL, rendered on the server with its title, description, Open Graph tags and
@@ -111,8 +113,10 @@ every page.
   Layout.astro names the one pair on `pageswap` and `pagereveal`, because the
   same listing can appear twice on a page.
 - Pills and round buttons with `state-layer` shrink to 96 % while held, on
-  the fast spatial spring. A held card drops to 1 px above its place. The
-  switch's knob stretches while held.
+  the fast spatial spring. A held card takes the `hover` tone and drops its
+  shadow. A link or button without a state layer dims to 65 % while held.
+  A bottom bar item (`data-press`) presses its pill wherever it is tapped.
+  The switch's knob stretches while held.
 - Links and buttons change colour over the fast effects spring.
 - A save button (`data-save`) draws both hearts. The filled one pops in with
   a ring, and the snackbar says "Đã lưu tin" with "Xem", or "Đã bỏ lưu tin"
@@ -123,7 +127,8 @@ every page.
   and hovering or focusing it stops the time. Share on a listing copies the
   link through it; on a touch screen it opens the system share sheet.
 - Listing photos (`<Photo fade>`) fade in over the `surfaceContainerHigh`
-  placeholder once loaded.
+  placeholder once loaded. Every photo from the server holds that tone in
+  its box until it arrives.
 - A top-level `section` in `main` rises 16 px and fades in over the first
   100 px of scroll after it enters the window. What is on the first screen
   is already past that range and shows as it is. The Home category row comes
@@ -143,8 +148,6 @@ every page.
   ảnh" opens a full-window viewer on the same photo, and closing it leaves
   the gallery on the photo the viewer ended on. Going back from the listing
   flies the photo in view, not the first one, into its card.
-- The header gets a 1 px `line` edge once the page has scrolled 48 px under
-  it.
 - While a feed page is on its way, `ListingSkeleton` cards hold its place:
   the card's frame with a shimmering photo and three lines. They appear only
   after 80 ms and then stay at least 350 ms, so a fast answer does not flash
@@ -202,7 +205,9 @@ the web; the user rejected it on the Chat nhanh offer tray.
 
 ### Type and icons
 
-Inter for everything (`@fontsource-variable/inter`), body 14/20. Page titles
+Inter for everything (`@fontsource-variable/inter`), body 14/20. Until it
+loads, Arial or Roboto scaled to Inter's width and line (`Inter Fallback` in
+`j.css`) stands in, so the text does not reflow when it arrives. Page titles
 are 24 to 28 at weight 600, section titles 16 to 17. Icons are Remix Icon
 line glyphs, `-fill` for a selected item. Code keeps the app's Material
 Symbols names; `src/build/icon-map.mjs` gives each one its Remix glyph and

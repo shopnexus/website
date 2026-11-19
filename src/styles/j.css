@@ -116,8 +116,8 @@
 
 @theme {
   /* Inter for everything, as ai-portal; its Vietnamese marks sit inside the
-     line height used here. */
-  --font-sans: "Inter Variable", system-ui, sans-serif;
+     line height used here. Until it loads, the fallbacks below stand in. */
+  --font-sans: "Inter Variable", "Inter Fallback", "Inter Fallback Roboto", system-ui, sans-serif;
   --color-brand: #066a61;
   --color-brand-hover: #05554e;
   --color-teal: #066a61;
@@ -230,6 +230,25 @@
   --text-j-64--letter-spacing: -0.035em;
 }
 
+/* A system font scaled to Inter's width and line, so text does not reflow
+   when Inter arrives. Arial on desktop and iOS, Roboto on Android. */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("ArialMT");
+  size-adjust: 107.22%;
+  ascent-override: 90.35%;
+  descent-override: 22.5%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Inter Fallback Roboto";
+  src: local("Roboto"), local("Roboto-Regular");
+  size-adjust: 108.35%;
+  ascent-override: 89.41%;
+  descent-override: 22.26%;
+  line-gap-override: 0%;
+}
+
 /* No wash under K2: the page is flat. Layout.astro no longer draws one. */
 
 /* The sticky header and the bars that float over content: the page colour,
@@ -247,14 +266,33 @@
     var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow, 0 0 #0000);
 }
 
-/* A card takes a soft shadow and a darker hairline on hover. */
+/* A card takes a soft shadow and a darker hairline on hover (a real hover
+   only, so it does not stick after a tap). motion.css draws its press. */
 @utility lift {
+  -webkit-tap-highlight-color: transparent;
   transition:
     box-shadow var(--duration-effects-default) var(--ease-effects),
-    border-color var(--duration-effects-default) var(--ease-effects);
-  &:hover {
-    box-shadow: var(--shadow-lift);
-    border-color: var(--j-field);
+    border-color var(--duration-effects-default) var(--ease-effects),
+    background-color var(--duration-effects-fast) var(--ease-effects);
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: var(--shadow-lift);
+      border-color: var(--j-field);
+    }
+  }
+}
+
+/* A control drawn smaller than a finger keeps its look but takes a 44 px
+   target on a touch screen. State layers get it; `tap` adds it to a link. */
+@utility tap {
+  position: relative;
+}
+@media (pointer: coarse) {
+  .state-layer::before,
+  .tap::before {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc((100% - 44px) / 2));
   }
 }
 

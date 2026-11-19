@@ -10,7 +10,10 @@ type Props = ComponentProps<typeof Image> & {
   fade?: boolean;
 };
 
-const { loading = 'eager', fade = false, ...rest } = Astro.props;
+const { loading = 'eager', fade = false, class: cls, ...rest } = Astro.props;
+// A photo from the server holds a calm tone in its box until it arrives.
+// Bundled art keeps its transparency, and a letterboxed photo its frame.
+const tone = typeof rest.src === 'string' && !/\bobject-contain\b/.test(cls ?? '');
 ---
 
-<Image loading={loading} data-fade={fade ? '' : undefined} {...rest} />
+<Image loading={loading} data-fade={fade ? '' : undefined} class:list={[tone && 'bg-surface-container-high', cls]} {...rest} />

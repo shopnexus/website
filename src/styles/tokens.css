@@ -299,6 +299,8 @@
 @utility state-layer {
   position: relative;
   isolation: isolate;
+  /* The overlay is the press feedback, so the browser's tap flash is off. */
+  -webkit-tap-highlight-color: transparent;
   &::after {
     content: "";
     position: absolute;
@@ -309,8 +311,11 @@
     pointer-events: none;
     transition: opacity var(--duration-effects-fast) var(--ease-effects);
   }
-  &:hover::after {
-    opacity: 0.08;
+  /* Only a real hover: on a touch screen it would stick after the tap. */
+  @media (hover: hover) {
+    &:hover::after {
+      opacity: 0.08;
+    }
   }
   &:focus-visible::after,
   &:active::after {
