@@ -116,7 +116,7 @@ def bar_a(L, w, *, signed=True, focus=False, menu_open=False, cats_open=False):
                 + L.a("btn-o flex h-10 shrink-0 items-center rounded-[10px] px-4 text-[14px] font-medium", "Đăng nhập"))
     return f"""<header class="relative border-b bd bg-[var(--bg)]">
   <div class="mx-auto flex h-16 items-center gap-3 px-8">
-    {logo(L, narrow)}{cats_btn}{search(focus)}
+    {logo(L, narrow)}{cats_btn}<div class="flex min-w-0 flex-1 justify-center">{search(focus, "max-w-[720px]")}</div>
     <nav class="flex shrink-0 items-center gap-1">{acts}</nav>
   </div>
   {suggest(L, "300px" if not narrow else "200px", "640px") if focus else ""}
@@ -183,19 +183,20 @@ def bar_c(L, w, *, signed=True, focus=False, menu_open=False, cats_open=False):
 
 
 # ------------------------------------------------------------------ board --
-def under(n=5):
+def under(n=5, wide=False):
     cards = "".join(card(i, *r[:6]) for i, r in enumerate((LISTINGS * 2)[:n]))
-    return f'<div class="px-8 pt-6"><h2 class="text-[17px] font-semibold">Mới đăng gần bạn</h2><div class="mt-4 grid gap-3" style="grid-template-columns:repeat({n},minmax(0,1fr))">{cards}</div></div>'
+    return f'<div class="mx-auto px-8 pt-6 {"max-w-[1280px]" if wide else ""}"><h2 class="text-[17px] font-semibold">Mới đăng gần bạn</h2><div class="mt-4 grid gap-3" style="grid-template-columns:repeat({n},minmax(0,1fr))">{cards}</div></div>'
 
 
 def frame(bar, L, caption, w=1280, h=300, **kw):
     n = 5 if w >= 1200 else 4
+    inner = f'<div class="relative overflow-hidden rounded-[16px] border bd bg-[var(--bg)]" style="width:{w}px;height:{h}px">{bar(L, w, **kw)}{under(n, w > 1280)}</div>'
+    if w > 1280:  # drawn at 1280 / w so it fits the board
+        k = 1280 / w
+        inner = f'<div style="width:1280px;height:{h * k:.0f}px"><div style="transform:scale({k:.4f});transform-origin:0 0">{inner}</div></div>'
     return f"""<section class="mt-12">
   <p class="text-[13px] font-medium">{caption}</p>
-  <div class="relative mt-3 overflow-hidden rounded-[16px] border bd bg-[var(--bg)]" style="width:{w}px;height:{h}px">
-    {bar(L, w, **kw)}
-    {under(n)}
-  </div>
+  <div class="mt-3">{inner}</div>
 </section>"""
 
 
@@ -206,6 +207,7 @@ def board(key, name, why, bar):
   <h1 class="mt-1 text-[28px] font-semibold tracking-tight">{name}</h1>
   <p class="mt-2 max-w-[760px] text-[14px] mute">{why}</p>
   {frame(bar, L, "Đã đăng nhập · 1280", h=260)}
+  {frame(bar, L, "Màn 1920 · header full màn, nội dung vẫn 1280", w=1920, h=300) if bar is bar_a else ""}
   {frame(bar, L, "Bấm vào ô tìm kiếm", h=560, focus=True)}
   {frame(bar, L, "Bấm vào avatar", h=560, menu_open=True)}
   {frame(bar, L, "Danh mục", h=520, cats_open=True) if bar is not bar_b else ""}

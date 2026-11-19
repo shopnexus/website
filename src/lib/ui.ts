@@ -6,10 +6,13 @@ export const PANEL = 'rounded-panel border border-line bg-card';
 export const H2 = 'text-j-18 text-ink';
 /** The small label over a group. */
 export const LABEL = 'px-1 text-body-small text-faint';
+const GUTTER = 'px-4 md:px-6 lg:px-8';
 /** The main column's width and gutters, under the header. */
-export const CONTENT = 'mx-auto w-full max-w-[1280px] px-4 md:px-6 lg:px-8';
+export const CONTENT = `mx-auto w-full max-w-[1280px] ${GUTTER}`;
 /** CONTENT at 1600 px, for the chat pages. The extra width goes to the chat pane. */
-export const CONTENT_WIDE = 'mx-auto w-full max-w-[1600px] px-4 md:px-6 lg:px-8';
+export const CONTENT_WIDE = `mx-auto w-full max-w-[1600px] ${GUTTER}`;
+/** The header's row: the window's full width, with CONTENT's gutters. */
+export const BAR = `w-full ${GUTTER}`;
 
 const LOOK = {
   ink: 'bg-brand text-white hover:bg-brand-hover',

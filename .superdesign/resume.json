@@ -1118,7 +1118,7 @@
       "drafts": {
         "90d84517-3ce6-4c7f-9296-fa93fd1ba9b8": {
           "title": "Header · A. Một hàng",
-          "currentVersion": 1,
+          "currentVersion": 3,
           "visualDirection": "K2; tools/build_header.py"
         },
         "0858ab45-3847-4cad-a647-6ebc56a1db60": {

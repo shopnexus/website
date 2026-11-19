@@ -1,14 +1,14 @@
 ---
-// K2's bar, one sticky 64 px row. Search opens recent searches and categories.
-// From expanded up it adds Danh mục, Đã lưu, Thông báo, Tin nhắn, "Đăng tin"
-// and the avatar's menu, last on the right; below that BottomNav has them.
+// K2's bar: one sticky 64 px row across the window, the search centred (720 px
+// at most) and opening recent searches. From expanded up it adds Danh mục, Đã lưu,
+// Thông báo, Tin nhắn, "Đăng tin" and the avatar's menu; BottomNav has them below.
 import brandMark from '@brand/brand_mark.svg';
 import { CATEGORY_INDEX } from '../data/public';
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
 import { theme, viewer } from '../lib/session';
 import { THEMES } from '../lib/theme';
-import { CONTENT } from '../lib/ui';
+import { BAR } from '../lib/ui';
 import Icon from './Icon.astro';
 import Photo from './Photo.astro';
 import Popover from './Popover.astro';
@@ -37,7 +37,7 @@ const account = [
 ---
 
 <header class="glass sticky top-0 z-30 border-b border-line">
-  <div class:list={[CONTENT, 'flex h-16 items-center gap-3']}>
+  <div class:list={[BAR, 'flex h-16 items-center gap-3']}>
     <a href={R.home} class="flex shrink-0 items-center gap-2 lg:pr-1" aria-label="ShopNexus, Trang chủ">
       <Photo src={brandMark} alt="" class="h-8 w-8" />
       <span class="text-j-16 text-ink max-md:hidden lg:max-xl:hidden">ShopNexus</span>
@@ -51,11 +51,12 @@ const account = [
       Danh mục
       <Icon name="keyboard-arrow-down-rounded" size={16} class="text-faint" />
     </button>
+    <div class="flex min-w-0 flex-1 justify-center">
     <form
       action={R.search}
       data-anchor="hdr-find"
       data-search
-      class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-control border border-field bg-card pl-3 pr-1 focus-within:border-brand"
+      class="flex h-10 w-full min-w-0 max-w-[720px] items-center gap-2 rounded-control border border-field bg-card pl-3 pr-1 focus-within:border-brand"
     >
       {
         search?.photo ? (
@@ -81,6 +82,7 @@ const account = [
         <Icon name="photo-camera-outline-rounded" size={17} />
       </a>
     </form>
+    </div>
     <nav class="flex shrink-0 items-center gap-1" aria-label="Tài khoản">
       {
         me ? (
