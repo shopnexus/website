@@ -5,11 +5,10 @@
 import Notice from '../components/Notice.astro';
 import SellForm from '../components/flows/SellForm.astro';
 import Layout from '../layouts/Layout.astro';
-import { ApiError, type Schemas, idempotencyKey, unwrap } from '../lib/api/client';
+import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
 import { isId } from '../lib/listing';
 import { uuidv7 } from '../lib/key';
 import { identity, reputation } from '../lib/profile';
-import { provinces } from '../lib/regions';
 import { R } from '../lib/routes';
 import { FIELD_TEXT, type SellFields, draftInput, emptyFields, fieldKey, fromDraft, fromListing, listingInput, readSellForm } from '../lib/sell';
 import { requireViewer } from '../lib/session';
@@ -97,15 +96,14 @@ if (Astro.request.method === 'POST' && !frozen) {
 
 if (!fields && listing) ({ fields, urls } = fromListing(listing));
 if (listing) urls = { ...fromListing(listing).urls, ...urls };
-// The server lists drafts but reads none by id. Only a list without it means the draft is gone;
-// a failed read keeps the id and asks for a reload, so the autosave cannot overwrite it.
+// Only draft_not_found means the draft is gone; a failed read keeps the id and
+// asks for a reload, so the autosave cannot overwrite it.
 let lostDraft = false;
 let draftUnread = false;
 if (!fields && draftId) {
-  const list = await unwrap(api.GET('/v1/listing-drafts')).catch(() => null);
-  const d = list?.items.find((x) => x.id === draftId);
+  const d = await orNull(api.GET('/v1/listing-drafts/{id}', { params: { path: { id: draftId } } }), [404]).catch(() => undefined);
   if (d) ({ fields, urls } = fromDraft(d));
-  else if (list) {
+  else if (d === null) {
     lostDraft = true;
     draftId = undefined;
   } else draftUnread = true;
@@ -115,8 +113,7 @@ if (!fields) {
   fields = emptyFields();
   const book = await unwrap(api.GET('/v1/addresses')).catch(() => ({ items: [] as Schemas['Address'][] }));
   const home = book.items.find((a) => a.is_default);
-  const province = home && (await provinces()).find((p) => p.name === home.province);
-  if (home && province) Object.assign(fields, { commune: home.commune_code, province: province.code });
+  if (home) Object.assign(fields, { commune: home.commune_code, province: home.province_code });
 }
 
 // Posting needs a phone, and a free place among the seller's listings.

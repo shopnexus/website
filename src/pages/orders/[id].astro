@@ -49,7 +49,7 @@ if (Astro.request.method === 'POST') {
         back.set('done', 'confirm');
         break;
       case 'cancel':
-        await unwrap(api.POST('/v1/orders/{order_id}/cancel', path));
+        await unwrap(api.POST('/v1/orders/{order_id}/cancel', { params: { ...path.params, header: key } }));
         back.set('done', 'cancel');
         break;
       case 'review':
@@ -87,6 +87,8 @@ if (Astro.request.method === 'POST') {
       if (now?.order.status === 'cancelled' && now.order.cancelled_by === now.deal.role) return Astro.redirect(`${here}?done=cancel`, 303);
     }
     back.set('error', orderCode(e));
+    // An unclear cancel keeps its key for the retry.
+    if (s('do') === 'cancel' && orderCode(e) === 'unknown') back.set('key', key['Idempotency-Key']);
     // The shipment's fields come back, so the form shows what was typed.
     for (const k of [...SHIP_KEYS, 'edit']) if (f.has(k)) back.set(k, s(k));
   }
@@ -318,7 +320,13 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
     </div>
   </main>
 
-  {o.status === 'pending' && current && <ConfirmPop id="cancel" title="Hủy đơn?" text={`${other} sẽ được báo.`} action={here} value="cancel" confirm="Hủy đơn" />}
+  {
+    o.status === 'pending' && current && (
+      <ConfirmPop id="cancel" title="Hủy đơn?" text={`${other} sẽ được báo.`} action={here} value="cancel" confirm="Hủy đơn">
+        <input type="hidden" name="key" value={isId(p.get('key') ?? '') ? p.get('key')! : idempotencyKey()} />
+      </ConfirmPop>
+    )
+  }
   {
     buyer && o.status === 'shipped' && current && (
       <ConfirmPop
@@ -387,7 +395,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
   // ?done= and ?error= are for this render only.
   const u = new URL(location.href);
   if (u.searchParams.has('done') || u.searchParams.has('error')) {
-    ['done', 'error'].forEach((k) => u.searchParams.delete(k));
+    ['done', 'error', 'key'].forEach((k) => u.searchParams.delete(k));
     history.replaceState(history.state, '', u);
   }
 </script>

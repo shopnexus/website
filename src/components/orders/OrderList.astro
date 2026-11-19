@@ -3,7 +3,6 @@
 // with the other side a tab away. On the right, the buyer's open COD orders
 // against their cap, or the seller's orders waiting for a shipment.
 import type { Schemas } from '../../lib/api/client';
-import { reputation } from '../../lib/profile';
 import type { Role } from '../../lib/orders';
 import { R } from '../../lib/routes';
 import { btnCls, PANEL } from '../../lib/ui';
@@ -24,10 +23,10 @@ const buyer = role === 'buyer';
 const here = buyer ? R.orders : R.sales;
 const items = screen.items;
 const count = `${items.length}${screen.next_cursor ? '+' : ''}`;
-// The buyer's cap is on Uy tín, which the account nav reads anyway.
-const cap = buyer ? await reputation(Astro.locals).then((r) => r.caps.cod_orders).catch(() => null) : null;
-// The server gives no count by state, so this page's first pending order stands for them.
-const pending = buyer ? undefined : items.find((i) => i.order.status === 'pending');
+const cap = screen.cod_orders;
+const waiting = screen.awaiting_shipment ?? 0;
+// The arrow opens this page's first waiting order, else the list.
+const pending = waiting ? items.find((i) => i.order.status === 'pending') : undefined;
 const tab = 'flex h-8 items-center rounded-sm px-4 text-title-small text-sub aria-[current]:bg-card aria-[current]:text-ink aria-[current]:shadow-knob';
 ---
 
@@ -92,12 +91,12 @@ const tab = 'flex h-8 items-center rounded-sm px-4 text-title-small text-sub ari
               <Icon name="local-shipping-outline-rounded" size={20} />
             </span>
             <p class="min-w-0 flex-1 text-body-medium text-ink">
-              {pending ? <>Có đơn <b class="font-semibold">chờ bạn tạo đơn</b></> : 'Hãng vận chuyển và nơi lấy hàng'}
+              {waiting ? <>{waiting} đơn <b class="font-semibold">chờ bạn tạo đơn</b></> : 'Hãng vận chuyển và nơi lấy hàng'}
             </p>
             <a
-              href={pending ? R.order(pending.order.id) : R.codSetup}
+              href={waiting ? (pending ? R.order(pending.order.id) : R.sales) : R.codSetup}
               class="state-layer grid h-9 w-9 place-items-center rounded-full bg-card text-primary"
-              aria-label={pending ? 'Mở đơn chờ tạo' : 'Mở Thiết lập giao COD'}
+              aria-label={waiting ? 'Mở đơn chờ tạo' : 'Mở Thiết lập giao COD'}
             >
               <Icon name="arrow-forward-rounded" size={18} />
             </a>

@@ -19,14 +19,15 @@ interface Props {
   addresses: Schemas['Address'][];
   seller: string;
   error?: string;
+  /** The Idempotency-Key of this render's form. */
+  idem: string;
 }
 
-const { checkout, addresses, seller, error } = Astro.props;
+const { checkout, addresses, seller, error, idem } = Astro.props;
 const d = checkout.deal;
 const price = d.agreed_price ?? d.listing.price;
 const cap = checkout.cod_orders;
 const full = cap.used >= cap.max;
-const est = checkout.shipping_estimate;
 const picked = checkout.address?.id;
 const back = chatHref(d.conversation_id, d.id);
 const close = 'state-layer -mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
@@ -44,6 +45,7 @@ const h3 = 'text-title-small text-ink';
     <input type="hidden" name="do" value="cod" />
     <input type="hidden" name="chat" value={d.conversation_id} />
     <input type="hidden" name="deal" value={d.id} />
+    <input type="hidden" name="key" value={idem} />
     <div class="flex items-center justify-between">
       <h2 id="cod-title" class="text-headline-small">Giao COD</h2>
       <a href={back} data-close class={close} aria-label="Đóng"><Icon name="close-rounded" size={22} /></a>
@@ -100,11 +102,7 @@ const h3 = 'text-title-small text-ink';
 
     <div class="mt-6 flex flex-col gap-1.5 text-body-medium">
       <p class="flex justify-between gap-3"><span class="text-on-surface-variant">Tiền hàng</span><span class="tabular-nums text-ink">{money(price)}</span></p>
-      <p class="flex justify-between gap-3">
-        <span class="text-on-surface-variant">Phí ship</span>
-        <span class="tabular-nums text-ink">{est ? `${money(est.low)}–${money(est.high)}` : 'Chưa có'}</span>
-      </p>
-      <p class="text-body-small text-on-surface-variant">{est ? 'Phí ship ước tính. Có phí thật khi người bán tạo đơn.' : 'Có phí ship khi người bán tạo đơn.'}</p>
+      <p class="text-body-small text-on-surface-variant">Có phí ship khi người bán tạo đơn.</p>
     </div>
 
     <div class="mt-4 flex items-end justify-between gap-3 rounded-tile bg-peach-wash p-4">

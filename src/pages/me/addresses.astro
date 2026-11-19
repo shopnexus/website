@@ -7,7 +7,7 @@ import Notice from '../../components/Notice.astro';
 import Field from '../../components/Field.astro';
 import Icon from '../../components/Icon.astro';
 import SettingsFrame from '../../components/account/SettingsFrame.astro';
-import { ApiError, type Schemas, idempotencyKey, unwrap } from '../../lib/api/client';
+import { ApiError, idempotencyKey, unwrap } from '../../lib/api/client';
 import { phoneText } from '../../lib/format';
 import { ADDRESS_KIND, identity } from '../../lib/profile';
 import { R } from '../../lib/routes';
@@ -95,14 +95,13 @@ if (Astro.request.method === 'POST') {
 const [book, regions] = await Promise.all([unwrap(api.GET('/v1/addresses')), provinces()]);
 const list = book.items;
 const main = list.find((a) => a.is_default);
-const provinceOf = (a: Schemas['Address']) => regions.find((r) => r.name === a.province)?.code ?? '';
 
 const editId = Astro.url.searchParams.get('edit');
 const editing = editId ? list.find((a) => a.id === editId) : undefined;
 const adding = Astro.url.searchParams.has('new') || list.length === 0;
 let draft: Draft | undefined = posted;
 if (!draft && editing) {
-  draft = { id: editing.id, kind: kindOf(editing.kind), name: editing.name, phone: phoneText(editing.phone), street: editing.street, province: provinceOf(editing), commune: editing.commune_code, isDefault: editing.is_default };
+  draft = { id: editing.id, kind: kindOf(editing.kind), name: editing.name, phone: phoneText(editing.phone), street: editing.street, province: editing.province_code, commune: editing.commune_code, isDefault: editing.is_default };
 } else if (!draft && adding) {
   // A new address starts with the account's name and phone.
   const phone = identity(v.identities, 'phone');

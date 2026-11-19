@@ -140,16 +140,15 @@ export interface Viewer {
 export const viewer = (ctx: Pick<AstroGlobal, 'locals'>): Viewer | null => ctx.locals.viewer;
 
 /** The middleware's second step, while cookies can still change. */
-/** `counts` false skips the badges' two calls: a form post redirects before anything shows them. */
+/** `counts` false skips the badges' call: a form post redirects before anything shows them. */
 export async function loadViewer(api: Api, session: Session, cookies: AstroCookies, counts = true): Promise<Viewer | null> {
   if (!session.token) return null;
   try {
     // The badges are extra: a failure there leaves them at 0.
-    const count = (call: () => Promise<number>) => (counts ? call().catch(() => 0) : Promise.resolve(0));
-    const [me, messages, notifications] = await Promise.all([
+    const none = { unread: 0, notifications: 0 };
+    const [me, unread] = await Promise.all([
       unwrap(api.GET('/v1/accounts/me')),
-      count(() => unwrap(api.GET('/v1/me/unread')).then((u) => u.unread)),
-      count(() => unwrap(api.GET('/v1/notifications', { params: { query: { limit: 1 } } })).then((n) => n.unread)),
+      counts ? unwrap(api.GET('/v1/me/unread')).catch(() => none) : none,
     ]);
     return {
       id: me.id,
@@ -157,7 +156,7 @@ export async function loadViewer(api: Api, session: Session, cookies: AstroCooki
       named: !!me.display_name,
       photo: me.avatar_url,
       identities: me.identities,
-      unread: { messages, notifications },
+      unread: { messages: unread.unread, notifications: unread.notifications },
     };
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) {

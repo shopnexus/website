@@ -513,6 +513,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/listing-reads/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Watch a listing read as the model writes it.
+         * @description A server-sent event stream. It sends event read with the read as GET
+         *     /v1/listing-reads/{id} answers it, then event text with the title and
+         *     description each time the model has written more, then event read
+         *     again when the read ends, and closes. A read that has ended gets one
+         *     event read. A comment line every 15 s keeps the stream open; the
+         *     stream closes 30 s after the read's 2-minute deadline at the latest.
+         */
+        get: operations["streamListingRead"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/link-previews": {
         parameters: {
             query?: never;
@@ -735,7 +760,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Read one of the caller's drafts.
+         * @description The draft in full, as GET /v1/listing-drafts lists it: photos a
+         *     listing took or that expired are left out. A draft past expires_at
+         *     reads as missing.
+         */
+        get: operations["getListingDraft"];
         /**
          * Create or replace one of the caller's drafts.
          * @description The app mints the ID, a UUIDv7, so a draft made offline has its ID
@@ -1031,7 +1062,9 @@ export interface paths {
          *     order keeps a copy of the address as its recipient. It starts
          *     pending; either side may cancel it until the seller creates the
          *     shipment, and it is cancelled with seller_timeout when the seller has
-         *     created none 3 days later.
+         *     created none 3 days later. A repeated Idempotency-Key of the caller
+         *     runs nothing more: it answers the first request's refusal, or the
+         *     deal as it is now.
          */
         post: operations["requestCod"];
         delete?: never;
@@ -1119,7 +1152,9 @@ export interface paths {
          * Cancel this pending order; the deal negotiates again.
          * @description The selected order must still be the deal's current pending order.
          *     Either party may cancel, including a suspended caller. The response is
-         *     the canonical Deal, as returned by the other order mutations.
+         *     the canonical Deal, as returned by the other order mutations. A
+         *     repeated Idempotency-Key of the caller runs nothing more: it answers
+         *     the first request's refusal, or the deal as it is now.
          */
         post: operations["cancelOrder"];
         delete?: never;
@@ -1162,7 +1197,9 @@ export interface paths {
          * @description Newest order first, paged by order ID. The buyer's rows also carry
          *     own_review, as GET /v1/screens/order/{order_id} reads it; a seller's
          *     rows have none. Recipient and pickup fields follow the canonical
-         *     Order's privacy rules.
+         *     Order's privacy rules. Every page also carries the side's count over
+         *     all of the caller's orders: cod_orders for buying, awaiting_shipment
+         *     for selling.
          */
         get: operations["getOrdersScreen"];
         put?: never;
@@ -1231,7 +1268,12 @@ export interface paths {
         };
         /**
          * The buyer's checkout before requesting COD.
-         * @description The address is the selected owned address or the default; null with an empty book. Shipping estimate is initially null. This read makes no carrier call or write.
+         * @description The address is the selected owned address or the default; null with
+         *     an empty book. shipping_estimate is null on every call, with the fake
+         *     carrier and the real ones, linked or not: the server has no estimator
+         *     before an order exists, and the buyer gives no weight. The seller
+         *     reads the carrier's fee for the order with GET /v1/shipments/quote
+         *     once it is requested. This read makes no carrier call or write.
          */
         get: operations["getCodCheckoutScreen"];
         put?: never;
@@ -1811,7 +1853,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Count the caller's unread messages over unarchived conversations. */
+        /**
+         * Count the caller's unread messages and unread notices.
+         * @description unread counts the messages over unarchived pair conversations, as the
+         *     inbox does; notifications counts the unread notices, as Home's
+         *     notifications_unread does. Module screen serves it, since it reads
+         *     chat and notification; the chat tag keeps it in the app's chat client.
+         */
         get: operations["getUnread"];
         put?: never;
         post?: never;
@@ -2093,7 +2141,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List the caller's reports, newest first.
+         * @description Every report the caller made, withdrawn and resolved ones included,
+         *     paged by report ID. DELETE /v1/reports/{id} withdraws an open one.
+         */
+        get: operations["listMyReports"];
         put?: never;
         /**
          * Report a listing or an account.
@@ -3352,11 +3405,11 @@ export interface paths {
         put?: never;
         /**
          * Ask a console agent in a conversation; the run starts and the answer comes on its events.
-         * @description The server adds the picked agent's configuration (the Console
-         *     assistant when agent_id is left out) and forwards the question. The
-         *     agent stores the turn as running and answers 202 with its id at once;
-         *     the console then opens GET /v1/console/agent/turns/{id}/events to
-         *     watch the run step by step. Closing the stream does not stop the run.
+         * @description The server opens the turn as running and starts its run on the agent
+         *     service with the picked agent's configuration (the Console assistant
+         *     when agent_id is left out), then answers 202 with the turn's id; the
+         *     console opens GET /v1/console/agent/turns/{id}/events to watch the
+         *     run step by step. Closing the stream does not stop the run.
          */
         post: operations["askConsoleAgent"];
         delete?: never;
@@ -4567,6 +4620,8 @@ export interface components {
             phone: string;
             street: string;
             commune_code: string;
+            /** @description The code of the commune's province, as GET /v1/regions lists it. */
+            province_code: string;
             commune: string;
             province: string;
             kind: components["schemas"]["AddressKind"];
@@ -4682,54 +4737,43 @@ export interface components {
             value: string;
         };
         /**
-         * @description ListingInput's fields as the AI filled them. Add commune_code (and gps
-         *     when allowed) and post it to POST /v1/listings. A field with a value is
-         *     one the AI filled.
+         * @description ListingInput's fields as the read filled them. The model writes only
+         *     the title and the description; catalog guesses the category from them.
+         *     The seller adds the price, the category's specs (its spec_labels) and
+         *     commune_code (and gps when allowed), then posts it to POST /v1/listings.
          */
         ReadDraft: {
             title: string;
             /** @description A subcategory code, or empty when none was found. */
             category_code: string;
+            /** @description Always used; the seller changes it. */
             condition: components["schemas"]["Condition"];
+            /** @description Always empty; the seller fills the category's specs. */
             specs: components["schemas"]["Spec"][];
             /** @description The seller's own words, restated, or for a photo read what the photo shows; empty when there is nothing. */
             description: string;
             /**
              * Format: int64
-             * @description Whole đồng the seller said; null when they named no price.
+             * @description A link read's price on Chợ Tốt; null for the others.
              */
             price: number | null;
-            /** @description True when the seller said the price is negotiable. */
+            /** @description Always false; the seller sets it. */
             allow_offers: boolean;
             /**
              * @description Upload IDs of the draft's photos, the cover first: a video read's
-             *     kept frames (at most 6), a photo read's photo, or a link read's
-             *     copies (at most 10).
+             *     sharpest frame then the others in time order (at most 6), a photo
+             *     read's photo, or a link read's copies (at most 10).
              */
             photos: string[];
-        };
-        PriceEstimate: {
-            /** Format: int64 */
-            low: number;
-            /** Format: int64 */
-            median: number;
-            /** Format: int64 */
-            high: number;
-            /**
-             * @description market is similar listings on the platform; model is the AI's own guess.
-             * @enum {string}
-             */
-            source: "market" | "model";
-            /** @description Listings behind a market range; 0 for model. */
-            sample_size: number;
         };
         /**
          * @description A read of a seller's video, photo or listing on Chợ Tốt into a listing
          *     draft. Fields fill in as its steps finish: photos after the frames step
-         *     of a video or the copy step of a link, draft after the fill, estimate
-         *     when the read is done. A field not reached yet is absent, and so is a
-         *     field of another source. A video is deleted when its read ends; the read
-         *     is kept 24 hours.
+         *     of a video or the copy step of a link, draft when the read is done. A
+         *     field not reached yet is absent, and so is a field of another source. A
+         *     video is deleted when its read ends; the read is kept 24 hours. GET
+         *     /v1/listing-reads/{id}/events streams the title and description while
+         *     the model writes them.
          */
         ListingRead: {
             /** Format: uuid */
@@ -4756,10 +4800,13 @@ export interface components {
             draft?: components["schemas"]["ReadDraft"];
             /** @description A link read's; true when a phone number, Zalo or other contact was taken out of the description. */
             contact_removed?: boolean;
-            /** @description Only when status is done; null when neither the market nor the model gave a range. */
-            estimate?: components["schemas"]["PriceEstimate"] | null;
             /** Format: date-time */
             expires_at: string;
+        };
+        /** @description The title and description so far, each time whole; a retried step starts them again. */
+        ReadText: {
+            title: string;
+            description: string;
         };
         LinkRequest: {
             /** @description The link the seller pasted to their own listing. */
@@ -4799,6 +4846,21 @@ export interface components {
             commune_code: string;
             /** @description The caller's waiting photo uploads, the cover first. Without photos the text alone is compared. */
             photos?: string[];
+        };
+        PriceEstimate: {
+            /** Format: int64 */
+            low: number;
+            /** Format: int64 */
+            median: number;
+            /** Format: int64 */
+            high: number;
+            /**
+             * @description market is similar listings on the platform; model is the AI's own guess.
+             * @enum {string}
+             */
+            source: "market" | "model";
+            /** @description Listings behind a market range; 0 for model. */
+            sample_size: number;
         };
         PriceSuggestion: {
             /** @enum {string} */
@@ -4871,7 +4933,7 @@ export interface components {
             commune_code: string;
             /** @description 1 to 10 upload IDs, in order; the first is the cover. */
             photos: string[];
-            /** @description Up to 20 label and value pairs. */
+            /** @description Up to 20 label and value pairs, with one for each of the category's spec_labels. */
             specs?: components["schemas"]["Spec"][];
             /**
              * @description The seller's position, sent only with their permission. The server
@@ -5017,6 +5079,8 @@ export interface components {
             /** @description Absent on a root. A listing takes a category with a parent. */
             parent_code?: string;
             display_name: string;
+            /** @description The specs a listing under it must fill, in order. Empty on a root and on "Khác". */
+            spec_labels: string[];
         };
         CategoryList: {
             /** @description The roots in order, then each root's subcategories in order. */
@@ -5463,6 +5527,10 @@ export interface components {
             counterpart: components["schemas"]["Person"];
             own_review: components["schemas"]["OwnReview"];
         };
+        Cap: {
+            used: number;
+            max: number;
+        };
         OrdersScreen: {
             items: components["schemas"]["OrdersScreenItem"][];
             /**
@@ -5470,6 +5538,10 @@ export interface components {
              * @description Present when more orders follow; pass it as cursor.
              */
             next_cursor?: string;
+            /** @description Buying only. The caller's pending and shipped orders against the open COD order cap, as the checkout reads it. Absent for selling. */
+            cod_orders?: components["schemas"]["Cap"];
+            /** @description Selling only. The caller's pending orders, which wait for the caller to create the shipment. Absent for buying. */
+            awaiting_shipment?: number;
         };
         /** @description The last seven days of the caller's listings on sale. */
         ListingWeek: {
@@ -5538,16 +5610,13 @@ export interface components {
             settings: components["schemas"]["ShippingSettings"];
             carrier_accounts: components["schemas"]["CarrierAccount"][];
         };
-        Cap: {
-            used: number;
-            max: number;
-        };
-        /** @description Buyer-only checkout. This read writes nothing and calls no carrier. The initial shipping estimate is null. */
+        /** @description Buyer-only checkout. This read writes nothing and calls no carrier. */
         CodCheckoutScreen: {
             deal: components["schemas"]["Deal"];
             seller: components["schemas"]["Person"];
             address: components["schemas"]["Address"] | null;
             cod_orders: components["schemas"]["Cap"];
+            /** @description Null on every call until the server has a pre-order estimator; the field is there for it. */
             shipping_estimate: {
                 /** Format: int64 */
                 low: number;
@@ -5881,7 +5950,10 @@ export interface components {
             message_id: string;
         };
         Unread: {
+            /** @description Unread messages over the caller's unarchived pair conversations. */
             unread: number;
+            /** @description The caller's unread notices. */
+            notifications: number;
         };
         /** @description A deal at a glance, as the caller sees it. */
         DealSummary: {
@@ -6335,21 +6407,6 @@ export interface components {
             /** @description 1 to 500 characters after trimming; a business rule, so another length is 422. */
             text: string;
         };
-        ReportCreate: {
-            /** Format: uuid */
-            listing_id?: string;
-            /** Format: uuid */
-            account_id?: string;
-            /**
-             * Format: uuid
-             * @description With account_id only, the caller's conversation with that account; another one is 422 invalid_report.
-             */
-            conversation_id?: string;
-            /** @description banned, fake, scam or other; a business rule, so another value is 422. */
-            reason: string;
-            /** @description At most 500 characters after trimming; may be empty. */
-            note?: string;
-        };
         Report: {
             /** Format: uuid */
             id: string;
@@ -6371,10 +6428,38 @@ export interface components {
             /** @enum {string} */
             reason: "banned" | "fake" | "scam" | "other";
             note: string;
+            /**
+             * @description withdrawn once the caller withdrew it; resolved once ShopNexus closed the case it is part of; else open. A new or updated report is open.
+             * @enum {string}
+             */
+            status: "open" | "withdrawn" | "resolved";
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+        };
+        ReportList: {
+            items: components["schemas"]["Report"][];
+            /**
+             * Format: uuid
+             * @description Present when more reports follow; pass it as cursor.
+             */
+            next_cursor?: string;
+        };
+        ReportCreate: {
+            /** Format: uuid */
+            listing_id?: string;
+            /** Format: uuid */
+            account_id?: string;
+            /**
+             * Format: uuid
+             * @description With account_id only, the caller's conversation with that account; another one is 422 invalid_report.
+             */
+            conversation_id?: string;
+            /** @description banned, fake, scam or other; a business rule, so another value is 422. */
+            reason: string;
+            /** @description At most 500 characters after trimming; may be empty. */
+            note?: string;
         };
         /** @description A text search the caller made. */
         SearchHistoryItem: {
@@ -7845,8 +7930,8 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description The agent cannot be reached (agent_unavailable); the rest of the console works without it. */
-        AgentUnavailable: {
+        /** @description No such agent conversation, or one of another member's (agent_conversation_not_found). */
+        AgentConversationNotFound: {
             headers: {
                 [name: string]: unknown;
             };
@@ -7854,8 +7939,8 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description No such agent conversation, or one of another member's (agent_conversation_not_found). */
-        AgentConversationNotFound: {
+        /** @description The agent cannot be reached (agent_unavailable); the rest of the console works without it. */
+        AgentUnavailable: {
             headers: {
                 [name: string]: unknown;
             };
@@ -7907,6 +7992,8 @@ export interface components {
         Cursor: string;
         /** @description Page size. */
         Limit: number;
+        /** @description A new UUID per user action, reused when the client retries that action. A repeated key returns the first result. Without one, every request runs; the key is optional because earlier app versions send none. */
+        IdempotencyKeyOptional: string;
         /** @description The caller's latitude, with near_lng. Used for this request only; never stored or logged. */
         NearLat: number;
         /** @description The caller's longitude, with near_lat. */
@@ -9011,6 +9098,42 @@ export interface operations {
             };
         };
     };
+    streamListingRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /**
+             * @description The events. Each data line is JSON: a ListingRead after event read,
+             *     a ReadText after event text.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["ListingRead"] | components["schemas"]["ReadText"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description No such read for this caller, or it is past its 24 hours (listing_read_not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     previewLink: {
         parameters: {
             query?: never;
@@ -9532,6 +9655,39 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+        };
+    };
+    getListingDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The draft. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDraft"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description No such draft of the caller's, another account's draft included (draft_not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     putListingDraft: {
@@ -10114,7 +10270,10 @@ export interface operations {
     requestCod: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A new UUID per user action, reused when the client retries that action. A repeated key returns the first result. Without one, every request runs; the key is optional because earlier app versions send none. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKeyOptional"];
+            };
             path: {
                 id: string;
             };
@@ -10345,7 +10504,10 @@ export interface operations {
     cancelOrder: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A new UUID per user action, reused when the client retries that action. A repeated key returns the first result. Without one, every request runs; the key is optional because earlier app versions send none. */
+                "Idempotency-Key"?: components["parameters"]["IdempotencyKeyOptional"];
+            };
             path: {
                 order_id: string;
             };
@@ -12133,6 +12295,33 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    listMyReports: {
+        parameters: {
+            query?: {
+                /** @description The next_cursor of the previous page; absent for the first page. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of reports. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
     };
     createReport: {
@@ -14234,7 +14423,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             422: components["responses"]["AgentSubjectInvalid"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     createConsoleAgentConversation: {
@@ -14268,7 +14456,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             422: components["responses"]["AgentSubjectInvalid"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     getConsoleAgentConversation: {
@@ -14300,7 +14487,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["AgentConversationNotFound"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     deleteConsoleAgentConversation: {
@@ -14348,7 +14534,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     renameConsoleAgentConversation: {
@@ -14403,7 +14588,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     askConsoleAgent: {
@@ -14507,7 +14691,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["AgentTurnNotFound"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     streamConsoleAgentTurnEvents: {
@@ -14544,7 +14727,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["AgentTurnNotFound"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     pauseConsoleAgentTurn: {
@@ -14577,7 +14759,6 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["AgentTurnNotFound"];
             409: components["responses"]["AgentTurnState"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     stopConsoleAgentTurn: {
@@ -14610,7 +14791,6 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["AgentTurnNotFound"];
             409: components["responses"]["AgentTurnState"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     continueConsoleAgentTurn: {
@@ -14676,7 +14856,6 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["AgentTurnNotFound"];
             409: components["responses"]["AgentTurnState"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     steerConsoleAgentTurn: {
@@ -14801,7 +14980,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     getConsoleAgentDocument: {
@@ -14841,7 +15019,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     listConsoleAgentSkills: {
@@ -14870,7 +15047,6 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     createConsoleAgentSkill: {
@@ -14922,7 +15098,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     getConsoleAgentSkill: {
@@ -14962,7 +15137,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     deleteConsoleAgentSkill: {
@@ -15009,7 +15183,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     updateConsoleAgentSkill: {
@@ -15081,7 +15254,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     listConsoleAgents: {
@@ -15998,7 +16170,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["ConsoleForbidden"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     getAIGuardrails: {
@@ -16030,7 +16201,6 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["ConsoleForbidden"];
-            503: components["responses"]["AgentUnavailable"];
         };
     };
     listDashboardFloors: {
