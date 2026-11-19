@@ -1,13 +1,172 @@
 ---
-// Đăng tin: the same form as Cách đăng tin (sell.html). The web has no posting
-// endpoint yet; signed out, the form's "Đăng tin" leads to Đăng nhập.
+// Đăng tin: a new listing, ?draft=<id> one kept as a draft, ?edit=<id> one of
+// the seller's listings (Sửa tin). step=post posts or saves it, step=draft
+// keeps the draft; a refusal renders the form again with what went wrong.
+import Notice from '../components/Notice.astro';
 import SellForm from '../components/flows/SellForm.astro';
 import Layout from '../layouts/Layout.astro';
+import { ApiError, type Schemas, idempotencyKey, unwrap } from '../lib/api/client';
+import { isId } from '../lib/listing';
+import { uuidv7 } from '../lib/key';
+import { identity, reputation } from '../lib/profile';
+import { provinces } from '../lib/regions';
+import { R } from '../lib/routes';
+import { FIELD_TEXT, type SellFields, draftInput, emptyFields, fieldKey, fromDraft, fromListing, listingInput, readSellForm } from '../lib/sell';
+import { requireViewer } from '../lib/session';
 import { CONTENT } from '../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const q = Astro.url.searchParams;
+const editId = isId(q.get('edit') ?? '') ? q.get('edit')! : undefined;
+let draftId = isId(q.get('draft') ?? '') ? q.get('draft')! : undefined;
+
+// Sửa tin reads the listing first: only its seller, and not once it is sold or travelling.
+let listing: Schemas['Listing'] | null = null;
+if (editId) {
+  listing = await unwrap(api.GET('/v1/listings/{id}', { params: { path: { id: editId } } })).catch((e) => {
+    if (e instanceof ApiError && e.status < 500) return null;
+    throw e;
+  });
+  if (!listing || listing.seller_id !== v.id || listing.status === 'deleted') return Astro.redirect(R.myListings, 303);
+}
+const frozen = listing?.status === 'sold' || listing?.status === 'reserved';
+
+let fields: SellFields | undefined;
+let urls: Record<string, string> = {};
+let errors: Record<string, string> = {};
+let error: string | undefined;
+/** The failed post's key, kept when the server may have taken it, so a retry cannot list the item twice. */
+let postKey: string | undefined;
+/** Answers that refuse the post outright; after any other failure the retry reuses the key. */
+const REFUSED = ['invalid_listing', 'invalid_upload', 'phone_required', 'account_suspended', 'listing_cap_reached', 'listing_state_conflict', 'listing_not_found'];
+
+/** Keeps the form as a draft and gives each photo's URL; null when the server refuses. */
+async function keepDraft(f: SellFields) {
+  draftId ??= uuidv7();
+  const d = await unwrap(api.PUT('/v1/listing-drafts/{id}', { params: { path: { id: draftId } }, body: draftInput(f) })).catch(() => null);
+  if (d) urls = fromDraft(d).urls;
+  return d;
+}
+
+if (Astro.request.method === 'POST' && !frozen) {
+  const form = await Astro.request.formData();
+  const step = String(form.get('step') ?? '');
+  fields = readSellForm(form);
+  if (!editId && isId(String(form.get('draft') ?? ''))) draftId = String(form.get('draft'));
+  if (step === 'draft' && !editId) {
+    if (await keepDraft(fields)) return Astro.redirect(`${R.post}?draft=${draftId}&saved`, 303);
+    error = 'Chưa lưu được nháp. Bạn có thể đã có 20 nháp; xóa bớt ở Tin của bạn.';
+  } else if (step === 'post') {
+    const key = String(form.get('key') ?? '') || idempotencyKey();
+    try {
+      const f = fields;
+      if (!f.condition) {
+        errors.condition = FIELD_TEXT.condition;
+        throw new ApiError(422, 'invalid_listing');
+      }
+      const body = listingInput({ ...f, condition: f.condition });
+      const header = { 'Idempotency-Key': key };
+      if (editId) {
+        await unwrap(api.PUT('/v1/listings/{id}', { params: { path: { id: editId }, header }, body }));
+        return Astro.redirect(`${R.myListings}?done=saved`, 303);
+      }
+      await unwrap(api.POST('/v1/listings', { params: { header }, body }));
+      if (draftId) await unwrap(api.DELETE('/v1/listing-drafts/{id}', { params: { path: { id: draftId } } })).catch(() => {});
+      return Astro.redirect(`${R.myListings}?done=posted`, 303);
+    } catch (e) {
+      // A network failure to the server reads as unknown: the form stays, the retry keeps the key.
+      const code = e instanceof ApiError ? e.code : 'unknown';
+      if (!REFUSED.includes(code)) postKey = key;
+      if (code === 'invalid_listing' && e instanceof ApiError) {
+        for (const k of Object.keys(e.fields)) errors[fieldKey(k)] = FIELD_TEXT[fieldKey(k)] ?? 'Mục này chưa đúng.';
+        error = 'Kiểm tra lại các mục được đánh dấu.';
+      } else if (code === 'invalid_upload') error = 'Có ảnh đã hết hạn hoặc đã dùng ở tin khác. Bỏ ảnh đó rồi thêm lại nhé.';
+      else if (code === 'phone_required') error = 'Cần số điện thoại trong tài khoản để đăng tin.';
+      else if (code === 'account_suspended') error = 'Tài khoản đang bị khóa nên chưa đăng tin được.';
+      else if (code === 'listing_cap_reached') error = 'Bạn đã có đủ số tin cho phép. Xóa hoặc đánh dấu đã bán một tin để đăng thêm.';
+      else if (code === 'listing_state_conflict' || code === 'listing_not_found') error = 'Tin này đã bán hoặc đã xóa nên không sửa được.';
+      else if (code === 'try_again') error = 'Tin vừa đổi ở nơi khác. Thử lưu lại nhé.';
+      else error = 'Chưa rõ tin đã lưu chưa. Bấm lại để thử, tin sẽ không bị đăng hai lần.';
+      // The draft keeps what was typed, and gives the photos back their previews.
+      if (!editId) await keepDraft(fields);
+    }
+  }
+}
+
+if (!fields && listing) ({ fields, urls } = fromListing(listing));
+if (listing) urls = { ...fromListing(listing).urls, ...urls };
+// The server lists drafts but reads none by id. Only a list without it means the draft is gone;
+// a failed read keeps the id and asks for a reload, so the autosave cannot overwrite it.
+let lostDraft = false;
+let draftUnread = false;
+if (!fields && draftId) {
+  const list = await unwrap(api.GET('/v1/listing-drafts')).catch(() => null);
+  const d = list?.items.find((x) => x.id === draftId);
+  if (d) ({ fields, urls } = fromDraft(d));
+  else if (list) {
+    lostDraft = true;
+    draftId = undefined;
+  } else draftUnread = true;
+}
+// A new listing starts where the default address is.
+if (!fields) {
+  fields = emptyFields();
+  const book = await unwrap(api.GET('/v1/addresses')).catch(() => ({ items: [] as Schemas['Address'][] }));
+  const home = book.items.find((a) => a.is_default);
+  const province = home && (await provinces()).find((p) => p.name === home.province);
+  if (home && province) Object.assign(fields, { commune: home.commune_code, province: province.code });
+}
+
+// Posting needs a phone, and a free place among the seller's listings.
+const phone = !!identity(v.identities, 'phone');
+const caps = editId ? null : await reputation(Astro.locals).then((r) => r.caps.listings).catch(() => null);
+const full = !!caps && caps.used >= caps.max;
+const failures = Object.fromEntries((listing?.photos ?? []).filter((p) => p.failure).map((p) => [p.upload_id, p.failure!]));
+const title = editId ? 'Sửa tin' : 'Đăng tin';
 ---
 
-<Layout fab={false} title="Đăng tin · ShopNexus" description="Tải vài tấm ảnh lên, AI điền giúp tên, tình trạng và giá.">
+<Layout fab={false} title={`${title} · ShopNexus`} description="Tải vài tấm ảnh lên, AI điền giúp tên, tình trạng và giá.">
   <main class={CONTENT}>
-    <SellForm />
+    {
+      draftUnread ? (
+        <div class="pt-8">
+          <h1 class="text-j-28 text-ink">Đăng tin</h1>
+          <Notice class="mt-4" text="Chưa mở được nháp lúc này. ">
+            <a href={Astro.url.pathname + Astro.url.search} class="text-primary underline">
+              Thử lại
+            </a>
+          </Notice>
+        </div>
+      ) : frozen ? (
+        <div class="pt-8">
+          <h1 class="text-j-28 text-ink">Sửa tin</h1>
+          <Notice
+            class="mt-4"
+            text={listing?.status === 'sold' ? 'Tin đã bán nên không sửa được nữa. ' : 'Tin đang giao cho người mua nên chưa sửa được. '}
+          >
+            <a href={R.myListings} class="text-primary underline">Về Tin của bạn</a>
+          </Notice>
+        </div>
+      ) : (
+        <SellForm fields={fields} urls={urls} failures={failures} errors={errors} editId={editId} draftId={draftId} idemKey={postKey ?? idempotencyKey()} locked={!phone || full}>
+          <div class="mt-4 flex flex-col gap-2 empty:hidden">
+            {!phone && (
+              <Notice text="Đăng tin cần số điện thoại trong tài khoản. ">
+                <a href={`${R.security}?add-phone`} class="text-primary underline">
+                  Thêm số điện thoại
+                </a>
+              </Notice>
+            )}
+            {full && caps && <Notice text={`Bạn đang có ${caps.used}/${caps.max} tin. Xóa hoặc đánh dấu đã bán một tin để đăng thêm.`} />}
+            {listing?.status === 'rejected' && <Notice text="Tin bị từ chối vì có ảnh không dùng được. Bỏ ảnh đó, thêm ảnh khác rồi lưu để xét lại." />}
+            {lostDraft && <Notice text="Nháp này không còn nữa. Bạn bắt đầu tin mới nhé." />}
+            {q.has('saved') && !error && <Notice ok text="Đã lưu nháp." />}
+            {error && <Notice text={error} />}
+          </div>
+        </SellForm>
+      )
+    }
   </main>
 </Layout>

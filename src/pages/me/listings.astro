@@ -1,46 +1,113 @@
 ---
-import Photo from '../../components/Photo.astro';
-// Tin của bạn: the seller's numbers for the week, their listings with what
-// waits on each, drafts, and what sold lately.
+// Tin của bạn: the last seven days, then one pane, ?pane=on_sale (processing
+// to reserved), drafts or sold, a page at a time (?after=). Every action is a
+// form post that comes back with ?done=.
 import Icon from '../../components/Icon.astro';
+import Notice from '../../components/Notice.astro';
 import PageTitle from '../../components/PageTitle.astro';
-import Seg from '../../components/Seg.astro';
+import Photo from '../../components/Photo.astro';
+import MyListingRow from '../../components/account/MyListingRow.astro';
 import AccountFrame from '../../components/orders/AccountFrame.astro';
-import Face from '../../components/orders/Face.astro';
-import ListingRow from '../../components/orders/ListingRow.astro';
-import SectionLabel from '../../components/orders/SectionLabel.astro';
-import { DRAFTS, FACE, LISTING_STATS, ON_SALE, RECENTLY_SOLD, SOLD_COUNT } from '../../data/orders';
-import { img } from '../../lib/format';
+import { ApiError, pageOrFirst, unwrap } from '../../lib/api/client';
+import { money } from '../../lib/format';
+import { isId } from '../../lib/listing';
+import { reputation } from '../../lib/profile';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 import { btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const q = Astro.url.searchParams;
+const PANES = { on_sale: 'Đang bán', drafts: 'Nháp', sold: 'Đã bán' } as const;
+type Pane = keyof typeof PANES;
+const pane: Pane = (q.get('pane') ?? '') in PANES ? (q.get('pane') as Pane) : 'on_sale';
+const here = (extra = '') => `${R.myListings}?pane=${pane}${extra}`;
+
+const DONE: Record<string, string> = {
+  posted: 'Đã đăng tin. Tin hiện cho người mua sau khi xử lý xong ảnh.',
+  saved: 'Đã lưu tin.',
+  hide: 'Đã ẩn tin.',
+  unhide: 'Tin đã hiện lại.',
+  'mark-sold': 'Đã đánh dấu đã bán.',
+  'unmark-sold': 'Tin đã quay lại Đang bán.',
+  delete: 'Đã xóa tin.',
+  'delete-draft': 'Đã xóa nháp.',
+};
+
+let error: string | undefined;
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const step = String(form.get('step') ?? '');
+  const id = String(form.get('id') ?? '');
+  const path = { params: { path: { id } } };
+  const calls: Record<string, () => Promise<unknown>> = {
+    hide: () => unwrap(api.POST('/v1/listings/{id}/hide', path)),
+    unhide: () => unwrap(api.POST('/v1/listings/{id}/unhide', path)),
+    'mark-sold': () => unwrap(api.POST('/v1/listings/{id}/mark-sold', path)),
+    'unmark-sold': () => unwrap(api.POST('/v1/listings/{id}/unmark-sold', path)),
+    delete: () => unwrap(api.DELETE('/v1/listings/{id}', path)),
+    'delete-draft': () => unwrap(api.DELETE('/v1/listing-drafts/{id}', path)),
+  };
+  if (isId(id) && calls[step]) {
+    try {
+      await calls[step]();
+      return Astro.redirect(here(`&done=${step}`), 303);
+    } catch (e) {
+      if (!(e instanceof ApiError)) throw e;
+      // Gone already (a listing, or another device's deleted draft): the list shows what is left.
+      if (e.code === 'listing_not_found' || e.code === 'draft_not_found') return Astro.redirect(here(), 303);
+      error =
+        e.code === 'listing_held'
+          ? 'ShopNexus đã ẩn tin này, chỉ ShopNexus mở lại được. Bạn gửi yêu cầu hỗ trợ nhé.'
+          : e.code === 'listing_cap_reached'
+            ? 'Bạn đã có đủ số tin cho phép. Xóa hoặc đánh dấu đã bán một tin khác trước.'
+            : e.code === 'listing_state_conflict'
+              ? 'Tin vừa đổi trạng thái nên chưa làm được. Xem lại danh sách nhé.'
+              : 'Chưa làm được. Thử lại sau ít phút.';
+    }
+  }
+}
+
+const after = q.get('after') ?? undefined;
+const screen = (p: 'on_sale' | 'sold', cursor?: string, limit = 20) =>
+  api.GET('/v1/screens/my-listings', { params: { query: { pane: p, cursor, limit } } });
+const [view, drafts, caps] = await Promise.all([
+  pane === 'drafts' ? unwrap(screen('on_sale', undefined, 1)) : pageOrFirst(after, (c) => screen(pane, c)),
+  unwrap(api.GET('/v1/listing-drafts')).then((d) => d.items),
+  reputation(Astro.locals).then((r) => r.caps.listings).catch(() => null),
+]);
+const items = pane === 'drafts' ? [] : view.items;
+const week = [
+  { icon: 'visibility-outline-rounded', n: view.week.views, label: 'Lượt xem · 7 ngày' },
+  { icon: 'chat-outline-rounded', n: view.week.askers, label: 'Người hỏi · 7 ngày' },
+  { icon: 'favorite-outline-rounded', n: view.week.saves, label: 'Lượt lưu · 7 ngày' },
+];
+const daysLeft = (iso: string) => Math.max(1, Math.ceil((Date.parse(iso) - Date.now()) / 86_400_000));
+const done = DONE[q.get('done') ?? ''];
+const empty: Record<Pane, string> = {
+  on_sale: 'Bạn chưa có tin nào đang bán.',
+  drafts: 'Chưa có nháp. Nháp tự lưu khi bạn điền Đăng tin.',
+  sold: 'Chưa có tin nào đã bán.',
+};
+const tab = 'state-layer flex h-9 items-center rounded-full px-4 text-label-large';
 ---
 
 <AccountFrame title="Tin của bạn" description="Tin đang bán, nháp và tin đã bán của bạn." active="listings">
-  <PageTitle title="Tin của bạn" meta={`${ON_SALE.length} tin đang bán · ${DRAFTS.length} nháp · ${SOLD_COUNT} tin đã bán`}>
-    <a href={R.post} class={btnCls('line')}><Icon name="videocam-outline-rounded" size={18} />Quay video</a>
-    <a href={R.post} class={btnCls('ink')}><Icon name="photo-camera-outline-rounded" size={18} />Chụp ảnh đăng tin</a>
+  <PageTitle title="Tin của bạn" meta={caps ? `Đang dùng ${caps.used}/${caps.max} chỗ đăng tin · ${drafts.length} nháp` : `${drafts.length} nháp`}>
+    <a href={R.post} class={btnCls('ink')}><Icon name="add-photo-alternate-outline-rounded" size={18} />Đăng tin</a>
   </PageTitle>
 
-  <div class="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+  <div class="mt-5 grid grid-cols-3 gap-3">
     {
-      LISTING_STATS.map((s) => (
-        <div class:list={[PANEL, 'flex items-center gap-3 p-4']}>
-          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-white">
+      week.map((s) => (
+        <div class:list={[PANEL, 'flex items-center gap-3 p-3 md:p-4']}>
+          <span class="hidden h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-white md:grid">
             <Icon name={s.icon} size={20} />
           </span>
           <div class="min-w-0 flex-1">
-            <p class="flex items-center gap-2">
-              <span class="text-j-24 text-ink tabular-nums">{s.n}</span>
-              {s.delta && (
-                <span class="rounded-full bg-secondary-container px-2 py-0.5 text-label-small text-on-secondary-container tabular-nums">
-                  {s.delta}
-                </span>
-              )}
-            </p>
+            <p class="text-j-24 text-ink tabular-nums">{s.n}</p>
             <p class="text-body-small text-on-surface-variant">{s.label}</p>
           </div>
         </div>
@@ -48,71 +115,102 @@ if (v instanceof Response) return v;
     }
   </div>
 
-  <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-    <section class="min-w-0">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <Seg items={[`Đang bán · ${ON_SALE.length}`, `Nháp · ${DRAFTS.length}`, `Đã bán · ${SOLD_COUNT}`]} class="bg-black/[.04]" name="Tin của bạn" />
-        <Seg items={['Mới đăng', 'Nhiều người hỏi']} class="bg-black/[.04]" itemClass="text-label-medium" name="Sắp xếp" />
+  <nav class="mt-6 flex flex-wrap gap-2" aria-label="Tin của bạn">
+    {
+      (Object.keys(PANES) as Pane[]).map((p) => (
+        <a
+          href={`${R.myListings}?pane=${p}`}
+          aria-current={p === pane ? 'page' : undefined}
+          class:list={[tab, p === pane ? 'bg-mint text-on-mint' : 'bg-surface-container-low text-on-surface-variant']}
+        >
+          {PANES[p]}
+          {p === 'drafts' && ` · ${drafts.length}`}
+        </a>
+      ))
+    }
+  </nav>
+
+  {done && <Notice ok text={done} class="mt-4" />}
+  {error && <Notice text={error} class="mt-4" />}
+
+  <section class="mt-4 flex flex-col gap-2.5">
+    {items.map((it, i) => <MyListingRow it={it} loading={i < 6 ? 'eager' : 'lazy'} />)}
+    {
+      pane === 'drafts' &&
+        drafts.map((d, i) => (
+          <article class="flex items-center gap-4 rounded-card border border-line bg-card p-2">
+            {d.photos[0] ? (
+              <Photo src={d.photos[0].url} width={160} height={160} alt="" loading={i < 6 ? 'eager' : 'lazy'} class="h-16 w-16 shrink-0 rounded-lg object-cover" />
+            ) : (
+              <span class="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-surface-container-high text-on-surface-variant">
+                <Icon name="draft-outline-rounded" size={22} />
+              </span>
+            )}
+            <div class="min-w-0 flex-1">
+              <h3 class="truncate text-title-small text-ink">{d.title || 'Chưa có tiêu đề'}</h3>
+              <p class="truncate text-body-small text-on-surface-variant">
+                {d.photos.length} ảnh · {d.price === null ? 'chưa có giá' : money(d.price)}
+              </p>
+              <p class="flex items-center gap-1 text-label-small text-on-surface-variant">
+                <Icon name="schedule-outline-rounded" size={12} />
+                Tự xóa sau {daysLeft(d.expires_at)} ngày
+              </p>
+            </div>
+            <a href={`${R.post}?draft=${d.id}`} class={btnCls('tonal', 'sm')}>
+              Tiếp tục
+            </a>
+            <form method="post">
+              <input type="hidden" name="id" value={d.id} />
+              <button
+                name="step"
+                value="delete-draft"
+                class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant"
+                aria-label={`Xóa nháp ${d.title}`}
+                data-confirm="Xóa nháp này?"
+              >
+                <Icon name="delete-outline-rounded" size={20} />
+              </button>
+            </form>
+          </article>
+        ))
+    }
+    {
+      (pane === 'drafts' ? drafts.length === 0 : items.length === 0) && (
+        <div class:list={[PANEL, 'p-6 text-center']}>
+          <p class="text-body-large text-on-surface-variant">{empty[pane]}</p>
+          {pane !== 'sold' && (
+            <a href={R.post} class:list={[btnCls('ink'), 'mx-auto mt-4 inline-flex']}>
+              Đăng tin
+            </a>
+          )}
+        </div>
+      )
+    }
+  </section>
+
+  {
+    pane !== 'drafts' && (after || view.next_cursor) && (
+      <div class="mt-4 flex justify-center gap-2">
+        {after && (
+          <a href={here()} class={btnCls('line')}>
+            Về đầu
+          </a>
+        )}
+        {view.next_cursor && (
+          <a href={here(`&after=${view.next_cursor}`)} class={btnCls('line')}>
+            Xem thêm
+          </a>
+        )}
       </div>
-      <div class="mt-3 flex flex-col gap-2.5">
-        {ON_SALE.map((it) => <ListingRow it={it} />)}
-      </div>
-    </section>
-    <aside class="flex min-w-0 flex-col gap-4 self-start">
-      <div class:list={[PANEL, 'px-5 py-4']}>
-        <SectionLabel title="Nháp"><span class="text-body-small text-on-surface-variant">Tự xóa sau 30 ngày</span></SectionLabel>
-        <ul>
-          {
-            DRAFTS.map((d, i) => (
-              <li class:list={['flex items-center gap-3 py-2.5', i > 0 && 'border-t border-line']}>
-                <Photo src={img(d.photo, 120, 120)} width={120} height={120} alt="" class="h-12 w-12 shrink-0 rounded-md object-cover" />
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-body-medium text-ink">{d.title}</p>
-                  <p class="truncate text-body-small text-on-surface-variant">{d.line}</p>
-                  <p class="flex items-center gap-1 whitespace-nowrap text-label-small text-tertiary">
-                    <Icon name={d.icon} size={12} />
-                    {d.label}
-                  </p>
-                </div>
-                <a href={R.post} class:list={[btnCls('tonal'), 'h-8 px-3']}>Tiếp tục</a>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-      <div class:list={[PANEL, 'px-5 py-4']}>
-        <SectionLabel title="Vừa bán"><a href="#" class="text-label-large text-primary hover:underline">Xem {SOLD_COUNT} tin</a></SectionLabel>
-        <ul>
-          {
-            RECENTLY_SOLD.map((s, i) => (
-              <li class:list={['flex items-center gap-3 py-2.5', i > 0 && 'border-t border-line']}>
-                <Photo src={img(s.photo, 120, 120)} width={120} height={120} alt="" class="h-12 w-12 shrink-0 rounded-md object-cover" />
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-body-medium text-ink">{s.title}</p>
-                  <p class="flex items-center gap-1.5 text-body-small text-on-surface-variant">
-                    {FACE[s.who] && <Face name={s.who} size={16} />}
-                    <span class="truncate">
-                      {s.who} · {s.when}
-                    </span>
-                  </p>
-                </div>
-                {s.rated === null ? (
-                  <span class="shrink-0 text-body-small text-on-surface-variant">Ngoài app</span>
-                ) : s.rated ? (
-                  <span class="flex shrink-0 items-center gap-0.5 text-label-medium text-ink">
-                    <Icon name="star-rounded" size={15} class="text-star" />5
-                  </span>
-                ) : (
-                  <span class="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-surface-container-low px-2 py-0.5 text-label-small text-on-surface-variant">
-                    <Icon name="hourglass-empty-rounded" size={12} />
-                    Chờ
-                  </span>
-                )}
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-    </aside>
-  </div>
+    )
+  }
 </AccountFrame>
+
+<script>
+  // Deleting asks once.
+  document.querySelectorAll<HTMLButtonElement>('[data-confirm]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      if (!confirm(b.dataset.confirm)) e.preventDefault();
+    }),
+  );
+</script>

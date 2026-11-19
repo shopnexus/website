@@ -1,13 +1,81 @@
 ---
-// Cách đăng tin: the Đăng tin form as the mockups draw it (sell.html, which
-// the footer's "Cách đăng tin" opens), filled with an example listing.
-import SellForm from '../components/flows/SellForm.astro';
+// Cách đăng tin: the four steps of Đăng tin as a guide, with the way in.
+import artAiCamera from '@brand/art_ai_camera.webp';
+import artAiReading from '@brand/art_ai_reading.webp';
+import artCodReady from '@brand/art_cod_ready.webp';
+import artPosted from '@brand/art_posted.webp';
+import Icon from '../components/Icon.astro';
+import Photo from '../components/Photo.astro';
 import Layout from '../layouts/Layout.astro';
-import { CONTENT } from '../lib/ui';
+import { R } from '../lib/routes';
+import { btnCls, CONTENT, H2, PANEL } from '../lib/ui';
+
+const steps: { art: ImageMetadata; title: string; text: string }[] = [
+  { art: artAiCamera, title: 'Ảnh', text: 'Tải từ 1 đến 10 ảnh rõ, chụp đủ các mặt và chỗ trầy nếu có. Ảnh đầu là ảnh bìa.' },
+  {
+    art: artAiReading,
+    title: 'Món đồ',
+    text: 'Bấm “AI điền giúp” để AI đọc ảnh bìa và điền tiêu đề, danh mục, tình trạng, mô tả. Bạn sửa lại cho đúng món của mình.',
+  },
+  {
+    art: artPosted,
+    title: 'Giá',
+    text: 'Giá tham khảo so với tin giống món này đã bán và đang bán. Bật “Cho phép trả giá” nếu bạn sẵn lòng thương lượng.',
+  },
+  {
+    art: artCodReady,
+    title: 'Giao dịch',
+    text: 'Chọn phường, xã nơi bán. Người mua trả tiền cho shipper khi nhận và được xem hàng trước; bạn tạo vận đơn bằng tài khoản GHTK hoặc GHN của mình.',
+  },
+];
+const notes = [
+  'Cần số điện thoại trong tài khoản để đăng tin.',
+  'Tin hiện sau khi ShopNexus xử lý xong ảnh. Ảnh không dùng được thì tin bị từ chối kèm lý do, bạn sửa rồi lưu lại.',
+  'Nháp tự lưu khi bạn điền và giữ 30 ngày từ lần sửa cuối.',
+];
+const badge = 'grid h-9 w-9 place-items-center rounded-full bg-brand text-title-small text-white tabular-nums';
 ---
 
-<Layout fab={false} title="Cách đăng tin · ShopNexus" description="Tải vài tấm ảnh lên, AI điền giúp tên, tình trạng và giá.">
+<Layout fab={false} title="Cách đăng tin · ShopNexus" description="Cách đăng tin trên ShopNexus: ảnh, món đồ, giá và giao dịch COD.">
   <main class={CONTENT}>
-    <SellForm />
+    <section class="pt-8 lg:pt-10">
+      <p class="text-label-large text-primary">Bán đồ</p>
+      <h1 class="mt-1 text-j-28 text-ink md:text-j-32">Đăng tin trong vài phút</h1>
+      <p class="mt-2 max-w-[600px] text-body-large text-on-surface-variant">Bốn bước, từ ảnh tới lúc tin lên. AI điền giúp phần chữ, bạn chỉ cần xem lại.</p>
+      <a href={R.post} class:list={[btnCls('ink', 'lg'), 'mt-6 inline-flex']}><Icon name="add-photo-alternate-outline-rounded" size={18} />Đăng tin</a>
+    </section>
+
+    <section class="mt-10">
+      <h2 class={H2}>Bốn bước của Đăng tin</h2>
+      <ol class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {
+          steps.map((s, i) => (
+            <li class:list={[PANEL, 'flex flex-col p-5']}>
+              <div class="flex items-start justify-between">
+                <span class={badge}>{i + 1}</span>
+                <Photo src={s.art} alt="" class="-mr-1 -mt-1 h-[92px] w-[92px] object-contain" />
+              </div>
+              <h3 class="mt-1 text-j-20 text-ink">{s.title}</h3>
+              <p class="mt-1.5 text-body-medium text-on-surface-variant">{s.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class:list={[PANEL, 'mt-6 p-5']}>
+      <h2 class={H2}>Trước khi đăng</h2>
+      <ul class="mt-3 flex flex-col gap-2">
+        {
+          notes.map((n) => (
+            <li class="flex items-start gap-2.5 text-body-medium text-ink">
+              <Icon name="check-circle-rounded" size={18} class="mt-0.5 shrink-0 text-primary" />
+              {n}
+            </li>
+          ))
+        }
+      </ul>
+      <a href={R.listingRules} class="mt-3 inline-block text-label-large text-primary hover:underline">Quy định đăng tin</a>
+    </section>
   </main>
 </Layout>

@@ -1,0 +1,145 @@
+---
+// One of the seller's listings on Tin của bạn: cover, title, price, status,
+// its numbers, the order waiting on it, and the ⋮ menu of what its status
+// allows. Each action is a form post the page handles.
+import type { Schemas } from '../../lib/api/client';
+import { ago, date } from '../../lib/format';
+import { R } from '../../lib/routes';
+import { btnCls } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import Photo from '../Photo.astro';
+import Price from '../Price.astro';
+
+interface Props {
+  it: Schemas['MyListingsItem'];
+  loading?: 'eager' | 'lazy';
+}
+
+const { it, loading } = Astro.props;
+const l = it.listing;
+const cover = l.photos[0]?.thumb_url ?? l.photos[0]?.url;
+const pub = l.status === 'active' || l.status === 'reserved';
+const STATUS: Partial<Record<Schemas['ListingStatus'], [string, string]>> = {
+  processing: ['hourglass-empty-rounded', 'Đang xử lý ảnh'],
+  hidden: ['visibility-off-outline-rounded', 'Đã ẩn'],
+  rejected: ['error-outline-rounded', 'Bị từ chối'],
+  reserved: ['local-shipping-outline-rounded', 'Đang giao'],
+  sold: ['check-circle-outline-rounded', l.sold_at ? `Đã bán ${date(l.sold_at)}` : 'Đã bán'],
+};
+const status = STATUS[l.status];
+const failures = l.photos.flatMap((p, i) => (p.failure ? [`Ảnh ${i + 1}: ${p.failure}`] : []));
+const stats = [
+  { icon: 'visibility-outline-rounded', n: it.views, t: `Lượt xem, ${it.views_7d} trong 7 ngày` },
+  { icon: 'chat-outline-rounded', n: it.askers, t: 'Người hỏi' },
+  { icon: 'favorite-outline-rounded', n: it.saves, t: 'Lượt lưu' },
+];
+
+type Action = { step: string; icon: string; label: string; confirm?: string };
+const del: Action = { step: 'delete', icon: 'delete-outline-rounded', label: 'Xóa tin', confirm: 'Xóa tin này? Không hoàn tác được.' };
+const sold: Action = { step: 'mark-sold', icon: 'sell-outline-rounded', label: 'Đánh dấu đã bán' };
+const actions: Action[] =
+  {
+    processing: [del],
+    active: [sold, { step: 'hide', icon: 'visibility-off-outline-rounded', label: 'Ẩn tin' }, del],
+    hidden: [{ step: 'unhide', icon: 'visibility-outline-rounded', label: 'Hiện lại' }, sold, del],
+    rejected: [del],
+    reserved: [],
+    sold: [{ step: 'unmark-sold', icon: 'undo-rounded', label: 'Bán lại' }, del],
+    deleted: [],
+  }[l.status] ?? [];
+const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
+---
+
+<article class="relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-card p-2 md:flex-nowrap">
+  <div class="flex min-w-0 flex-1 basis-full items-center gap-4 md:basis-auto">
+    {
+      cover ? (
+        <Photo src={cover} width={160} height={160} alt={l.title} loading={loading} class:list={['h-16 w-16 shrink-0 rounded-lg object-cover', l.status === 'hidden' && 'opacity-50']} />
+      ) : (
+        <span class="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-surface-container-high text-on-surface-variant">
+          <Icon name="image-outline-rounded" size={22} />
+        </span>
+      )
+    }
+    <div class="min-w-0 flex-1">
+      <h3 class="truncate text-title-small text-ink">
+        {pub ? <a href={R.listing(l.id)} class="hover:underline">{l.title}</a> : l.title}
+      </h3>
+      <div class="mt-0.5 flex items-center gap-3 overflow-hidden whitespace-nowrap">
+        <Price vnd={l.price} size="text-j-15" />
+        <span class="h-3 border-l border-black/10"></span>
+        <span class="flex items-center gap-3 text-body-small text-on-surface-variant">
+          {
+            stats.map((s) => (
+              <span class="flex items-center gap-1" title={s.t}>
+                <Icon name={s.icon} size={15} />
+                <span class="tabular-nums">{s.n}</span>
+                <span class="sr-only">{s.t}</span>
+              </span>
+            ))
+          }
+          <span class="flex items-center gap-1" title="Đã đăng">
+            <Icon name="schedule-outline-rounded" size={15} />{ago(l.published_at ?? l.created_at)}
+          </span>
+        </span>
+      </div>
+      {failures.map((f) => <p class="mt-0.5 text-body-small text-error">{f}</p>)}
+    </div>
+  </div>
+  <div class="ml-20 flex flex-1 flex-wrap items-center justify-end gap-2 md:ml-0 md:flex-none">
+    {
+      status && (
+        <span class="flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-label-medium text-on-surface-variant">
+          <Icon name={status[0]} size={16} />
+          {status[1]}
+        </span>
+      )
+    }
+    {
+      it.order && (
+        <a
+          href={`${R.messages}?deal=${it.order.deal_id}`}
+          class:list={[
+            'state-layer flex h-9 items-center gap-2 rounded-control pl-3 pr-2 text-label-large',
+            it.order.status === 'pending' ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container',
+          ]}
+        >
+          <Icon name={it.order.status === 'pending' ? 'receipt-long-outline-rounded' : 'local-shipping-outline-rounded'} size={17} />
+          {it.order.status === 'pending' ? 'Có đơn chờ bạn' : 'Đơn đang giao'}
+          <Icon name="chevron-right-rounded" size={18} />
+        </a>
+      )
+    }
+    {
+      editable && (
+        <a href={`${R.post}?edit=${l.id}`} class={btnCls('line', 'sm')}>
+          <Icon name="edit-outline-rounded" size={16} />
+          Sửa
+        </a>
+      )
+    }
+    {
+      actions.length > 0 && (
+        <details class="relative" data-row-menu>
+          <summary class="state-layer grid h-9 w-9 cursor-pointer list-none place-items-center rounded-full text-on-surface-variant [&::-webkit-details-marker]:hidden" aria-label={`Tùy chọn cho ${l.title}`}>
+            <Icon name="more-vert" size={20} />
+          </summary>
+          <form method="post" class="absolute right-0 top-10 z-20 flex w-[220px] flex-col rounded-tile bg-card/95 p-1.5 shadow-float ring-1 ring-line backdrop-blur">
+            <input type="hidden" name="id" value={l.id} />
+            {actions.map((a) => (
+              <button
+                name="step"
+                value={a.step}
+                class:list={['flex h-11 w-full items-center gap-3 rounded-md px-3 text-left text-body-medium hover:bg-black/[.05]', a.step === 'delete' ? 'text-error' : 'text-ink']}
+                data-confirm={a.confirm}
+              >
+                <Icon name={a.icon} size={20} class={a.step === 'delete' ? '' : 'text-on-surface-variant'} />
+                {a.label}
+              </button>
+            ))}
+          </form>
+        </details>
+      )
+    }
+  </div>
+</article>

@@ -33,7 +33,7 @@ export const R = {
   messages: '/messages', // messages
   notifications: '/notifications', // notifications
   support: '/support', // support
-  post: '/sell', // "Đăng tin" opens the app's flow; the web has no form yet
+  post: '/sell', // sell: Đăng tin; ?edit=<id> edits a listing, ?draft=<id> opens a draft
   /** Home's feed as HTML cards, a page at a time: ?tab=&after= (feedPage in lib/feed.ts). */
   feed: '/feed',
 } as const;
@@ -51,6 +51,12 @@ export const API = {
   socket: '/api/socket',
   /** Chat nhanh on a listing: a message or an offer (QuickChat). */
   quickChat: (listing: string) => `/api/listings/${listing}/chat`,
+  /** Đăng tin: the autosaved draft, the read of the cover, the price guide and the category guess. */
+  listingDraft: (id: string) => `/api/listing-drafts/${id}`,
+  listingReads: '/api/listing-reads',
+  listingRead: (id: string) => `/api/listing-reads/${id}`,
+  priceGuides: '/api/price-guides',
+  categoryGuesses: '/api/category-guesses',
 } as const;
 
 /**

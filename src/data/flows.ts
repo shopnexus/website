@@ -47,31 +47,6 @@ export const HOW_DONT = [
   },
 ];
 
-// ---------------------------------------------------------------- Đăng tin --
-
-export const SELL = {
-  title: 'iPhone 11 64GB Trắng, máy zin',
-  photo: '1603891128711-11b4b03bb138',
-  /** [photo id, focal x, focal y, zoom, alt]. The first is the cover. */
-  photos: [
-    ['1603891128711-11b4b03bb138', 0.5, 0.5, 1, 'Mặt lưng'],
-    ['1603891128711-11b4b03bb138', 0.25, 0.25, 3, 'Cụm camera'],
-    ['1603891128711-11b4b03bb138', 0.5, 0.62, 1.8, 'Logo và mặt lưng'],
-    ['1591337676887-a217a6970a8a', 0.5, 0.5, 1.2, 'Mặt trước'],
-  ] as [string, number, number, number, string][],
-  claims: ['Pin 81%', 'Bản VN/A', 'Chưa từng sửa', 'Kèm cáp sạc'],
-  description: 'Máy dùng 3 năm, chưa sửa chữa hay thay linh kiện. Face ID và camera hoạt động tốt. Kèm cáp sạc.',
-  price: 4_800_000,
-  guide: { low: 4_400_000, high: 5_100_000, median: 4_800_000, axis: [4_000_000, 5_600_000], sold: 18, live: 12, waiting: 23 },
-  soldBins: [1, 2, 3, 5, 4, 2, 1, 0],
-  /** [photo id, focal x, focal y, zoom, price, condition, where]. */
-  similar: [
-    ['1591337676887-a217a6970a8a', 0.5, 0.5, 1, 4_900_000, 'Như mới', '1,2 km'],
-    ['1510557880182-3d4d3cba35a5', 0.5, 0.45, 1.2, 4_400_000, 'Đã dùng', '2,5 km'],
-    ['1591337676887-a217a6970a8a', 0.4, 0.35, 1.5, 5_300_000, 'Đã dùng', '3,1 km'],
-  ] as [string, number, number, number, number, string, string][],
-};
-
 // ---------------------------------------------------------------- Trợ giúp --
 
 export const HELP_SAFETY = 'Ai đòi chuyển cọc trước, bạn báo cáo trong menu của chat.';

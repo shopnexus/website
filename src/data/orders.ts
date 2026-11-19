@@ -1,8 +1,7 @@
-// Mock content for the orders and selling pages: Đơn hàng, an order, Đơn bán,
-// Tin của bạn, Thiết lập giao COD and Hỗ trợ. It comes from
+// Mock content for the orders pages: Đơn hàng, an order, Đơn bán,
+// Thiết lập giao COD and Hỗ trợ. It comes from
 // .superdesign/tools/build_j_orders.py and build_j_flows.py (support).
 
-import { R } from '../lib/routes';
 import { ADDRESS_BOOK, ME } from './common';
 
 /** People's faces by name. */
@@ -151,59 +150,6 @@ export const SALE = {
     ...ADDRESS_BOOK.map((a) => ({ t: a.label, sub: `${a.street}, ${a.ward.replace(', TP.HCM', '')}` })),
   ] as { t: string; sub: string; on?: boolean }[],
 };
-
-// ----------------------------------------------------------- Tin của bạn --
-
-export interface MyListing {
-  photo: string;
-  title: string;
-  price: number;
-  views: number;
-  chats: number;
-  saves: number;
-  age: string;
-  /** price: a lower price is suggested; hidden; or a deal waiting on the seller. */
-  extra?: 'price' | 'hidden' | { icon: string; label: string; todo: boolean; href: string };
-  menu?: boolean;
-}
-
-export const ON_SALE: MyListing[] = [
-  { photo: '1510915361894-db8b60106cb1', title: 'Đàn guitar acoustic Yamaha F310, kèm bao', price: 1_900_000, views: 86, chats: 2, saves: 5, age: '12 ngày', extra: 'price' },
-  { photo: '1503602642458-232111445657', title: 'Ghế đôn gỗ thông cao 45 cm', price: 350_000, views: 24, chats: 1, saves: 1, age: '5 ngày',
-    extra: { icon: 'receipt-long-outline-rounded', label: 'Chờ bạn tạo đơn', todo: true, href: R.sales } },
-  { photo: '1505740420928-5e560c06d30e', title: 'Tai nghe chống ồn Sony WH-1000XM4, fullbox', price: 3_200_000, views: 58, chats: 3, saves: 2, age: '9 ngày',
-    extra: { icon: 'local-shipping-outline-rounded', label: 'Đang giao · Minh Thư', todo: false, href: '#' } },
-  { photo: '1510557880182-3d4d3cba35a5', title: 'iPhone X 64GB, pin 86%, máy zin chưa sửa', price: 3_900_000, views: 86, chats: 4, saves: 7, age: '6 ngày', menu: true },
-  { photo: '1586023492125-27b2c045efd7', title: 'Ghế bành bọc vải vàng mù tạt, khung gỗ sồi', price: 1_600_000, views: 31, chats: 0, saves: 2, age: '20 ngày', extra: 'hidden' },
-];
-
-export const LISTING_MENU = [
-  { icon: 'edit-outline-rounded', label: 'Sửa tin' },
-  { icon: 'sell-outline-rounded', label: 'Đánh dấu đã bán' },
-  { icon: 'visibility-off-outline-rounded', label: 'Ẩn tin' },
-  { icon: 'delete-outline-rounded', label: 'Xóa tin' },
-];
-
-export const LISTING_STATS = [
-  { icon: 'visibility-outline-rounded', n: '214', label: 'Lượt xem · 7 ngày', delta: '+18%' },
-  { icon: 'chat-outline-rounded', n: '9', label: 'Người hỏi · 7 ngày', delta: '+3' },
-  { icon: 'favorite-outline-rounded', n: '17', label: 'Lượt lưu · 7 ngày' },
-  { icon: 'payments-outline-rounded', n: '4,2 tr', label: 'Đã bán · tháng 10' },
-];
-
-export const DRAFTS = [
-  { photo: '1611186871348-b1ce696e52c9', title: 'MacBook Air M1 8/256GB', line: '4 ảnh · 11.500.000 ₫', icon: 'schedule-outline-rounded', label: 'Còn 2 ngày' },
-  { photo: '1603891128711-11b4b03bb138', title: 'iPhone 11 64GB Trắng, máy zin', line: '3 ảnh · chưa có giá', icon: 'cloud-off-outline-rounded', label: 'Chưa đồng bộ' },
-];
-
-/** rated: true (5 sao), false (waiting), null (sold outside ShopNexus). */
-export const RECENTLY_SOLD: { photo: string; title: string; who: string; when: string; rated: boolean | null }[] = [
-  { photo: '1526170375885-4d8ecf77b99f', title: 'Máy ảnh Polaroid OneStep 2', who: 'Minh Anh', when: 'Thứ Hai', rated: true },
-  { photo: '1593764592116-bfb2a97c642a', title: 'Fixie đen mờ size 50', who: 'Quốc Bảo', when: 'Hôm nay', rated: false },
-  { photo: '1585515320310-259814833e62', title: 'Máy xay sinh tố 2L', who: 'Người ngoài ShopNexus', when: '28/10', rated: null },
-];
-
-export const SOLD_COUNT = 14;
 
 // ---------------------------------------------------- Thiết lập giao COD --
 
