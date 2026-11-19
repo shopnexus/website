@@ -68,7 +68,6 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
       <section class="mt-9" data-feed>
         <div class="flex items-center justify-between border-b border-line">
           <Seg items={tabs} variant="tabs" name="Bảng tin" />
-          <span class="hidden pb-2 text-body-small text-faint md:block">Gần thì ghi km, xa thì ghi nơi bán</span>
         </div>
         <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" aria-live="polite" data-feed-grid>
           {home.forYou.map((it, i) => <ListingCard item={it} loading={i < 8 ? 'eager' : 'lazy'} />)}

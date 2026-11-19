@@ -51,7 +51,7 @@ def search():
     grid = "".join(card(it, i, saved=i == 1) for i, it in enumerate(items[:8]))
     alert = f"""<div class="col-span-4 flex items-center gap-4 rounded-[24px] border line bg-white py-3 pl-3 pr-3">
   <span class="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-[#066A61] to-[#5CC2B4] text-white">{icon("notifications-outline-rounded", 22)}</span>
-  <p class="flex-1 text-body-l ink"><b class="font-semibold">Chưa thấy máy ưng?</b> <span class="text-on-surface-variant">Có laptop mới khớp câu này, ShopNexus báo bạn.</span></p>
+  <p class="flex-1 text-body-l ink"><b class="font-semibold">Chưa thấy máy ưng?</b></p>
   <button type="button" class="state h-10 rounded-full bg-[var(--ink)] px-5 text-label-l text-white">Báo khi có tin mới</button>
 </div>"""
     grid += alert + "".join(card(it, i + 8) for i, it in enumerate(items[8:12]))
@@ -198,7 +198,7 @@ def home(signed_in=True):
     <div>
       <div class="flex items-center justify-between">
         {seg(tabs, 0, "bg-black/[.05]")}
-        <span class="text-body-s text-on-surface-variant">Mọi tỉnh thành · gần thì ghi km, xa thì ghi nơi bán</span>
+        <span class="text-body-s text-on-surface-variant">Mọi tỉnh thành</span>
       </div>
       <div class="mt-4 grid grid-cols-4 gap-4">{"".join(card(it, i, saved=signed_in and i == 2) for i, it in enumerate(feed[:12]))}</div>
       <div class="mt-6 flex justify-center"><button type="button" class="state h-11 rounded-full border line bg-white px-6 text-label-l ink">Xem thêm tin</button></div>

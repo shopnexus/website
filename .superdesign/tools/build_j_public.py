@@ -101,7 +101,7 @@ def category():
     <div class="glass glass-edge soft sticky top-[76px] z-20 flex items-center gap-2 rounded-full py-1 pl-1.5 pr-1">{bar}</div>
     <div class="mt-4 flex items-baseline justify-between px-1">
       <h2 class="text-[26px] font-semibold leading-8 tighter ink">Máy đang bán</h2>
-      <span class="text-body-s text-on-surface-variant">Mọi tỉnh thành · gần thì ghi km, xa thì ghi nơi bán</span>
+      <span class="text-body-s text-on-surface-variant">Mọi tỉnh thành</span>
     </div>
     <div class="mt-4 grid grid-cols-4 gap-4">{grid}</div>
     <div class="mt-6 flex justify-center"><button type="button" class="state h-11 rounded-full border line bg-white px-6 text-label-l ink">Xem thêm 3.404 máy</button></div>
@@ -640,7 +640,6 @@ def search_empty():
     <div class="flex flex-col gap-3">
       <div class="rounded-[24px] bg-gradient-to-br from-[#066A61] to-[#0E8A7D] p-5 text-white">
         <p class="flex items-center gap-2 text-title-m font-semibold tight">{icon("notifications-outline-rounded", 20)}Báo khi có tin mới</p>
-        <p class="mt-1 text-body-s text-white/80">Có máy khớp cả 4 điều kiện, ShopNexus báo bạn ngay. Tháng trước có 2 máy như vậy.</p>
         <button type="button" class="state mt-4 h-10 w-full rounded-full bg-white text-label-l text-primary">Bật báo tin</button>
       </div>
       <div class="rounded-[24px] border line bg-white p-3">{trending(3)}</div>

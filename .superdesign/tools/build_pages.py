@@ -115,7 +115,7 @@ def search():
     rows = [result_row(it, i) for i, it in enumerate(SEARCH_RESULTS + EXTRA)]
     alert = f"""<div class="my-3 flex items-center gap-6 overflow-hidden rounded-xl bg-secondary-container py-2 pl-4 pr-8">
   <img src="{ART["art_search"]}" alt="" class="h-[132px] w-[132px] shrink-0">
-  <div class="flex-1"><p class="text-title-l text-on-surface">Chưa thấy máy ưng?</p><p class="mt-1 text-body-m text-on-secondary-container">Có laptop mới khớp câu này là ShopNexus báo bạn ngay.</p></div>
+  <div class="flex-1"><p class="text-title-l text-on-surface">Chưa thấy máy ưng?</p></div>
   <button type="button" class="state flex h-10 items-center gap-2 rounded-full bg-surface-container-lowest px-5 text-label-l text-primary">{icon("notifications-active-outline-rounded", 20)}Báo khi có tin mới</button>
 </div>"""
     listing = "".join(rows[:3]) + alert + "".join(rows[3:])

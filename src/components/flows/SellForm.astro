@@ -349,9 +349,6 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
   <aside class="self-start lg:sticky lg:top-[84px]">
     <div class:list={[PANEL, 'flex flex-col gap-2 p-5']}>
       <p class="text-title-small text-ink">{editId ? 'Lưu thay đổi' : 'Sẵn sàng đăng?'}</p>
-      <p class="text-body-small text-on-surface-variant">
-        {editId ? 'Thêm ảnh mới thì tin xử lý lại ảnh trước khi hiện lại.' : 'Tin hiện sau khi ShopNexus xử lý xong ảnh, thường trong vài phút.'}
-      </p>
       <button name="step" value="post" class:list={[btnCls('ink', 'lg'), 'mt-2 !h-12 w-full disabled:opacity-50']} disabled={locked} data-submit>
         <Icon name="send-rounded" size={18} />
         {editId ? 'Lưu tin' : 'Đăng tin'}
