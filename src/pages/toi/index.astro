@@ -15,6 +15,7 @@ import { ADDRESS_BOOK, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
 import { img } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { requireViewer, theme } from '../../lib/session';
+import { THEMES } from '../../lib/theme';
 import { btnCls, LABEL, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
@@ -186,7 +187,7 @@ const settings = [
       <p class={LABEL}>Giao diện</p>
       <p class="mt-3 px-1 text-body-large text-ink">Giao diện tối</p>
       <div class="mt-2">
-        <Seg items={['Theo hệ thống', 'Sáng', 'Tối']} selected={['light', 'dark'].indexOf(theme(Astro) ?? '') + 1} class="bg-surface-container-low" itemClass="text-label-medium" name="Giao diện tối" />
+        <Seg items={THEMES} selected={['light', 'dark'].indexOf(theme(Astro) ?? '') + 1} class="bg-surface-container-low" itemClass="text-label-medium" name="Giao diện tối" />
       </div>
       <p class="mt-3 px-1 text-body-small text-on-surface-variant">Theo hệ thống thì trang đổi sáng tối cùng máy của bạn.</p>
     </div>
@@ -245,13 +246,10 @@ const settings = [
 </AccountShell>
 
 <script>
-  // "Giao diện tối" sets the theme and keeps it in a cookie; "Theo hệ thống" follows the system.
-  const seg = document.querySelector<HTMLElement>('[aria-label="Giao diện tối"]');
-  seg?.addEventListener('seg-change', (e) => {
-    const i = (e as CustomEvent<{ index: number }>).detail.index;
-    const t = ['', 'light', 'dark'][i];
-    if (t) document.documentElement.dataset.theme = t;
-    else delete document.documentElement.dataset.theme;
-    document.cookie = t ? `sn_theme=${t}; path=/; max-age=31536000; samesite=lax` : 'sn_theme=; path=/; max-age=0';
-  });
+  import { setTheme } from '../../lib/theme';
+
+  // "Giao diện tối" sets the theme and keeps it in a cookie.
+  document
+    .querySelector('[aria-label="Giao diện tối"]')
+    ?.addEventListener('seg-change', (e) => setTheme((e as CustomEvent<{ index: number }>).detail.index));
 </script>

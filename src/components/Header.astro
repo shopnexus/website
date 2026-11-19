@@ -1,15 +1,18 @@
 ---
-import Photo from './Photo.astro';
-// K2's bar: the page colour, a hairline under it, sticky. The search field is
-// always there, so a buyer can search from any page; Tìm kiếm fills it with
-// the query. From expanded up it carries Tin nhắn, Thông báo, the account and
-// "Đăng tin"; below, those move to BottomNav.
+// K2's bar, one sticky 64 px row. Search opens recent searches and categories.
+// From expanded up it adds Danh mục, Đã lưu, Thông báo, Tin nhắn, "Đăng tin"
+// and the avatar's menu, last on the right; below that BottomNav has them.
 import brandMark from '@brand/brand_mark.svg';
+import { CATEGORY_INDEX } from '../data/public';
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
+import { theme, viewer } from '../lib/session';
+import { THEMES } from '../lib/theme';
 import { CONTENT } from '../lib/ui';
-import { viewer } from '../lib/session';
 import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import Popover from './Popover.astro';
+import Seg from './Seg.astro';
 
 export type Section = 'explore' | 'categories' | 'how';
 
@@ -22,17 +25,37 @@ interface Props {
 const { search } = Astro.props;
 const me = viewer(Astro);
 const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounded-control text-ink hover:bg-hover lg:grid';
+const badge = 'absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-page bg-brand px-1 text-label-small text-white';
+const item = 'state-layer flex h-10 w-full items-center gap-3 rounded-control px-3 text-body-large hover:bg-hover';
+const sell = 'state-layer hidden h-10 shrink-0 items-center gap-1.5 rounded-control bg-brand px-4 text-title-small text-white hover:bg-brand-hover lg:flex';
+const account = [
+  { icon: 'receipt-long-outline-rounded', title: 'Đơn mua', href: R.orders },
+  { icon: 'storefront-outline-rounded', title: 'Đơn bán', href: R.sales },
+  { icon: 'sell-outline-rounded', title: 'Tin của bạn', href: R.myListings },
+  { icon: 'support-agent-outline-rounded', title: 'Hỗ trợ', href: R.support },
+];
 ---
 
 <header class="glass sticky top-0 z-30 border-b border-line">
-  <div class:list={[CONTENT, 'flex h-16 items-center gap-3 lg:gap-4']}>
-    <a href={R.home} class="flex shrink-0 items-center gap-2 lg:pr-2">
+  <div class:list={[CONTENT, 'flex h-16 items-center gap-3']}>
+    <a href={R.home} class="flex shrink-0 items-center gap-2 lg:pr-1" aria-label="ShopNexus, Trang chủ">
       <Photo src={brandMark} alt="" class="h-8 w-8" />
-      <span class="text-j-16 text-ink max-md:sr-only">ShopNexus</span>
+      <span class="text-j-16 text-ink max-md:hidden lg:max-xl:hidden">ShopNexus</span>
     </a>
+    <button
+      type="button"
+      popovertarget="hdr-cats"
+      class="state-layer hidden h-10 shrink-0 items-center gap-1.5 rounded-control px-3 text-title-small text-ink hover:bg-hover lg:flex"
+    >
+      <Icon name="category-outline-rounded" size={18} />
+      Danh mục
+      <Icon name="keyboard-arrow-down-rounded" size={16} class="text-faint" />
+    </button>
     <form
       action={R.search}
-      class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-control border border-field bg-card pl-3 pr-1 focus-within:border-brand lg:max-w-[720px]"
+      data-anchor="hdr-find"
+      data-search
+      class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-control border border-field bg-card pl-3 pr-1 focus-within:border-brand"
     >
       {
         search?.photo ? (
@@ -46,8 +69,10 @@ const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounde
         value={search?.q ?? ''}
         placeholder="Tìm iPhone, xe đạp, sofa…"
         aria-label="Tìm trên ShopNexus"
+        autocomplete="off"
         class="h-full min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-faint"
       />
+      <kbd class="hidden rounded-xs border border-line px-1.5 text-label-small text-faint lg:block" title="Bấm / để tìm">/</kbd>
       <a
         href={R.photoSearch}
         class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-md text-sub hover:bg-hover"
@@ -56,46 +81,214 @@ const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounde
         <Icon name="photo-camera-outline-rounded" size={17} />
       </a>
     </form>
-    <div class="ml-auto flex shrink-0 items-center gap-1">
+    <nav class="flex shrink-0 items-center gap-1" aria-label="Tài khoản">
       {
-        me && (
+        me ? (
           <>
-            <a href={R.notifications} class={iconBtn} aria-label="Thông báo, có tin mới">
+            <a href={R.saved} class={iconBtn} aria-label="Đã lưu" title="Đã lưu">
+              <Icon name="favorite-outline-rounded" size={19} />
+            </a>
+            <a href={R.notifications} class={iconBtn} aria-label="Thông báo, có tin mới" title="Thông báo">
               <Icon name="notifications-outline-rounded" size={19} />
-              <span class="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-error" />
+              <span class="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-page bg-error" />
+            </a>
+            <a href={R.messages} class={iconBtn} aria-label="Tin nhắn, 3 chưa đọc" title="Tin nhắn">
+              <Icon name="chat-outline-rounded" size={19} />
+              <span class={badge}>3</span>
+            </a>
+            <span class="mx-1.5 hidden h-6 w-px bg-field lg:block" />
+            <a href={R.post} class={sell}>
+              <Icon name="add-rounded" size={17} />
+              Đăng tin
+            </a>
+            <button
+              type="button"
+              popovertarget="hdr-me"
+              class="state-layer ml-1 flex h-10 shrink-0 items-center gap-0.5 rounded-full pl-1 pr-1.5 hover:bg-hover"
+              aria-label="Tài khoản"
+            >
+              <Photo src={img(me.photo, 80, 80)} width={80} height={80} alt="" class="h-8 w-8 rounded-full object-cover" />
+              <Icon name="keyboard-arrow-down-rounded" size={16} class="text-faint" />
+            </button>
+          </>
+        ) : (
+          <>
+            <a href={R.post} class={sell}>
+              <Icon name="add-rounded" size={17} />
+              Đăng tin
             </a>
             <a
-              href={R.messages}
-              class="state-layer hidden h-10 items-center gap-2 rounded-control px-3 text-title-small text-ink hover:bg-hover lg:flex"
-              aria-label="Tin nhắn, 3 chưa đọc"
+              href={`${R.login}?tiep=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`}
+              class="state-layer ml-1 flex h-10 items-center rounded-control border border-field bg-card px-4 text-title-small text-ink hover:bg-hover"
             >
-              <Icon name="chat-outline-rounded" size={18} />
-              Tin nhắn
-              <span class="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-brand px-1 text-label-small text-white">3</span>
-            </a>
-            <a href={R.me} class="ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-hover" aria-label="Tài khoản">
-              <Photo src={img(me.photo, 80, 80)} width={80} height={80} alt="" class="h-8 w-8 rounded-full object-cover" />
+              Đăng nhập
             </a>
           </>
         )
       }
-      {
-        !me && (
-          <a
-            href={`${R.login}?tiep=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`}
-            class="state-layer flex h-10 items-center rounded-control px-3.5 text-title-small text-ink hover:bg-hover"
-          >
-            Đăng nhập
-          </a>
-        )
-      }
-      <a
-        href={R.post}
-        class="state-layer ml-2 hidden h-10 items-center gap-1.5 rounded-control bg-brand px-4 text-title-small text-white hover:bg-brand-hover lg:flex"
-      >
-        <Icon name="add-rounded" size={17} />
-        Đăng tin
-      </a>
-    </div>
+    </nav>
   </div>
 </header>
+
+<Popover id="hdr-cats" class="w-[560px] p-3" label="Danh mục">
+  <div class="grid grid-cols-2 gap-1">
+    {
+      CATEGORY_INDEX.map((c) => (
+        <a href={R.category(c.slug)} class="state-layer flex items-center gap-3 rounded-control p-2.5 hover:bg-hover">
+          <span class="grid h-9 w-9 place-items-center rounded-control bg-soft">
+            <Icon name={c.icon} size={19} />
+          </span>
+          <span>
+            <span class="block text-body-large">{c.name}</span>
+            <span class="block text-body-small text-faint tabular-nums">{c.count} tin</span>
+          </span>
+        </a>
+      ))
+    }
+  </div>
+  <a href={R.categories} class="mx-2.5 mt-2 block border-t border-line pb-1 pt-3 text-title-small text-brand hover:underline">Xem tất cả danh mục</a>
+</Popover>
+
+<Popover id="hdr-find" match class="p-3" label="Gợi ý tìm kiếm">
+  <div data-recent hidden>
+    <div class="flex items-center justify-between px-1">
+      <p class="text-body-small text-faint">Tìm gần đây</p>
+      <button type="button" data-recent-clear class="text-body-small text-faint hover:underline">Xóa</button>
+    </div>
+    <div class="mt-2 flex flex-wrap gap-2 px-1" data-recent-list></div>
+    <div class="my-3 h-px bg-line"></div>
+  </div>
+  <p class="px-1 text-body-small text-faint">Danh mục</p>
+  <div class="mt-1 grid grid-cols-1 gap-x-2 md:grid-cols-2">
+    {
+      CATEGORY_INDEX.slice(0, 6).map((c) => (
+        <a href={R.category(c.slug)} class="state-layer flex items-center gap-2.5 rounded-control px-2.5 py-2 text-body-large hover:bg-hover">
+          <Icon name={c.icon} size={18} class="text-sub" />
+          <span class="flex-1">{c.name}</span>
+          <span class="text-body-small text-faint tabular-nums">{c.count}</span>
+        </a>
+      ))
+    }
+  </div>
+  <div class="my-3 h-px bg-line"></div>
+  <a href={R.photoSearch} class="state-layer flex items-center gap-3 rounded-control px-2.5 py-2 hover:bg-hover">
+    <span class="grid h-8 w-8 place-items-center rounded-control bg-mint text-on-mint"><Icon name="photo-camera-outline-rounded" size={17} /></span>
+    <span class="flex-1">
+      <span class="block text-body-large">Tìm bằng ảnh</span>
+      <span class="block text-body-small text-faint">Chụp hoặc tải ảnh món đồ</span>
+    </span>
+    <Icon name="chevron-right-rounded" size={18} class="text-faint" />
+  </a>
+</Popover>
+
+{
+  me && (
+    <Popover id="hdr-me" align="end" class="w-[320px]" label="Tài khoản">
+      <a href={R.me} class="state-layer flex items-center gap-3 rounded-control p-2 hover:bg-hover">
+        <Photo src={img(me.photo, 96, 96)} width={96} height={96} alt="" class="h-11 w-11 rounded-full object-cover" />
+        <span class="min-w-0 flex-1">
+          <span class="block text-title-medium">{me.name}</span>
+          <span class="block text-body-small text-faint">Xem trang của bạn · ★ {me.rating}</span>
+        </span>
+        <Icon name="chevron-right-rounded" size={18} class="text-faint" />
+      </a>
+      <div class="my-1.5 h-px bg-line" />
+      {
+        account.map((a) => (
+          <a href={a.href} class={item}>
+            <Icon name={a.icon} size={18} class="text-sub" />
+            {a.title}
+          </a>
+        ))
+      }
+      <div class="my-1.5 h-px bg-line" />
+      <div class="px-3 pb-2 pt-1">
+        <p class="flex h-8 items-center gap-3 text-body-large">
+          <Icon name="bedtime-outline-rounded" size={18} class="text-sub" />Giao diện
+        </p>
+        <Seg
+          items={THEMES}
+          selected={['light', 'dark'].indexOf(theme(Astro) ?? '') + 1}
+          class="mt-1 w-full bg-surface-container-low"
+          itemClass="flex-1 text-label-medium"
+          name="Giao diện"
+        />
+      </div>
+      <form method="post" action={R.logout}>
+        <button type="submit" class:list={[item, 'text-error']}>
+          <Icon name="logout-rounded" size={18} />
+          Đăng xuất
+        </button>
+      </form>
+    </Popover>
+  )
+}
+
+<script>
+  import { setTheme } from '../lib/theme';
+
+  const KEY = 'sn_recent';
+  const form = document.querySelector<HTMLFormElement>('[data-search]')!;
+  const input = form.querySelector('input')!;
+  const find = document.getElementById('hdr-find')!;
+
+  // Recent searches stay in this browser; the server does not keep them yet.
+  const read = (): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) ?? '[]');
+    } catch {
+      return [];
+    }
+  };
+  const write = (list: string[]) => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(list));
+    } catch {}
+  };
+  const render = () => {
+    const list = read();
+    const box = find.querySelector<HTMLElement>('[data-recent]')!;
+    box.hidden = list.length === 0;
+    box.querySelector('[data-recent-list]')!.replaceChildren(
+      ...list.map((q) => {
+        const a = document.createElement('a');
+        a.href = `${form.action}?q=${encodeURIComponent(q)}`;
+        a.className = 'state-layer flex h-8 items-center rounded-full bg-soft px-3 text-body-medium text-ink hover:bg-hover';
+        a.textContent = q;
+        return a;
+      }),
+    );
+  };
+
+  const open = () => {
+    if (find.matches(':popover-open')) return;
+    render();
+    find.showPopover();
+  };
+  input.addEventListener('focus', open);
+  input.addEventListener('click', open);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') find.hidePopover();
+  });
+  form.addEventListener('submit', () => {
+    const q = input.value.trim();
+    if (q) write([q, ...read().filter((x) => x !== q)].slice(0, 6));
+  });
+  find.querySelector('[data-recent-clear]')!.addEventListener('click', () => {
+    write([]);
+    render();
+    input.focus();
+  });
+
+  // "/" outside a field goes to the search.
+  addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    if (e.key !== '/' || t.closest('input, textarea, select, [contenteditable]')) return;
+    e.preventDefault();
+    input.focus();
+  });
+
+  document
+    .querySelector('#hdr-me [aria-label="Giao diện"]')
+    ?.addEventListener('seg-change', (e) => setTheme((e as CustomEvent<{ index: number }>).detail.index));
+</script>

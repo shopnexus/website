@@ -1093,6 +1093,45 @@
           "visualDirection": "tools/build_k2.py (K2 detailed, brand teal)"
         }
       }
+    },
+    "#header": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "activeDraftId": "90d84517-3ce6-4c7f-9296-fa93fd1ba9b8",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_header.py"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
+        ".superdesign/tools/build_k2.py": "712d17000dece24fc54e417d0f5457c5b342c687868aa371036c1719c5bb5654",
+        ".superdesign/tools/build_header.py": "7ca4406b25daff7cad871203418e7f9b636ab3c3a0a690c41964ab550696e141"
+      },
+      "brandAssets": {
+        "logo": {
+          "assetKey": "website-public-favicon.svg"
+        }
+      },
+      "drafts": {
+        "90d84517-3ce6-4c7f-9296-fa93fd1ba9b8": {
+          "title": "Header · A. Một hàng",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_header.py"
+        },
+        "0858ab45-3847-4cad-a647-6ebc56a1db60": {
+          "title": "Header · B. Hai hàng",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_header.py"
+        },
+        "58d3b707-4a67-422c-ba30-f1186dcd998d": {
+          "title": "Header · C. Nhãn dưới icon",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_header.py"
+        }
+      }
     }
   }
 }

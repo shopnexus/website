@@ -1,0 +1,51 @@
+---
+// A top-layer panel under its control (popovertarget, or data-anchor on a field).
+// align: the edge it shares with the control; match: the control's width.
+// Below 600 px it spans the window.
+interface Props {
+  id: string;
+  align?: 'start' | 'end';
+  match?: boolean;
+  class?: string;
+  label?: string;
+}
+
+const { id, align = 'start', match = false, class: cls, label } = Astro.props;
+---
+
+<div
+  id={id}
+  popover="auto"
+  data-align={align}
+  data-match={match ? '' : undefined}
+  aria-label={label}
+  class:list={['pop fixed inset-auto m-0 rounded-lg-plus border-0 bg-card p-2 text-ink shadow-pop', cls]}
+>
+  <slot />
+</div>
+
+<script>
+  // Place each panel under its control as it opens.
+  for (const pop of document.querySelectorAll<HTMLElement>('.pop[popover]')) {
+    pop.addEventListener('beforetoggle', (e) => {
+      if ((e as ToggleEvent).newState !== 'open') return;
+      const anchor = document.querySelector(`[popovertarget="${pop.id}"], [data-anchor="${pop.id}"]`);
+      if (!anchor) return;
+      const r = anchor.getBoundingClientRect();
+      pop.style.top = `${r.bottom + 8}px`;
+      // On a phone it spans the window, 16 px from each side.
+      if (innerWidth < 600) {
+        Object.assign(pop.style, { left: '16px', right: '16px', width: 'auto' });
+        return;
+      }
+      if (pop.dataset.align === 'end') {
+        pop.style.right = `${document.documentElement.clientWidth - r.right}px`;
+        pop.style.left = 'auto';
+      } else {
+        pop.style.left = `${r.left}px`;
+        pop.style.right = 'auto';
+      }
+      if ('match' in pop.dataset) pop.style.width = `${r.width}px`;
+    });
+  }
+</script>
