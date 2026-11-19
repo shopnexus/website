@@ -115,7 +115,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
           <input type="hidden" name="photo" value="" />
           <img alt="Ảnh món đồ" width="240" height="240" class="h-full w-full object-cover" />
           <span class={coverTag}>Ảnh bìa</span>
-          <span class="absolute inset-0 hidden place-items-center bg-black/40 text-label-medium text-white" data-photo-busy>Đang tải…</span>
+          <span class="absolute inset-0 hidden place-items-center bg-black/40 text-white" data-photo-busy><span class="spinner"></span></span>
           <button type="button" class:list={[chip, 'bottom-1.5 left-1.5 group-first:hidden']} aria-label="Đặt làm ảnh bìa" title="Đặt làm ảnh bìa" data-photo-cover>
             <Icon name="star-outline-rounded" size={15} />
           </button>
@@ -366,6 +366,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
 </form>
 
 <script>
+  import { busy } from '../../lib/busy';
   import { wireCommunes } from '../../lib/commune-picker';
   import { group, money } from '../../lib/format';
   import { idempotencyKey, uuidv7 } from '../../lib/key';
@@ -415,6 +416,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       $('[data-photo-count]')!.textContent = `${n}/${MAX}`;
       add.classList.toggle('hidden', n >= MAX);
       if (readBtn) readBtn.disabled = ids().length === 0 || reading;
+      busy(readBtn, reading);
     };
     const changed = () => {
       refresh();
@@ -646,6 +648,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       if (!running) return;
       e.preventDefault();
       leaving = true;
+      busy((e as SubmitEvent).submitter);
       const stop = window.setTimeout(() => running.ctrl.abort(), 5000);
       await running.done;
       clearTimeout(stop);
@@ -655,6 +658,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
     // ---- AI điền giúp: read the cover, then fill what the read has.
     let reading = false;
     const readStatus = $('[data-read-status]');
+    const readHint = readStatus?.textContent ?? '';
     const failures: Record<string, string> = {
       unreadable: 'AI chưa đọc được ảnh này. Thử ảnh rõ hơn nhé.',
       no_item: 'AI không thấy một món đồ rõ ràng trong ảnh bìa.',
@@ -665,7 +669,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       if (!photo || !readStatus) return;
       reading = true;
       refresh();
-      readStatus.textContent = 'Đang đọc ảnh bìa…';
+      readStatus.textContent = readHint;
       const before = snapshot();
       const say = (t: string) => {
         readStatus.textContent = t;

@@ -46,7 +46,7 @@ const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-
       </a>
     </section>
   ) : (
-    <form method="post" action={here} id="ship" class:list={[PANEL, 'p-5']} data-ship data-once data-price={order.price}>
+    <form method="post" action={here} id="ship" class:list={[PANEL, 'p-5']} data-ship data-price={order.price}>
       <input type="hidden" name="key" value={idem} />
       {
         edit ? (
@@ -196,9 +196,6 @@ const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-
 }
 
 <script>
-  import { submitOnce } from '../../lib/once';
-
-  submitOnce();
   // Ask the partial (/orders/<id>/ship) for the fees and the preview as the
   // fields change, and put them in. The address keeps the fields for a reload.
   const form = document.querySelector<HTMLFormElement>('[data-ship]');

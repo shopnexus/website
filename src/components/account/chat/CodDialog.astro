@@ -41,7 +41,7 @@ const h3 = 'text-title-small text-ink';
   aria-labelledby="cod-title"
   data-back={back}
 >
-  <form method="post" action={R.messages} class="p-6" data-once>
+  <form method="post" action={R.messages} class="p-6">
     <input type="hidden" name="do" value="cod" />
     <input type="hidden" name="chat" value={d.conversation_id} />
     <input type="hidden" name="deal" value={d.id} />
@@ -126,9 +126,3 @@ const h3 = 'text-title-small text-ink';
     </button>
   </form>
 </dialog>
-
-<script>
-  import { submitOnce } from '../../../lib/once';
-
-  submitOnce(document.getElementById('cod') ?? undefined);
-</script>

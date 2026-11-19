@@ -1,5 +1,6 @@
 // The scripted micro-interactions, imported by Layout.astro on every page:
-// the save heart, figures counting up and share on a listing.
+// the save heart, figures counting up, share on a listing and the pending
+// state of forms (lib/busy).
 // src/styles/motion.css holds the rest, the parts CSS does without a script.
 import { animate, inView } from 'motion';
 import { SPRING, reducedMotion } from '../lib/motion';
@@ -7,12 +8,14 @@ import { isId } from '../lib/listing';
 import { API, R } from '../lib/routes';
 import { toggleRemote } from '../lib/toggle';
 import { snack } from '../lib/snackbar';
+import { watchSubmits } from '../lib/busy';
+
+watchSubmits();
 
 // Save: the heart fills and pops with a ring, /api/saved/<id> saves on the server,
 // and the snackbar offers the list or the undo. A guest goes to Đăng nhập;
 // a failed call puts the heart back.
-function toggleSave(b: HTMLButtonElement, pop = true) {
-  const on = b.getAttribute('aria-pressed') !== 'true';
+function setSave(b: HTMLButtonElement, on: boolean, pop = true) {
   b.setAttribute('aria-pressed', String(on));
   b.setAttribute('aria-label', on ? 'Bỏ lưu tin' : 'Lưu tin');
   if (on && pop && !reducedMotion()) {
@@ -20,14 +23,14 @@ function toggleSave(b: HTMLButtonElement, pop = true) {
     void b.offsetWidth;
     b.classList.add('is-popping');
   }
-  return on;
 }
 async function save(b: HTMLButtonElement) {
-  const on = toggleSave(b);
+  const on = b.getAttribute('aria-pressed') !== 'true';
+  setSave(b, on);
   // A card with no real listing behind it (a preview) only changes on the page.
   if (!isId(b.dataset.save ?? '')) return;
   if (!(await toggleRemote(API.saved(b.dataset.save!), on))) {
-    toggleSave(b, false);
+    setSave(b, !on, false);
     snack({ text: 'Chưa lưu được tin. Thử lại sau.', icon: 'error-outline-rounded', error: true });
     return;
   }

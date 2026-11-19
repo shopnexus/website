@@ -78,14 +78,17 @@ const pick = 'flex-1 cursor-pointer';
 </Layout>
 
 <script>
+  import { busy } from '../lib/busy';
   import { R, loginHref } from '../lib/routes';
+  import { snack } from '../lib/snackbar';
   import { UploadError, uploadPhoto } from '../lib/upload';
 
-  // A chosen, dropped or pasted photo uploads, then the page opens with it.
-  // The photo's preview waits in sessionStorage, since the upload itself is
-  // private; a missing one leaves the icon.
-  const status = document.querySelector<HTMLElement>('[data-photo-status]');
-  const say = (t: string) => status && (status.textContent = t);
+  // A chosen, dropped or pasted photo uploads, then the page opens with it;
+  // the pickers stay busy meanwhile. The photo's preview waits in
+  // sessionStorage, since the upload itself is private; a missing one leaves the icon.
+  const inputs = [...document.querySelectorAll<HTMLInputElement>('[data-photo-input]')];
+  const labels = inputs.map((i) => i.closest('label'));
+  const hold = (on: boolean) => labels.forEach((l) => busy(l, on));
   const words: Record<UploadError['reason'], string> = {
     'sign-in': 'Phiên đăng nhập đã hết. Đăng nhập lại nhé.',
     type: 'Chọn ảnh JPEG, PNG hoặc WebP.',
@@ -94,8 +97,8 @@ const pick = 'flex-1 cursor-pointer';
   };
 
   async function send(file?: File | null) {
-    if (!file) return;
-    say('Đang tải ảnh lên…');
+    if (!file || labels[0]?.getAttribute('aria-busy') === 'true') return;
+    hold(true);
     try {
       const id = await uploadPhoto(file);
       try {
@@ -109,13 +112,18 @@ const pick = 'flex-1 cursor-pointer';
       location.href = `${R.photoSearch}?photo=${id}`;
     } catch (e) {
       const reason = e instanceof UploadError ? e.reason : 'failed';
-      if (reason === 'sign-in') location.href = loginHref(R.photoSearch);
-      else if (status) say(words[reason]);
-      else alert(words[reason]);
+      if (reason === 'sign-in') return void (location.href = loginHref(R.photoSearch));
+      snack({ text: words[reason], error: true });
+      hold(false);
     }
   }
 
-  document.querySelectorAll<HTMLInputElement>('[data-photo-input]').forEach((i) => i.addEventListener('change', () => send(i.files?.[0])));
+  inputs.forEach((i) =>
+    i.addEventListener('change', () => {
+      send(i.files?.[0]);
+      i.value = '';
+    }),
+  );
   const drop = document.querySelector<HTMLElement>('[data-drop]');
   if (drop) {
     drop.addEventListener('dragover', (e) => e.preventDefault());

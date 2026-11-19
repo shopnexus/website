@@ -1,3 +1,4 @@
+import { busy, leaveWith } from './busy';
 import { idempotencyKey } from './key';
 import { connectSocket } from './socket';
 import { snack } from './snackbar';
@@ -100,17 +101,17 @@ export function mountChatPane(o: PaneOptions) {
   // The whole page for this chat's changes; the inbox for other chats'. Bursts wait 250 ms.
   let want: 'page' | 'inbox' | null = null;
   let timer = 0;
-  let busy = false;
+  let fetching = false;
   function schedule(kind: 'page' | 'inbox') {
     if (want !== 'page') want = kind;
     clearTimeout(timer);
     timer = window.setTimeout(run, 250);
   }
   async function run() {
-    if (!want || busy || document.hidden) return;
+    if (!want || fetching || document.hidden) return;
     const kind = want;
     want = null;
-    busy = true;
+    fetching = true;
     try {
       if (kind === 'page') {
         const res = await fetch(at(), { headers: { accept: 'text/html' } });
@@ -119,7 +120,7 @@ export function mountChatPane(o: PaneOptions) {
     } catch {
       // The next update or a reload tries again.
     } finally {
-      busy = false;
+      fetching = false;
       if (want) timer = window.setTimeout(run, 250);
     }
   }
@@ -148,13 +149,18 @@ export function mountChatPane(o: PaneOptions) {
     (document.activeElement as HTMLElement | null)?.blur();
     const buttons = $$<HTMLButtonElement>('button', form);
     buttons.forEach((b) => (b.disabled = true));
+    busy(submitter);
     try {
       await sendInPlace(form, body);
     } catch {
       // Out of reach: a plain post, carrying the button's move in a hidden field.
       if (submitter?.name) form.append(Object.assign(document.createElement('input'), { type: 'hidden', name: submitter.name, value: submitter.value }));
-      form.submit();
+      return leaveWith(form, submitter);
     }
+    // A form the swap kept is ready for the next move; 'sent' tells its page.
+    buttons.forEach((b) => (b.disabled = false));
+    busy(submitter, false);
+    form.dispatchEvent(new Event('sent'));
   });
 
   // --------------------------------------------------------- the composer --
@@ -267,6 +273,7 @@ export function mountChatPane(o: PaneOptions) {
       if (send.disabled) return;
       sending = true;
       ready();
+      busy(send);
       try {
         const code = await sendInPlace(composer);
         if (!code) {
@@ -283,6 +290,7 @@ export function mountChatPane(o: PaneOptions) {
         snack({ text: 'Chưa gửi được. Kiểm tra kết nối rồi thử lại.', error: true });
       } finally {
         sending = false;
+        busy(send, false);
         ready();
         field.focus();
       }
@@ -302,6 +310,7 @@ export function mountChatPane(o: PaneOptions) {
     const b = e.currentTarget as HTMLButtonElement;
     if (!b.dataset.older) return;
     b.disabled = true;
+    busy(b);
     try {
       const res = await fetch(`/messages/older?${new URLSearchParams({ chat: chat(), cursor: b.dataset.older })}`, { headers: { accept: 'text/html' } });
       if (!res.ok) throw new Error(String(res.status));
@@ -321,6 +330,7 @@ export function mountChatPane(o: PaneOptions) {
     } catch {
       snack({ text: 'Chưa tải được tin cũ hơn.', error: true });
     } finally {
+      busy(b, false);
       b.disabled = false;
     }
   });
