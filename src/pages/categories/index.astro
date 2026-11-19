@@ -37,7 +37,7 @@ const counts = new Map(home.categories.flatMap((c) => [[c.code, c.count] as cons
       <SearchField placeholder="Tìm trong mọi danh mục: xe đẩy gấp gọn, dưới 1 triệu" />
     </section>
     <section class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {cats.map((c, i) => <CategoryTile c={c} counts={counts} loading={i < 16 ? 'eager' : 'lazy'} />)}
+      {cats.map((c, i) => <CategoryTile c={c} counts={counts} loading={i < 12 ? 'eager' : 'lazy'} />)}
       <article class="flex flex-col justify-between rounded-panel bg-brand p-5 text-white">
         <div>
           <p class="text-j-16">Không chắc thuộc mục nào?</p>
