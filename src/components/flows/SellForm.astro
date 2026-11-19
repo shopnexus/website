@@ -165,7 +165,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
                 tree.map((r) => (
                   <optgroup label={r.name}>
                     {r.children.map((c) => (
-                      <option value={c.code} selected={c.code === f.category}>
+                      <option value={c.code} selected={c.code === f.category} data-spec-labels={JSON.stringify(c.specs)}>
                         {c.name}
                       </option>
                     ))}
@@ -500,12 +500,43 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
     specAdd.addEventListener('click', () => addSpec().querySelector('input')?.focus());
     specList.addEventListener('click', (e) => {
       const row = (e.target as Element).closest('[data-spec-remove]')?.closest('[data-spec]');
-      if (!row) return;
+      if (!row || row.hasAttribute('data-spec-required')) return;
       if (specList.children.length > 1) row.remove();
       else row.querySelectorAll('input').forEach((i) => (i.value = ''));
       specAdd.hidden = false;
       saveSoon();
     });
+    // The category's own specs lead the list, named and kept; a row the old
+    // category asked for stays only once it has a value.
+    const lock = (row: Element, on: boolean) => {
+      const [l, v] = row.querySelectorAll('input');
+      row.toggleAttribute('data-spec-required', on);
+      l.readOnly = on;
+      v.placeholder = on ? 'Bắt buộc' : 'VD: 81%';
+      const x = row.querySelector<HTMLButtonElement>('[data-spec-remove]')!;
+      x.disabled = on;
+      x.classList.toggle('invisible', on);
+    };
+    const requireSpecs = () => {
+      const want: string[] = JSON.parse(category.selectedOptions[0]?.dataset.specLabels || '[]');
+      const wanted = (l: string) => want.some((w) => w.toLowerCase() === l.trim().toLowerCase());
+      const rows = () => [...specList.querySelectorAll('[data-spec]')];
+      for (const row of rows()) {
+        const [l, v] = row.querySelectorAll('input');
+        if (wanted(l.value)) lock(row, true);
+        else if (row.hasAttribute('data-spec-required')) v.value.trim() ? lock(row, false) : row.remove();
+      }
+      [...want].reverse().forEach((w) => {
+        const same = (r: Element) => r.querySelector('input')!.value.trim().toLowerCase() === w.toLowerCase();
+        const row = rows().find(same) ?? addSpec({ label: w, value: '' });
+        lock(row, true);
+        specList.prepend(row);
+      });
+      if (!rows().some((r) => !r.hasAttribute('data-spec-required'))) addSpec();
+      specAdd.hidden = specList.children.length >= SPECS_MAX;
+    };
+    requireSpecs();
+    category.addEventListener('change', requireSpecs);
     const specs = (): Spec[] =>
       [...specList.querySelectorAll('[data-spec]')]
         .map((r) => {
@@ -530,6 +561,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       const g: { category_code: string | null } | null = res?.ok ? await res.json() : null;
       if (g?.category_code && !category.value && [...category.options].some((o) => o.value === g.category_code)) {
         category.value = g.category_code;
+        requireSpecs();
         guideSoon();
       }
     });
@@ -686,6 +718,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
         d.specs.slice(0, SPECS_MAX - 1).forEach((s) => addSpec(s));
         addSpec();
       }
+      requireSpecs();
       countTitle();
       saveSoon();
       guideSoon();

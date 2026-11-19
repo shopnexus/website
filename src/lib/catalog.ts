@@ -11,6 +11,8 @@ export interface Category {
   icon: string;
   /** The tile's photo URL. */
   photo: string;
+  /** Specs a listing here must give, by label. */
+  specs: string[];
   children: Category[];
 }
 
@@ -34,7 +36,7 @@ const LOOKS: Record<string, [icon: string, photo: string]> = {
 function tree(items: Schemas['Category'][]): Category[] {
   const node = (c: Schemas['Category'], root?: string): Category => {
     const [icon, photo] = LOOKS[root ?? c.code] ?? LOOKS.other;
-    return { code: c.code, name: c.display_name, icon, photo: img(photo, 480, 480), children: [] };
+    return { code: c.code, name: c.display_name, icon, photo: img(photo, 480, 480), specs: c.spec_labels, children: [] };
   };
   const roots = items.filter((c) => !c.parent_code).map((c) => node(c));
   for (const c of items) {
