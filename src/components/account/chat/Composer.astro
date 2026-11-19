@@ -2,6 +2,7 @@
 // The message field, a form post with its Idempotency-Key. Above it, the
 // message being answered and the photos on their way; the script uploads each
 // photo and adds its upload id. Photos need the script, so the button shows with it.
+// The field grows with its lines; Enter sends, Shift+Enter breaks a line.
 import { idempotencyKey } from '../../../lib/api/client';
 import { R } from '../../../lib/routes';
 import Icon from '../../Icon.astro';
@@ -35,20 +36,20 @@ const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-
     <button type="button" class={iconBtn} aria-label="Bỏ trả lời" data-strip-close><Icon name="close-rounded" size={20} /></button>
   </div>
   <div class="mb-2 flex flex-wrap gap-2" hidden data-tray></div>
-  <div class="flex items-center gap-1">
+  <div class="flex items-end gap-1">
     <button type="button" class="state-layer grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Gửi ảnh" hidden data-pick>
       <Icon name="add-photo-alternate-outline-rounded" size={24} />
     </button>
     <input type="file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only" tabindex="-1" aria-hidden="true" data-files />
-    <input
+    <textarea
       name="text"
+      rows="1"
       autocomplete="off"
       maxlength="1000"
       placeholder="Nhắn tin"
       aria-label={`Nhắn tin cho ${peer}`}
-      value={text}
-      class="h-12 min-w-0 flex-1 rounded-full border border-line bg-card px-5 text-body-large text-ink outline-none placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary"
-    />
+      class="max-h-40 min-h-12 min-w-0 flex-1 resize-none rounded-3xl border border-line bg-card px-5 py-3 text-body-large text-ink outline-none [field-sizing:content] placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary"
+    >{text}</textarea>
     <button
       type="submit"
       class="grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant enabled:text-primary enabled:hover:bg-primary/10"

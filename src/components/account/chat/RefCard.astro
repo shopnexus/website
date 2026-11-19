@@ -1,0 +1,45 @@
+---
+// A listing or an order linked in a message, as a card under its text: the
+// photo, the title, the price and, for an order or a listing off sale, its
+// state. The same on every chat.
+import { money } from '../../../lib/format';
+import { LISTING_STATUS, ORDER_STATUS } from '../../../lib/messages';
+import { type Ref, refHref } from '../../../lib/rich-text';
+import Icon from '../../Icon.astro';
+import Photo from '../../Photo.astro';
+
+interface Props {
+  ref: Ref;
+  mine: boolean;
+}
+
+const { ref: r, mine } = Astro.props;
+const thing = r.listing ?? r.order!;
+const thumb = thing.thumb_url;
+const state = r.order ? ORDER_STATUS[r.order.status][1] : r.listing && LISTING_STATUS[r.listing.status];
+---
+
+<a
+  href={refHref(r)}
+  class:list={[
+    'state-layer mt-1.5 flex w-64 max-w-full items-center gap-2.5 rounded-md p-1.5 pr-3',
+    mine ? 'bg-white/14 text-white' : 'bg-surface-container-low text-ink',
+  ]}
+  data-ref-card={r.kind}
+>
+  {
+    thumb ? (
+      <Photo src={thumb} width={96} height={96} alt="" class="h-12 w-12 shrink-0 rounded-sm object-cover" loading="lazy" />
+    ) : (
+      <span class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-black/5">
+        <Icon name={r.order ? 'receipt-long-outline-rounded' : 'sell-outline-rounded'} size={20} />
+      </span>
+    )
+  }
+  <span class="min-w-0 flex-1">
+    <span class="block truncate text-title-small">{r.order ? `Đơn ${r.order.code} · ${thing.title}` : thing.title}</span>
+    <span class:list={['block truncate text-body-small tabular-nums', mine ? 'text-white/75' : 'text-on-surface-variant']}>
+      {[money(thing.price), state].filter(Boolean).join(' · ')}
+    </span>
+  </span>
+</a>

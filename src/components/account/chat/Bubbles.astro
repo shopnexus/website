@@ -1,10 +1,13 @@
 ---
 // Consecutive messages from one side: 2 px apart, the corners on the sender's
 // side tucked, one time under the last. A sent message replies from its hover
-// action; photos sit in the bubble over the text.
+// action or a swipe; photos sit in the bubble over the text, whose ShopNexus
+// links are chips and cards (lib/rich-text).
 import type { Message } from '../../../lib/messages';
+import { carded, renderText } from '../../../lib/rich-text';
 import Icon from '../../Icon.astro';
 import Photo from '../../Photo.astro';
+import RefCard from './RefCard.astro';
 
 interface Props {
   side: 'mine' | 'theirs';
@@ -62,7 +65,8 @@ const who = (id: string) => (id === me ? 'Bạn' : other);
               )}
             </span>
           )}
-          {m.text && <span class="whitespace-pre-line break-words" data-text>{m.text}</span>}
+          {m.text && <span class:list={['msg-text whitespace-pre-line break-words', mine && 'msg-mine']} set:html={renderText(m.text, m.refs)} data-text />}
+          {m.refs?.filter(carded).map((r) => <RefCard ref={r} mine={mine} />)}
           {m.status === 'failed' && m.failure && <span class="mt-1 block text-body-small">{m.failure}</span>}
         </div>
         {replies && m.status === 'sent' && (

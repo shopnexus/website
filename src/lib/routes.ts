@@ -50,7 +50,6 @@ export const API = {
   /** The socket's address and an access token for it, for Tin nhắn. */
   socket: '/api/socket',
   /** Chat nhanh on a listing: a message or an offer (QuickChat). */
-  quickChat: (listing: string) => `/api/listings/${listing}/chat`,
   /** Đăng tin: the autosaved draft, the read of the cover, the price guide and the category guess. */
   listingDraft: (id: string) => `/api/listing-drafts/${id}`,
   listingReads: '/api/listing-reads',

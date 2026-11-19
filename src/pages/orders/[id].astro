@@ -61,7 +61,7 @@ if (Astro.request.method === 'POST') {
         break;
       case 'report': {
         const t = await unwrap(
-          api.POST('/v1/support/tickets', { params: { header: key }, body: { kind: 'not_received', order_id: id, body: s('body') || undefined } }),
+          api.POST('/v1/support/tickets', { params: { header: key }, body: { kind: 'not_received', order_id: id, text: s('text') || undefined } }),
         );
         return Astro.redirect(`${R.support}?ticket=${t.id}`, 303);
       }
@@ -359,7 +359,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
           <input type="hidden" name="key" value={idempotencyKey()} />
           <label class="block rounded-tile border border-line bg-card px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
             <span class="block text-body-small text-on-surface-variant">Chuyện gì đã xảy ra (không bắt buộc)</span>
-            <textarea name="body" rows="3" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
+            <textarea name="text" rows="3" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
           </label>
           <p class="mt-3 flex items-start gap-2 text-body-small text-on-surface-variant">
             <Icon name="balance-rounded" size={16} class="mt-0.5 shrink-0" />

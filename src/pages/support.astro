@@ -47,7 +47,7 @@ if (Astro.request.method === 'POST') {
     }
     if (s('do') === 'new') {
       const kind = s('kind') === 'carrier_request' ? 'carrier_request' : 'other';
-      const body = { kind, carrier_name: kind === 'carrier_request' ? s('carrier_name') : undefined, body: s('body') || undefined } as const;
+      const body = { kind, carrier_name: kind === 'carrier_request' ? s('carrier_name') : undefined, text: s('text') || undefined } as const;
       const t = await unwrap(api.POST('/v1/support/tickets', { params: { header: key }, body }));
       return Astro.redirect(`${R.support}?ticket=${t.id}`, 303);
     }
@@ -212,7 +212,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
               </label>
               <label class="block rounded-lg border border-line bg-card px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
                 <span class="block text-body-small text-on-surface-variant">Nội dung</span>
-                <textarea name="body" rows="5" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
+                <textarea name="text" rows="5" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
               </label>
               <p class="text-body-small text-on-surface-variant">
                 Chưa nhận được hàng? Báo từ trang <a href={R.orders} class="text-primary underline">đơn hàng</a> để ShopNexus xem cùng đơn.

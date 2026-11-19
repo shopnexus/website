@@ -293,6 +293,7 @@ const ld = it && {
       {me && !mine && (
         <QuickChat
           listing={it.id}
+          chat={screen!.viewer?.conversation_id}
           seller={{ name: seller.display_name, photo: seller.avatar_url }}
           title={it.title}
           thumb={photos[0]?.thumb}

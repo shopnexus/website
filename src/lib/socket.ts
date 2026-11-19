@@ -43,7 +43,14 @@ async function ticket(): Promise<Ticket | null> {
   return res.json();
 }
 
+let shared: Socket | null = null;
+
+/** The page's one socket, opened by the first caller; every chat pane shares it. */
 export function connectSocket(): Socket {
+  return (shared ??= open());
+}
+
+function open(): Socket {
   // Only `current` acts: events from a socket that was replaced or closed are ignored.
   let current: WebSocket | null = null;
   let opening = false;

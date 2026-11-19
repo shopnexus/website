@@ -284,3 +284,33 @@
     color: var(--j-ink);
   }
 }
+
+/* A ShopNexus link in a message (lib/rich-text). */
+@layer components {
+  .msg-ref {
+    display: inline-flex;
+    max-width: 100%;
+    vertical-align: bottom;
+    align-items: center;
+    gap: 0.3em;
+    border-radius: 999px;
+    background: var(--color-surface-container-low);
+    padding: 0.05em 0.55em 0.05em 0.45em;
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+  .msg-ref > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .msg-mine .msg-ref {
+    background: rgb(255 255 255 / 0.16);
+    color: #fff;
+  }
+}
+
+/* The chat box's pane blocks sit in its column; its composer goes last, under the chips and the offer tray. */
+[data-qc-box] [data-composer] {
+  order: 1;
+}

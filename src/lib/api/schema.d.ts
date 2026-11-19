@@ -5888,6 +5888,45 @@ export interface components {
             deal_id: string;
             move: components["schemas"]["Move"];
         };
+        /** @description A link in a message and what it points at; the field of its kind is set. */
+        MessageRef: {
+            /** @description The link exactly as it is written in the message's text. */
+            url: string;
+            /** @enum {string} */
+            kind: "listing" | "seller" | "order" | "category" | "search";
+            listing?: {
+                /** Format: uuid */
+                id: string;
+                title: string;
+                /** Format: int64 */
+                price: number;
+                status: components["schemas"]["ListingStatus"];
+                thumb_url?: string;
+            };
+            seller?: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                avatar_url?: string;
+            };
+            order?: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                status: components["schemas"]["OrderStatus"];
+                /** Format: int64 */
+                price: number;
+                title: string;
+                thumb_url?: string;
+            };
+            category?: {
+                code: string;
+                name: string;
+            };
+            search?: {
+                query: string;
+            };
+        };
         /**
          * @description A message a member wrote, or a deal message the server wrote for a move
          *     on a deal of the two. A deal message has deal, an empty text and no
@@ -5916,6 +5955,14 @@ export interface components {
             failure?: string;
             reply_to?: components["schemas"]["chat_Quote"];
             deal?: components["schemas"]["MessageDeal"];
+            /**
+             * @description The ShopNexus links in text, as cards to draw in place of the URL:
+             *     a listing, a person, an order, a category or a search on the
+             *     website, or a shopnexus:// link of the app. A link to something
+             *     gone, hidden, or an order the reader is not a side of, has none and
+             *     stays text.
+             */
+            refs?: components["schemas"]["MessageRef"][];
             /** Format: date-time */
             created_at: string;
         };
@@ -6596,8 +6643,10 @@ export interface components {
             order_id?: string;
             /** @description carrier_request only; 1 to 50 characters after trimming (invalid_ticket). */
             carrier_name?: string;
-            /** @description The first message, at most 1000 characters after trimming; other needs at least 1 (invalid_ticket). */
-            body?: string;
+            /** @description The first message's text, at most 1000 characters after trimming; other needs it or a photo (invalid_ticket). */
+            text?: string;
+            /** @description Uploads of the first message, as a message's photos. */
+            photos?: string[];
         };
         SupportSummary: {
             open: number;

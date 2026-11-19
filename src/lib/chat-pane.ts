@@ -3,15 +3,21 @@ import { connectSocket } from './socket';
 import { snack } from './snackbar';
 import { UploadError, uploadPhoto } from './upload';
 
-// In the browser: one chat pane, the same on Tin nhắn and Hỗ trợ. Messages
-// post in place and the page answers with itself; its data-part blocks are
-// swapped in. The socket asks the page again when the chat changes.
+// In the browser: one chat pane, the same on Tin nhắn, Hỗ trợ and the chat
+// box on a listing. Messages post in place and the pane's page answers with
+// itself; its data-part blocks are swapped in. The socket asks the page again
+// when the chat changes. Several panes may share a page: each works under its
+// root.
 
 type Update = { kind: string; conversation_id?: string; deal_id?: string };
 
 export interface PaneOptions {
-  /** The page's URL without the one-render params. */
+  /** The pane's element; the whole page by default. */
+  root?: HTMLElement | Document;
+  /** The URL that renders the pane, without the one-render params. */
   clean: () => URL;
+  /** Whether the pane's URL is the address bar's, kept as it changes. */
+  history?: boolean;
   /** What a socket update for another chat refreshes; nothing by default. */
   elsewhere?: (u: Update) => 'page' | 'inbox' | null;
   /** Fetches and swaps the inbox; Tin nhắn's alone. */
@@ -26,8 +32,17 @@ const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = docume
 const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
 
 export function mountChatPane(o: PaneOptions) {
-  const chatId = $('[data-chat]')?.dataset.chat ?? '';
-  const scroller = $('[data-thread]');
+  const root = o.root ?? document;
+  // The listeners take the pane's element; a Document dispatches the same events.
+  const on = root as HTMLElement;
+  const history_ = o.history ?? root === document;
+  const q = <T extends Element = HTMLElement>(sel: string) => $<T>(sel, root);
+  // The chat may start after a first message (the chat box), so it is read each time.
+  const chat = () => q('[data-chat]')?.dataset.chat ?? (root instanceof HTMLElement ? (root.dataset.chat ?? '') : '');
+  const scroller = q('[data-thread]');
+  // A pane off the address bar keeps its own URL, which a send may move (a first message opens the chat).
+  let pageUrl: URL | null = null;
+  const at = () => pageUrl ?? o.clean();
   const toEnd = () => scroller && (scroller.scrollTop = scroller.scrollHeight);
   toEnd();
   const socket = connectSocket();
@@ -36,19 +51,19 @@ export function mountChatPane(o: PaneOptions) {
   // A fresh render replaces each data-part; one that holds the focus waits
   // for the next. The thread is replaced only while the reader is at its end
   // with no older pages open; otherwise "Có tin mới" holds it.
-  const pill = $<HTMLButtonElement>('[data-news]');
+  const pill = q<HTMLButtonElement>('[data-news]');
   let held: HTMLElement | null = null;
   // A render that marked the chat read may come back as a read update; one
   // within 2 s of it is taken as that echo and changes nothing.
-  let markedAt = $('[data-part="thread"]')?.hasAttribute('data-marked') ? Date.now() : 0;
+  let markedAt = q('[data-part="thread"]')?.hasAttribute('data-marked') ? Date.now() : 0;
 
   function putThread(fresh: HTMLElement) {
-    $('[data-part="thread"]')?.replaceWith(fresh);
-    $('[data-older-pages]')?.replaceChildren();
+    q('[data-part="thread"]')?.replaceWith(fresh);
+    q('[data-older-pages]')?.replaceChildren();
     const next = fresh.dataset.next ?? '';
-    const older = $<HTMLButtonElement>('[data-older]');
+    const older = q<HTMLButtonElement>('[data-older]');
     if (older) older.dataset.older = next;
-    const wrap = $('[data-older-wrap]');
+    const wrap = q('[data-older-wrap]');
     if (wrap) wrap.hidden = !next;
     held = null;
     if (pill) pill.hidden = true;
@@ -59,12 +74,12 @@ export function mountChatPane(o: PaneOptions) {
     const atEnd = scroller ? scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 80 : false;
     for (const fresh of $$('[data-part]', doc)) {
       const name = fresh.dataset.part!;
-      const old = $(`[data-part="${name}"]`);
+      const old = q(`[data-part="${name}"]`);
       if (!old) continue;
       if (name === 'thread') {
         if (fresh.hasAttribute('data-marked')) markedAt = Date.now();
         const node = document.importNode(fresh, true);
-        if (thread || (atEnd && !$('[data-older-pages]')?.childElementCount)) putThread(node);
+        if (thread || (atEnd && !q('[data-older-pages]')?.childElementCount)) putThread(node);
         else if (node.dataset.last !== old.dataset.last) {
           held = node;
           if (pill) pill.hidden = false;
@@ -79,7 +94,7 @@ export function mountChatPane(o: PaneOptions) {
   pill?.addEventListener('click', () => held && putThread(held));
   scroller?.addEventListener('scroll', () => {
     // Back at the end, the held thread takes its place.
-    if (held && !$('[data-older-pages]')?.childElementCount && scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 40) putThread(held);
+    if (held && !q('[data-older-pages]')?.childElementCount && scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 40) putThread(held);
   });
 
   // The whole page for this chat's changes; the inbox for other chats'. Bursts wait 250 ms.
@@ -98,7 +113,7 @@ export function mountChatPane(o: PaneOptions) {
     busy = true;
     try {
       if (kind === 'page') {
-        const res = await fetch(o.clean(), { headers: { accept: 'text/html' } });
+        const res = await fetch(at(), { headers: { accept: 'text/html' } });
         if (res.ok && !res.redirected) swap(await res.text());
       } else await o.refreshInbox?.();
     } catch {
@@ -115,14 +130,15 @@ export function mountChatPane(o: PaneOptions) {
   async function sendInPlace(form: HTMLFormElement, body = new FormData(form)) {
     const res = await fetch(form.action, { method: 'POST', body, headers: { accept: 'text/html' } });
     const to = new URL(res.url);
-    if (!res.ok || to.pathname !== location.pathname) throw new Error(String(res.status));
+    if (!res.ok || to.pathname !== at().pathname) throw new Error(String(res.status));
     swap(await res.text(), true);
     const code = to.searchParams.get('error') ?? '';
     to.searchParams.delete('error');
-    history.replaceState(null, '', to);
+    if (history_) history.replaceState(null, '', to);
+    else pageUrl = to;
     return code;
   }
-  document.addEventListener('submit', async (e) => {
+  on.addEventListener('submit', async (e) => {
     const form = e.target as HTMLFormElement;
     if (!form.matches('[data-in-place]')) return;
     e.preventDefault();
@@ -142,37 +158,73 @@ export function mountChatPane(o: PaneOptions) {
   });
 
   // --------------------------------------------------------- the composer --
-  const composer = $<HTMLFormElement>('[data-composer]');
+  const composer = q<HTMLFormElement>('[data-composer]');
   if (composer) {
-    const field = $<HTMLInputElement>('input[name="text"]', composer)!;
+    const field = $<HTMLTextAreaElement>('[name="text"]', composer)!;
     const send = $<HTMLButtonElement>('[type=submit]', composer)!;
     const strip = $('[data-strip]', composer)!;
     const replyTo = $<HTMLInputElement>('[data-reply-to]', composer)!;
     const tray = $('[data-tray]', composer)!;
     const files = $<HTMLInputElement>('[data-files]', composer)!;
     const pick = $<HTMLButtonElement>('[data-pick]', composer)!;
-    const cell = $<HTMLTemplateElement>('[data-tray-item]')!;
+    const cell = q<HTMLTemplateElement>('[data-tray-item]')!;
     let uploading = 0;
     let sending = false;
     const ready = () => (send.disabled = sending || uploading > 0 || (!field.value.trim() && !$$('input[name="photos"]', composer).length));
     pick.hidden = false;
     ready();
     field.addEventListener('input', ready);
+    // Enter sends, Shift+Enter breaks the line; a word being composed (Telex, VNI) keeps its Enter.
+    field.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+      e.preventDefault();
+      composer.requestSubmit();
+    });
 
     const unreply = () => {
       strip.hidden = true;
       replyTo.value = '';
     };
     $('[data-strip-close]', composer)!.addEventListener('click', unreply);
-    document.addEventListener('click', (e) => {
-      const b = (e.target as Element).closest<HTMLButtonElement>('[data-reply]');
-      if (!b) return;
+    const replyTo_ = (b: HTMLElement) => {
       strip.hidden = false;
       replyTo.value = b.dataset.reply!;
       $('[data-strip-who]', strip)!.textContent = `Trả lời ${b.dataset.replyWho}`;
       $('[data-strip-text]', strip)!.textContent = b.dataset.replyText ?? '';
       field.focus();
+    };
+    on.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLButtonElement>('[data-reply]');
+      if (b) replyTo_(b);
     });
+    // On a touch screen a message swiped right by 56 px is answered, as in the app.
+    let swipe: { el: HTMLElement; x: number; y: number; id: number } | null = null;
+    on.addEventListener('pointerdown', (e) => {
+      const el = (e.target as Element).closest<HTMLElement>('[data-msg]');
+      if (e.pointerType !== 'touch' || !el?.querySelector('[data-reply]')) return;
+      swipe = { el, x: e.clientX, y: e.clientY, id: e.pointerId };
+    });
+    on.addEventListener('pointermove', (e) => {
+      if (!swipe || e.pointerId !== swipe.id) return;
+      const dx = e.clientX - swipe.x;
+      if (Math.abs(e.clientY - swipe.y) > 24) {
+        swipe.el.style.transform = '';
+        swipe = null;
+        return;
+      }
+      swipe.el.style.transform = `translateX(${Math.max(0, Math.min(dx, 72))}px)`;
+    });
+    const endSwipe = (e: PointerEvent) => {
+      if (!swipe || e.pointerId !== swipe.id) return;
+      const { el, x } = swipe;
+      swipe = null;
+      el.style.transition = 'transform 150ms';
+      el.style.transform = '';
+      setTimeout(() => (el.style.transition = ''), 160);
+      if (e.type === 'pointerup' && e.clientX - x >= 56) replyTo_(el.querySelector<HTMLElement>('[data-reply]')!);
+    };
+    on.addEventListener('pointerup', endSwipe);
+    on.addEventListener('pointercancel', endSwipe);
 
     // Each photo uploads as soon as it is picked; up to 4.
     pick.addEventListener('click', () => files.click());
@@ -241,31 +293,31 @@ export function mountChatPane(o: PaneOptions) {
     field.addEventListener('input', () => {
       if (!field.value.trim() || Date.now() - typedAt < 3000) return;
       typedAt = Date.now();
-      socket.send({ type: 'typing', conversation_id: chatId });
+      socket.send({ type: 'typing', conversation_id: chat() });
     });
   }
 
   // ------------------------------------------------------- older messages --
-  $('[data-older]')?.addEventListener('click', async (e) => {
+  q('[data-older]')?.addEventListener('click', async (e) => {
     const b = e.currentTarget as HTMLButtonElement;
     if (!b.dataset.older) return;
     b.disabled = true;
     try {
-      const res = await fetch(`/messages/older?${new URLSearchParams({ chat: chatId, cursor: b.dataset.older })}`, { headers: { accept: 'text/html' } });
+      const res = await fetch(`/messages/older?${new URLSearchParams({ chat: chat(), cursor: b.dataset.older })}`, { headers: { accept: 'text/html' } });
       if (!res.ok) throw new Error(String(res.status));
       const holder = document.createElement('template');
       holder.innerHTML = await res.text();
       const page = holder.content.querySelector<HTMLTemplateElement>('template[data-older-page]')!;
-      const box = $('[data-older-pages]')!;
+      const box = q('[data-older-pages]')!;
       const before = scroller!.scrollHeight;
       // A day split over the two pages keeps one heading.
-      const firstDay = $('[data-day]', box) ?? $('[data-part="thread"] [data-day]');
+      const firstDay = $('[data-day]', box) ?? q('[data-part="thread"] [data-day]');
       const days = $$('[data-day]', page.content);
       if (firstDay && days.at(-1)?.dataset.day === firstDay.dataset.day) firstDay.remove();
       box.prepend(page.content);
       scroller!.scrollTop += scroller!.scrollHeight - before;
       b.dataset.older = page.dataset.next ?? '';
-      $('[data-older-wrap]')!.hidden = !b.dataset.older;
+      q('[data-older-wrap]')!.hidden = !b.dataset.older;
     } catch {
       snack({ text: 'Chưa tải được tin cũ hơn.', error: true });
     } finally {
@@ -276,11 +328,12 @@ export function mountChatPane(o: PaneOptions) {
   // ----------------------------------------------------------- the socket --
   let typingTimer = 0;
   const typing = (shown: boolean) => {
-    const line = $('[data-typing]');
+    const line = q('[data-typing]');
     if (line) line.hidden = !shown;
   };
   document.addEventListener('sn:update', (e) => {
     const f = (e as CustomEvent<Update>).detail;
+    const chatId = chat();
     const here = !!chatId && (f.conversation_id === chatId || !!o.shows?.(f));
     // A message from the other person ends their typing.
     if (f.conversation_id === chatId) typing(false);
@@ -294,7 +347,7 @@ export function mountChatPane(o: PaneOptions) {
   });
   document.addEventListener('sn:reset', () => schedule('page'));
   document.addEventListener('sn:typing', (e) => {
-    if ((e as CustomEvent<{ conversation_id: string }>).detail.conversation_id !== chatId) return;
+    if ((e as CustomEvent<{ conversation_id: string }>).detail.conversation_id !== chat()) return;
     typing(true);
     clearTimeout(typingTimer);
     typingTimer = window.setTimeout(() => typing(false), 4000);

@@ -1,0 +1,89 @@
+---
+// The chat box on a listing (QuickChat): the buyer's chat about it as the
+// same thread, typing line and composer as Tin nhắn, for lib/chat-pane to
+// drive in the box. ?listing= is the listing, ?chat= and ?deal= the buyer's
+// chat and deal once there is one. A post sends a message (do=send) or an
+// offer (do=offer); the first one opens the deal, then answers with the pane.
+import Notice from '../../components/Notice.astro';
+import ChatThread from '../../components/account/chat/ChatThread.astro';
+import Composer from '../../components/account/chat/Composer.astro';
+import { idempotencyKey, orNull, unwrap } from '../../lib/api/client';
+import { isId } from '../../lib/listing';
+import { errorCode, errorText, openDeal, personName, thread } from '../../lib/messages';
+import { requireViewer } from '../../lib/session';
+
+export const partial = true;
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const p = Astro.url.searchParams;
+const listing = p.get('listing') ?? '';
+if (!isId(listing)) return new Response(null, { status: 404 });
+const name = p.get('name') ?? '';
+const here = (chat: string, deal: string, extra: Record<string, string> = {}) =>
+  `/messages/pane?${new URLSearchParams({ listing, ...(name ? { name } : {}), ...(isId(chat) ? { chat } : {}), ...(isId(deal) ? { deal } : {}), ...extra })}`;
+
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const s = (k: string) => String(f.get(k) ?? '').trim();
+  let chat = s('chat') || (p.get('chat') ?? '');
+  let deal = s('deal') || (p.get('deal') ?? '');
+  try {
+    // The first message or offer opens the buyer's deal, which opens the chat.
+    if (!isId(chat) || !isId(deal)) {
+      const d = await openDeal(api, listing);
+      chat = d.conversation_id;
+      deal = d.id;
+    }
+    if (s('do') === 'offer') {
+      const amount = Number(s('amount').replace(/\D/g, ''));
+      await unwrap(api.POST('/v1/deals/{id}/offer', { params: { path: { id: deal } }, body: { amount } }));
+    } else {
+      const photos = f.getAll('photos').map(String).filter(isId).slice(0, 4);
+      const reply = s('reply_to');
+      if (s('text') || photos.length) {
+        await unwrap(
+          api.POST('/v1/conversations/{id}/messages', {
+            params: { path: { id: chat }, header: { 'Idempotency-Key': s('key') || idempotencyKey() } },
+            body: { text: s('text') || undefined, photos: photos.length ? photos : undefined, reply_to: isId(reply) ? reply : undefined, listing_id: listing },
+          }),
+        );
+      }
+    }
+    return Astro.redirect(here(chat, deal), 303);
+  } catch (e) {
+    return Astro.redirect(here(chat, deal, { error: errorCode(e) }), 303);
+  }
+}
+
+const id = p.get('chat') ?? '';
+const chat = isId(id) ? await orNull(api.GET('/v1/screens/chat/{conversation_id}', { params: { path: { conversation_id: id } } })) : null;
+// Reading the box marks the chat read, as Tin nhắn does.
+let marked = false;
+const newest = chat?.messages.items.find((m) => m.status === 'sent');
+if (chat && newest && newest.sender_id !== v.id) {
+  await orNull(api.POST('/v1/conversations/{id}/read', { params: { path: { id: chat.id } }, body: { message_id: newest.id } }));
+  marked = true;
+}
+const other = chat ? personName(chat.other) : name;
+const deal = chat?.deals.find((d) => d.listing.id === listing) ?? null;
+const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id) : [];
+const error = p.get('error') ?? '';
+---
+
+<span hidden data-part="meta" data-chat={chat?.id} data-deal={deal?.id}></span>
+<ChatThread
+  items={items}
+  me={v.id}
+  other={other}
+  next={chat?.messages.next_cursor ?? undefined}
+  last={chat?.messages.items[0]?.id}
+  marked={marked}
+  empty={`Hỏi ${other} về món này. Tin nhắn cũng nằm trong Tin nhắn của bạn.`}
+/>
+<div data-part="alert" class="px-3 empty:hidden">
+  {error && <Notice text={error === 'move_not_allowed' ? 'Món này đã có giá đang chờ hoặc đã chốt. Xem ở trang Tin nhắn.' : errorText(error)} />}
+</div>
+<p class="px-5 text-body-small text-on-surface-variant" hidden data-typing>{other} đang nhập…</p>
+<Composer peer={other} chat={chat?.id ?? ''} deal={deal?.id} action={here(chat?.id ?? '', deal?.id ?? '')} />
