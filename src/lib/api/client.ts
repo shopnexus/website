@@ -52,5 +52,13 @@ export async function unwrap<T>(call: Promise<Result<T>>): Promise<T> {
   return data as T;
 }
 
+/** The data of a call, or null when the server answers one of `missing` (not there, or a bad id or cursor). */
+export async function orNull<T>(call: Promise<Result<T>>, missing = [400, 404]): Promise<T | null> {
+  return unwrap(call).catch((e) => {
+    if (e instanceof ApiError && missing.includes(e.status)) return null;
+    throw e;
+  });
+}
+
 /** A fresh Idempotency-Key, for a write the server may see twice. */
 export const idempotencyKey = () => crypto.randomUUID();

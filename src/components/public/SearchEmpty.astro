@@ -2,10 +2,8 @@
 // Tìm kiếm with no match: the conditions the model read, each a link to the
 // search without it, "Báo khi có tin mới", and the newest listings near the
 // buyer.
-import { unwrap } from '../../lib/api/client';
-import { near } from '../../lib/area';
-import { card } from '../../lib/listing';
-import { R } from '../../lib/routes';
+import { newest } from '../../lib/feed';
+import { API, R } from '../../lib/routes';
 import { type Search, searchHref } from '../../lib/search';
 import { CONTENT } from '../../lib/ui';
 import Icon from '../Icon.astro';
@@ -22,9 +20,7 @@ interface Props {
 const { search, chips, watchable } = Astro.props;
 // The app's example searches.
 const tries = ['xe đạp đi làm dưới 3 triệu', 'iPhone dưới 8 triệu', 'sofa nhỏ cho căn hộ', 'bàn làm việc gỗ dưới 2 triệu'];
-const fresh = await unwrap(Astro.locals.api.GET('/v1/search', { params: { query: { sort: 'newest', limit: 8, ...near(Astro.cookies) } } }))
-  .then((r) => r.items.map(card))
-  .catch(() => []);
+const fresh = await newest(Astro, 8);
 ---
 
 <main class:list={[CONTENT, 'pt-6']}>
@@ -68,8 +64,8 @@ const fresh = await unwrap(Astro.locals.api.GET('/v1/search', { params: { query:
     </div>
     {
       watchable && (
-        <form method="post" action="/bao-tin-moi" class="self-start rounded-panel bg-brand p-5 text-white">
-          <input type="hidden" name="tim" value={searchHref(search)} />
+        <form method="post" action={API.watches} class="self-start rounded-panel bg-brand p-5 text-white">
+          <input type="hidden" name="search" value={searchHref(search)} />
           <p class="flex items-center gap-2 text-j-16">
             <Icon name="notifications-outline-rounded" size={20} />
             Báo khi có tin mới
@@ -84,7 +80,7 @@ const fresh = await unwrap(Astro.locals.api.GET('/v1/search', { params: { query:
   {
     fresh.length > 0 && (
       <section class="mt-10">
-        <SectionTitle title="Vừa đăng quanh bạn" link="Xem tất cả" href={`${R.search}?sap-xep=moi`} />
+        <SectionTitle title="Vừa đăng quanh bạn" link="Xem tất cả" href={`${R.search}?sort=newest`} />
         <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
           {fresh.map((it) => <ListingCard item={it} loading="lazy" />)}
         </div>

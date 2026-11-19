@@ -1,4 +1,6 @@
-// In the browser: asks for the position once and lets /vi-tri keep the
+import { API } from './routes';
+
+// In the browser: asks for the position once and lets /api/area keep the
 // nearest commune. Resolves to the commune's name, or null when the buyer
 // says no or no commune is near.
 export function locate(): Promise<string | null> {
@@ -6,7 +8,7 @@ export function locate(): Promise<string | null> {
     if (!navigator.geolocation) return done(null);
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
-        const res = await fetch('/vi-tri', {
+        const res = await fetch(API.area, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ lat: coords.latitude, lng: coords.longitude }),

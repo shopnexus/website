@@ -15,7 +15,7 @@ interface Props {
 }
 
 const { c, counts, loading } = Astro.props;
-const href = R.category(c.slug);
+const href = R.category(c.code);
 const subs = c.children.filter((s) => counts.get(s.code)).slice(0, 4);
 ---
 
@@ -35,7 +35,7 @@ const subs = c.children.filter((s) => counts.get(s.code)).slice(0, 4);
       <div class="flex flex-wrap gap-1 px-1.5 pb-1.5 pt-1">
         {subs.map((s) => (
           <a
-            href={`${href}?muc=${s.code}`}
+            href={`${href}?category=${s.code}`}
             class="flex h-7 items-center gap-1 rounded-full bg-surface-container-low px-2.5 text-label-medium text-ink hover:bg-secondary-container"
           >
             {s.name}

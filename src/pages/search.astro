@@ -1,13 +1,13 @@
 ---
 // Tìm kiếm. The words live in the header's field (?q=); the filters, sort,
 // chips left out and the cursor in the rest of the URL (lib/search.ts). A
-// saved search (?theo-doi=) runs as it was saved.
+// saved search (?watch=) runs as it was saved.
 import AiChip from '../components/AiChip.astro';
 import FilterRow from '../components/public/FilterRow.astro';
 import SearchEmpty from '../components/public/SearchEmpty.astro';
 import SearchResults from '../components/public/SearchResults.astro';
 import Layout from '../layouts/Layout.astro';
-import { ApiError, unwrap } from '../lib/api/client';
+import { orNull, unwrap } from '../lib/api/client';
 import { categoryName } from '../lib/catalog';
 import { card } from '../lib/listing';
 import { R } from '../lib/routes';
@@ -17,11 +17,8 @@ import { viewer } from '../lib/session';
 const s = readSearch(Astro.url);
 const api = Astro.locals.api;
 const [view, watch, category] = await Promise.all([
-  unwrap(api.GET('/v1/search', { params: { query: serverQuery(s, Astro.cookies) } })).catch((e) => {
-    // A bad cursor, a watch that is gone, a price range upside down: no results.
-    if (e instanceof ApiError && (e.status === 400 || e.status === 404)) return null;
-    throw e;
-  }),
+  // A bad cursor, a watch that is gone, a price range upside down: no results.
+  orNull(api.GET('/v1/search', { params: { query: serverQuery(s, Astro.cookies) } })),
   s.watch && viewer(Astro)
     ? unwrap(api.GET('/v1/search/watches')).then((r) => r.items.find((w) => w.id === s.watch))
     : undefined,
@@ -32,7 +29,7 @@ const q = watch?.query ?? s.q;
 const title = q ? `“${q}”` : (category ?? 'Tin mới đăng');
 const chips = (view?.chips ?? []).map((c) => ({ id: c.id, label: c.label }));
 const watchable = !!s.q && !s.watch && !s.photo && !view?.watch_id;
-const full = Astro.url.searchParams.get('bao') === 'day';
+const full = Astro.url.searchParams.get('watches') === 'full';
 ---
 
 <Layout

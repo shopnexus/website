@@ -256,7 +256,7 @@ the order on the way and the offer waiting; signed out: what this browser
 viewed and "Đăng nhập"), the feed under the tabs Dành cho bạn, Gần bạn, Mới
 nhất, four cards a row, and "Bạn vừa xem" as a sideways row. Below expanded
 the categories are a sideways row of chips. The feed loads twelve cards a
-page from `/bang-tin` (`?tab=cho-ban|gan-ban|moi-nhat&trang=`).
+page from `/feed` (`?tab=for-you|nearby|newest&after=<cursor>`).
 
 ### Tìm kiếm
 
@@ -370,7 +370,7 @@ server renders the chosen theme.
 | the other `j_kit.py` pieces | the components at the top of `src/components/` |
 | a page group's own parts | `src/components/<group>/`: `home`, `public`, `flows`, `account`, `orders` |
 | `icon()` | `<Icon name>`, served from the names `src/build/icons.mjs` finds in `src/` |
-| the links in `HREF` | `R` in `src/lib/routes.ts`, Vietnamese paths such as `/tim-kiem` and `/tin/<id>` |
+| the links in `HREF` | `R` in `src/lib/routes.ts`, English paths such as `/search` and `/listings/<id>` |
 
 An icon name has to appear in `src/` as a whole quoted string. A name built
 by joining strings is not found and renders nothing; the one exception is a

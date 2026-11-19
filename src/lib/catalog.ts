@@ -2,14 +2,12 @@ import { apiClient, type Schemas, unwrap } from './api/client';
 import { img } from './format';
 
 // The category tree from GET /v1/categories, read once per 10 minutes per
-// process. URLs name a category by a slug of its Vietnamese name
-// ("Điện thoại" → dien-thoai); the icons and tile photos are the site's own,
-// after the app's editorial looks.
+// process. URLs name a category by its code (/categories/phones); the icons
+// and tile photos are the site's own, after the app's editorial looks.
 
 export interface Category {
   code: string;
   name: string;
-  slug: string;
   icon: string;
   /** The tile's photo URL. */
   photo: string;
@@ -28,21 +26,10 @@ const LOOKS: Record<string, [icon: string, photo: string]> = {
   other: ['category-outline-rounded', '1526170375885-4d8ecf77b99f'],
 };
 
-/** "Điện thoại" → "dien-thoai", "Mẹ & bé" → "me-be". */
-export const slugify = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-
 function tree(items: Schemas['Category'][]): Category[] {
   const node = (c: Schemas['Category'], root?: string): Category => {
     const [icon, photo] = LOOKS[root ?? c.code] ?? LOOKS.other;
-    return { code: c.code, name: c.display_name, slug: slugify(c.display_name), icon, photo: img(photo, 480, 480), children: [] };
+    return { code: c.code, name: c.display_name, icon, photo: img(photo, 480, 480), children: [] };
   };
   const roots = items.filter((c) => !c.parent_code).map((c) => node(c));
   for (const c of items) {
@@ -64,9 +51,9 @@ export function categories(): Promise<Category[]> {
   return cached.run;
 }
 
-/** A root by its slug. */
-export async function bySlug(slug: string) {
-  return (await categories()).find((c) => c.slug === slug);
+/** A root by its code. */
+export async function byCode(code: string) {
+  return (await categories()).find((c) => c.code === code);
 }
 
 /** The display name of any category code, root or sub. */

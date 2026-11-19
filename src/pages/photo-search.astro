@@ -1,5 +1,5 @@
 ---
-// Tìm bằng ảnh, signed in. Without ?anh= the page asks for a photo: chosen,
+// Tìm bằng ảnh, signed in. Without ?photo= the page asks for a photo: chosen,
 // taken, dropped on the page or pasted. The photo uploads from the browser
 // (lib/upload.ts) and the page opens again with its upload id, which runs
 // the search on the photo under the usual filters, sorts and paging.
@@ -12,6 +12,7 @@ import { card } from '../lib/listing';
 import { R } from '../lib/routes';
 import { readSearch, serverQuery } from '../lib/search';
 import { requireViewer } from '../lib/session';
+import { PHOTO_TYPES } from '../lib/upload';
 import { CONTENT, btnCls } from '../lib/ui';
 
 const v = requireViewer(Astro);
@@ -43,7 +44,7 @@ const pick = 'flex-1 cursor-pointer';
           <label class:list={[btnCls('line', 'sm'), 'cursor-pointer']}>
             <Icon name="upload-rounded" size={16} />
             Đổi ảnh
-            <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-photo-input />
+            <input type="file" accept={PHOTO_TYPES.join(',')} class="sr-only" data-photo-input />
           </label>
         </div>
       </SearchResults>
@@ -61,12 +62,12 @@ const pick = 'flex-1 cursor-pointer';
             <label class:list={[btnCls('ink'), pick]}>
               <Icon name="upload-rounded" size={18} />
               Chọn ảnh
-              <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-photo-input />
+              <input type="file" accept={PHOTO_TYPES.join(',')} class="sr-only" data-photo-input />
             </label>
             <label class:list={[btnCls('line'), pick]}>
               <Icon name="photo-camera-outline-rounded" size={18} />
               Chụp
-              <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" class="sr-only" data-photo-input />
+              <input type="file" accept={PHOTO_TYPES.join(',')} capture="environment" class="sr-only" data-photo-input />
             </label>
           </div>
           <p role="status" class="mt-4 min-h-5 text-body-small text-sub" data-photo-status>{failed}</p>
@@ -105,7 +106,7 @@ const pick = 'flex-1 cursor-pointer';
         });
         if (url.length < 2_000_000) sessionStorage.setItem(`sn-photo-${id}`, url);
       } catch {}
-      location.href = `${R.photoSearch}?anh=${id}`;
+      location.href = `${R.photoSearch}?photo=${id}`;
     } catch (e) {
       const reason = e instanceof UploadError ? e.reason : 'failed';
       if (reason === 'sign-in') location.href = loginHref(R.photoSearch);

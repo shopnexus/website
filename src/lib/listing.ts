@@ -18,6 +18,9 @@ export interface Card {
 
 export type Condition = Schemas['Condition'];
 
+/** Whether a string can be a listing's or an account's id, before asking the server. */
+export const isId = (s: string) => /^[0-9a-f-]{36}$/i.test(s);
+
 /** The condition scale, in order, as the app names it. */
 export const CONDITIONS: Record<Condition, string> = {
   new: 'Mới',

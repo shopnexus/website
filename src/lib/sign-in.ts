@@ -1,5 +1,6 @@
 import type { AstroCookies } from 'astro';
 import { ApiError, type Api, type Schemas, unwrap } from './api/client';
+import { R } from './routes';
 import { cookie, secondsUntil } from './session';
 
 // Đăng nhập by email code: the address gets a six-digit code, and the code
@@ -24,7 +25,7 @@ export function readChallenge(cookies: AstroCookies): Challenge | undefined {
 }
 
 export function dropChallenge(cookies: AstroCookies) {
-  cookies.delete(CHALLENGE, { path: '/dang-nhap' });
+  cookies.delete(CHALLENGE, { path: R.login });
 }
 
 /** Mails a code to `email` and keeps the challenge for the code step. */
@@ -32,7 +33,7 @@ export async function sendEmailCode(api: Api, cookies: AstroCookies, url: URL, r
   const email = raw.trim().toLowerCase();
   const r = await unwrap(api.POST('/v1/auth/email-codes', { params: { header: { 'Idempotency-Key': key } }, body: { email } }));
   const c: Challenge = { id: r.challenge_id, email, resendAt: r.resend_at };
-  cookies.set(CHALLENGE, JSON.stringify(c), cookie(url, secondsUntil(r.expires_at), '/dang-nhap'));
+  cookies.set(CHALLENGE, JSON.stringify(c), cookie(url, secondsUntil(r.expires_at), R.login));
 }
 
 export function signInWithCode(api: Api, c: Challenge, code: string, key: string, device: string): Promise<Schemas['SignIn']> {

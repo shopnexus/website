@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { unwrap } from '../../lib/api/client';
-import { relay } from '../../lib/api/relay';
+import { unwrap } from '../../../lib/api/client';
+import { relay } from '../../../lib/api/relay';
 
 // The heart on a listing: PUT saves, DELETE forgets (page-motion.ts).
 const path = (id = '') => ({ params: { path: { listing_id: id } } });

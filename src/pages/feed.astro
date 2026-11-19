@@ -10,7 +10,7 @@ import { btnCls } from '../lib/ui';
 export const partial = true;
 
 const tab = feedTab(Astro.url.searchParams.get('tab'));
-const { items, next, needsArea } = await feedPage(Astro, tab, Astro.url.searchParams.get('sau') ?? undefined);
+const { items, next, needsArea } = await feedPage(Astro, tab, Astro.url.searchParams.get('after') ?? undefined);
 ---
 
 <template data-feed-page data-next={next ?? ''}>

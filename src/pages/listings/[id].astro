@@ -11,31 +11,35 @@ import Photo from '../../components/Photo.astro';
 import Price from '../../components/Price.astro';
 import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
+import Stars from '../../components/public/Stars.astro';
 import QuickChat from '../../components/public/QuickChat.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Layout from '../../layouts/Layout.astro';
-import { ApiError, unwrap } from '../../lib/api/client';
+import { orNull, unwrap } from '../../lib/api/client';
 import { near } from '../../lib/area';
 import { categories } from '../../lib/catalog';
-import { ago, decimal, group, where } from '../../lib/format';
-import { CONDITIONS, card, conditionLabel } from '../../lib/listing';
+import { ago, decimal, group, ratingText, where } from '../../lib/format';
+import { CONDITIONS, card, conditionLabel, isId } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
 import { CONTENT, PANEL, btnCls } from '../../lib/ui';
 
 const id = Astro.params.id ?? '';
 const api = Astro.locals.api;
-const screen = /^[0-9a-f-]{36}$/i.test(id)
-  ? await unwrap(api.GET('/v1/screens/listing/{id}', { params: { path: { id }, query: near(Astro.cookies) } })).catch((e) => {
-      if (e instanceof ApiError && (e.status === 404 || e.status === 400)) return null;
-      throw e;
-    })
-  : null;
+// Similar listings need only the id, so they load beside the listing.
+const [screen, similar] = isId(id)
+  ? await Promise.all([
+      orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id }, query: near(Astro.cookies) } })),
+      unwrap(api.GET('/v1/search', { params: { query: { like: id, limit: 6, ...near(Astro.cookies) } } }))
+        .then((r) => r.items.filter((s) => s.id !== id).slice(0, 5).map(card))
+        .catch(() => []),
+    ])
+  : [null, []];
 if (!screen) Astro.response.status = 404;
 
 const it = screen?.listing;
 const seller = screen?.seller;
-const [others, reviews, similar, cats] = it
+const [others, reviews, cats] = it
   ? await Promise.all([
       unwrap(api.GET('/v1/sellers/{id}/listings', { params: { path: { id: it.seller_id }, query: { limit: 4, ...near(Astro.cookies) } } }))
         .then((r) => r.items.filter((o) => o.id !== it.id).slice(0, 3).map(card))
@@ -43,12 +47,9 @@ const [others, reviews, similar, cats] = it
       unwrap(api.GET('/v1/sellers/{id}/reviews', { params: { path: { id: it.seller_id }, query: { limit: 2 } } }))
         .then((r) => r.items)
         .catch(() => []),
-      unwrap(api.GET('/v1/search', { params: { query: { like: it.id, limit: 5, ...near(Astro.cookies) } } }))
-        .then((r) => r.items.filter((s) => s.id !== it.id).map(card))
-        .catch(() => []),
       categories().catch(() => []),
     ])
-  : [[], [], [], []];
+  : [[], [], []];
 
 const me = viewer(Astro);
 const mine = !!me && me.id === it?.seller_id;
@@ -60,7 +61,7 @@ const photos = (it?.photos ?? []).filter((p) => p.url).map((p) => ({ big: p.url!
 const reserved = it?.status === 'reserved';
 const offers = !!it?.allow_offers && !reserved;
 const root = cats.find((c) => c.code === it?.category_code || c.children.some((s) => s.code === it?.category_code));
-const crumbs: [string, string?][] = [['Khám phá', R.home], ...(root ? [[root.name, R.category(root.slug)] as [string, string]] : []), [it?.title ?? '']];
+const crumbs: [string, string?][] = [['Khám phá', R.home], ...(root ? [[root.name, R.category(root.code)] as [string, string]] : []), [it?.title ?? '']];
 const act = 'state-layer flex h-8 items-center gap-1.5 rounded-sm px-2.5 text-body-medium text-sub hover:bg-hover hover:text-ink';
 /** What each condition on the scale means. */
 const GRADE: Record<string, string> = {
@@ -70,13 +71,8 @@ const GRADE: Record<string, string> = {
 };
 const questions = ['Còn không bạn?', 'Xem ở đâu được?'];
 const rating = seller?.rating;
-const stats: [string, string][] = seller
-  ? [
-      rating!.count ? [decimal(rating!.average), `${rating!.count} đánh giá`] : ['–', 'Chưa có đánh giá'],
-      [String(seller.sold), 'đã bán'],
-    ]
-  : [];
-const chat = `${R.messages}?tin=${id}`;
+const stats: [string, string][] = seller ? [ratingText(rating!), [String(seller.sold), 'đã bán']] : [];
+const chat = `${R.messages}?listing=${id}`;
 const ld = it && {
   '@context': 'https://schema.org',
   '@type': 'Product',
@@ -167,7 +163,7 @@ const ld = it && {
                       Nhắn tin
                     </a>
                     {offers && (
-                      <a href={`${chat}&tra-gia=1`} data-quickchat="offer" class={btnCls('line', 'lg')}>
+                      <a href={`${chat}&offer=1`} data-quickchat="offer" class={btnCls('line', 'lg')}>
                         <Icon name="sell-outline-rounded" size={18} />
                         Trả giá
                       </a>
@@ -177,7 +173,7 @@ const ld = it && {
                   <div class="mt-1 flex flex-col">
                     {questions.map((q) => (
                       <a
-                        href={`${chat}&hoi=${encodeURIComponent(q)}`}
+                        href={`${chat}&ask=${encodeURIComponent(q)}`}
                         data-quickchat={q}
                         class="state-layer -mx-2 flex h-10 items-center justify-between rounded-sm px-2 text-body-large text-ink hover:bg-hover"
                       >
@@ -280,9 +276,7 @@ const ld = it && {
                       <div class="min-w-0">
                         <p class="flex items-center gap-2 text-title-small text-ink">
                           {r.buyer.deleted ? 'Tài khoản đã xóa' : r.buyer.display_name}
-                          <span class="flex text-star" aria-label={`${r.stars} sao`}>
-                            {Array.from({ length: r.stars }, () => <Icon name="star-rounded" size={12} />)}
-                          </span>
+                          <Stars n={r.stars} size={12} />
                         </p>
                         {r.text && <p class="mt-1 text-body-large leading-6 text-ink">{r.text}</p>}
                         <p class="mt-1 text-body-small text-faint">

@@ -1,17 +1,18 @@
 ---
-// "Báo khi có tin mới": saves the search (/bao-tin-moi), which then tells the
+// "Báo khi có tin mới": saves the search (/api/watches), which then tells the
 // buyer about new listings that match.
+import { API } from '../../lib/routes';
 import { btnCls } from '../../lib/ui';
 import Icon from '../Icon.astro';
 
 interface Props {
-  /** The search's URL, which /bao-tin-moi reads and comes back to. */
+  /** The search's URL, which /api/watches reads and comes back to. */
   href: string;
 }
 ---
 
-<form method="post" action="/bao-tin-moi">
-  <input type="hidden" name="tim" value={Astro.props.href} />
+<form method="post" action={API.watches}>
+  <input type="hidden" name="search" value={Astro.props.href} />
   <button class={btnCls('ink', 'sm')}>
     <Icon name="notifications-outline-rounded" size={16} />
     Báo khi có tin mới

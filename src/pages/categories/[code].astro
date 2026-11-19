@@ -1,6 +1,6 @@
 ---
 // One category: its name and count, the search field, its subcategories as
-// pills (?muc= picks one), then its listings under the same filters, sorts
+// pills (?category= picks one), then its listings under the same filters, sorts
 // and paging as Tìm kiếm.
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
@@ -8,29 +8,26 @@ import NotFound from '../../components/public/NotFound.astro';
 import SearchResults from '../../components/public/SearchResults.astro';
 import SearchField from '../../components/SearchField.astro';
 import Layout from '../../layouts/Layout.astro';
-import { ApiError, unwrap } from '../../lib/api/client';
-import { bySlug } from '../../lib/catalog';
+import { orNull } from '../../lib/api/client';
+import { byCode } from '../../lib/catalog';
 import { group } from '../../lib/format';
 import { card } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { readSearch, searchHref, serverQuery } from '../../lib/search';
 import { CONTENT } from '../../lib/ui';
 
-const cat = await bySlug(Astro.params.slug ?? '');
+const cat = await byCode(Astro.params.code ?? '');
 if (!cat) Astro.response.status = 404;
 
-const base = cat ? R.category(cat.slug) : R.categories;
+const base = cat ? R.category(cat.code) : R.categories;
 const read = readSearch(Astro.url);
-// ?muc= is one of this category's subcategories, or nothing.
+// ?category= is one of this category's subcategories, or nothing.
 const sub = cat?.children.find((c) => c.code === read.category);
 const s = { ...read, category: sub?.code, q: '', watch: undefined, photo: undefined };
 const api = Astro.locals.api;
 const query = cat && serverQuery(s, Astro.cookies);
 const search = (category: string, limit?: number) =>
-  unwrap(api.GET('/v1/search', { params: { query: { ...query, category, ...(limit ? { limit, cursor: undefined } : {}) } } })).catch((e) => {
-    if (e instanceof ApiError && (e.status === 400 || e.status === 404)) return null;
-    throw e;
-  });
+  orNull(api.GET('/v1/search', { params: { query: { ...query, category, ...(limit ? { limit, cursor: undefined } : {}) } } }));
 // A search on the root returns the matches per subcategory; with one picked,
 // a one-card search on the root still gives the pills their counts.
 const [view, root] = cat ? await Promise.all([search(sub?.code ?? cat.code), sub ? search(cat.code, 1) : null]) : [null, null];

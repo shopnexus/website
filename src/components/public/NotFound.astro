@@ -2,9 +2,7 @@
 // The 404: a page or listing that is not there (sold, taken down, or a wrong
 // link; the server says the same for each), with the search field and the
 // newest listings near the buyer.
-import { unwrap } from '../../lib/api/client';
-import { near } from '../../lib/area';
-import { card } from '../../lib/listing';
+import { newest } from '../../lib/feed';
 import { R } from '../../lib/routes';
 import { CONTENT } from '../../lib/ui';
 import Icon from '../Icon.astro';
@@ -12,9 +10,7 @@ import ListingCard from '../ListingCard.astro';
 import SearchField from '../SearchField.astro';
 import SectionTitle from '../SectionTitle.astro';
 
-const fresh = await unwrap(Astro.locals.api.GET('/v1/search', { params: { query: { sort: 'newest', limit: 4, ...near(Astro.cookies) } } }))
-  .then((r) => r.items.map(card))
-  .catch(() => []);
+const fresh = await newest(Astro, 4);
 const link = 'text-label-large text-primary hover:underline';
 ---
 
@@ -38,7 +34,7 @@ const link = 'text-label-large text-primary hover:underline';
   {
     fresh.length > 0 && (
       <section class="mt-12">
-        <SectionTitle title="Vừa đăng quanh bạn" link="Xem tất cả" href={`${R.search}?sap-xep=moi`} />
+        <SectionTitle title="Vừa đăng quanh bạn" link="Xem tất cả" href={`${R.search}?sort=newest`} />
         <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
           {fresh.map((it) => <ListingCard item={it} />)}
         </div>

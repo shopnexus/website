@@ -9,7 +9,7 @@ import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
 
 export interface RailCategory {
-  slug: string;
+  code: string;
   name: string;
   icon: string;
   count: number;
@@ -37,7 +37,7 @@ const row = 'state-layer flex h-9 items-center gap-2.5 rounded-sm px-2.5 text-bo
   <nav class="mt-1.5 flex flex-col">
     {
       categories.map((c) => (
-        <a href={R.category(c.slug)} class={row}>
+        <a href={R.category(c.code)} class={row}>
           <Icon name={c.icon} size={17} class="text-sub" />
           <span class="flex-1 truncate">{c.name}</span>
           <span class="text-body-small text-faint tabular-nums">{group(c.count)}</span>
@@ -52,7 +52,7 @@ const row = 'state-layer flex h-9 items-center gap-2.5 rounded-sm px-2.5 text-bo
         {watches.length > 0 && <p class="px-2.5 text-body-small text-faint">Tìm đã lưu</p>}
         <nav class="mt-1.5 flex flex-col">
           {watches.map((w) => (
-            <a href={`${R.search}?theo-doi=${w.id}`} class={row}>
+            <a href={`${R.search}?watch=${w.id}`} class={row}>
               <Icon name="notifications-outline-rounded" size={16} class="text-sub" />
               <span class="flex-1 truncate">{w.query}</span>
               {w.fresh > 0 && <span class="rounded-full bg-mint px-1.5 text-label-small text-on-mint tabular-nums">{w.fresh}</span>}

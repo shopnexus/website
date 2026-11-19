@@ -28,7 +28,7 @@ const [home, cats, watches] = await Promise.all([
   me ? unwrap(Astro.locals.api.GET('/v1/search/watches')).then((w) => w.items).catch(() => []) : null,
 ]);
 const counts = new Map(home.categories.map((c) => [c.code, c.count]));
-const rail = cats.map((c) => ({ slug: c.slug, name: c.name, icon: c.icon, count: counts.get(c.code) ?? 0 }));
+const rail = cats.map((c) => ({ code: c.code, name: c.name, icon: c.icon, count: counts.get(c.code) ?? 0 }));
 const place = area(Astro.cookies);
 const now = new Date();
 const hour = +now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
@@ -52,7 +52,7 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
       <nav class="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 lg:hidden" aria-label="Danh mục">
         {
           rail.map((c) => (
-            <a href={R.category(c.slug)} class="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-line bg-card px-3 text-body-large text-ink">
+            <a href={R.category(c.code)} class="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-line bg-card px-3 text-body-large text-ink">
               <Icon name={c.icon} size={16} class="text-sub" />
               {c.name}
             </a>
@@ -122,9 +122,12 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
     let tab: string = FEED_TABS[0];
     let next = '';
     let run = 0;
+    // Dành cho bạn is one page the server sent with Home: going back to it
+    // shows those cards again instead of asking for Home once more.
+    const first = [...grid.children];
 
     const fetchPage = async (t: string, after: string) => {
-      const res = await fetch(`${R.feed}?${new URLSearchParams({ tab: t, ...(after ? { sau: after } : {}) })}`);
+      const res = await fetch(`${R.feed}?${new URLSearchParams({ tab: t, ...(after ? { after } : {}) })}`);
       if (!res.ok) throw new Error(String(res.status));
       const holder = document.createElement('template');
       holder.innerHTML = await res.text();
@@ -167,7 +170,10 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
     root.addEventListener('seg-change', (e) => {
       tab = FEED_TABS[(e as CustomEvent<{ index: number }>).detail.index];
       next = '';
-      show(tab, '', true);
+      if (tab !== FEED_TABS[0]) return show(tab, '', true);
+      run++;
+      grid.replaceChildren(...first);
+      more.hidden = true;
     });
     more.addEventListener('click', (e) => {
       e.preventDefault();

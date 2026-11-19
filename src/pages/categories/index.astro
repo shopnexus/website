@@ -11,7 +11,7 @@ import Layout from '../../layouts/Layout.astro';
 import { unwrap } from '../../lib/api/client';
 import { near } from '../../lib/area';
 import { categories } from '../../lib/catalog';
-import { card } from '../../lib/listing';
+import { newest } from '../../lib/feed';
 import { R } from '../../lib/routes';
 import { CONTENT } from '../../lib/ui';
 
@@ -19,7 +19,7 @@ const api = Astro.locals.api;
 const [cats, home, fresh] = await Promise.all([
   categories(),
   unwrap(api.GET('/v1/screens/home', { params: { query: near(Astro.cookies) } })),
-  unwrap(api.GET('/v1/search', { params: { query: { sort: 'newest', limit: 6, ...near(Astro.cookies) } } })).then((r) => r.items.map(card)),
+  newest(Astro, 6),
 ]);
 const counts = new Map(home.categories.flatMap((c) => [[c.code, c.count] as const, ...c.children.map((s) => [s.code, s.count] as const)]));
 ---
@@ -58,7 +58,7 @@ const counts = new Map(home.categories.flatMap((c) => [[c.code, c.count] as cons
     </section>
 
     <section class="mt-10">
-      <SectionTitle title="Vừa đăng trong mọi danh mục" link="Xem tất cả" href={`${R.search}?sap-xep=moi`} />
+      <SectionTitle title="Vừa đăng trong mọi danh mục" link="Xem tất cả" href={`${R.search}?sort=newest`} />
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {fresh.map((it, i) => <MiniRow item={it} loading={i < 3 ? 'eager' : 'lazy'} />)}
       </div>

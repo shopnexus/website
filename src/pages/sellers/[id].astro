@@ -10,35 +10,27 @@ import Stars from '../../components/public/Stars.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Seg from '../../components/Seg.astro';
 import Layout from '../../layouts/Layout.astro';
-import { ApiError, unwrap } from '../../lib/api/client';
+import { orNull } from '../../lib/api/client';
 import { near } from '../../lib/area';
-import { ago, decimal } from '../../lib/format';
-import { card } from '../../lib/listing';
+import { ago, decimal, ratingText } from '../../lib/format';
+import { card, isId } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
 import { CONTENT, btnCls } from '../../lib/ui';
 
 const id = Astro.params.id ?? '';
-const after = Astro.url.searchParams.get('sau') ?? undefined;
+const after = Astro.url.searchParams.get('after') ?? undefined;
 const api = Astro.locals.api;
-const found = /^[0-9a-f-]{36}$/i.test(id)
-  ? await unwrap(api.GET('/v1/screens/seller/{id}', { params: { path: { id }, query: near(Astro.cookies) } })).catch((e) => {
-      if (e instanceof ApiError && (e.status === 404 || e.status === 400)) return null;
-      throw e;
-    })
-  : null;
+// "Xem thêm tin" opens the next page in place of the first; it loads beside
+// the profile, and an old or broken cursor falls back to the first page.
+const [found, next] = isId(id)
+  ? await Promise.all([
+      orNull(api.GET('/v1/screens/seller/{id}', { params: { path: { id }, query: near(Astro.cookies) } })),
+      after ? orNull(api.GET('/v1/sellers/{id}/listings', { params: { path: { id }, query: { cursor: after, ...near(Astro.cookies) } } })) : null,
+    ])
+  : [null, null];
 if (!found) Astro.response.status = 404;
-
-// "Xem thêm tin" opens the next page of listings in place of the first.
-const page =
-  (found &&
-    after &&
-    (await unwrap(api.GET('/v1/sellers/{id}/listings', { params: { path: { id }, query: { cursor: after, ...near(Astro.cookies) } } })).catch((e) => {
-      // An old or broken cursor: the first page.
-      if (e instanceof ApiError && e.status === 400) return undefined;
-      throw e;
-    }))) ||
-  found?.listings;
+const page = next ?? found?.listings;
 const items = page?.items.map(card) ?? [];
 const s = found?.seller;
 const me = viewer(Astro);
@@ -51,9 +43,10 @@ const facts: [string, string][] = s
       ...(s.last_active_at ? [['schedule-outline-rounded', active ? 'Đang hoạt động' : `Hoạt động ${ago(s.last_active_at)} trước`] as [string, string]] : []),
     ]
   : [];
+const [rated, ratedLine] = s ? ratingText(s.rating) : ['', ''];
 const stats: [string, string, string][] = s
   ? [
-      s.rating.count ? [decimal(s.rating.average), '/5', `${s.rating.count} đánh giá`] : ['–', '', 'Chưa có đánh giá'],
+      [rated, s.rating.count ? '/5' : '', ratedLine],
       [String(s.sold), '', 'đã bán'],
       [String(s.on_sale), '', 'đang bán'],
       [String(s.followers), '', 'người theo dõi'],
@@ -101,7 +94,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
                     <span>{following ? 'Đang theo dõi' : 'Theo dõi'}</span>
                   </button>
                   <a
-                    href={`${R.messages}?nguoi=${s.id}`}
+                    href={`${R.messages}?seller=${s.id}`}
                     class="state-layer flex h-10 items-center gap-1.5 rounded-control border border-line bg-card pl-3.5 pr-4 text-label-large text-ink"
                   >
                     <Icon name="chat-outline-rounded" size={18} />
@@ -142,7 +135,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
           )}
           {page?.next_cursor && (
             <div class="mt-8 flex justify-center">
-              <a href={`?${new URLSearchParams({ sau: page.next_cursor })}`} class={btnCls('line')}>
+              <a href={`?${new URLSearchParams({ after: page.next_cursor })}`} class={btnCls('line')}>
                 Xem thêm tin
                 <Icon name="keyboard-arrow-down-rounded" size={17} />
               </a>
@@ -195,9 +188,10 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
 }
 
 <script>
-  import { loginHref } from '../../lib/routes';
+  import { API } from '../../lib/routes';
+  import { toggleRemote } from '../../lib/toggle';
 
-  // "Đánh giá" jumps to the reviews. "Theo dõi" follows through /theo-doi/<id>;
+  // "Đánh giá" jumps to the reviews. "Theo dõi" follows through /api/follows/<id>;
   // a guest goes to Đăng nhập, and a failed call puts the button back.
   document.querySelector('[data-tabs]')?.addEventListener('seg-change', (e) => {
     if ((e as CustomEvent).detail.index === 1) document.getElementById('danh-gia')?.scrollIntoView({ behavior: 'smooth' });
@@ -210,9 +204,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
     b.addEventListener('click', async () => {
       const on = b.getAttribute('aria-pressed') !== 'true';
       show(b, on);
-      const res = await fetch(`/theo-doi/${b.dataset.follow}`, { method: on ? 'PUT' : 'DELETE' }).catch(() => null);
-      if (res?.status === 401) location.href = loginHref(location.pathname + location.search);
-      else if (!res?.ok) show(b, !on);
+      if (!(await toggleRemote(API.follows(b.dataset.follow!), on))) show(b, !on);
     }),
   );
 </script>

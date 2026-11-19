@@ -71,7 +71,7 @@ const { title, description, section = null, search, footer = true, fab = true, i
       addEventListener('pageswap', (e) => {
         if (!e.viewTransition || !e.activation?.entry?.url) return;
         const to = new URL(e.activation.entry.url);
-        if (to.pathname.startsWith('/tin/') && tapped?.pathname === to.pathname) pair(photoOf(tapped), e.viewTransition);
+        if (to.pathname.startsWith('/listings/') && tapped?.pathname === to.pathname) pair(photoOf(tapped), e.viewTransition);
         else pair(gallery(), e.viewTransition);
       });
       addEventListener('pagereveal', (e) => {

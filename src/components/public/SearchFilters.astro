@@ -17,7 +17,7 @@ interface Props {
 
 const { search, base } = Astro.props;
 const place = area(Astro.cookies);
-const keys = { new: 'moi', like_new: 'nhu-moi', used: 'da-dung' } as const;
+const keys = { new: 'new', like_new: 'like-new', used: 'used' } as const;
 const distances = [undefined, ...NEAR_STEPS].map((km) => ({
   label: km ? `${km} km` : 'Mọi nơi',
   href: searchHref(search, { km }, base),
@@ -30,21 +30,21 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
 
 <form action={base} class="self-start overflow-hidden rounded-card border border-line bg-card lg:sticky lg:top-[88px]" data-filters>
   {search.q && <input type="hidden" name="q" value={search.q} />}
-  {search.category && <input type="hidden" name="muc" value={search.category} />}
-  {search.off.map((o) => <input type="hidden" name="bo" value={o} />)}
-  {search.km && <input type="hidden" name="gan" value={search.km} />}
-  {search.sort && <input type="hidden" name="sap-xep" value={sortKey(search.sort)} />}
-  {search.photo && <input type="hidden" name="anh" value={search.photo} />}
+  {search.category && <input type="hidden" name="category" value={search.category} />}
+  {search.off.map((o) => <input type="hidden" name="off" value={o} />)}
+  {search.km && <input type="hidden" name="km" value={search.km} />}
+  {search.sort && <input type="hidden" name="sort" value={sortKey(search.sort)} />}
+  {search.photo && <input type="hidden" name="photo" value={search.photo} />}
   <div class={group}>
     <p class={head}>Giá</p>
     <div class="mt-3 grid grid-cols-2 gap-2 text-body-medium text-ink">
       <label class="rounded-sm border border-field px-2.5 py-2 focus-within:border-brand">
         <span class="sr-only">Giá từ</span>
-        <input name="gia-tu" inputmode="numeric" placeholder="Từ" value={search.min ?? ''} class="w-full bg-transparent outline-none placeholder:text-faint" />
+        <input name="min" inputmode="numeric" placeholder="Từ" value={search.min ?? ''} class="w-full bg-transparent outline-none placeholder:text-faint" />
       </label>
       <label class="rounded-sm border border-field px-2.5 py-2 focus-within:border-brand">
         <span class="sr-only">Giá đến</span>
-        <input name="gia-den" inputmode="numeric" placeholder="Đến" value={search.max ?? ''} class="w-full bg-transparent outline-none placeholder:text-faint" />
+        <input name="max" inputmode="numeric" placeholder="Đến" value={search.max ?? ''} class="w-full bg-transparent outline-none placeholder:text-faint" />
       </label>
     </div>
   </div>
@@ -56,7 +56,7 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
           <label class="-mx-2 flex h-8 cursor-pointer items-center gap-2.5 rounded-sm px-2 text-body-large text-ink hover:bg-hover">
             <input
               type="checkbox"
-              name="tinh-trang"
+              name="condition"
               value={keys[c as keyof typeof keys]}
               checked={search.conditions.includes(c as keyof typeof keys)}
               class="peer sr-only"
@@ -67,7 +67,7 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
         ))
       }
       <label class="-mx-2 mt-2 flex h-8 cursor-pointer items-center gap-2.5 rounded-sm px-2 text-body-large text-ink hover:bg-hover">
-        <input type="checkbox" name="tra-gia" value="1" checked={search.offers} class="peer sr-only" />
+        <input type="checkbox" name="offers" value="1" checked={search.offers} class="peer sr-only" />
         <span class={box}><Icon name="check-rounded" size={13} /></span>
         Trả giá được
       </label>

@@ -139,7 +139,7 @@ const account = [
   <div class="grid grid-cols-2 gap-1">
     {
       cats.map((c) => (
-        <a href={R.category(c.slug)} class="state-layer flex items-center gap-3 rounded-control p-2.5 hover:bg-hover">
+        <a href={R.category(c.code)} class="state-layer flex items-center gap-3 rounded-control p-2.5 hover:bg-hover">
           <span class="grid h-9 w-9 place-items-center rounded-control bg-soft">
             <Icon name={c.icon} size={19} />
           </span>
@@ -164,7 +164,7 @@ const account = [
   <div class="mt-1 grid grid-cols-1 gap-x-2 md:grid-cols-2">
     {
       cats.slice(0, 6).map((c) => (
-        <a href={R.category(c.slug)} class="state-layer flex items-center gap-2.5 rounded-control px-2.5 py-2 text-body-large hover:bg-hover">
+        <a href={R.category(c.code)} class="state-layer flex items-center gap-2.5 rounded-control px-2.5 py-2 text-body-large hover:bg-hover">
           <Icon name={c.icon} size={18} class="text-sub" />
           <span class="flex-1">{c.name}</span>
         </a>

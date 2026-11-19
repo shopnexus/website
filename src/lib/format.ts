@@ -36,6 +36,10 @@ export function ago(iso: string, now = Date.now()) {
   return `${Math.floor(m / 525_600)} năm`;
 }
 
+/** A seller's rating as a figure and its line: ["4,9", "32 đánh giá"], or a dash without reviews. */
+export const ratingText = (r: { average: number; count: number }): [string, string] =>
+  r.count ? [decimal(r.average), `${r.count} đánh giá`] : ['–', 'Chưa có đánh giá'];
+
 /** Seconds as a countdown: 0:45. */
 export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 

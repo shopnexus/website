@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { unwrap } from '../../lib/api/client';
-import { relay } from '../../lib/api/relay';
+import { unwrap } from '../../../lib/api/client';
+import { relay } from '../../../lib/api/relay';
 
 // "Theo dõi" on Người bán: PUT follows the account, DELETE stops.
 export const PUT: APIRoute = ({ params, locals }) =>
