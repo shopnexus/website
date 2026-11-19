@@ -1,10 +1,9 @@
 ---
 // Trang chủ (K2). From expanded up a rail on the left holds the categories,
-// the buyer's searches and lists, and how COD works; the column on the right
-// greets the buyer, shows the two things waiting on them, then the feed under
-// its tabs, and what they viewed last. Signed out the rail shows this
-// browser's searches and the shortcuts what it viewed. The header carries
-// the search field, so the page has no search hero.
+// the buyer's saved searches and lists, and how COD works; the column on the
+// right greets the buyer, then the feed under its tabs, and the listings like
+// what they viewed last. The header carries the search field, so the page
+// has no search hero.
 import Icon from '../components/Icon.astro';
 import ListingCard from '../components/ListingCard.astro';
 import ListingSkeleton from '../components/ListingSkeleton.astro';
@@ -12,41 +11,47 @@ import Photo from '../components/Photo.astro';
 import Price from '../components/Price.astro';
 import Seg from '../components/Seg.astro';
 import HomeRail from '../components/home/HomeRail.astro';
-import HomeTiles from '../components/home/HomeTiles.astro';
 import Layout from '../layouts/Layout.astro';
-import { LISTINGS } from '../data/listings';
-import { CATEGORY_INDEX } from '../data/public';
-import { feedPage } from '../lib/feed';
-import { img } from '../lib/format';
+import { unwrap } from '../lib/api/client';
+import { area } from '../lib/area';
+import { categories } from '../lib/catalog';
+import { homeScreen } from '../lib/feed';
 import { R } from '../lib/routes';
 import { viewer } from '../lib/session';
 import { CONTENT } from '../lib/ui';
 
 const me = viewer(Astro);
+const [home, cats, watches] = await Promise.all([
+  homeScreen(Astro),
+  categories().catch(() => []),
+  // The rail's saved searches are extra: without them the rail shows the rest.
+  me ? unwrap(Astro.locals.api.GET('/v1/search/watches')).then((w) => w.items).catch(() => []) : null,
+]);
+const counts = new Map(home.categories.map((c) => [c.code, c.count]));
+const rail = cats.map((c) => ({ slug: c.slug, name: c.name, icon: c.icon, count: counts.get(c.code) ?? 0 }));
+const place = area(Astro.cookies);
 const now = new Date();
 const hour = +now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Ho_Chi_Minh' });
 const part = hour < 11 ? 'Sáng' : hour < 18 ? 'Chiều' : 'Tối';
 const day = now.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' });
-const feed = feedPage('cho-ban', 1);
 const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'];
-const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], LISTINGS[11], LISTINGS[2], LISTINGS[6]].filter(Boolean);
 ---
 
 <Layout title="ShopNexus · Đồ cũ giá tốt" description="Đồ cũ giá tốt, xem hàng rồi mới trả." section="explore">
   <div class:list={[CONTENT, 'grid gap-10 pt-6 lg:grid-cols-[224px_minmax(0,1fr)]']}>
-    <HomeRail signedIn={!!me} />
+    <HomeRail categories={rail} watches={me ? watches!.map((w) => ({ id: w.id, query: w.query, fresh: w.new_count })) : null} />
     <main class="min-w-0">
       <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
         <div>
           <p class="text-body-small text-faint first-letter:uppercase">{part} {day}</p>
           <h1 class="mt-1 text-j-24 text-ink lg:text-j-28">{me ? `Chào ${me.name.split(' ').pop()}` : 'Đồ cũ quanh bạn'}</h1>
         </div>
-        <p class="text-body-large text-sub"><b class="font-semibold text-ink tabular-nums">214</b> tin mới quanh Bình Thạnh hôm nay</p>
+        {place && <p class="text-body-large text-sub">Quanh {place.name}</p>}
       </div>
 
       <nav class="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 lg:hidden" aria-label="Danh mục">
         {
-          CATEGORY_INDEX.map((c) => (
+          rail.map((c) => (
             <a href={R.category(c.slug)} class="flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-line bg-card px-3 text-body-large text-ink">
               <Icon name={c.icon} size={16} class="text-sub" />
               {c.name}
@@ -55,21 +60,19 @@ const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], L
         }
       </nav>
 
-      <HomeTiles signedIn={!!me} />
-
       <section class="mt-9" data-feed>
         <div class="flex items-center justify-between border-b border-line">
           <Seg items={tabs} variant="tabs" name="Bảng tin" />
           <span class="hidden pb-2 text-body-small text-faint md:block">Gần thì ghi km, xa thì ghi nơi bán</span>
         </div>
         <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" aria-live="polite" data-feed-grid>
-          {feed.items.map((it, i) => <ListingCard item={it} saved={!!me && i === 2} loading={i < 8 ? 'eager' : 'lazy'} sellerLoading={i < 4 ? 'eager' : 'lazy'} />)}
+          {home.forYou.map((it, i) => <ListingCard item={it} loading={i < 8 ? 'eager' : 'lazy'} />)}
         </div>
         <div class="mt-8 flex justify-center">
           <a
             href={R.search}
             class="state-layer flex h-10 items-center gap-1.5 rounded-control border border-field bg-card px-5 text-title-small text-ink hover:bg-page"
-            hidden={!feed.more}
+            hidden
             data-feed-more
           >
             Xem thêm tin
@@ -79,23 +82,24 @@ const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], L
         <template data-feed-skeleton><ListingSkeleton /></template>
       </section>
 
-      <section class="mt-14">
-        <div class="flex items-center justify-between">
-          <h2 class="text-j-16 text-ink">Bạn vừa xem</h2>
-          <button type="button" class="text-body-small text-faint hover:underline">Xóa lịch sử</button>
-        </div>
-        <div class="no-scrollbar mt-4 flex gap-4 overflow-x-auto">
-          {
-            seen.map((it) => (
-              <a href={R.listing(it.id)} class="w-[132px] shrink-0">
-                <Photo src={img(it.photo, 264, 264)} width={264} height={264} alt="" loading="lazy" class="aspect-square w-full rounded-tile object-cover" />
-                <Price vnd={it.price} size="text-j-15" class="mt-1.5 block" />
-                <span class="block truncate text-body-small text-sub">{it.title}</span>
-              </a>
-            ))
-          }
-        </div>
-      </section>
+      {
+        home.viewed && (
+          <section class="mt-14">
+            <h2 class="text-j-16 text-ink">Vì bạn đã xem {home.viewed.category}</h2>
+            <div class="no-scrollbar mt-4 flex gap-4 overflow-x-auto">
+              {home.viewed.items.map((it) => (
+                <a href={R.listing(it.id)} class="w-[132px] shrink-0">
+                  <span class="block aspect-square w-full overflow-hidden rounded-tile bg-soft">
+                    {it.photo && <Photo src={it.photo} width={264} height={264} alt="" loading="lazy" class="h-full w-full object-cover" />}
+                  </span>
+                  <Price vnd={it.price} size="text-j-15" class="mt-1.5 block" />
+                  <span class="block truncate text-body-small text-sub">{it.title}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )
+      }
     </main>
   </div>
 </Layout>
@@ -103,29 +107,33 @@ const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], L
 <script>
   import { R } from '../lib/routes';
   import { FEED_PAGE, FEED_TABS } from '../lib/feed-tabs';
+  import { locate } from '../lib/locate';
 
-  // The tabs and "Xem thêm tin" fetch pages of cards from /bang-tin. While a
-  // page is on its way, skeleton cards hold its place: from 80 ms on, and once
-  // shown for at least 350 ms, so a fast answer does not flash them.
+  // The tabs and "Xem thêm tin" fetch pages of cards from /bang-tin, passing
+  // the last page's cursor. While a page is on its way, skeleton cards hold
+  // its place: from 80 ms on, and once shown for at least 350 ms, so a fast
+  // answer does not flash them. Gần bạn's ask for the place asks the browser,
+  // then loads the tab again.
   const root = document.querySelector<HTMLElement>('[data-feed]');
   if (root) {
     const grid = root.querySelector<HTMLElement>('[data-feed-grid]')!;
     const more = root.querySelector<HTMLAnchorElement>('[data-feed-more]')!;
     const skeleton = root.querySelector<HTMLTemplateElement>('[data-feed-skeleton]')!;
     let tab: string = FEED_TABS[0];
-    let page = 1;
+    let next = '';
     let run = 0;
 
-    const fetchPage = async (t: string, p: number) => {
-      const res = await fetch(`${R.feed}?tab=${t}&trang=${p}`);
+    const fetchPage = async (t: string, after: string) => {
+      const res = await fetch(`${R.feed}?${new URLSearchParams({ tab: t, ...(after ? { sau: after } : {}) })}`);
+      if (!res.ok) throw new Error(String(res.status));
       const holder = document.createElement('template');
       holder.innerHTML = await res.text();
       const part = holder.content.querySelector<HTMLTemplateElement>('template[data-feed-page]')!;
-      return { cards: [...part.content.children] as HTMLElement[], more: part.dataset.more === 'true' };
+      return { cards: [...part.content.children] as HTMLElement[], next: part.dataset.next ?? '' };
     };
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-    async function show(t: string, p: number, replace: boolean) {
+    async function show(t: string, after: string, replace: boolean) {
       const mine = ++run;
       const bones = Array.from({ length: FEED_PAGE }, () => skeleton.content.firstElementChild!.cloneNode(true) as HTMLElement);
       let shownAt = 0;
@@ -137,19 +145,20 @@ const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], L
       grid.setAttribute('aria-busy', 'true');
       more.hidden = true;
       try {
-        const next = await fetchPage(t, p);
+        const page = await fetchPage(t, after);
         if (shownAt) await wait(Math.max(0, 350 - (performance.now() - shownAt)));
         if (mine !== run) return;
         clearTimeout(timer);
         bones.forEach((b) => b.remove());
-        next.cards.forEach((c) => c.setAttribute('data-fresh', ''));
-        if (replace) grid.replaceChildren(...next.cards);
-        else grid.append(...next.cards);
-        more.hidden = !next.more;
+        page.cards.forEach((c) => c.setAttribute('data-fresh', ''));
+        if (replace) grid.replaceChildren(...page.cards);
+        else grid.append(...page.cards);
+        next = page.next;
+        more.hidden = !next;
       } catch {
         clearTimeout(timer);
         bones.forEach((b) => b.remove());
-        more.hidden = false;
+        more.hidden = !next;
       } finally {
         if (mine === run) grid.removeAttribute('aria-busy');
       }
@@ -157,13 +166,22 @@ const seen = [LISTINGS[7], LISTINGS[1], LISTINGS[5], LISTINGS[9], LISTINGS[3], L
 
     root.addEventListener('seg-change', (e) => {
       tab = FEED_TABS[(e as CustomEvent<{ index: number }>).detail.index];
-      page = 1;
-      show(tab, page, true);
+      next = '';
+      show(tab, '', true);
     });
     more.addEventListener('click', (e) => {
       e.preventDefault();
-      page += 1;
-      show(tab, page, false);
+      show(tab, next, false);
+    });
+    grid.addEventListener('click', async (e) => {
+      const ask = (e.target as Element).closest<HTMLButtonElement>('[data-locate]');
+      if (!ask) return;
+      ask.disabled = true;
+      if (await locate()) show(tab, '', true);
+      else {
+        ask.disabled = false;
+        ask.textContent = 'Chưa lấy được vị trí. Thử lại';
+      }
     });
   }
 </script>

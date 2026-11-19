@@ -1,24 +1,27 @@
 ---
 import Photo from './Photo.astro';
 // A compact listing link: thumb, price, title, place.
-import { type Listing, listingPhoto, where } from '../lib/format';
+import { where } from '../lib/format';
+import type { Card } from '../lib/listing';
 import { R } from '../lib/routes';
 import Price from './Price.astro';
 
 interface Props {
-  item: Listing;
+  item: Card;
+  /** "lazy" when it sits below the first screen. */
+  loading?: 'eager' | 'lazy';
 }
 
-const { item } = Astro.props;
+const { item, loading } = Astro.props;
 ---
 
 <a href={R.listing(item.id)} class="lift flex items-center gap-3 rounded-tile border border-line bg-card p-1.5 pr-3">
-  <Photo src={listingPhoto(item, 120)} width={120} height={120} alt="" loading="lazy" class="h-14 w-14 shrink-0 rounded-md object-cover" />
+  <span class="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-soft">
+    {item.photo && <Photo src={item.photo} width={120} height={120} alt="" loading={loading} class="h-full w-full object-cover" />}
+  </span>
   <span class="min-w-0 flex-1">
     <Price vnd={item.price} size="text-j-15" />
     <span class="block truncate text-body-small text-ink">{item.title}</span>
-    <span class="block truncate text-body-small text-on-surface-variant"
-      >{where(item.km, item.area)}{item.posted && ` · ${item.posted} trước`}</span
-    >
+    <span class="block truncate text-body-small text-on-surface-variant">{where(item.km, item.area)}</span>
   </span>
 </a>

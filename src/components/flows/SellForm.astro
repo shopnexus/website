@@ -11,7 +11,8 @@ import Price from '../Price.astro';
 import Seg from '../Seg.astro';
 import Switch from '../Switch.astro';
 import { SELL } from '../../data/flows';
-import { crop, decimal, group } from '../../lib/format';
+import { crop, decimal, group, img } from '../../lib/format';
+import type { Card } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { loginUrl, viewer } from '../../lib/session';
 import { btnCls, PANEL } from '../../lib/ui';
@@ -28,16 +29,15 @@ const picks = [
   { icon: 'balance-rounded', title: 'Giá thị trường', price: 4_800_000, time: '~1 tuần', on: true },
 ];
 const ready = ['4 ảnh, có ảnh bìa', 'Tiêu đề và tình trạng', 'Giá 4.800.000 ₫', 'Giao COD bằng GHTK'];
-const preview = {
+const preview: Card = {
   id: 'nhap',
-  photo: SELL.photo,
+  photo: img(SELL.photo, 480, 480),
   price: SELL.price,
   title: SELL.title,
   condition: 'Đã dùng',
-  km: 1.2,
+  km: 1,
   area: 'Bình Thạnh',
-  rating: 4.9,
-  facts: ['64 GB', 'Pin 81%'],
+  saved: false,
 };
 const deal = [
   { icon: 'local-shipping-outline-rounded', title: 'COD, xem hàng trước', on: true },
@@ -330,7 +330,7 @@ const postHref = me ? undefined : loginUrl(Astro.url);
   <aside class="self-start lg:sticky lg:top-[84px]">
     <div class="flex flex-col gap-3">
       <p class="px-1 text-label-large text-on-surface-variant">Người mua sẽ thấy</p>
-      <div class="max-lg:max-w-[340px]"><ListingCard item={preview} ratio="4 / 4.4" sellerLoading="eager" /></div>
+      <div class="max-lg:max-w-[340px]"><ListingCard item={preview} ratio="4 / 4.4" /></div>
       <div class:list={[PANEL, 'p-5']}>
         <div class="flex items-center justify-between">
           <p class="text-title-small text-ink">Sẵn sàng đăng</p>

@@ -3,7 +3,6 @@
 // builders they import). MONEY sentences come from common.ts, word for word.
 
 import { MONEY } from './common';
-import { LISTINGS } from './listings';
 
 export const NO_ARBITRATION = 'Hệ thống không phân xử giữa người mua và người bán.';
 
@@ -296,4 +295,3 @@ export const TERMS: LegalSection[] = [
 // --------------------------------------------------------------- Đăng nhập --
 
 /** Listings on sale near Bình Thạnh, beside the sign-in panel. */
-export const LOGIN_NEARBY = [2, 3, 11, 6, 0, 10].map((i) => LISTINGS[i]);

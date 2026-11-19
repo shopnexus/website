@@ -1,131 +1,136 @@
 ---
-import Photo from '../components/Photo.astro';
-// Tìm bằng ảnh: the photo stands in for the query in the header field. The
-// conditions read from the photo are sparkle chips; a sticky column holds the
-// photo with its crop frame, "Đổi ảnh", "Chụp" and recent photos; the main
-// column has the count, the price range, the matches and other models.
-import AiChip from '../components/AiChip.astro';
-import Drop from '../components/Drop.astro';
+// Tìm bằng ảnh, signed in. Without ?anh= the page asks for a photo: chosen,
+// taken, dropped on the page or pasted. The photo uploads from the browser
+// (lib/upload.ts) and the page opens again with its upload id, which runs
+// the search on the photo under the usual filters, sorts and paging.
 import Icon from '../components/Icon.astro';
-import ListingCard from '../components/ListingCard.astro';
-import FilterRow from '../components/public/FilterRow.astro';
-import RangeBar from '../components/public/RangeBar.astro';
-import { tr } from '../components/public/tr';
-import SectionTitle from '../components/SectionTitle.astro';
-import Seg from '../components/Seg.astro';
+import SearchResults from '../components/public/SearchResults.astro';
+import SearchEmpty from '../components/public/SearchEmpty.astro';
 import Layout from '../layouts/Layout.astro';
-import { MODELS, PHOTO_MATCHES, PHOTO_QUERY, PHOTO_SIMILAR, SIERRA } from '../data/public';
-import { img } from '../lib/format';
+import { ApiError, unwrap } from '../lib/api/client';
+import { card } from '../lib/listing';
 import { R } from '../lib/routes';
+import { readSearch, serverQuery } from '../lib/search';
+import { requireViewer } from '../lib/session';
 import { CONTENT, btnCls } from '../lib/ui';
 
-const chips = ['iPhone 13 Pro', 'Xanh Sierra', 'Điện thoại'];
-const without = (c: string) => `${R.search}?q=${encodeURIComponent(chips.filter((x) => x !== c).join(', '))}`;
-const recent = [SIERRA, '1505740420928-5e560c06d30e', '1507035895480-2b3156c31fc8', '1555041469-a586c61ea9bc'];
-const { lo, hi, med, n } = MODELS[0];
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+
+const s = { ...readSearch(Astro.url), q: '', watch: undefined };
+let failed: string | undefined;
+const view = s.photo
+  ? await unwrap(Astro.locals.api.GET('/v1/search', { params: { query: serverQuery(s, Astro.cookies) } })).catch((e) => {
+      if (!(e instanceof ApiError)) throw e;
+      failed = e.code === 'search_unavailable' ? 'Chưa đọc được ảnh lúc này. Thử lại sau ít phút.' : 'Ảnh này đã hết hạn. Chọn lại ảnh nhé.';
+      return null;
+    })
+  : null;
+const items = view?.items.map(card) ?? [];
+const pick = 'flex-1 cursor-pointer';
 ---
 
-<Layout title="Tìm bằng ảnh · ShopNexus" description="Tìm tin giống ảnh của bạn trên ShopNexus." section="explore" search={{ q: PHOTO_QUERY, photo: SIERRA }}>
-  <div class={CONTENT}>
-    <FilterRow>
-      {chips.map((c) => <AiChip slot="chips" label={c} remove={without(c)} />)}
-      <Drop label="Dung lượng" />
-      <Drop label="Tình trạng" />
-      <Drop label="Trong 10 km" on />
-      <Drop label="Trả giá được" />
-    </FilterRow>
-  </div>
-  <main class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr]']}>
-    <aside class="flex flex-col gap-3 self-start md:flex-row lg:sticky lg:top-[84px] lg:flex-col">
-      <div class="rounded-card border border-line bg-card p-2 md:flex-1 lg:flex-none">
-        <div class="relative overflow-hidden rounded-card" style="aspect-ratio: 1 / 1">
-          <Photo src={img(SIERRA, 640, 640)} width={640} height={640} alt="Ảnh bạn tải lên" class="h-full w-full object-cover" data-photo />
-          <span
-            class="absolute rounded-tile border-2 border-white shadow-[0_0_0_999px_rgb(0_0_0/.28)]"
-            style="left:24%;top:14%;width:52%;height:74%"></span>
-          <span class="absolute bottom-3 left-3 rounded-full bg-white/90 px-2.5 py-1 text-label-medium text-photo-ink backdrop-blur">Ảnh của bạn</span>
-        </div>
-        <form action={R.photoSearch} method="post" enctype="multipart/form-data" class="flex items-center gap-2 p-2">
-          <label class:list={[btnCls('line'), 'flex-1 cursor-pointer']}>
-            <Icon name="upload-rounded" size={18} />Đổi ảnh
-            <input type="file" name="anh" accept="image/*" class="sr-only" />
+<Layout title="Tìm bằng ảnh · ShopNexus" description="Tìm tin giống ảnh của bạn trên ShopNexus." section="explore">
+  {
+    view && items.length > 0 ? (
+      <SearchResults items={items} search={s} base={R.photoSearch} title="Tin giống ảnh" understood={view.understood} next={view.next_cursor} watchable={false}>
+        <div class="flex items-center gap-3 rounded-card border border-line bg-card p-2" data-photo-bar>
+          <span class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-md bg-soft text-faint">
+            <img alt="Ảnh của bạn" class="hidden h-full w-full object-cover" data-preview={s.photo} />
+            <Icon name="image-outline-rounded" size={20} />
+          </span>
+          <span class="min-w-0 flex-1 text-body-medium text-sub">Ảnh của bạn</span>
+          <label class:list={[btnCls('line', 'sm'), 'cursor-pointer']}>
+            <Icon name="upload-rounded" size={16} />
+            Đổi ảnh
+            <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-photo-input />
           </label>
-          <label class:list={[btnCls('line'), 'flex-1 cursor-pointer']}>
-            <Icon name="photo-camera-outline-rounded" size={18} />Chụp
-            <input type="file" name="anh" accept="image/*" capture="environment" class="sr-only" />
-          </label>
-        </form>
-        <p class="px-2 pb-2 text-body-small text-on-surface-variant">Kéo ảnh khác vào trang, hoặc dán ảnh bằng Ctrl+V.</p>
-      </div>
-      <div class="rounded-panel border border-line bg-card p-4 md:self-start lg:self-auto">
-        <p class="text-label-medium text-on-surface-variant">Ảnh gần đây</p>
-        <div class="mt-2 grid grid-cols-4 gap-2" data-recent>
-          {
-            recent.map((p, i) => (
-              <button
-                type="button"
-                data-src={img(p, 640, 640)}
-                aria-pressed={i === 0 ? 'true' : 'false'}
-                aria-label={`Ảnh gần đây ${i + 1}`}
-                class="state-layer overflow-hidden rounded-field ring-primary ring-offset-2 ring-offset-card aria-pressed:ring-2"
-              >
-                <Photo src={img(p, 120, 120)} width={120} height={120} alt="" class="aspect-square w-full object-cover" />
-              </button>
-            ))
-          }
         </div>
-      </div>
-    </aside>
-
-    <section class="min-w-0">
-      <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between xl:gap-6">
-        <div>
-          <h1 class="flex items-center gap-3 text-j-32 text-ink md:text-j-28">
-            <span class="tabular-nums" data-count>36</span> tin giống ảnh
-          </h1>
-          <p class="mt-1.5 text-body-medium text-on-surface-variant">Trong 10 km quanh Bình Thạnh · cùng đời máy và màu</p>
-        </div>
-        <div class="rounded-card border border-line bg-card px-4 py-3 xl:w-[340px]">
-          <div class="flex items-baseline justify-between">
-            <span class="flex items-center gap-1.5 text-label-medium text-on-surface-variant">
-              <Icon name="auto-awesome-rounded" size={14} class="text-primary" />Giá tham khảo · {n} tin
-            </span>
-            <span class="text-j-15 text-ink tabular-nums">{tr(lo)} – {tr(hi)} tr ₫</span>
+      </SearchResults>
+    ) : view ? (
+      <SearchEmpty search={s} chips={[]} watchable={false} />
+    ) : (
+      <main class:list={[CONTENT, 'pt-8']}>
+        <h1 class="text-j-28 text-ink lg:text-j-32">Tìm bằng ảnh</h1>
+        <p class="mt-2 max-w-[560px] text-body-large text-sub">Chụp hoặc chọn ảnh món đồ, ShopNexus tìm tin giống vậy đang bán.</p>
+        <div class="mt-6 max-w-[640px] rounded-card border-2 border-dashed border-field bg-card p-8 text-center" data-drop>
+          <Icon name="photo-camera-outline-rounded" size={36} class="mx-auto text-sub" />
+          <p class="mt-3 text-body-large text-ink">Kéo ảnh vào đây, hoặc dán bằng Ctrl+V</p>
+          <p class="mt-1 text-body-small text-faint">JPEG, PNG hoặc WebP, tối đa 15 MB</p>
+          <div class="mx-auto mt-5 flex max-w-[360px] gap-2">
+            <label class:list={[btnCls('ink'), pick]}>
+              <Icon name="upload-rounded" size={18} />
+              Chọn ảnh
+              <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-photo-input />
+            </label>
+            <label class:list={[btnCls('line'), pick]}>
+              <Icon name="photo-camera-outline-rounded" size={18} />
+              Chụp
+              <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" class="sr-only" data-photo-input />
+            </label>
           </div>
-          <div class="mt-2"><RangeBar lo={lo} hi={hi} med={med} labels={false} /></div>
+          <p role="status" class="mt-4 min-h-5 text-body-small text-sub" data-photo-status>{failed}</p>
         </div>
-      </div>
-      <div
-        class="border border-line bg-card sticky top-[76px] z-20 mt-5 flex items-center justify-between gap-2 overflow-x-auto rounded-full py-1 pl-1 pr-1.5 shadow-soft no-scrollbar"
-      >
-        <Seg items={['Giống ảnh nhất', 'Rẻ hơn', 'Gần hơn', 'Mới đăng']} class="shrink-0 bg-soft" name="Sắp xếp" />
-        <span class="shrink-0 pr-2 text-body-small text-on-surface-variant">1–8 trong 36</span>
-      </div>
-      <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
-        {PHOTO_MATCHES.map((it, i) => <ListingCard item={it} saved={i === 0} sellerLoading={i < 4 ? 'eager' : 'lazy'} />)}
-      </div>
-      <SectionTitle class="mt-8" title="Cùng hãng, đời khác" link="Xem 214 tin" href={`${R.search}?q=iPhone`} />
-      <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
-        {PHOTO_SIMILAR.map((it) => <ListingCard item={it} loading="lazy" />)}
-      </div>
-    </section>
-  </main>
+      </main>
+    )
+  }
 </Layout>
 
 <script>
-  // A recent photo takes the big frame. Choosing a new file previews it there.
-  const photo = document.querySelector<HTMLImageElement>('[data-photo]');
-  const recent = document.querySelector<HTMLElement>('[data-recent]');
-  recent?.addEventListener('click', (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button');
-    if (!b || !photo) return;
-    photo.src = b.dataset.src!;
-    recent.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  import { R, loginHref } from '../lib/routes';
+  import { UploadError, uploadPhoto } from '../lib/upload';
+
+  // A chosen, dropped or pasted photo uploads, then the page opens with it.
+  // The photo's preview waits in sessionStorage, since the upload itself is
+  // private; a missing one leaves the icon.
+  const status = document.querySelector<HTMLElement>('[data-photo-status]');
+  const say = (t: string) => status && (status.textContent = t);
+  const words: Record<UploadError['reason'], string> = {
+    'sign-in': 'Phiên đăng nhập đã hết. Đăng nhập lại nhé.',
+    type: 'Chọn ảnh JPEG, PNG hoặc WebP.',
+    size: 'Ảnh lớn hơn 15 MB.',
+    failed: 'Chưa tải được ảnh lên. Thử lại sau.',
+  };
+
+  async function send(file?: File | null) {
+    if (!file) return;
+    say('Đang tải ảnh lên…');
+    try {
+      const id = await uploadPhoto(file);
+      try {
+        const url = await new Promise<string>((done) => {
+          const r = new FileReader();
+          r.onload = () => done(String(r.result));
+          r.readAsDataURL(file);
+        });
+        if (url.length < 2_000_000) sessionStorage.setItem(`sn-photo-${id}`, url);
+      } catch {}
+      location.href = `${R.photoSearch}?anh=${id}`;
+    } catch (e) {
+      const reason = e instanceof UploadError ? e.reason : 'failed';
+      if (reason === 'sign-in') location.href = loginHref(R.photoSearch);
+      else if (status) say(words[reason]);
+      else alert(words[reason]);
+    }
+  }
+
+  document.querySelectorAll<HTMLInputElement>('[data-photo-input]').forEach((i) => i.addEventListener('change', () => send(i.files?.[0])));
+  const drop = document.querySelector<HTMLElement>('[data-drop]');
+  if (drop) {
+    drop.addEventListener('dragover', (e) => e.preventDefault());
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      send(e.dataTransfer?.files[0]);
+    });
+    document.addEventListener('paste', (e) => send([...(e.clipboardData?.files ?? [])][0]));
+  }
+  document.querySelectorAll<HTMLImageElement>('[data-preview]').forEach((img) => {
+    try {
+      const url = sessionStorage.getItem(`sn-photo-${img.dataset.preview}`);
+      if (!url) return;
+      img.src = url;
+      img.classList.remove('hidden');
+      img.nextElementSibling?.remove();
+    } catch {}
   });
-  document.querySelectorAll<HTMLInputElement>('input[name="anh"]').forEach((input) =>
-    input.addEventListener('change', () => {
-      const f = input.files?.[0];
-      if (f && photo) photo.src = URL.createObjectURL(f);
-    }),
-  );
 </script>

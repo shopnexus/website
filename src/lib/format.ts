@@ -26,6 +26,16 @@ const NEAR_KM = 10;
 /** 1.250.000 */
 export const group = (n: number) => Math.round(n).toLocaleString('de-DE');
 
+/** How long ago, as the app says it: "12 phút", "3 giờ", "5 ngày", "2 tháng". */
+export function ago(iso: string, now = Date.now()) {
+  const m = Math.max(1, Math.floor((now - Date.parse(iso)) / 60_000));
+  if (m < 60) return `${m} phút`;
+  if (m < 1440) return `${Math.floor(m / 60)} giờ`;
+  if (m < 43_200) return `${Math.floor(m / 1440)} ngày`;
+  if (m < 525_600) return `${Math.floor(m / 43_200)} tháng`;
+  return `${Math.floor(m / 525_600)} năm`;
+}
+
 /** Seconds as a countdown: 0:45. */
 export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
@@ -43,8 +53,8 @@ export function priceParts(vnd: number, short = true): [string, string] {
 /** "1.250.000 ₫", or "12,5 tr ₫" from 10 triệu when short. */
 export const money = (vnd: number, short = false) => priceParts(vnd, short).join(' ');
 
-/** A card's place, as the app's whereText: the distance under 10 km, the seller's place beyond. */
-export const where = (km: number, area: string) => (km >= NEAR_KM ? area : `${decimal(km)} km`);
+/** A card's place, as the app's whereText: the distance under 10 km, the seller's place beyond or without one. */
+export const where = (km: number | undefined, area: string) => (km === undefined || km >= NEAR_KM ? area : km < 1 ? 'Dưới 1 km' : `${decimal(km)} km`);
 
 /** An Unsplash photo by id, cropped to w×h. */
 export function img(id: string, w = 600, h?: number) {

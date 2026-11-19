@@ -1,6 +1,6 @@
 import type { AstroCookies, AstroGlobal } from 'astro';
 import { type Api, ApiError, type Caller, type Schemas, apiClient, unwrap } from './api/client';
-import { R } from './routes';
+import { loginHref } from './routes';
 
 // The buyer's session with the server. The access and refresh tokens live in
 // httpOnly cookies the browser never reads; the middleware refreshes the
@@ -113,7 +113,4 @@ export function requireViewer(ctx: Pick<AstroGlobal, 'locals' | 'url' | 'redirec
 }
 
 /** Đăng nhập, coming back to `url`; `?het-phien` when another device signed this one out. */
-export function loginUrl(url: URL, ended?: string) {
-  const back = `tiep=${encodeURIComponent(url.pathname + url.search)}`;
-  return `${R.login}?${back}${ended === 'session_revoked' ? '&het-phien' : ''}`;
-}
+export const loginUrl = (url: URL, ended?: string) => loginHref(url.pathname + url.search, ended === 'session_revoked');

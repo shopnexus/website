@@ -1,41 +1,35 @@
 ---
 import Photo from './Photo.astro';
 // K2's listing card: white, 16 px, hairline; the photo at 12 px inside an 8 px
-// inset. Price, the title on two lines, condition and place, then the seller
-// and how long ago. A hairline darkens and a soft shadow comes on hover.
-import { sellerOf } from '../data/common';
-import { type Listing, img, listingPhoto, where } from '../lib/format';
+// inset. The app's card: price, the title on two lines, then condition and
+// place. A hairline darkens and a soft shadow comes on hover.
+import type { Card } from '../lib/listing';
+import { where } from '../lib/format';
 import { R } from '../lib/routes';
 import Icon from './Icon.astro';
 import Price from './Price.astro';
 
 interface Props {
-  item: Listing;
-  saved?: boolean;
+  item: Card;
   /** CSS aspect-ratio of the photo. */
   ratio?: string;
   /** "lazy" when it sits below the first screen. */
   loading?: 'eager' | 'lazy';
-  /** The seller's face sits lower than the photo: "eager" only on the first row. */
-  sellerLoading?: 'eager' | 'lazy';
-  /** false on the seller's own page, where every card is theirs. */
-  showSeller?: boolean;
 }
 
-const { item, saved = false, ratio = '1 / 1', loading, sellerLoading = 'lazy', showSeller = true } = Astro.props;
-const seller = sellerOf(item.id);
+const { item, ratio = '1 / 1', loading } = Astro.props;
 const meta = [item.condition, where(item.km, item.area)].join(' · ');
 ---
 
 <article class="lift relative flex min-w-0 flex-col rounded-card border border-line bg-card p-2">
   <div class="relative overflow-hidden rounded-tile bg-soft" style={`aspect-ratio: ${ratio}`}>
-    <Photo src={listingPhoto(item, 480)} width={480} height={480} alt={item.title} loading={loading} fade class="h-full w-full object-cover" />
+    {item.photo && <Photo src={item.photo} width={480} height={480} alt={item.title} loading={loading} fade class="h-full w-full object-cover" />}
     <button
       type="button"
       class="state-layer absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/90 text-photo-ink shadow-soft"
-      aria-label={saved ? 'Bỏ lưu tin' : 'Lưu tin'}
-      aria-pressed={saved ? 'true' : 'false'}
-      data-save
+      aria-label={item.saved ? 'Bỏ lưu tin' : 'Lưu tin'}
+      aria-pressed={item.saved ? 'true' : 'false'}
+      data-save={item.id}
     >
       <Icon name="favorite-outline-rounded" size={16} class="save-off" />
       <Icon name="favorite-rounded" size={16} class="save-on" />
@@ -47,21 +41,5 @@ const meta = [item.condition, where(item.km, item.area)].join(' · ');
       <a href={R.listing(item.id)} class="after:absolute after:inset-0 after:rounded-card">{item.title}</a>
     </h3>
     <p class="mt-1.5 truncate text-body-small text-faint">{meta}</p>
-    {
-      showSeller && (
-        <>
-        <div class="h-2.5 shrink-0" />
-        <div class="mt-auto flex items-center gap-1.5 border-t border-line pt-2.5">
-          <Photo src={img(seller.photo, 48, 48)} width={48} height={48} alt="" loading={sellerLoading} class="h-[18px] w-[18px] rounded-full object-cover" />
-          <span class="min-w-0 flex-1 truncate text-body-small text-sub">
-            {seller.name}
-            <Icon name="star-rounded" size={11} class="mb-px ml-1 inline text-star" />
-            {seller.rating.toLocaleString('vi-VN', { minimumFractionDigits: 1 })}
-          </span>
-          {item.posted && <span class="shrink-0 text-body-small text-faint">{item.posted}</span>}
-        </div>
-        </>
-      )
-    }
   </div>
 </article>

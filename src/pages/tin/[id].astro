@@ -1,116 +1,129 @@
 ---
-import Photo from '../../components/Photo.astro';
-// Chi tiết tin. Any id from the mock listing pools renders the detail mockup
-// (detail-c) with that listing's title, price, photo, condition and place; the
-// description and specs are the mockup's iPhone and show only for iPhone
-// listings. A sold id (SOLD) renders the 404 with the sold listing;
-// an unknown id is a plain 404.
+// Chi tiết tin (detail-c): the gallery, price and actions, the seller with
+// three of their other listings, the description, condition and specs, two
+// reviews of the seller, and similar listings. A listing that is not on sale
+// (or not there) is the 404.
+import Avatar from '../../components/Avatar.astro';
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
+import Photo from '../../components/Photo.astro';
 import Price from '../../components/Price.astro';
 import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import QuickChat from '../../components/public/QuickChat.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Layout from '../../layouts/Layout.astro';
-import { ALL_LISTINGS, DETAIL, REVIEWS, SELLER, SELLING, SIMILAR, SOLD } from '../../data/public';
-import { crop, group, img, money, where } from '../../lib/format';
+import { ApiError, unwrap } from '../../lib/api/client';
+import { near } from '../../lib/area';
+import { categories } from '../../lib/catalog';
+import { ago, decimal, group, where } from '../../lib/format';
+import { CONDITIONS, card, conditionLabel } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
 import { CONTENT, PANEL, btnCls } from '../../lib/ui';
 
 const id = Astro.params.id ?? '';
-const sold = SOLD[id];
-if (sold) Astro.response.status = 404;
-const found = sold ? undefined : ALL_LISTINGS.find((it) => it.id === id);
-if (!sold && !found) return new Response(null, { status: 404 });
+const api = Astro.locals.api;
+const screen = /^[0-9a-f-]{36}$/i.test(id)
+  ? await unwrap(api.GET('/v1/screens/listing/{id}', { params: { path: { id }, query: near(Astro.cookies) } })).catch((e) => {
+      if (e instanceof ApiError && (e.status === 404 || e.status === 400)) return null;
+      throw e;
+    })
+  : null;
+if (!screen) Astro.response.status = 404;
 
-const it = found ?? sold!;
-const main = id === DETAIL.id;
-const iphone = it.title.includes('iPhone');
-const title = main ? DETAIL.title : it.title;
-const place = where(it.km, it.area);
-const posted = it.posted ?? '2 giờ';
-// The price strip scales the mockup's band to this listing's price.
-const k = it.price / 5_200_000;
-const band = {
-  lo: DETAIL.band.lo * k,
-  hi: DETAIL.band.hi * k,
-  med: DETAIL.band.med * k,
-  axis: [DETAIL.band.axis[0] * k, DETAIL.band.axis[1] * k] as [number, number],
-};
-const description = iphone
-  ? DETAIL.description
-  : [`${it.title}. Tình trạng ${it.condition.toLowerCase()}, đúng như ảnh.`, `Xem hàng trực tiếp quanh ${it.area}, buổi tối sau 18h.`];
-const photos = DETAIL.crops.map(([fx, fy, z], i) => ({
-  big: crop(it.photo, 1200, fx, fy, z),
-  thumb: crop(it.photo, i === 0 ? 1200 : 600, fx, fy, z),
-}));
-// The listing's short code, as the seller and support quote it.
-const code = 18200 + [...it.id].reduce((n, c) => n + c.charCodeAt(0), 0);
+const it = screen?.listing;
+const seller = screen?.seller;
+const [others, reviews, similar, cats] = it
+  ? await Promise.all([
+      unwrap(api.GET('/v1/sellers/{id}/listings', { params: { path: { id: it.seller_id }, query: { limit: 4, ...near(Astro.cookies) } } }))
+        .then((r) => r.items.filter((o) => o.id !== it.id).slice(0, 3).map(card))
+        .catch(() => []),
+      unwrap(api.GET('/v1/sellers/{id}/reviews', { params: { path: { id: it.seller_id }, query: { limit: 2 } } }))
+        .then((r) => r.items)
+        .catch(() => []),
+      unwrap(api.GET('/v1/search', { params: { query: { like: it.id, limit: 5, ...near(Astro.cookies) } } }))
+        .then((r) => r.items.filter((s) => s.id !== it.id).map(card))
+        .catch(() => []),
+      categories().catch(() => []),
+    ])
+  : [[], [], [], []];
+
+const me = viewer(Astro);
+const mine = !!me && me.id === it?.seller_id;
+const condition = it ? conditionLabel(it.condition) : '';
+const place = it ? where(screen!.distance_km, it.location.commune.display_name) : '';
+const posted = it ? ago(it.published_at ?? it.created_at) : '';
+const description = it?.description.split(/\n+/).filter(Boolean) ?? [];
+const photos = (it?.photos ?? []).filter((p) => p.url).map((p) => ({ big: p.url!, thumb: p.url! }));
+const reserved = it?.status === 'reserved';
+const offers = !!it?.allow_offers && !reserved;
+const root = cats.find((c) => c.code === it?.category_code || c.children.some((s) => s.code === it?.category_code));
+const crumbs: [string, string?][] = [['Khám phá', R.home], ...(root ? [[root.name, R.category(root.slug)] as [string, string]] : []), [it?.title ?? '']];
 const act = 'state-layer flex h-8 items-center gap-1.5 rounded-sm px-2.5 text-body-medium text-sub hover:bg-hover hover:text-ink';
 /** What each condition on the scale means. */
 const GRADE: Record<string, string> = {
-  'Mới': 'Chưa dùng',
-  'Như mới': 'Không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần',
-  'Đã dùng': 'Có vết dùng, người bán ghi trong mô tả',
+  [CONDITIONS.new]: 'Chưa dùng',
+  [CONDITIONS.like_new]: 'Không vết, hoặc vết rất nhỏ chỉ thấy khi soi gần',
+  [CONDITIONS.used]: 'Có vết dùng, người bán ghi trong mô tả',
 };
-const questions = ['Máy còn không bạn?', 'Có hộp và hóa đơn không?', 'Bớt chút được không?'];
-const stats: [string, string][] = [
-  ['4,9', '32 đánh giá'],
-  ['14', 'đã bán'],
-  ['10 phút', 'trả lời'],
-];
-const crumbs: [string, string?][] = iphone
-  ? [['Khám phá', R.home], ['Điện thoại', R.category('dien-thoai')], [main ? 'iPhone 13 Pro' : title]]
-  : [['Khám phá', R.home], ['Danh mục', R.categories], [title]];
-const chat = `${R.messages}?tin=${it.id}`;
-// Signed in, the chat buttons open Chat nhanh on this page; signed out they go
-// to Tin nhắn, which asks to sign in first.
-const me = viewer(Astro);
-const ld = {
+const questions = ['Còn không bạn?', 'Xem ở đâu được?'];
+const rating = seller?.rating;
+const stats: [string, string][] = seller
+  ? [
+      rating!.count ? [decimal(rating!.average), `${rating!.count} đánh giá`] : ['–', 'Chưa có đánh giá'],
+      [String(seller.sold), 'đã bán'],
+    ]
+  : [];
+const chat = `${R.messages}?tin=${id}`;
+const ld = it && {
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: title,
-  image: img(it.photo, 1200),
+  name: it.title,
+  image: photos[0]?.big,
   description: description.join(' '),
   offers: {
     '@type': 'Offer',
     price: it.price,
     priceCurrency: 'VND',
-    availability: 'https://schema.org/InStock',
-    itemCondition: it.condition === 'Mới' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
-    seller: { '@type': 'Person', name: SELLER.name },
+    availability: reserved ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/InStock',
+    itemCondition: it.condition === 'new' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
+    seller: { '@type': 'Person', name: seller!.display_name },
   },
 };
 ---
 
 {
-  sold ? (
-    <Layout title="Tin đã bán · ShopNexus" description={`${sold.title} đã bán. Xem tin giống vậy còn bán.`}>
-      <NotFound sold={sold} />
+  !it || !seller ? (
+    <Layout title="Không có tin này · ShopNexus" description="Tin có thể đã bán hoặc đã bị gỡ. Xem tin khác còn bán.">
+      <NotFound />
     </Layout>
   ) : (
     <Layout
-      title={`${title} · ShopNexus`}
-      description={`${group(it.price)} ₫ · ${it.condition} · ${place}. Xem hàng rồi mới trả.`}
+      title={`${it.title} · ShopNexus`}
+      description={`${group(it.price)} ₫ · ${condition} · ${place}. Xem hàng rồi mới trả.`}
       section="explore"
-      image={img(it.photo, 1200, 630)}
+      image={photos[0]?.big}
     >
       <script type="application/ld+json" slot="head" set:html={JSON.stringify(ld)} />
       <main class={CONTENT}>
         <Crumbs parts={crumbs} class="pt-5">
-          <button type="button" class={act} aria-label="Lưu tin" aria-pressed="false" data-save>
-            <Icon name="favorite-outline-rounded" size={16} class="save-off" />
-            <Icon name="favorite-rounded" size={16} class="save-on text-error" />
-            <span class="max-md:sr-only">Lưu</span>
-          </button>
+          {!mine && (
+            <button
+              type="button"
+              class={act}
+              aria-label={screen!.viewer?.saved ? 'Bỏ lưu tin' : 'Lưu tin'}
+              aria-pressed={screen!.viewer?.saved ? 'true' : 'false'}
+              data-save={it.id}
+            >
+              <Icon name="favorite-outline-rounded" size={16} class="save-off" />
+              <Icon name="favorite-rounded" size={16} class="save-on text-error" />
+              <span class="max-md:sr-only">Lưu</span>
+            </button>
+          )}
           <button type="button" class={act} data-share>
             <Icon name="share-outline-rounded" size={16} /><span class="max-md:sr-only">Chia sẻ</span>
-          </button>
-          <button type="button" class={act}>
-            <Icon name="flag-outline-rounded" size={16} /><span class="max-md:sr-only">Báo cáo</span>
           </button>
         </Crumbs>
 
@@ -118,57 +131,75 @@ const ld = {
              expanded up the actions stick in the right column beside both. -->
         <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:gap-x-8">
           <div class="min-w-0 lg:col-start-1 lg:row-start-1">
-            <Gallery photos={photos} title={title} />
+            {photos.length > 0 ? (
+              <Gallery photos={photos} title={it.title} />
+            ) : (
+              <div class="rounded-card border border-line bg-card p-2">
+                <div class="grid place-items-center rounded-card bg-soft text-faint" style="aspect-ratio: 16 / 10.5">
+                  <Icon name="photo-camera-outline-rounded" size={32} />
+                </div>
+              </div>
+            )}
           </div>
           <aside class="flex flex-col gap-4 self-start lg:sticky lg:top-[88px] lg:col-start-2 lg:row-span-2 lg:row-start-1">
             <div class:list={[PANEL, 'p-5 lg:p-6']}>
               <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
-                <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{it.condition}</span>
+                <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{condition}</span>
                 {place} · {posted} trước
               </p>
-              <h1 class="mt-3 text-j-22 text-ink">{title}</h1>
+              <h1 class="mt-3 text-j-22 text-ink">{it.title}</h1>
               <p class="mt-3 text-j-30 text-ink tabular-nums">
                 {group(it.price)}<span class="ml-1 text-title-medium font-medium tracking-normal text-sub">₫</span>
               </p>
-              <p class="mt-1 text-body-small text-faint">Tin giống vậy: {money(band.lo, true)} – {money(band.hi, true)}</p>
-              <div class="mt-5 flex flex-col gap-2">
-                <a href={chat} data-quickchat="chat" class={btnCls('ink', 'lg')}>
-                  <Icon name="chat-outline-rounded" size={18} />
-                  Nhắn tin
-                </a>
-                <a href={`${chat}&tra-gia=1`} data-quickchat="offer" class={btnCls('line', 'lg')}>
-                  <Icon name="sell-outline-rounded" size={18} />
-                  Trả giá
-                </a>
-              </div>
-              <p class="mt-5 text-body-small text-faint">Hỏi nhanh</p>
-              <div class="mt-1 flex flex-col">
-                {questions.map((q) => (
-                  <a
-                    href={`${chat}&hoi=${encodeURIComponent(q)}`}
-                    data-quickchat={q}
-                    class="state-layer -mx-2 flex h-10 items-center justify-between rounded-sm px-2 text-body-large text-ink hover:bg-hover"
-                  >
-                    {q}
-                    <Icon name="arrow-forward-rounded" size={15} class="text-faint" />
+              {reserved && <p class="mt-1 text-body-small text-faint">Món này đang được giao cho một người mua.</p>}
+              {mine ? (
+                <div class="mt-5 flex flex-col gap-2">
+                  <a href={R.myListings} class={btnCls('line', 'lg')}>
+                    <Icon name="storefront-outline-rounded" size={18} />
+                    Xem trong Tin của bạn
                   </a>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <>
+                  <div class="mt-5 flex flex-col gap-2">
+                    <a href={chat} data-quickchat="chat" class={btnCls('ink', 'lg')}>
+                      <Icon name="chat-outline-rounded" size={18} />
+                      Nhắn tin
+                    </a>
+                    {offers && (
+                      <a href={`${chat}&tra-gia=1`} data-quickchat="offer" class={btnCls('line', 'lg')}>
+                        <Icon name="sell-outline-rounded" size={18} />
+                        Trả giá
+                      </a>
+                    )}
+                  </div>
+                  <p class="mt-5 text-body-small text-faint">Hỏi nhanh</p>
+                  <div class="mt-1 flex flex-col">
+                    {questions.map((q) => (
+                      <a
+                        href={`${chat}&hoi=${encodeURIComponent(q)}`}
+                        data-quickchat={q}
+                        class="state-layer -mx-2 flex h-10 items-center justify-between rounded-sm px-2 text-body-large text-ink hover:bg-hover"
+                      >
+                        {q}
+                        <Icon name="arrow-forward-rounded" size={15} class="text-faint" />
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             <div class:list={[PANEL, 'p-5']}>
               <div class="flex items-center gap-3">
-                <Photo src={img(SELLER.photo, 96, 96)} width={96} height={96} alt="" class="h-11 w-11 rounded-full object-cover" />
+                <Avatar name={seller.display_name} photo={seller.avatar_url} size={44} />
                 <div class="min-w-0 flex-1">
-                  <p class="flex items-center gap-1 text-title-medium text-ink">
-                    {SELLER.name}
-                    <Icon name="verified-rounded" size={16} class="text-brand" />
-                  </p>
-                  <p class="text-body-small text-faint">Tham gia {SELLER.joined}</p>
+                  <p class="truncate text-title-medium text-ink">{seller.display_name}</p>
+                  <p class="text-body-small text-faint">Tham gia {new Date(seller.joined_at).getFullYear()}</p>
                 </div>
-                <a href={R.seller(SELLER.id)} class={btnCls('line', 'sm')}>Xem trang</a>
+                <a href={R.seller(seller.id)} class={btnCls('line', 'sm')}>Xem trang</a>
               </div>
-              <div class="mt-4 grid grid-cols-3 divide-x divide-line rounded-control border border-line text-center">
+              <div class="mt-4 grid grid-cols-2 divide-x divide-line rounded-control border border-line text-center">
                 {stats.map(([v, l]) => (
                   <div class="py-2.5">
                     <p class="text-j-15 text-ink tabular-nums">{v}</p>
@@ -176,15 +207,21 @@ const ld = {
                   </div>
                 ))}
               </div>
-              <p class="mt-4 text-body-small text-faint">14 tin khác</p>
-              <div class="mt-2 grid grid-cols-3 gap-2">
-                {SELLING.slice(0, 3).map((o) => (
-                  <a href={R.listing(o.id)} class="min-w-0">
-                    <Photo src={img(o.photo, 200, 200)} width={200} height={200} alt={o.title} class="aspect-square w-full rounded-control object-cover" />
-                    <Price vnd={o.price} size="text-j-15" class="mt-1 block text-[13px]" />
-                  </a>
-                ))}
-              </div>
+              {others.length > 0 && (
+                <>
+                  <p class="mt-4 text-body-small text-faint">Tin khác của {seller.display_name}</p>
+                  <div class="mt-2 grid grid-cols-3 gap-2">
+                    {others.map((o) => (
+                      <a href={R.listing(o.id)} class="min-w-0">
+                        <span class="block aspect-square w-full overflow-hidden rounded-control bg-soft">
+                          {o.photo && <Photo src={o.photo} width={200} height={200} alt={o.title} class="h-full w-full object-cover" />}
+                        </span>
+                        <Price vnd={o.price} size="text-j-15" class="mt-1 block text-[13px]" />
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </aside>
           <div class="flex min-w-0 flex-col gap-4 lg:col-start-1 lg:row-start-2">
@@ -196,7 +233,8 @@ const ld = {
                 ))}
               </div>
               <p class="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-body-small text-faint">
-                <span>Mã tin {code}</span><span>Đăng {posted} trước</span><span>318 lượt xem</span><span>12 người lưu</span>
+                <span>Đăng {posted} trước</span>
+                <span>{it.location.commune.display_name}, {it.location.province.display_name}</span>
               </p>
             </section>
 
@@ -204,74 +242,77 @@ const ld = {
               <h2 class="text-j-16 text-ink">Tình trạng</h2>
               <div class="mt-3 grid grid-cols-3 gap-1 rounded-control bg-soft p-1">
                 {Object.entries(GRADE).map(([g, d]) => (
-                  <div class:list={['rounded-sm px-3 py-2', g === it.condition ? 'bg-brand text-white' : 'text-sub']}>
+                  <div class:list={['rounded-sm px-3 py-2', g === condition ? 'bg-brand text-white' : 'text-sub']}>
                     <p class="text-title-small">{g}</p>
-                    <p class:list={['text-body-small max-md:hidden', g === it.condition && 'text-white/75']}>{d}</p>
+                    <p class:list={['text-body-small max-md:hidden', g === condition && 'text-white/75']}>{d}</p>
                   </div>
                 ))}
               </div>
-              {iphone && <p class="mt-3 text-body-large text-sub">Người bán ghi: 2 vết xước nhỏ ở viền, có trong ảnh 3.</p>}
             </section>
 
-            {iphone && (
+            {it.specs.length > 0 && (
               <section class:list={[PANEL, 'p-5 lg:p-6']}>
                 <h2 class="text-j-16 text-ink">Thông số</h2>
                 <dl class="mt-2 grid grid-cols-1 gap-x-10 md:grid-cols-2">
-                  {DETAIL.specs.map(([key, v]) => (
+                  {it.specs.map((sp) => (
                     <div class="flex justify-between gap-4 border-b border-line py-2.5 text-body-large">
-                      <dt class="text-sub">{key}</dt>
-                      <dd class="text-right font-medium text-ink">{v}</dd>
+                      <dt class="text-sub">{sp.label}</dt>
+                      <dd class="text-right font-medium text-ink">{sp.value}</dd>
                     </div>
                   ))}
                 </dl>
               </section>
             )}
 
-            <section class:list={[PANEL, 'p-5 lg:p-6']}>
-              <div class="flex items-center justify-between gap-4">
-                <h2 class="text-j-16 text-ink">Đánh giá về {SELLER.name}</h2>
-                <p class="flex items-center gap-1 text-body-large text-sub">
-                  <Icon name="star-rounded" size={15} class="text-star" /><b class="font-semibold text-ink">4,9</b> · 32 đánh giá
-                </p>
-              </div>
-              <div class="mt-4 flex flex-col gap-4">
-                {REVIEWS.slice(0, 2).map((r, i) => (
-                  <div class:list={['flex gap-3', i > 0 && 'border-t border-line pt-4']}>
-                    <Photo src={img(r.photo, 72, 72)} width={72} height={72} alt="" loading="lazy" class="h-9 w-9 shrink-0 rounded-full object-cover" />
-                    <div class="min-w-0">
-                      <p class="flex items-center gap-2 text-title-small text-ink">
-                        {r.name}
-                        <span class="flex text-star" aria-label={`${r.stars} sao`}>
-                          {Array.from({ length: r.stars }, () => <Icon name="star-rounded" size={12} />)}
-                        </span>
-                      </p>
-                      <p class="mt-1 text-body-large leading-6 text-ink">{r.text}</p>
-                      <p class="mt-1 text-body-small text-faint">{r.itemName} · {r.ago}</p>
+            {reviews.length > 0 && (
+              <section class:list={[PANEL, 'p-5 lg:p-6']}>
+                <div class="flex items-center justify-between gap-4">
+                  <h2 class="text-j-16 text-ink">Đánh giá về {seller.display_name}</h2>
+                  <p class="flex items-center gap-1 text-body-large text-sub">
+                    <Icon name="star-rounded" size={15} class="text-star" />
+                    <b class="font-semibold text-ink">{decimal(rating!.average)}</b> · {rating!.count} đánh giá
+                  </p>
+                </div>
+                <div class="mt-4 flex flex-col gap-4">
+                  {reviews.map((r, i) => (
+                    <div class:list={['flex gap-3', i > 0 && 'border-t border-line pt-4']}>
+                      <Avatar name={r.buyer.display_name || 'Người mua'} photo={r.buyer.avatar_url} size={36} loading="lazy" />
+                      <div class="min-w-0">
+                        <p class="flex items-center gap-2 text-title-small text-ink">
+                          {r.buyer.deleted ? 'Tài khoản đã xóa' : r.buyer.display_name}
+                          <span class="flex text-star" aria-label={`${r.stars} sao`}>
+                            {Array.from({ length: r.stars }, () => <Icon name="star-rounded" size={12} />)}
+                          </span>
+                        </p>
+                        {r.text && <p class="mt-1 text-body-large leading-6 text-ink">{r.text}</p>}
+                        <p class="mt-1 text-body-small text-faint">
+                          {r.listing.title} · {ago(r.created_at)} trước
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
-
         </div>
 
-        <section class="mt-10">
-          <SectionTitle title="Tin tương tự" link="Xem tất cả" href={`${R.search}?q=${encodeURIComponent(iphone ? 'iPhone' : it.title)}`} />
-          <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-5">
-            {SIMILAR.filter((s) => s.id !== it.id)
-              .slice(0, 5)
-              .map((s, i) => (
-                <ListingCard item={s} saved={i === 2} loading="lazy" />
+        {similar.length > 0 && (
+          <section class="mt-10">
+            <SectionTitle title="Tin tương tự" link="Xem tất cả" href={`${R.search}?q=${encodeURIComponent(it.title)}`} />
+            <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-5">
+              {similar.map((sm) => (
+                <ListingCard item={sm} loading="lazy" />
               ))}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
       </main>
-      {me && (
+      {me && !mine && (
         <QuickChat
-          seller={{ name: SELLER.name, photo: img(SELLER.photo, 80, 80) }}
-          title={title}
-          thumb={crop(it.photo, 160, ...DETAIL.crops[0])}
+          seller={{ name: seller.display_name, photo: seller.avatar_url }}
+          title={it.title}
+          thumb={photos[0]?.thumb}
           price={it.price}
           questions={questions}
           href={chat}
@@ -280,5 +321,3 @@ const ld = {
     </Layout>
   )
 }
-
-

@@ -1,35 +1,43 @@
-// Home's feed from the mock data, a page at a time, until the server's feed
-// endpoint is wired. /bang-tin renders a page as cards for the tabs and
-// "Xem thêm tin".
-import { EXTRA_RESULTS, FOR_YOU, LISTINGS, RESULTS, SEARCH_RESULTS } from '../data/listings';
+// Home's feed, a page at a time. /bang-tin renders a page as cards for the
+// tabs and "Xem thêm tin". Dành cho bạn is Home's one page of for_you; Gần
+// bạn and Mới nhất page through search with the server's cursor.
+import type { AstroGlobal } from 'astro';
+import { unwrap } from './api/client';
+import { area, near } from './area';
 import { FEED_PAGE, FEED_TABS, type FeedTab } from './feed-tabs';
-import type { Listing } from './format';
+import { type Card, card } from './listing';
 
-// Every listing once, in the "Dành cho bạn" order.
-const POOL: Listing[] = [...FOR_YOU, ...LISTINGS, ...RESULTS, ...SEARCH_RESULTS, ...EXTRA_RESULTS].filter(
-  (it, i, all) => all.findIndex((x) => x.id === it.id) === i,
-);
-
-/** "12 phút", "3 giờ", "1 ngày" in minutes; a listing without one goes last. */
-function age(posted?: string) {
-  const m = posted?.match(/(\d+)\s*(phút|giờ|ngày)/);
-  if (!m) return Number.POSITIVE_INFINITY;
-  return +m[1] * { phút: 1, giờ: 60, ngày: 1440 }[m[2] as 'phút' | 'giờ' | 'ngày'];
-}
-
-const ORDER: Record<FeedTab, Listing[]> = {
-  'cho-ban': POOL,
-  'gan-ban': [...POOL].sort((a, b) => a.km - b.km),
-  'moi-nhat': [...POOL].sort((a, b) => age(a.posted) - age(b.posted)),
-};
+type Ctx = Pick<AstroGlobal, 'locals' | 'cookies'>;
 
 export function feedTab(raw: string | null): FeedTab {
   return FEED_TABS.includes(raw as FeedTab) ? (raw as FeedTab) : 'cho-ban';
 }
 
-/** Page `page` (from 1) of a tab, and whether another page follows. */
-export function feedPage(tab: FeedTab, page: number) {
-  const all = ORDER[tab];
-  const from = (Math.max(1, page) - 1) * FEED_PAGE;
-  return { items: all.slice(from, from + FEED_PAGE), more: from + FEED_PAGE < all.length };
+export interface FeedPage {
+  items: Card[];
+  /** The cursor of the next page; absent on the last. */
+  next?: string;
+  /** Gần bạn before the buyer's place is known. */
+  needsArea?: boolean;
+}
+
+/** Home: the categories with counts, the first feed page and what the buyer viewed. */
+export async function homeScreen({ locals, cookies }: Ctx) {
+  const home = await unwrap(locals.api.GET('/v1/screens/home', { params: { query: near(cookies) } }));
+  return {
+    categories: home.categories,
+    forYou: home.for_you.map(card),
+    viewed: home.viewed && { category: home.viewed.category.display_name, items: home.viewed.items.map(card) },
+  };
+}
+
+export async function feedPage(ctx: Ctx, tab: FeedTab, after?: string): Promise<FeedPage> {
+  if (tab === 'cho-ban') return { items: (await homeScreen(ctx)).forYou };
+  if (tab === 'gan-ban' && !area(ctx.cookies)) return { items: [], needsArea: true };
+  const page = await unwrap(
+    ctx.locals.api.GET('/v1/search', {
+      params: { query: { sort: tab === 'gan-ban' ? 'nearby' : 'newest', limit: FEED_PAGE, cursor: after, ...near(ctx.cookies) } },
+    }),
+  );
+  return { items: page.items.map(card), next: page.next_cursor };
 }

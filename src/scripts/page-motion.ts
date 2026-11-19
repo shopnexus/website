@@ -3,11 +3,12 @@
 // src/styles/motion.css holds the rest, the parts CSS does without a script.
 import { animate, inView } from 'motion';
 import { SPRING, reducedMotion } from '../lib/motion';
-import { R } from '../lib/routes';
+import { R, loginHref } from '../lib/routes';
 import { snack } from '../lib/snackbar';
 
-// Save: the heart fills and pops with a ring, and the snackbar offers the list
-// or the undo.
+// Save: the heart fills and pops with a ring, /luu/<id> saves on the server,
+// and the snackbar offers the list or the undo. A guest goes to Đăng nhập;
+// a failed call puts the heart back.
 function toggleSave(b: HTMLButtonElement, pop = true) {
   const on = b.getAttribute('aria-pressed') !== 'true';
   b.setAttribute('aria-pressed', String(on));
@@ -19,16 +20,32 @@ function toggleSave(b: HTMLButtonElement, pop = true) {
   }
   return on;
 }
+const LISTING_ID = /^[0-9a-f-]{36}$/i;
+async function save(b: HTMLButtonElement) {
+  const on = toggleSave(b);
+  // A card with no real listing behind it (a preview) only changes on the page.
+  if (!LISTING_ID.test(b.dataset.save ?? '')) return;
+  const res = await fetch(`/luu/${b.dataset.save}`, { method: on ? 'PUT' : 'DELETE' }).catch(() => null);
+  if (res?.status === 401) {
+    location.href = loginHref(location.pathname + location.search);
+    return;
+  }
+  if (!res?.ok) {
+    toggleSave(b, false);
+    snack({ text: 'Chưa lưu được tin. Thử lại sau.', icon: 'error-outline-rounded', error: true });
+    return;
+  }
+  snack(
+    on
+      ? { text: 'Đã lưu tin', icon: 'favorite-rounded', action: { label: 'Xem', href: R.saved } }
+      : { text: 'Đã bỏ lưu tin', icon: 'heart-broken-outline-rounded', action: { label: 'Hoàn tác', run: () => save(b) } },
+  );
+}
 document.addEventListener('click', (e) => {
   const b = (e.target as Element).closest<HTMLButtonElement>('[data-save]');
   if (!b) return;
   e.preventDefault();
-  const on = toggleSave(b);
-  snack(
-    on
-      ? { text: 'Đã lưu tin', icon: 'favorite-rounded', action: { label: 'Xem', href: R.saved } }
-      : { text: 'Đã bỏ lưu tin', icon: 'heart-broken-outline-rounded', action: { label: 'Hoàn tác', run: () => toggleSave(b) } },
-  );
+  void save(b);
 });
 document.addEventListener('animationend', (e) => {
   if ((e as AnimationEvent).animationName === 'save-ring') (e.target as Element).classList.remove('is-popping');

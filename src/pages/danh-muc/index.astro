@@ -1,31 +1,27 @@
 ---
-// Danh mục: every category. A search field, popular searches near the buyer,
-// 11 tiles and a twelfth for search by sentence or photo, then the newest
-// listings and "Đang được tìm nhiều".
+// Danh mục: every category. A search field, the tiles with their counts and a
+// last tile for search by sentence or photo, then the newest listings.
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import MiniRow from '../../components/MiniRow.astro';
 import CategoryTile from '../../components/public/CategoryTile.astro';
 import SearchField from '../../components/SearchField.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
-import Trending from '../../components/Trending.astro';
 import Layout from '../../layouts/Layout.astro';
-import { LISTINGS } from '../../data/listings';
-import { CATEGORY_INDEX } from '../../data/public';
+import { unwrap } from '../../lib/api/client';
+import { near } from '../../lib/area';
+import { categories } from '../../lib/catalog';
+import { card } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { CONTENT } from '../../lib/ui';
 
-const popular: [string, string][] = [
-  ['iPhone', '1.986'],
-  ['Xe đạp', '964'],
-  ['Sofa', '312'],
-  ['Giày', '744'],
-  ['MacBook', '402'],
-  ['Tai nghe', '438'],
-  ['Xe đẩy', '187'],
-  ['Máy film', '96'],
-];
-const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
+const api = Astro.locals.api;
+const [cats, home, fresh] = await Promise.all([
+  categories(),
+  unwrap(api.GET('/v1/screens/home', { params: { query: near(Astro.cookies) } })),
+  unwrap(api.GET('/v1/search', { params: { query: { sort: 'newest', limit: 6, ...near(Astro.cookies) } } })).then((r) => r.items.map(card)),
+]);
+const counts = new Map(home.categories.flatMap((c) => [[c.code, c.count] as const, ...c.children.map((s) => [s.code, s.count] as const)]));
 ---
 
 <Layout title="Danh mục · ShopNexus" description="Mọi danh mục đồ cũ trên ShopNexus và số tin." section="categories">
@@ -35,30 +31,13 @@ const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
       <div>
         <h1 class="text-j-28 text-ink lg:text-j-32">Danh mục</h1>
         <p class="mt-2 text-body-large text-on-surface-variant">
-          <b class="font-semibold text-ink tabular-nums">11</b> danh mục
+          <b class="font-semibold text-ink tabular-nums">{cats.length}</b> danh mục
         </p>
       </div>
       <SearchField placeholder="Tìm trong mọi danh mục: xe đẩy gấp gọn, dưới 1 triệu" />
     </section>
-    <div class="mt-5 flex items-center gap-2 overflow-x-auto no-scrollbar lg:flex-wrap">
-      <span class="mr-1 flex shrink-0 items-center gap-1.5 text-label-large text-on-surface-variant">
-        <Icon name="location-on-outline-rounded" size={16} />Phổ biến quanh Bình Thạnh
-      </span>
-      {
-        popular.map(([t, n]) => (
-          <a
-            href={`${R.search}?q=${encodeURIComponent(t)}`}
-            class="border border-line bg-card flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-label-large text-ink hover:bg-card"
-          >
-            {t}
-            <span class="text-label-small text-on-surface-variant tabular-nums">{n}</span>
-          </a>
-        ))
-      }
-    </div>
-
     <section class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {CATEGORY_INDEX.map((c) => <CategoryTile c={c} />)}
+      {cats.map((c) => <CategoryTile c={c} counts={counts} />)}
       <article class="flex flex-col justify-between rounded-panel bg-brand p-5 text-white">
         <div>
           <p class="text-j-16">Không chắc thuộc mục nào?</p>
@@ -78,14 +57,11 @@ const fresh = LISTINGS.filter((it) => it.posted?.endsWith('phút')).slice(0, 6);
       </article>
     </section>
 
-    <section class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-      <div class="min-w-0">
-        <SectionTitle title="Vừa đăng trong mọi danh mục" link="Xem tất cả" href={`${R.search}?sap-xep=moi`} />
-        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {fresh.map((it) => <MiniRow item={it} />)}
-        </div>
+    <section class="mt-10">
+      <SectionTitle title="Vừa đăng trong mọi danh mục" link="Xem tất cả" href={`${R.search}?sap-xep=moi`} />
+      <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {fresh.map((it, i) => <MiniRow item={it} loading={i < 3 ? 'eager' : 'lazy'} />)}
       </div>
-      <aside class="self-start rounded-panel border border-line bg-card p-3"><Trending n={5} /></aside>
     </section>
   </main>
 </Layout>

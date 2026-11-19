@@ -1,16 +1,33 @@
 ---
 // A page of Home's feed as bare cards, for the tabs and "Xem thêm tin" to
-// fetch. data-more on the first card's wrapper says whether another page follows.
+// fetch. data-next on the template is the next page's cursor; Gần bạn
+// without the buyer's place renders the ask for it instead.
+import Icon from '../components/Icon.astro';
 import ListingCard from '../components/ListingCard.astro';
 import { feedPage, feedTab } from '../lib/feed';
+import { btnCls } from '../lib/ui';
 
 export const partial = true;
 
 const tab = feedTab(Astro.url.searchParams.get('tab'));
-const page = Number(Astro.url.searchParams.get('trang')) || 1;
-const { items, more } = feedPage(tab, page);
+const { items, next, needsArea } = await feedPage(Astro, tab, Astro.url.searchParams.get('sau') ?? undefined);
 ---
 
-<template data-feed-page data-more={more ? 'true' : 'false'}>
-  {items.map((it) => <ListingCard item={it} loading="lazy" />)}
+<template data-feed-page data-next={next ?? ''}>
+  {
+    needsArea ? (
+      <div class="col-span-full flex flex-col items-center gap-3 rounded-card border border-line bg-card px-6 py-10 text-center">
+        <Icon name="near-me-outline-rounded" size={28} class="text-sub" />
+        <p class="text-body-large text-ink">Cho biết bạn ở đâu để xem tin quanh bạn.</p>
+        <p class="text-body-small text-faint">ShopNexus chỉ giữ tên phường, xã gần nhất.</p>
+        <button type="button" class={btnCls('ink')} data-locate>
+          Dùng vị trí của tôi
+        </button>
+      </div>
+    ) : items.length ? (
+      items.map((it) => <ListingCard item={it} loading="lazy" />)
+    ) : (
+      <p class="col-span-full py-10 text-center text-body-large text-sub">Chưa có tin nào ở đây.</p>
+    )
+  }
 </template>

@@ -3,7 +3,7 @@
 // at most) and opening recent searches. From expanded up it adds Danh mục, Đã lưu,
 // Thông báo, Tin nhắn, "Đăng tin" and the avatar's menu; BottomNav has them below.
 import brandMark from '@brand/brand_mark.svg';
-import { CATEGORY_INDEX } from '../data/public';
+import { categories } from '../lib/catalog';
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
 import { loginUrl, viewer } from '../lib/session';
@@ -25,6 +25,8 @@ interface Props {
 
 const { search } = Astro.props;
 const me = viewer(Astro);
+// Out of reach, the menus go without categories rather than failing the page.
+const cats = await categories().catch(() => []);
 const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounded-control text-ink hover:bg-hover lg:grid';
 const badge = 'absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-page bg-brand px-1 text-label-small text-white';
 const item = 'state-layer flex h-10 w-full items-center gap-3 rounded-control px-3 text-body-large hover:bg-hover';
@@ -136,15 +138,12 @@ const account = [
 <Popover id="hdr-cats" class="w-[560px] p-3" label="Danh mục">
   <div class="grid grid-cols-2 gap-1">
     {
-      CATEGORY_INDEX.map((c) => (
+      cats.map((c) => (
         <a href={R.category(c.slug)} class="state-layer flex items-center gap-3 rounded-control p-2.5 hover:bg-hover">
           <span class="grid h-9 w-9 place-items-center rounded-control bg-soft">
             <Icon name={c.icon} size={19} />
           </span>
-          <span>
-            <span class="block text-body-large">{c.name}</span>
-            <span class="block text-body-small text-faint tabular-nums">{c.count} tin</span>
-          </span>
+          <span class="text-body-large">{c.name}</span>
         </a>
       ))
     }
@@ -164,11 +163,10 @@ const account = [
   <p class="px-1 text-body-small text-faint">Danh mục</p>
   <div class="mt-1 grid grid-cols-1 gap-x-2 md:grid-cols-2">
     {
-      CATEGORY_INDEX.slice(0, 6).map((c) => (
+      cats.slice(0, 6).map((c) => (
         <a href={R.category(c.slug)} class="state-layer flex items-center gap-2.5 rounded-control px-2.5 py-2 text-body-large hover:bg-hover">
           <Icon name={c.icon} size={18} class="text-sub" />
           <span class="flex-1">{c.name}</span>
-          <span class="text-body-small text-faint tabular-nums">{c.count}</span>
         </a>
       ))
     }

@@ -1,0 +1,80 @@
+import { apiClient, type Schemas, unwrap } from './api/client';
+import { img } from './format';
+
+// The category tree from GET /v1/categories, read once per 10 minutes per
+// process. URLs name a category by a slug of its Vietnamese name
+// ("Điện thoại" → dien-thoai); the icons and tile photos are the site's own,
+// after the app's editorial looks.
+
+export interface Category {
+  code: string;
+  name: string;
+  slug: string;
+  icon: string;
+  /** The tile's photo URL. */
+  photo: string;
+  children: Category[];
+}
+
+const LOOKS: Record<string, [icon: string, photo: string]> = {
+  phones: ['mobile-outline-rounded', '1632661674596-df8be070a5c5'],
+  laptop: ['laptop-chromebook-outline-rounded', '1611186871348-b1ce696e52c9'],
+  fashion: ['apparel-outline-rounded', '1593030761757-71fae45fa0e7'],
+  vehicles: ['two-wheeler-outline-rounded', '1558981403-c5f9899a28bc'],
+  furniture: ['chair-outline-rounded', '1555041469-a586c61ea9bc'],
+  home: ['blender-outline-rounded', '1585515320310-259814833e62'],
+  baby: ['child-care-outline-rounded', '1515488042361-ee00e0ddd4e4'],
+  sports: ['sports-tennis-outline-rounded', '1554068865-24cecd4e34b8'],
+  other: ['category-outline-rounded', '1526170375885-4d8ecf77b99f'],
+};
+
+/** "Điện thoại" → "dien-thoai", "Mẹ & bé" → "me-be". */
+export const slugify = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+function tree(items: Schemas['Category'][]): Category[] {
+  const node = (c: Schemas['Category'], root?: string): Category => {
+    const [icon, photo] = LOOKS[root ?? c.code] ?? LOOKS.other;
+    return { code: c.code, name: c.display_name, slug: slugify(c.display_name), icon, photo: img(photo, 480, 480), children: [] };
+  };
+  const roots = items.filter((c) => !c.parent_code).map((c) => node(c));
+  for (const c of items) {
+    const parent = roots.find((r) => r.code === c.parent_code);
+    parent?.children.push(node(c, parent.code));
+  }
+  return roots;
+}
+
+let cached: { at: number; run: Promise<Category[]> } | undefined;
+
+/** The roots with their subcategories, in the server's order. */
+export function categories(): Promise<Category[]> {
+  if (!cached || Date.now() - cached.at > 600_000) {
+    const run = unwrap(apiClient().GET('/v1/categories')).then((r) => tree(r.items));
+    cached = { at: Date.now(), run };
+    run.catch(() => (cached = undefined));
+  }
+  return cached.run;
+}
+
+/** A root by its slug. */
+export async function bySlug(slug: string) {
+  return (await categories()).find((c) => c.slug === slug);
+}
+
+/** The display name of any category code, root or sub. */
+export async function categoryName(code: string) {
+  for (const r of await categories()) {
+    if (r.code === code) return r.name;
+    const sub = r.children.find((c) => c.code === code);
+    if (sub) return sub.name;
+  }
+  return undefined;
+}

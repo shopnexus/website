@@ -1,157 +1,154 @@
 ---
-// Tìm kiếm's results (K2): the count and one summary line with "Báo khi có
-// tin mới", the filter panel on the left, then the query's chips (the slot),
-// the sort tabs with the grid/list switch, the cards, and the alert strip
-// after the eighth.
-import type { Listing } from '../../lib/format';
+// The results of Tìm kiếm and a category page (K2): the headline and what
+// the model read, "Báo khi có tin mới", the filter panel on the left, then
+// the query's chips (the slot), the sort tabs with the grid/list switch, the
+// cards with the alert strip after the eighth, and "Xem thêm tin".
+import { area } from '../../lib/area';
+import type { Card } from '../../lib/listing';
+import { type Search, type Sort, searchHref } from '../../lib/search';
 import { CONTENT, btnCls } from '../../lib/ui';
 import Icon from '../Icon.astro';
 import ListingCard from '../ListingCard.astro';
 import Seg from '../Seg.astro';
 import ResultRow from './ResultRow.astro';
 import SearchFilters from './SearchFilters.astro';
+import WatchButton from './WatchButton.astro';
 
 interface Props {
-  items: Listing[];
-  /** The headline count and noun: 126 "laptop khớp". */
-  total: number;
-  noun: string;
-  /** The default query's extra lines: "+9 hôm nay", the model's note, median and nearby count. */
-  summary?: boolean;
-  /** Quanh tôi: the distance asked for and the one shown (null: every distance). */
-  near?: { asked: number; shown: number | null };
+  items: Card[];
+  search: Search;
+  /** The page the filters and sorts link to: Tìm kiếm or the category's. */
+  base: string;
+  title: string;
+  /** The model's sentence of what was searched. */
+  understood?: string;
+  /** The next page's cursor. */
+  next?: string;
+  /** Whether "Báo khi có tin mới" shows: a query the buyer does not watch yet. */
+  watchable: boolean;
+  /** A saved search runs as it was saved, without the filter panel. */
+  filters?: boolean;
+  /** 2 under a page's own h1, as on a category page. */
+  level?: 1 | 2;
 }
 
-const { items, total, noun, summary = false, near } = Astro.props;
-const widened = near && near.shown !== near.asked;
-const shown = items.slice(0, 12);
+const { items, search, base, title, understood, next, watchable, filters = true, level = 1 } = Astro.props;
+const Heading = level === 1 ? 'h1' : 'h2';
+// "Gần nhất" needs the buyer's place and a search that takes one. Without
+// words or a photo the server's own order is the newest first.
+const ranked = !!(search.q || search.photo);
+const nearest = !!area(Astro.cookies) && !search.watch;
+const sorts: [string, Sort | undefined][] = [
+  [ranked ? 'Phù hợp nhất' : 'Mới đăng', undefined],
+  ...(ranked ? [['Mới đăng', 'newest'] as [string, Sort]] : []),
+  ['Giá thấp', 'price_asc'],
+  ['Giá cao', 'price_desc'],
+  ...(nearest ? [['Gần nhất', 'nearest'] as [string, Sort]] : []),
+];
+const current = (!ranked && search.sort === 'newest') || (search.sort === 'nearest' && !nearest) ? undefined : search.sort;
 ---
 
 <div class={CONTENT}>
   <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-6">
-    <div>
-      <h1 class="text-j-24 text-ink lg:text-j-28"><span class="tabular-nums" data-count>{total}</span> {noun}</h1>
-      {summary && <p class="mt-1 text-body-large text-sub">9 tin mới hôm nay · đa số từ 6,5 đến 7,9 tr ₫</p>}
+    <div class="min-w-0">
+      <Heading class="text-j-24 text-ink lg:text-j-28">{title}</Heading>
+      {understood && <p class="mt-1 text-body-large text-sub">{understood}</p>}
     </div>
-    <button type="button" class={btnCls('line', 'sm')}>
-      <Icon name="notifications-outline-rounded" size={16} />
-      Báo khi có tin mới
-    </button>
+    {watchable && <WatchButton href={searchHref(search)} />}
   </div>
 </div>
 
-<main class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[256px_minmax(0,1fr)]']}>
-  <div class="hidden lg:block"><SearchFilters /></div>
+<main class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8', filters && 'lg:grid-cols-[256px_minmax(0,1fr)]']}>
+  {
+    filters && (
+      <div class="flex flex-col gap-3">
+        <a href="#bo-loc" class={`${btnCls('line', 'sm')} w-fit lg:hidden`}>
+          <Icon name="tune-rounded" size={16} />
+          Bộ lọc
+        </a>
+        <!-- On a phone the panel opens as the link's target, without script. -->
+        <div id="bo-loc" class="hidden scroll-mt-24 target:block lg:block">
+          <SearchFilters search={search} base={base} />
+        </div>
+      </div>
+    )
+  }
   <section class="min-w-0" data-results>
     <slot />
     <div class="mt-3 flex items-center justify-between gap-4 border-b border-line">
-      <div data-sort class="no-scrollbar overflow-x-auto">
-        <Seg items={['Phù hợp nhất', 'Mới đăng', 'Giá thấp', 'Gần nhất']} variant="tabs" name="Sắp xếp" />
-      </div>
-      <div class="flex shrink-0 items-center gap-3 pb-1.5">
-        <span class="hidden text-body-small text-faint md:inline">1–{shown.length} trong {total}</span>
-        <div data-view>
-          <Seg
-            items={['grid-view-outline-rounded', 'view-list-outline-rounded']}
-            labels={['Dạng lưới', 'Dạng danh sách']}
-            icons
-            class="bg-soft"
-            itemClass="px-2!"
-            name="Cách xem"
-          />
-        </div>
+      <nav class="no-scrollbar flex gap-6 overflow-x-auto" aria-label="Sắp xếp">
+        {
+          sorts.map(([label, sort]) => (
+            <a
+              href={searchHref(search, { sort }, base)}
+              aria-current={current === sort ? 'true' : undefined}
+              class="-mb-px flex h-10 items-center whitespace-nowrap border-b-2 border-transparent text-body-large text-sub hover:text-ink aria-[current]:border-brand aria-[current]:font-medium aria-[current]:text-ink"
+            >
+              {label}
+            </a>
+          ))
+        }
+      </nav>
+      <div class="shrink-0 pb-1.5" data-view>
+        <Seg
+          items={['grid-view-outline-rounded', 'view-list-outline-rounded']}
+          labels={['Dạng lưới', 'Dạng danh sách']}
+          icons
+          class="bg-soft"
+          itemClass="px-2!"
+          name="Cách xem"
+        />
       </div>
     </div>
 
-    {
-      widened && (
-        <p class="mt-4 flex items-center gap-2 text-body-medium text-sub">
-          <Icon name="near-me-outline-rounded" size={16} class="text-brand" />
-          Chưa có tin trong {near.asked} km · đang hiện {near.shown ? `tin trong ${near.shown} km` : 'tin ở mọi nơi'}
-        </p>
-      )
-    }
     <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4" data-grid>
       {
-        shown.map((it, i) => (
-          <div
-            class="grid min-w-0"
-            data-item
-            data-i={i}
-            data-price={it.price}
-            data-km={it.km}
-            style={i >= 8 ? 'order:2' : undefined}
-          >
-            <ListingCard item={it} saved={i === 1} loading={i < 8 ? 'eager' : 'lazy'} sellerLoading={i < 4 ? 'eager' : 'lazy'} />
+        items.map((it, i) => (
+          <div class="grid min-w-0" style={i >= 8 ? 'order:2' : undefined}>
+            <ListingCard item={it} loading={i < 8 ? 'eager' : 'lazy'} />
           </div>
         ))
       }
-      <div class="order-1 col-span-full flex flex-wrap items-center gap-4 rounded-card border border-line bg-card px-4 py-3" data-alert>
-        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-on-mint">
-          <Icon name="notifications-outline-rounded" size={19} />
-        </span>
-        <p class="min-w-0 flex-1 text-body-large text-ink">
-          Chưa thấy món ưng? <span class="text-sub max-md:hidden">Có tin mới khớp, ShopNexus báo bạn.</span>
-        </p>
-        <button type="button" class={btnCls('ink', 'sm')}>Báo khi có tin mới</button>
-      </div>
+      {
+        watchable && items.length > 8 && (
+          <div class="order-1 col-span-full flex flex-wrap items-center gap-4 rounded-card border border-line bg-card px-4 py-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-on-mint">
+              <Icon name="notifications-outline-rounded" size={19} />
+            </span>
+            <p class="min-w-0 flex-1 text-body-large text-ink">
+              Chưa thấy món ưng? <span class="text-sub max-md:hidden">Có tin mới khớp, ShopNexus báo bạn.</span>
+            </p>
+            <WatchButton href={searchHref(search)} />
+          </div>
+        )
+      }
     </div>
 
     <div class="mt-4 hidden flex-col gap-3" data-list>
-      {shown.map((it) => <ResultRow item={it} />)}
+      {items.map((it) => <ResultRow item={it} />)}
     </div>
 
-    <nav class:list={['mt-8 flex items-center justify-center gap-1', total <= shown.length && 'hidden']} aria-label="Trang">
-      {
-        ['1', '2', '3', '…', '11'].map((n) =>
-          n === '…' ? (
-            <span class="grid h-9 min-w-9 place-items-center text-body-large text-faint">…</span>
-          ) : (
-            <a
-              href={n === '1' ? '#' : `?trang=${n}`}
-              aria-current={n === '1' ? 'page' : undefined}
-              class="grid h-9 min-w-9 place-items-center rounded-control px-2 text-body-large text-ink tabular-nums hover:bg-hover aria-[current=page]:bg-brand aria-[current=page]:text-white"
-            >
-              {n}
-            </a>
-          ),
-        )
-      }
-      <a href="?trang=2" class:list={['ml-2', btnCls('line', 'sm')]}>
-        Trang sau<Icon name="chevron-right-rounded" size={16} />
-      </a>
-    </nav>
+    {
+      next && (
+        <div class="mt-8 flex justify-center">
+          <a href={searchHref(search, { after: next }, base)} class={btnCls('line')}>
+            Xem thêm tin
+            <Icon name="chevron-right-rounded" size={16} />
+          </a>
+        </div>
+      )
+    }
   </section>
 </main>
 
 <script>
-  // Sort and view switch the results on the page; the server keeps the order
-  // it sent ("Phù hợp nhất"), so the first tab restores it.
+  // The view switch: the grid or the list of the same results.
   const root = document.querySelector<HTMLElement>('[data-results]');
-  if (root) {
-    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
-    const list = root.querySelector<HTMLElement>('[data-list]')!;
-    const items = [...grid.querySelectorAll<HTMLElement>('[data-item]')];
-    const rows = [...list.children] as HTMLElement[];
-    const keys: ((el: HTMLElement) => number)[] = [
-      (el) => +el.dataset.i!,
-      (el) => +el.dataset.i!,
-      (el) => +el.dataset.price!,
-      (el) => +el.dataset.km!,
-    ];
-    root.querySelector('[data-sort]')!.addEventListener('seg-change', (e) => {
-      const key = keys[(e as CustomEvent).detail.index];
-      const order = [...items].sort((a, b) => key(a) - key(b));
-      order.forEach((el, n) => {
-        el.style.order = n < 8 ? '0' : '2';
-        rows[+el.dataset.i!].style.order = String(n);
-      });
-    });
-    root.querySelector('[data-view]')!.addEventListener('seg-change', (e) => {
-      const asList = (e as CustomEvent).detail.index === 1;
-      grid.classList.toggle('hidden', asList);
-      list.classList.toggle('hidden', !asList);
-      list.classList.toggle('flex', asList);
-    });
-  }
+  root?.querySelector('[data-view]')!.addEventListener('seg-change', (e) => {
+    const asList = (e as CustomEvent).detail.index === 1;
+    root.querySelector('[data-grid]')!.classList.toggle('hidden', asList);
+    const list = root.querySelector('[data-list]')!;
+    list.classList.toggle('hidden', !asList);
+    list.classList.toggle('flex', asList);
+  });
 </script>

@@ -38,6 +38,9 @@ export const R = {
   feed: '/bang-tin',
 } as const;
 
+/** Đăng nhập, coming back to `back` (a path with its query); `ended` adds the "signed out elsewhere" notice. */
+export const loginHref = (back: string, ended = false) => `${R.login}?tiep=${encodeURIComponent(back)}${ended ? '&het-phien' : ''}`;
+
 /** Footer and other link lists, by label. */
 export const LINK: Record<string, string> = {
   'Dành cho bạn': R.home,

@@ -1,121 +1,127 @@
 ---
-// Tìm kiếm's filter panel (K2): a card with the price histogram and the two
-// bounds, brands, Tình trạng, and the distance from where the buyer is.
-import { HERE, NEAR_STEPS, nearParam } from '../../lib/near';
+// The filter panel on Tìm kiếm and a category page (K2): a card with the
+// price bounds, Tình trạng, Trả giá được and the distance from the buyer. It
+// is a GET form over the same page; a change submits it, and "Áp dụng" does
+// without script.
+import { area } from '../../lib/area';
+import { CONDITIONS } from '../../lib/listing';
+import { NEAR_STEPS, type Search, searchHref, sortKey } from '../../lib/search';
+import { btnCls } from '../../lib/ui';
 import Icon from '../Icon.astro';
-import Seg from '../Seg.astro';
 
-const hist = [3, 5, 8, 12, 18, 26, 22, 17, 11, 7, 4, 2];
-const brands: [string, number, boolean][] = [
-  ['Dell', 11, true],
-  ['Apple', 9, true],
-  ['Lenovo', 8, false],
-  ['HP', 6, false],
-  ['ASUS', 4, false],
-];
-// Each distance is a link to this search with ?gan= set (or cleared for Mọi nơi).
-const picked = nearParam(Astro.url);
-const distances = [null, ...NEAR_STEPS].map((d) => {
-  const u = new URL(Astro.url);
-  if (d) u.searchParams.set('gan', String(d));
-  else u.searchParams.delete('gan');
-  return { label: d ? `${d} km` : 'Mọi nơi', href: u.pathname + u.search, on: d === picked };
-});
+interface Props {
+  search: Search;
+  /** The page the form submits to: Tìm kiếm or the category's. */
+  base: string;
+}
+
+const { search, base } = Astro.props;
+const place = area(Astro.cookies);
+const keys = { new: 'moi', like_new: 'nhu-moi', used: 'da-dung' } as const;
+const distances = [undefined, ...NEAR_STEPS].map((km) => ({
+  label: km ? `${km} km` : 'Mọi nơi',
+  href: searchHref(search, { km }, base),
+  on: km === search.km,
+}));
 const group = 'border-b border-line px-4 py-4';
 const head = 'text-title-small text-ink';
+const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] border-field bg-card text-transparent peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand';
 ---
 
-<aside class="self-start overflow-hidden rounded-card border border-line bg-card lg:sticky lg:top-[88px]">
+<form action={base} class="self-start overflow-hidden rounded-card border border-line bg-card lg:sticky lg:top-[88px]" data-filters>
+  {search.q && <input type="hidden" name="q" value={search.q} />}
+  {search.category && <input type="hidden" name="muc" value={search.category} />}
+  {search.off.map((o) => <input type="hidden" name="bo" value={o} />)}
+  {search.km && <input type="hidden" name="gan" value={search.km} />}
+  {search.sort && <input type="hidden" name="sap-xep" value={sortKey(search.sort)} />}
+  {search.photo && <input type="hidden" name="anh" value={search.photo} />}
   <div class={group}>
     <p class={head}>Giá</p>
-    <div class="mt-3 flex h-12 items-end gap-[3px]" aria-hidden="true">
-      {
-        hist.map((h, i) => (
-          <span class:list={['flex-1 rounded-t-[2px]', i < 7 ? 'bg-brand' : 'bg-field']} style={`height:${h * 1.8}px`} />
-        ))
-      }
-    </div>
     <div class="mt-3 grid grid-cols-2 gap-2 text-body-medium text-ink">
       <label class="rounded-sm border border-field px-2.5 py-2 focus-within:border-brand">
-        <span class="sr-only">Giá từ</span><input name="gia-tu" value="0 ₫" class="w-full bg-transparent outline-none" />
+        <span class="sr-only">Giá từ</span>
+        <input name="gia-tu" inputmode="numeric" placeholder="Từ" value={search.min ?? ''} class="w-full bg-transparent outline-none placeholder:text-faint" />
       </label>
       <label class="rounded-sm border border-field px-2.5 py-2 focus-within:border-brand">
-        <span class="sr-only">Giá đến</span><input name="gia-den" value="8.000.000 ₫" class="w-full bg-transparent outline-none" />
+        <span class="sr-only">Giá đến</span>
+        <input name="gia-den" inputmode="numeric" placeholder="Đến" value={search.max ?? ''} class="w-full bg-transparent outline-none placeholder:text-faint" />
       </label>
-    </div>
-    <p class="mt-2 text-body-small text-faint">Đa số tin từ 6,5 đến 7,9 tr ₫</p>
-  </div>
-  <div class={group}>
-    <p class={head}>Hãng</p>
-    <div class="mt-2">
-      {
-        brands.map(([label, n, on]) => (
-          <label class="-mx-2 flex h-8 cursor-pointer items-center gap-2.5 rounded-sm px-2 text-body-large text-ink hover:bg-hover">
-            <input type="checkbox" checked={on} class="peer sr-only" />
-            <span class="grid h-4 w-4 place-items-center rounded-xs border-[1.5px] border-field bg-card text-transparent peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand">
-              <Icon name="check-rounded" size={13} />
-            </span>
-            <span class="flex-1">{label}</span>
-            <span class="text-body-small text-faint tabular-nums">{n}</span>
-          </label>
-        ))
-      }
     </div>
   </div>
   <div class={group}>
     <p class={head}>Tình trạng</p>
-    <div class="mt-3">
-      <Seg
-        items={['Mới', 'Như mới', 'Đã dùng']}
-        selected={1}
-        class="w-full bg-soft"
-        itemClass="flex-1 px-1! text-body-medium"
-        name="Tình trạng"
-      />
-    </div>
-  </div>
-  <div class="px-4 py-4">
-    <p class={head}>Khoảng cách</p>
-    <div class="mt-3 grid grid-cols-5 gap-0.5 rounded-control bg-soft p-0.5">
+    <div class="mt-2">
       {
-        distances.map((d) => (
-          <a
-            href={d.href}
-            aria-current={d.on ? 'true' : undefined}
-            class="grid h-8 place-items-center whitespace-nowrap rounded-sm text-body-small text-sub hover:text-ink aria-[current]:bg-card aria-[current]:font-medium aria-[current]:text-ink aria-[current]:shadow-knob"
-          >
-            {d.label}
-          </a>
+        Object.entries(CONDITIONS).map(([c, label]) => (
+          <label class="-mx-2 flex h-8 cursor-pointer items-center gap-2.5 rounded-sm px-2 text-body-large text-ink hover:bg-hover">
+            <input
+              type="checkbox"
+              name="tinh-trang"
+              value={keys[c as keyof typeof keys]}
+              checked={search.conditions.includes(c as keyof typeof keys)}
+              class="peer sr-only"
+            />
+            <span class={box}><Icon name="check-rounded" size={13} /></span>
+            {label}
+          </label>
         ))
       }
+      <label class="-mx-2 mt-2 flex h-8 cursor-pointer items-center gap-2.5 rounded-sm px-2 text-body-large text-ink hover:bg-hover">
+        <input type="checkbox" name="tra-gia" value="1" checked={search.offers} class="peer sr-only" />
+        <span class={box}><Icon name="check-rounded" size={13} /></span>
+        Trả giá được
+      </label>
     </div>
-    <details class="group mt-3">
-      <summary class="flex cursor-pointer list-none items-center gap-1.5 text-body-small text-faint [&::-webkit-details-marker]:hidden">
-        <Icon name="location-on-outline-rounded" size={15} />
-        <span class="min-w-0 flex-1 truncate">Quanh {HERE}</span>
-        <span class="text-body-small font-medium text-brand group-open:hidden">Đổi</span>
-      </summary>
-      <input
-        name="noi"
-        aria-label="Quận, huyện hoặc tỉnh"
-        placeholder="Quận, huyện hoặc tỉnh"
-        class="mt-2 block w-full rounded-sm border border-field px-2.5 py-2 text-body-medium text-ink outline-none focus:border-brand"
-      />
-      <button type="button" data-here class="state-layer mt-1.5 flex h-9 items-center gap-1.5 rounded-sm px-2 text-body-medium font-medium text-brand hover:bg-hover">
-        <Icon name="my-location-outline-rounded" size={16} />Dùng vị trí hiện tại
-      </button>
-    </details>
   </div>
-</aside>
+  <div class={group}>
+    <p class={head}>Khoảng cách</p>
+    {
+      place ? (
+        <>
+          <div class="mt-3 grid grid-cols-5 gap-0.5 rounded-control bg-soft p-0.5">
+            {distances.map((d) => (
+              <a
+                href={d.href}
+                aria-current={d.on ? 'true' : undefined}
+                class="grid h-8 place-items-center whitespace-nowrap rounded-sm text-body-small text-sub hover:text-ink aria-[current]:bg-card aria-[current]:font-medium aria-[current]:text-ink aria-[current]:shadow-knob"
+              >
+                {d.label}
+              </a>
+            ))}
+          </div>
+          <p class="mt-3 flex items-center gap-1.5 text-body-small text-faint">
+            <Icon name="location-on-outline-rounded" size={15} />
+            <span class="min-w-0 flex-1 truncate">Quanh {place.name}</span>
+            <button type="button" data-here class="font-medium text-brand">
+              Đổi
+            </button>
+          </p>
+        </>
+      ) : (
+        <button type="button" data-here class="state-layer mt-2 flex h-9 items-center gap-1.5 rounded-sm px-2 text-body-medium font-medium text-brand hover:bg-hover">
+          <Icon name="my-location-outline-rounded" size={16} />Dùng vị trí hiện tại
+        </button>
+      )
+    }
+  </div>
+  <div class="px-4 py-3">
+    <button class:list={[btnCls('line', 'sm'), 'w-full']}>Áp dụng</button>
+  </div>
+</form>
 
 <script>
-  // "Dùng vị trí hiện tại" asks the browser for its location and folds the
-  // picker. Until the server's search is wired, the place stays the mock's.
-  document.querySelectorAll<HTMLButtonElement>('[data-here]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const close = () => b.closest('details')?.removeAttribute('open');
-      if (navigator.geolocation) navigator.geolocation.getCurrentPosition(close, close);
-      else close();
-    }),
-  );
+  import { locate } from '../../lib/locate';
+
+  // A checkbox submits at once, a price on change; "Dùng vị trí hiện tại" and
+  // "Đổi" ask the browser for its place and load the page again with it.
+  document.querySelectorAll<HTMLFormElement>('[data-filters]').forEach((f) => {
+    f.addEventListener('change', () => f.requestSubmit());
+    f.querySelectorAll<HTMLButtonElement>('[data-here]').forEach((b) =>
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        if (await locate()) location.reload();
+        else b.disabled = false;
+      }),
+    );
+  });
 </script>
