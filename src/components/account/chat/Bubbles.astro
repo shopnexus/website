@@ -6,6 +6,7 @@
 import type { Message } from '../../../lib/messages';
 import { carded, renderText } from '../../../lib/rich-text';
 import Icon from '../../Icon.astro';
+import Avatar from '../../Avatar.astro';
 import Photo from '../../Photo.astro';
 import RefCard from './RefCard.astro';
 
@@ -18,15 +19,19 @@ interface Props {
   other: string;
   /** The hover "Trả lời", which Tin nhắn's script runs. */
   replies?: boolean;
+  /** The other person's photo, beside their messages as in Messenger. */
+  photo?: string;
 }
 
-const { side, messages, time, me, other, replies = true } = Astro.props;
+const { side, messages, time, me, other, replies = true, photo } = Astro.props;
 const mine = side === 'mine';
 const n = messages.length;
 const who = (id: string) => (id === me ? 'Bạn' : other);
 ---
 
-<div class:list={['flex flex-col gap-0.5', mine ? 'items-end' : 'items-start']} data-group={side}>
+<div class:list={['flex items-end gap-1.5', mine && 'justify-end']} data-group={side}>
+  {!mine && <Avatar name={other} photo={photo} size={28} loading="lazy" class="mb-6 shrink-0" />}
+  <div class:list={['flex min-w-0 flex-1 flex-col gap-0.5', mine ? 'items-end' : 'items-start']}>
   {
     messages.map((m, i) => (
       <div class:list={['group/msg flex max-w-[80%] items-center gap-1', mine && 'flex-row-reverse']} data-msg={m.id}>
@@ -85,4 +90,5 @@ const who = (id: string) => (id === me ? 'Bạn' : other);
     ))
   }
   <p class="mt-1 px-2 text-body-small text-on-surface-variant">{time}</p>
+</div>
 </div>

@@ -197,31 +197,31 @@ export function mountChatPane(o: PaneOptions) {
       const b = (e.target as Element).closest<HTMLButtonElement>('[data-reply]');
       if (b) replyTo_(b);
     });
-    // On a touch screen a message swiped right by 56 px is answered, as in the app.
-    let swipe: { el: HTMLElement; x: number; y: number; id: number } | null = null;
+    // On a touch screen a message swiped 56 px toward the middle is answered, as in the app: the other person's to the right, one's own to the left.
+    let swipe: { el: HTMLElement; x: number; y: number; id: number; sign: number } | null = null;
     on.addEventListener('pointerdown', (e) => {
       const el = (e.target as Element).closest<HTMLElement>('[data-msg]');
       if (e.pointerType !== 'touch' || !el?.querySelector('[data-reply]')) return;
-      swipe = { el, x: e.clientX, y: e.clientY, id: e.pointerId };
+      swipe = { el, x: e.clientX, y: e.clientY, id: e.pointerId, sign: el.closest('[data-group="mine"]') ? -1 : 1 };
     });
     on.addEventListener('pointermove', (e) => {
       if (!swipe || e.pointerId !== swipe.id) return;
-      const dx = e.clientX - swipe.x;
+      const dx = (e.clientX - swipe.x) * swipe.sign;
       if (Math.abs(e.clientY - swipe.y) > 24) {
         swipe.el.style.transform = '';
         swipe = null;
         return;
       }
-      swipe.el.style.transform = `translateX(${Math.max(0, Math.min(dx, 72))}px)`;
+      swipe.el.style.transform = `translateX(${Math.max(0, Math.min(dx, 72)) * swipe.sign}px)`;
     });
     const endSwipe = (e: PointerEvent) => {
       if (!swipe || e.pointerId !== swipe.id) return;
-      const { el, x } = swipe;
+      const { el, x, sign } = swipe;
       swipe = null;
       el.style.transition = 'transform 150ms';
       el.style.transform = '';
       setTimeout(() => (el.style.transition = ''), 160);
-      if (e.type === 'pointerup' && e.clientX - x >= 56) replyTo_(el.querySelector<HTMLElement>('[data-reply]')!);
+      if (e.type === 'pointerup' && (e.clientX - x) * sign >= 56) replyTo_(el.querySelector<HTMLElement>('[data-reply]')!);
     };
     on.addEventListener('pointerup', endSwipe);
     on.addEventListener('pointercancel', endSwipe);

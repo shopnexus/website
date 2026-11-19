@@ -334,6 +334,7 @@ const detail = !!(chat || start || confirm);
               items={items}
               me={v.id}
               other={other}
+              photo={chat.other.avatar_url}
               next={chat.messages.next_cursor ?? undefined}
               last={chat.messages.items[0]?.id}
               marked={m.marked}

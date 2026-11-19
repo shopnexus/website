@@ -22,5 +22,5 @@ const other = personName(chat.other);
 ---
 
 <template data-older-page data-next={page.next_cursor ?? ''}>
-  <Thread items={thread([...page.items].reverse(), chat, v.id)} me={v.id} other={other} />
+  <Thread items={thread([...page.items].reverse(), chat, v.id)} me={v.id} other={other} photo={chat.other.avatar_url} />
 </template>

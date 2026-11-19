@@ -10,9 +10,11 @@ interface Props {
   me: string;
   other: string;
   replies?: boolean;
+  /** The other person's photo, beside their messages. */
+  photo?: string;
 }
 
-const { items, me, other, replies } = Astro.props;
+const { items, me, other, replies, photo } = Astro.props;
 ---
 
 {
@@ -22,7 +24,7 @@ const { items, me, other, replies } = Astro.props;
         {it.label}
       </p>
     ) : it.kind === 'group' ? (
-      <Bubbles side={it.side} messages={it.messages} time={it.time} me={me} other={other} replies={replies} />
+      <Bubbles side={it.side} messages={it.messages} time={it.time} me={me} other={other} replies={replies} photo={photo} />
     ) : it.kind === 'move' ? (
       <PriceMove side={it.side} amount={it.amount} time={it.time} kind={it.accept ? 'accept' : 'offer'} />
     ) : (
