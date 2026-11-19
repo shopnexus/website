@@ -1,34 +1,68 @@
 ---
-// The message field. The "strip" slot holds the message being answered.
+// The message field, a form post with its Idempotency-Key. Above it, the
+// message being answered and the photos on their way; the script uploads each
+// photo and adds its upload id. Photos need the script, so the button shows with it.
+import { idempotencyKey } from '../../../lib/api/client';
+import { R } from '../../../lib/routes';
 import Icon from '../../Icon.astro';
 
 interface Props {
   peer: string;
+  chat: string;
+  deal?: string;
+  /** A question to start with, from a listing's "Hỏi nhanh". */
+  text?: string;
 }
 
-const { peer } = Astro.props;
+const { peer, chat, deal, text } = Astro.props;
+const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
 ---
 
-<div class="px-3 pb-3 pt-2">
-  <slot name="strip" />
-  <form class="flex items-center gap-1" data-composer>
-    <button type="button" class="state-layer grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Gửi ảnh hoặc vị trí">
-      <Icon name="add-circle-outline-rounded" size={24} />
+<form method="post" action={R.messages} class="px-3 pb-3 pt-2" data-composer>
+  <input type="hidden" name="do" value="send" />
+  <input type="hidden" name="chat" value={chat} />
+  {deal && <input type="hidden" name="deal" value={deal} />}
+  <input type="hidden" name="key" value={idempotencyKey()} />
+  <input type="hidden" name="reply_to" value="" data-reply-to />
+  <div class="mb-2 flex items-center gap-3 rounded-lg bg-card/80 py-2 pl-3 pr-1" hidden data-strip>
+    <span class="w-[3px] flex-none self-stretch rounded-full bg-primary"></span>
+    <span class="min-w-0 flex-1">
+      <span class="block text-label-medium text-primary" data-strip-who></span>
+      <span class="block truncate text-body-small text-on-surface-variant" data-strip-text></span>
+    </span>
+    <button type="button" class={iconBtn} aria-label="Bỏ trả lời" data-strip-close><Icon name="close-rounded" size={20} /></button>
+  </div>
+  <div class="mb-2 flex flex-wrap gap-2" hidden data-tray></div>
+  <div class="flex items-center gap-1">
+    <button type="button" class="state-layer grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Gửi ảnh" hidden data-pick>
+      <Icon name="add-photo-alternate-outline-rounded" size={24} />
     </button>
+    <input type="file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only" tabindex="-1" aria-hidden="true" data-files />
     <input
       name="text"
       autocomplete="off"
+      maxlength="1000"
       placeholder="Nhắn tin"
       aria-label={`Nhắn tin cho ${peer}`}
+      value={text}
       class="h-12 min-w-0 flex-1 rounded-full border border-line bg-card px-5 text-body-large text-ink outline-none placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary"
     />
     <button
       type="submit"
       class="grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant enabled:text-primary enabled:hover:bg-primary/10"
       aria-label="Gửi"
-      disabled
     >
       <Icon name="send-rounded" size={22} />
     </button>
-  </form>
-</div>
+  </div>
+</form>
+
+<template data-tray-item>
+  <span class="relative h-16 w-16 overflow-hidden rounded-md bg-surface-container-high">
+    <img alt="" class="h-full w-full object-cover" />
+    <span class="absolute inset-0 grid place-items-center bg-black/30 text-white" data-busy><Icon name="hourglass-top-rounded" size={20} /></span>
+    <button type="button" class="absolute right-0.5 top-0.5 grid h-6 w-6 place-items-center rounded-full bg-black/50 text-white" aria-label="Bỏ ảnh" data-drop>
+      <Icon name="close-rounded" size={14} />
+    </button>
+  </span>
+</template>

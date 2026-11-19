@@ -1,42 +1,61 @@
 ---
-import Photo from '../../Photo.astro';
-// The chat's bar: the listing the chat is on, the person, more actions. The
-// default slot holds the deal chips under it.
-import Icon from '../../Icon.astro';
+// The chat's bar: back to the list on a phone, the listing the chat is on and
+// the person, and the menu (slot "menu"). The default slot holds the deal chips.
 import Avatar from '../../Avatar.astro';
-import { img } from '../../../lib/format';
+import Icon from '../../Icon.astro';
+import Photo from '../../Photo.astro';
+import Popover from '../../Popover.astro';
+import { R } from '../../../lib/routes';
 
 interface Props {
+  /** The listing's title, or the person's name in a chat without a deal. */
   title: string;
   name: string;
   photo?: string;
-  verified?: boolean;
-  thumb: string;
+  thumb?: string;
+  /** "Đang hoạt động", or how long ago. */
+  sub?: string;
   href?: string;
-  /** "lazy" when it sits below the first screen. */
-  loading?: 'eager' | 'lazy';
 }
 
-const { title, name, photo, verified = false, thumb, href = '#', loading } = Astro.props;
+const { title, name, photo, thumb, sub, href } = Astro.props;
+const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
+const Tag = href ? 'a' : 'div';
 ---
 
 <div class="border-b border-line">
-  <div class="flex h-16 items-center gap-3 px-4">
-    <a href={href} class="state-layer flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2">
-      <span class="relative h-10 w-10 shrink-0">
-        <Photo src={thumb} width={160} height={160} alt="" loading={loading} class="h-10 w-10 rounded-md object-cover" />
-        <span class="absolute -bottom-1 -right-1"><Avatar name={name} photo={photo && img(photo, 40)} size={20} class="ring-2 ring-card" loading={loading} /></span>
-      </span>
+  <div class="flex h-16 items-center gap-1 px-2 lg:gap-3 lg:px-4">
+    <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư"><Icon name="chevron-left-rounded" size={24} /></a>
+    <Tag href={href} class="state-layer flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2">
+      {
+        thumb ? (
+          <span class="relative h-10 w-10 shrink-0">
+            <Photo src={thumb} width={80} height={80} alt="" class="h-10 w-10 rounded-md object-cover" data-pane-thumb />
+            <span class="absolute -bottom-1 -right-1">
+              <Avatar name={name} photo={photo} size={20} class="ring-2 ring-card" />
+            </span>
+          </span>
+        ) : (
+          <Avatar name={name} photo={photo} size={40} />
+        )
+      }
       <span class="min-w-0">
         <span class="block truncate text-title-medium text-ink" data-pane-title>{title}</span>
-        <span class="flex items-center gap-1 text-body-small text-on-surface-variant">
-          {name}{verified && <Icon name="verified-rounded" size={14} class="text-primary" />}
-        </span>
+        <span class="block truncate text-body-small text-on-surface-variant">{[thumb ? name : '', sub].filter(Boolean).join(' · ')}</span>
       </span>
-    </a>
-    <button type="button" class="state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Tùy chọn khác">
-      <Icon name="more-vert" size={22} />
-    </button>
+    </Tag>
+    {
+      Astro.slots.has('menu') && (
+        <>
+          <button type="button" popovertarget="chat-menu" class={iconBtn} aria-label="Tùy chọn khác">
+            <Icon name="more-vert" size={22} />
+          </button>
+          <Popover id="chat-menu" align="end" class="w-[260px]" label="Tùy chọn">
+            <slot name="menu" />
+          </Popover>
+        </>
+      )
+    }
   </div>
   <slot />
 </div>

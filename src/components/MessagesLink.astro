@@ -1,0 +1,23 @@
+---
+// The header's Tin nhắn button with its unread count. Tin nhắn swaps it as messages arrive.
+import { R } from '../lib/routes';
+import Icon from './Icon.astro';
+
+interface Props {
+  unread: number;
+}
+
+const { unread } = Astro.props;
+const badge = 'absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-page bg-brand px-1 text-label-small text-white';
+---
+
+<a
+  href={R.messages}
+  class="state-layer relative hidden h-10 w-10 place-items-center rounded-control text-ink hover:bg-hover lg:grid"
+  aria-label={unread ? `Tin nhắn, ${unread} chưa đọc` : 'Tin nhắn'}
+  title="Tin nhắn"
+  data-part="messages-badge"
+>
+  <Icon name="chat-outline-rounded" size={19} />
+  {unread > 0 && <span class={badge}>{unread > 99 ? '99+' : unread}</span>}
+</a>

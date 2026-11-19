@@ -102,6 +102,25 @@ export function authAge(token?: string) {
   }
 }
 
+/**
+ * A fresh access token before the current one runs out, for a caller that
+ * hands it on (the socket); null when the session has ended.
+ */
+export async function refreshAccess(ctx: Pick<AstroGlobal, 'cookies' | 'url' | 'locals'>): Promise<Tokens | null> {
+  const refreshToken = ctx.cookies.get(REFRESH)?.value;
+  if (!refreshToken) return null;
+  const t = await refresh(refreshToken, ctx.locals.session.forwardedFor ?? '');
+  if (t instanceof ApiError) {
+    if (t.status === 401 || t.status === 403) dropTokens(ctx.cookies);
+    return null;
+  }
+  if (!t) return null;
+  keepTokens(ctx.cookies, ctx.url, t);
+  ctx.locals.session = { ...ctx.locals.session, token: t.access_token };
+  ctx.locals.api = apiClient(ctx.locals.session);
+  return t;
+}
+
 /** The signed-in buyer as the header and the account pages show them. */
 export interface Viewer {
   id: string;

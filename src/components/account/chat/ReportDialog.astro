@@ -1,85 +1,126 @@
 ---
 // "Chặn và báo cáo": the app's bottom sheet, a dialog on a wide window. The
-// signals, then the block form, then sent.
-import { REASONS, SCAMMER, SIGNALS } from '../../../data/account';
+// scam warning's signals when there is one, then the form, which reports the
+// person and blocks them, then sent. Each step is a form post.
+import type { Schemas } from '../../../lib/api/client';
+import { R } from '../../../lib/routes';
 import Icon from '../../Icon.astro';
 
+interface Props {
+  name: string;
+  account: string;
+  chat: string;
+  signals: Schemas['ScamSignal'][];
+  /** Opens on the sent pane, after the report went through. */
+  sent?: boolean;
+}
+
+const { name, account, chat, signals, sent = false } = Astro.props;
+const REASONS = [
+  { key: 'scam', label: 'Có dấu hiệu lừa đảo' },
+  { key: 'fake', label: 'Hàng giả, hàng nhái' },
+  { key: 'banned', label: 'Hàng cấm bán' },
+  { key: 'other', label: 'Lý do khác' },
+];
+/** Each signal's icon; a code the server adds later gets Info. */
+const ICONS: Record<string, string> = {
+  prepayment_request: 'account-balance-outline-rounded',
+  off_app_contact: 'call-outline-rounded',
+  suspicious_link: 'link-rounded',
+  sensitive_info_request: 'password-rounded',
+  impersonation: 'badge-outline-rounded',
+  fake_payment_proof: 'receipt-long-outline-rounded',
+  pressure: 'timer-outline-rounded',
+  new_account: 'person-add-outline-rounded',
+  price_far_below: 'trending-down-rounded',
+};
 const close = 'state-layer -mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
 const btn = 'state-layer h-10 w-full rounded-full text-label-large';
+const count = `${signals.length} dấu hiệu`;
 ---
 
 <dialog
   id="report"
   class="m-auto w-[min(480px,calc(100vw-32px))] rounded-card border-0 bg-card/90 p-6 text-on-surface backdrop-blur-[20px] backdrop:bg-black/30 backdrop:backdrop-blur-[2px]"
   aria-labelledby="report-title"
+  data-sent={sent ? '' : undefined}
 >
-  <div data-pane="signals">
-    <div class="flex items-center justify-between">
-      <h2 class="text-headline-small">Có thể là lừa đảo</h2>
-      <button type="button" data-close class={close} aria-label="Đóng"><Icon name="close-rounded" size={22} /></button>
-    </div>
-    <p class="mt-1 flex items-center gap-1 text-label-medium text-primary"><Icon name="auto-awesome-rounded" size={16} />3 dấu hiệu</p>
-    <ul class="mt-2">
-      {
-        SIGNALS.map((s) => (
-          <li class="flex min-h-12 items-center gap-4">
-            <Icon name={s.icon} size={24} class="text-on-surface-variant" />
-            <span class="text-body-large">{s.text}</span>
-          </li>
-        ))
-      }
-    </ul>
-    <button type="button" data-go="form" class:list={[btn, 'mt-6 bg-primary text-on-primary']}>Chặn và báo cáo</button>
-    <button type="button" data-hide-warning class:list={[btn, 'mt-2 text-primary']}>Ẩn cảnh báo</button>
-  </div>
+  {
+    signals.length > 0 && (
+      <div data-pane="signals">
+        <div class="flex items-center justify-between">
+          <h2 class="text-headline-small">Có thể là lừa đảo</h2>
+          <button type="button" data-close class={close} aria-label="Đóng">
+            <Icon name="close-rounded" size={22} />
+          </button>
+        </div>
+        <p class="mt-1 flex items-center gap-1 text-label-medium text-primary">
+          <Icon name="auto-awesome-rounded" size={16} />
+          {count}
+        </p>
+        <ul class="mt-2">
+          {signals.map((s) => (
+            <li class="flex min-h-12 items-center gap-4">
+              <Icon name={ICONS[s.code] ?? 'info-outline-rounded'} size={24} class="text-on-surface-variant" />
+              <span class="text-body-large">{s.text}</span>
+            </li>
+          ))}
+        </ul>
+        <button type="button" data-go="form" class:list={[btn, 'mt-6 bg-primary text-on-primary']}>
+          Chặn và báo cáo
+        </button>
+        <form method="post" action={R.messages}>
+          <input type="hidden" name="chat" value={chat} />
+          <button type="submit" name="do" value="dismiss" class:list={[btn, 'mt-2 text-primary']}>
+            Ẩn cảnh báo
+          </button>
+        </form>
+      </div>
+    )
+  }
 
-  <div data-pane="form" hidden>
+  <form method="post" action={R.messages} data-pane="form" hidden={signals.length > 0}>
+    <input type="hidden" name="chat" value={chat} />
+    <input type="hidden" name="account" value={account} />
     <div class="flex items-center justify-between">
       <h2 id="report-title" class="text-headline-small">Chặn và báo cáo</h2>
       <button type="button" data-close class={close} aria-label="Đóng"><Icon name="close-rounded" size={22} /></button>
     </div>
-    <p class="text-body-medium text-on-surface-variant">{SCAMMER.name}</p>
-    <fieldset class="mt-3" aria-label="Lý do">
+    <p class="text-body-medium text-on-surface-variant">{name}</p>
+    <fieldset class="mt-3">
+      <legend class="sr-only">Lý do</legend>
       {
-        REASONS.map((r) => (
-          <>
-            <label class="flex min-h-12 cursor-pointer items-center gap-4">
-              <input type="radio" name="reason" value={r.key} class="peer sr-only" checked={r.key === 'scam'} />
-              <span class="grid h-5 w-5 flex-none place-items-center rounded-full border-2 border-on-surface-variant after:h-2.5 after:w-2.5 after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:content-[''] peer-checked:border-primary peer-checked:after:scale-100 peer-focus-visible:ring-8 peer-focus-visible:ring-primary/15" />
-              <span class="text-body-large">{r.label}</span>
-            </label>
-            {r.key === 'scam' && (
-              <div class="pl-9">
-                <p class="flex items-center gap-1 text-label-medium text-primary">
-                  <Icon name="auto-awesome-rounded" size={14} />3 dấu hiệu
-                </p>
-                {SIGNALS.map((s) => (
-                  <label class="flex min-h-12 cursor-pointer items-center gap-4">
-                    <input type="checkbox" class="peer sr-only" checked />
-                    <span class="grid h-[18px] w-[18px] flex-none place-items-center rounded-xs border-2 border-on-surface-variant text-on-primary peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-8 peer-focus-visible:ring-primary/15 [&>*]:opacity-0 peer-checked:[&>*]:opacity-100">
-                      <Icon name="check-rounded" size={16} />
-                    </span>
-                    <span class="text-body-medium">{s.text}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </>
+        REASONS.map((r, i) => (
+          <label class="flex min-h-12 cursor-pointer items-center gap-4">
+            <input type="radio" name="reason" value={r.key} class="peer sr-only" checked={i === 0} />
+            <span class="grid h-5 w-5 flex-none place-items-center rounded-full border-2 border-on-surface-variant after:h-2.5 after:w-2.5 after:scale-0 after:rounded-full after:bg-primary after:transition-transform after:content-[''] peer-checked:border-primary peer-checked:after:scale-100 peer-focus-visible:ring-8 peer-focus-visible:ring-primary/15" />
+            <span class="text-body-large">{r.label}</span>
+          </label>
         ))
       }
     </fieldset>
     <label class="mt-3 block rounded-xs bg-surface-container-highest px-4 pb-2 pt-2">
       <span class="block text-body-small text-on-surface-variant">Ghi chú thêm (không bắt buộc)</span>
-      <textarea rows="2" maxlength="300" class="mt-0.5 block w-full resize-none border-0 bg-transparent p-0 text-body-large outline-none"></textarea>
+      <textarea name="note" rows="2" maxlength="500" class="mt-0.5 block w-full resize-none border-0 bg-transparent p-0 text-body-large outline-none"></textarea>
     </label>
     <p class="mt-3 flex items-center gap-2 text-body-small text-on-surface-variant">
-      <Icon name="block-rounded" size={16} />{SCAMMER.name} sẽ không nhắn cho bạn được nữa.
+      <Icon name="block-rounded" size={16} />{name} sẽ không nhắn cho bạn được nữa.
     </p>
     <div class="mt-6 flex justify-end gap-2">
-      <button type="button" data-go="signals" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">Quay lại</button>
-      <button type="button" data-go="sent" class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">Chặn và gửi báo cáo</button>
+      {
+        signals.length > 0 ? (
+          <button type="button" data-go="signals" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">
+            Quay lại
+          </button>
+        ) : (
+          <button type="button" data-close class="state-layer h-10 rounded-control px-4 text-label-large text-primary">
+            Hủy
+          </button>
+        )
+      }
+      <button type="submit" name="do" value="report" class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">Chặn và gửi báo cáo</button>
     </div>
-  </div>
+  </form>
 
   <div data-pane="sent" hidden>
     <div class="flex items-center justify-between">
@@ -88,11 +129,13 @@ const btn = 'state-layer h-10 w-full rounded-full text-label-large';
     </div>
     <div class="mt-3 flex items-center gap-4">
       <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-container text-on-primary-container"><Icon name="check-rounded" size={24} /></span>
-      <p class="text-body-medium text-on-surface-variant">Đã chặn {SCAMMER.name}. Cuộc trò chuyện đã rời Tin nhắn.</p>
+      <p class="text-body-medium text-on-surface-variant">Đã chặn {name}. Cuộc trò chuyện đã rời Tin nhắn.</p>
     </div>
-    <div class="mt-6 flex justify-end gap-2">
-      <button type="button" data-unblock class="state-layer h-10 rounded-control px-4 text-label-large text-primary">Bỏ chặn</button>
+    <form method="post" action={R.messages} class="mt-6 flex justify-end gap-2">
+      <input type="hidden" name="chat" value={chat} />
+      <input type="hidden" name="account" value={account} />
+      <button type="submit" name="do" value="unblock" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">Bỏ chặn</button>
       <button type="button" data-close class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">Xong</button>
-    </div>
+    </form>
   </div>
 </dialog>

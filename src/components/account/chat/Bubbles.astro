@@ -1,58 +1,82 @@
 ---
 // Consecutive messages from one side: 2 px apart, the corners on the sender's
-// side tucked, one time under the last. A message replies from its hover action.
-// The "after" slot sits between the bubbles and the time.
+// side tucked, one time under the last. A sent message replies from its hover
+// action; photos sit in the bubble over the text.
+import type { Message } from '../../../lib/messages';
 import Icon from '../../Icon.astro';
+import Photo from '../../Photo.astro';
 
 interface Props {
   side: 'mine' | 'theirs';
-  texts: string[];
+  messages: Message[];
   time: string;
-  /** The message this one answers: who said it and what. */
-  quote?: [string, string];
-  /** Who the reply action answers. */
-  from?: string;
+  /** The account's id and the other person's name, for the quotes. */
+  me: string;
+  other: string;
 }
 
-const { side, texts, time, quote, from = '' } = Astro.props;
+const { side, messages, time, me, other } = Astro.props;
 const mine = side === 'mine';
-const n = texts.length;
+const n = messages.length;
+const who = (id: string) => (id === me ? 'Bạn' : other);
 ---
 
 <div class:list={['flex flex-col gap-0.5', mine ? 'items-end' : 'items-start']} data-group={side}>
   {
-    texts.map((t, i) => (
-      <div class:list={['group/msg flex max-w-[80%] items-center gap-1', mine && 'flex-row-reverse']}>
+    messages.map((m, i) => (
+      <div class:list={['group/msg flex max-w-[80%] items-center gap-1', mine && 'flex-row-reverse']} data-msg={m.id}>
         <div
           class:list={[
-            'rounded-card px-3 py-2 text-body-large',
+            'min-w-0 rounded-card px-3 py-2 text-body-large',
             mine ? 'bg-teal text-white' : 'bg-card text-ink ring-1 ring-inset ring-line',
+            m.status !== 'sent' && 'opacity-70',
             i > 0 && (mine ? 'rounded-tr-xs' : 'rounded-tl-xs'),
             i < n - 1 && (mine ? 'rounded-br-xs' : 'rounded-bl-xs'),
           ]}
         >
-          {quote && i === 0 && (
+          {m.reply_to && (
             <span class:list={['-mx-1 -mt-0.5 mb-1.5 flex gap-2 rounded-md px-2 py-1.5', mine ? 'bg-white/14' : 'bg-surface-container-low']}>
               <span class:list={['w-[3px] flex-none self-stretch rounded-full', mine ? 'bg-inverse-primary' : 'bg-primary']} />
               <span class="min-w-0 flex-1">
-                <span class:list={['block text-label-medium', mine ? 'text-mint-on-teal' : 'text-primary']}>{quote[0]}</span>
-                <span class:list={['line-clamp-2 text-body-small', mine ? 'text-white/75' : 'text-on-surface-variant']}>{quote[1]}</span>
+                <span class:list={['block text-label-medium', mine ? 'text-mint-on-teal' : 'text-primary']}>{who(m.reply_to.sender_id)}</span>
+                <span class:list={['line-clamp-2 text-body-small', mine ? 'text-white/75' : 'text-on-surface-variant']}>
+                  {m.reply_to.text || (m.reply_to.photos ? 'Ảnh' : '')}
+                </span>
               </span>
             </span>
           )}
-          <span data-text>{t}</span>
+          {m.photos.length > 0 && (
+            <span class:list={['-mx-1 grid gap-1', m.photos.length > 1 ? 'grid-cols-2' : 'grid-cols-1', m.text && 'mb-1.5']}>
+              {m.photos.map((p) =>
+                p.url ? (
+                  <a href={p.url} target="_blank" rel="noopener" class="block overflow-hidden rounded-md">
+                    <Photo src={p.thumb_url ?? p.url} width={320} height={320} alt="Ảnh" class="aspect-square w-40 max-w-full object-cover" />
+                  </a>
+                ) : (
+                  <span class="grid aspect-square w-40 max-w-full place-items-center rounded-md bg-surface-container-high text-on-surface-variant">
+                    <Icon name="image-outline-rounded" size={24} />
+                  </span>
+                ),
+              )}
+            </span>
+          )}
+          {m.text && <span class="whitespace-pre-line break-words" data-text>{m.text}</span>}
+          {m.status === 'failed' && m.failure && <span class="mt-1 block text-body-small">{m.failure}</span>}
         </div>
-        <button
-          type="button"
-          class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-container-high text-on-surface-variant opacity-0 transition-opacity group-focus-within/msg:opacity-100 group-hover/msg:opacity-100"
-          aria-label="Trả lời"
-          data-reply={mine ? 'Bạn' : from}
-        >
-          <Icon name="reply-rounded" size={18} />
-        </button>
+        {m.status === 'sent' && (
+          <button
+            type="button"
+            class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-container-high text-on-surface-variant opacity-0 transition-opacity group-focus-within/msg:opacity-100 group-hover/msg:opacity-100"
+            aria-label="Trả lời"
+            data-reply={m.id}
+            data-reply-who={who(m.sender_id)}
+            data-reply-text={m.text || 'Ảnh'}
+          >
+            <Icon name="reply-rounded" size={18} />
+          </button>
+        )}
       </div>
     ))
   }
-  <slot name="after" />
   <p class="mt-1 px-2 text-body-small text-on-surface-variant">{time}</p>
 </div>

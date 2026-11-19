@@ -47,6 +47,10 @@ export const API = {
   uploads: '/api/uploads',
   watches: '/api/watches',
   watchAlert: (id: string) => `/api/watches/${id}/alert`,
+  /** The socket's address and an access token for it, for Tin nhắn. */
+  socket: '/api/socket',
+  /** Chat nhanh on a listing: a message or an offer (QuickChat). */
+  quickChat: (listing: string) => `/api/listings/${listing}/chat`,
 } as const;
 
 /**

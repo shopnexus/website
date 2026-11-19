@@ -16,7 +16,7 @@ const items = [
   { label: 'Khám phá', icon: 'explore-outline-rounded', href: R.home, on: section === 'explore' },
   { label: 'Danh mục', icon: 'category-outline-rounded', href: R.categories, on: section === 'categories' },
   { label: 'Tin nhắn', icon: 'chat-outline-rounded', href: R.messages, on: path.startsWith(R.messages) },
-  { label: 'Tôi', icon: 'person-outline-rounded', href: R.me, on: path.startsWith(R.me) },
+  { label: 'Tôi', icon: 'person-outline-rounded', href: R.me, on: path === R.me || path.startsWith(`${R.me}/`) },
 ];
 ---
 

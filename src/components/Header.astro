@@ -10,6 +10,7 @@ import { loginUrl, viewer } from '../lib/session';
 import { THEMES, theme } from '../lib/theme';
 import { BAR } from '../lib/ui';
 import Icon from './Icon.astro';
+import MessagesLink from './MessagesLink.astro';
 import Avatar from './Avatar.astro';
 import Photo from './Photo.astro';
 import Popover from './Popover.astro';
@@ -28,7 +29,6 @@ const me = viewer(Astro);
 // Out of reach, the menus go without categories rather than failing the page.
 const cats = await categories().catch(() => []);
 const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounded-control text-ink hover:bg-hover lg:grid';
-const badge = 'absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-page bg-brand px-1 text-label-small text-white';
 const item = 'state-layer flex h-10 w-full items-center gap-3 rounded-control px-3 text-body-large hover:bg-hover';
 const sell = 'state-layer hidden h-10 shrink-0 items-center gap-1.5 rounded-control bg-brand px-4 text-title-small text-white hover:bg-brand-hover lg:flex';
 const account = [
@@ -102,15 +102,7 @@ const account = [
               <Icon name="notifications-outline-rounded" size={19} />
               {me.unread.notifications > 0 && <span class="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-page bg-error" />}
             </a>
-            <a
-              href={R.messages}
-              class={iconBtn}
-              aria-label={me.unread.messages ? `Tin nhắn, ${me.unread.messages} chưa đọc` : 'Tin nhắn'}
-              title="Tin nhắn"
-            >
-              <Icon name="chat-outline-rounded" size={19} />
-              {me.unread.messages > 0 && <span class={badge}>{me.unread.messages > 99 ? '99+' : me.unread.messages}</span>}
-            </a>
+            <MessagesLink unread={me.unread.messages} />
             <span class="mx-1.5 hidden h-6 w-px bg-field lg:block" />
             <a href={R.post} class={sell}>
               <Icon name="add-rounded" size={17} />

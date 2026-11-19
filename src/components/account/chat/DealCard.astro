@@ -1,32 +1,70 @@
 ---
-import Photo from '../../Photo.astro';
-// The listing beside the chat: photo, title, place and the price rows (slot).
+// A deal's listing beside the chat: photo, title, its state and the price rows.
+import { group } from '../../../lib/format';
+import { type Deal, LISTING_STATUS, personName, type Person } from '../../../lib/messages';
+import { R } from '../../../lib/routes';
 import { PANEL } from '../../../lib/ui';
+import Icon from '../../Icon.astro';
+import Photo from '../../Photo.astro';
 
 interface Props {
-  title: string;
-  photo: string;
-  meta: string;
-  /** The deal chip that shows this card. */
-  deal?: string;
+  deal: Deal;
+  other: Person;
   hidden?: boolean;
-  href?: string;
-  /** "lazy" when it sits below the first screen. */
-  loading?: 'eager' | 'lazy';
 }
 
-const { title, photo, meta, deal, hidden = false, href = '#', loading } = Astro.props;
+const { deal: d, other, hidden = false } = Astro.props;
+const l = d.listing;
+const open = d.open_price ?? undefined;
+const agreed = d.agreed_price ?? undefined;
+const row = 'mt-1 flex items-baseline justify-between gap-3';
+const theirs = open && open.by !== d.role;
 ---
 
-<div class:list={[PANEL, 'p-3']} data-deal-card={deal} hidden={hidden}>
-  <Photo src={photo} width={640} height={480} alt={title} loading={loading} class="aspect-[4/3] w-full rounded-lg object-cover" />
-  <p class="mt-3 line-clamp-2 text-title-medium text-ink">{title}</p>
-  <p class="mt-1 text-body-small text-on-surface-variant">{meta}</p>
-  <slot />
-  <a
-    href={href}
-    class="state-layer mt-4 flex h-10 items-center justify-center rounded-full border border-outline-variant text-label-large text-primary"
-  >
-    Xem tin
-  </a>
+<div class:list={[PANEL, 'p-3']} data-deal-card={d.id} hidden={hidden}>
+  {
+    l.cover_thumb_url ? (
+      <Photo src={l.cover_thumb_url} width={560} height={420} alt={l.title} class="aspect-[4/3] w-full rounded-lg object-cover" />
+    ) : (
+      <div class="grid aspect-[4/3] w-full place-items-center rounded-lg bg-soft text-faint">
+        <Icon name="photo-camera-outline-rounded" size={28} />
+      </div>
+    )
+  }
+  <p class="mt-3 line-clamp-2 text-title-medium text-ink">{l.title}</p>
+  <p class="mt-1 text-body-small text-on-surface-variant">
+    {[d.role === 'seller' ? 'Tin của bạn' : `Của ${personName(other)}`, LISTING_STATUS[l.status]].filter(Boolean).join(' · ')}
+  </p>
+  <div class={row}>
+    <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
+    <span class:list={['text-body-medium text-on-surface-variant tabular-nums', agreed && 'line-through']}>{group(l.price)} ₫</span>
+  </div>
+  {
+    agreed ? (
+      <div class={row}>
+        <span class="flex items-center gap-1 text-body-medium text-tertiary">
+          <Icon name="handshake-outline-rounded" size={16} />
+          {d.status === 'sold' ? 'Đã bán' : 'Đã chốt'}
+        </span>
+        <span class="text-title-large text-tertiary tabular-nums">{group(agreed)} ₫</span>
+      </div>
+    ) : (
+      open && (
+        <div class={row}>
+          <span class="flex items-center gap-1 text-body-medium text-on-surface-variant">
+            <Icon name="hourglass-empty-rounded" size={16} />
+            {theirs ? `${personName(other)} trả` : `Chờ ${personName(other)}`}
+          </span>
+          <span class="text-title-large text-on-surface tabular-nums">{group(open.amount)} ₫</span>
+        </div>
+      )
+    )
+  }
+  {
+    (l.status === 'active' || l.status === 'reserved') && (
+      <a href={R.listing(l.id)} class="state-layer mt-4 flex h-10 items-center justify-center rounded-full border border-outline-variant text-label-large text-primary">
+        Xem tin
+      </a>
+    )
+  }
 </div>

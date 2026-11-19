@@ -1,392 +1,880 @@
 ---
-import Photo from '../components/Photo.astro';
-// Tin nhắn: three panes over the wash. The inbox; the open chat with its deal
-// chips, thread, deal console and composer; the listing and the money rules.
-// Tuấn Kiệt's and Thanh Lý 24h's chats open here; #scam, #report and #reported
-// open the warned chat, the report form and the sent state.
+// Tin nhắn: the inbox; the open chat with its deal chips, thread, deal
+// consoles and composer; the deals' listings on the side. ?chat= opens a
+// chat and ?deal= its deal. The entry links open one: ?listing= (with
+// &offer=1 or &ask=) opens the buyer's deal on it, ?deal= finds its chat,
+// ?seller= finds the pair's chat or lists the seller's items to start from.
+// Every write is a form post here; the script sends some in place, and the
+// socket (lib/socket.ts) asks this page again when something changes.
+import Avatar from '../components/Avatar.astro';
 import Icon from '../components/Icon.astro';
+import Notice from '../components/Notice.astro';
+import Photo from '../components/Photo.astro';
 import Seg from '../components/Seg.astro';
-import Bubbles from '../components/account/chat/Bubbles.astro';
-import ChatEvent from '../components/account/chat/ChatEvent.astro';
-import CodDialog from '../components/account/chat/CodDialog.astro';
 import Composer from '../components/account/chat/Composer.astro';
 import DealCard from '../components/account/chat/DealCard.astro';
 import DealConsole from '../components/account/chat/DealConsole.astro';
-import InboxRow from '../components/account/chat/InboxRow.astro';
+import InboxList from '../components/account/chat/InboxList.astro';
 import PaneHead from '../components/account/chat/PaneHead.astro';
-import PriceMove from '../components/account/chat/PriceMove.astro';
 import ReportDialog from '../components/account/chat/ReportDialog.astro';
-import { DEALS, INBOX, SCAM_ITEM, SCAMMER, SELLER, THUMB } from '../data/account';
+import Thread from '../components/account/chat/Thread.astro';
 import Layout from '../layouts/Layout.astro';
+import { type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
+import { group } from '../lib/format';
+import { isId } from '../lib/listing';
+import { activeText, chatHref, errorCode, errorText, loadMessages, openDeal, personName, shortTitle, thread } from '../lib/messages';
+import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
-import { CONTENT_WIDE } from '../lib/ui';
+import { CONTENT_WIDE, btnCls } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const p = Astro.url.searchParams;
 
-const [iphone, airpods] = DEALS;
-const landmark = 'Ok bạn, chốt 5,1 tr nhé. Tối nay 19h gặp ở sảnh Landmark 81 xem máy nhé?';
-const asked = 'AirPods để mình xem lại rồi báo bạn nha.';
-const unread = INBOX.filter((c) => c.unread).length;
+/** Opens the buyer's deal on a listing and goes to its chat; a refusal shows on the page. */
+async function openFrom(listing: string, want: { offer?: string; ask?: string }): Promise<Response> {
+  const extra: Record<string, string> = {};
+  if (want.offer) extra.offer = '1';
+  if (want.ask) extra.ask = want.ask.slice(0, 200);
+  try {
+    const d = await openDeal(api, listing);
+    return Astro.redirect(chatHref(d.conversation_id, d.id, extra), 303);
+  } catch (e) {
+    return Astro.redirect(`${R.messages}?${new URLSearchParams({ error: errorCode(e) })}`, 303);
+  }
+}
+
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const s = (k: string) => String(f.get(k) ?? '').trim();
+  const [act, chat, deal, account] = [s('do'), s('chat'), s('deal'), s('account')];
+  // A listing's link confirmed: open the deal, which opens the chat.
+  if (act === 'open') return openFrom(s('listing'), { offer: s('offer'), ask: s('ask') });
+  if (!isId(chat)) return Astro.redirect(R.messages, 303);
+  const path = { params: { path: { id: deal } } };
+  let to = chatHref(chat, isId(deal) ? deal : undefined);
+  const extra: Record<string, string> = {};
+  try {
+    switch (act) {
+      case 'send': {
+        const text = s('text');
+        const photos = f.getAll('photos').map(String).filter(isId).slice(0, 4);
+        const reply = s('reply_to');
+        if (!text && !photos.length) break;
+        await unwrap(
+          api.POST('/v1/conversations/{id}/messages', {
+            params: { path: { id: chat }, header: { 'Idempotency-Key': s('key') || idempotencyKey() } },
+            body: { text: text || undefined, photos: photos.length ? photos : undefined, reply_to: isId(reply) ? reply : undefined },
+          }),
+        );
+        break;
+      }
+      case 'offer':
+        extra.offer = '1';
+        await unwrap(api.POST('/v1/deals/{id}/offer', { ...path, body: { amount: Number(s('amount').replace(/\D/g, '')) } }));
+        delete extra.offer;
+        break;
+      case 'accept':
+        await unwrap(api.POST('/v1/deals/{id}/accept', { ...path, body: { price: Number(s('price')) } }));
+        break;
+      case 'decline':
+        await unwrap(api.POST('/v1/deals/{id}/decline', path));
+        break;
+      case 'withdraw':
+        await unwrap(api.POST('/v1/deals/{id}/withdraw', path));
+        break;
+      case 'cancel':
+        await unwrap(api.POST('/v1/deals/{id}/cancel', path));
+        break;
+      // Unread and archived leave the chat, or opening it would read it again.
+      case 'unread':
+        await unwrap(api.POST('/v1/conversations/{id}/unread', { params: { path: { id: chat } } }));
+        to = R.messages;
+        break;
+      case 'archive':
+        await unwrap(api.POST('/v1/conversations/{id}/archive', { params: { path: { id: chat } } }));
+        to = R.messages;
+        break;
+      case 'unarchive':
+        await unwrap(api.POST('/v1/conversations/{id}/unarchive', { params: { path: { id: chat } } }));
+        break;
+      case 'dismiss':
+        await unwrap(api.POST('/v1/conversations/{id}/scam-warning/dismiss', { params: { path: { id: chat } } }));
+        break;
+      case 'report': {
+        const reason = s('reason') as Schemas['ReportCreate']['reason'];
+        await unwrap(api.POST('/v1/reports', { body: { account_id: account, conversation_id: chat, reason, note: s('note') } }));
+        await unwrap(api.POST('/v1/blocks', { body: { account_id: account } }));
+        extra.reported = '1';
+        break;
+      }
+      case 'unblock':
+        await unwrap(api.DELETE('/v1/blocks/{account_id}', { params: { path: { account_id: account } } }));
+        break;
+    }
+  } catch (e) {
+    extra.error = errorCode(e);
+  }
+  if (to === R.messages && !extra.error) return Astro.redirect(R.messages, 303);
+  return Astro.redirect(chatHref(chat, isId(deal) ? deal : undefined, extra), 303);
+}
+
+// The entry links: each finds the chat and comes back with ?chat=.
+let entryError = '';
+let start: { seller: Schemas['SellerProfile']; listings: Schemas['SearchItem'][] } | null = null;
+// A link from another site does not open a deal on its own: it asks first, with a form post.
+let confirm: { id: string; title: string; thumb?: string; offer: string; ask: string } | null = null;
+if (!p.has('chat')) {
+  const listing = p.get('listing') ?? '';
+  const deal = p.get('deal') ?? '';
+  const seller = p.get('seller') ?? '';
+  if (isId(listing)) {
+    const site = Astro.request.headers.get('sec-fetch-site');
+    const want = { offer: p.get('offer') ?? '', ask: p.get('ask') ?? '' };
+    if (site === 'same-origin' || site === 'none') return openFrom(listing, want);
+    const l = await orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id: listing } } }));
+    if (l) confirm = { id: listing, title: l.listing.title, thumb: l.listing.photos.find((x) => x.url)?.url, ...want };
+    else entryError = 'listing_not_found';
+  } else if (isId(deal)) {
+    const d = await orNull(api.GET('/v1/deals/{id}', { params: { path: { id: deal } } }));
+    if (d) return Astro.redirect(chatHref(d.conversation_id, d.id));
+    entryError = 'deal_not_found';
+  } else if (isId(seller) && seller !== v.id) {
+    // The pair's chat from a search of the seller's name; without one, their items to start from.
+    const screen = await orNull(api.GET('/v1/screens/seller/{id}', { params: { path: { id: seller } } }));
+    if (screen) {
+      const name = screen.seller.display_name;
+      const found = name ? await orNull(api.GET('/v1/screens/inbox/search', { params: { query: { q: name, limit: 1 } } }), [400, 422]) : null;
+      const row = found?.threads.find((t) => t.other.id === seller);
+      if (row) return Astro.redirect(chatHref(row.id, row.deal?.id));
+      start = { seller: screen.seller, listings: screen.listings.items.slice(0, 6) };
+    }
+  }
+}
+
+const m = await loadMessages(Astro, true);
+const chat = m.chat;
+const error = entryError || p.get('error') || (p.has('chat') && !chat ? 'conversation_not_found' : '');
+const other = chat ? personName(chat.other) : '';
+const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id) : [];
+const deal = m.deal;
+const warning = chat?.scam_warning && !chat.scam_warning.dismissed ? chat.scam_warning : null;
+// Whether the block is the viewer's, so "Bỏ chặn" can lift it.
+// The server answers only with the whole list, so it is paged through.
+async function blocks(id: string) {
+  let cursor: string | undefined;
+  do {
+    const page = await unwrap(api.GET('/v1/blocks', { params: { query: { cursor, limit: 100 } } }));
+    if (page.items.some((x) => x.account_id === id)) return true;
+    cursor = page.next_cursor;
+  } while (cursor);
+  return false;
+}
+const mineBlock = chat?.blocked ? await blocks(chat.other.id).catch(() => false) : false;
+const unreadRows = m.inbox.items.filter((c) => c.unread > 0).length;
+const official = !!chat?.other.official;
 
 const pane = 'flex min-h-0 flex-col overflow-hidden rounded-panel border border-line bg-card shadow-soft h-[calc(100dvh-176px)] min-h-[560px] lg:h-auto';
-const thread = 'no-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4';
 const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
-const ink = 'state-layer flex h-10 items-center justify-center gap-2 rounded-control bg-brand px-6 text-label-large text-white';
-const lead = 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant';
-const row = 'mt-1 flex items-baseline justify-between';
 const side = 'flex min-w-0 flex-col gap-4 overflow-y-auto no-scrollbar lg:hidden xl:flex';
+const item = 'state-layer flex h-11 w-full items-center gap-3 rounded-control px-3 text-left text-body-large hover:bg-hover';
+const detail = !!(chat || start || confirm);
 ---
 
-<Layout title="Tin nhắn · ShopNexus" description="Tin nhắn mua bán trên ShopNexus." section={null} footer={false}>
+<Layout title="Tin nhắn · ShopNexus" description="Tin nhắn mua bán trên ShopNexus." section={null} footer={false} fab={!detail}>
   <main class={CONTENT_WIDE}>
     <div
       class="mt-4 grid grid-cols-1 gap-4 lg:h-[calc(100dvh-96px)] lg:min-h-[760px] lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)_312px]"
     >
-      <section class="border border-line bg-card flex max-h-[70dvh] min-h-0 flex-col rounded-panel p-2 shadow-soft lg:max-h-none">
+      <section class:list={['flex min-h-0 flex-col rounded-panel border border-line bg-card p-2 shadow-soft', detail ? 'max-lg:hidden' : 'max-lg:min-h-[70dvh]']}>
         <div class="flex items-center justify-between px-2 pt-2">
-          <h1 class="text-j-26 text-ink">Tin nhắn</h1>
-          <button type="button" class={iconBtn} aria-label="Tìm trong tin nhắn"><Icon name="search-rounded" size={22} /></button>
-        </div>
-        <div class="mt-2 max-w-full overflow-x-auto px-1 no-scrollbar">
-          <Seg items={['Tất cả', 'Mua', 'Bán', `Chưa đọc ${unread}`]} class="bg-card/60" itemClass="text-label-medium" name="Lọc tin nhắn" />
-        </div>
-        <div class="no-scrollbar mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-inbox>
-          {INBOX.map((c, i) => <InboxRow c={c} selected={c.id === 'kiet'} loading={i < 6 ? 'eager' : 'lazy'} />)}
-        </div>
-      </section>
-
-      <section data-conv="kiet" class={pane}>
-        <PaneHead title={iphone.title} name={SELLER.name} photo={SELLER.photo} verified thumb={THUMB}>
-          <div class="flex gap-2 overflow-x-auto px-4 pb-3 no-scrollbar" role="tablist" aria-label="Món đang thỏa thuận">
-            {
-              DEALS.map((d, i) => (
-                <button
-                  type="button"
-                  role="tab"
-                  data-deal={d.id}
-                  data-title={d.title}
-                  aria-selected={i === 0 ? 'true' : 'false'}
-                  class="state-layer flex h-8 shrink-0 items-center gap-2 rounded-control border border-outline-variant bg-card pl-1 pr-3 text-label-large text-on-surface-variant aria-selected:border-transparent aria-selected:bg-brand aria-selected:text-white"
-                >
-                  <Photo src={d.chip} width={72} height={72} alt="" class="h-6 w-6 rounded-full object-cover" />
-                  {d.short}
-                </button>
-              ))
-            }
-          </div>
-        </PaneHead>
-        <div class={thread} data-thread>
-          <p class="pt-1 text-center text-label-medium text-on-surface-variant">Hôm nay</p>
-          <Bubbles side="mine" texts={['Máy còn không bạn?', 'Pin 88% là đo trong Cài đặt đúng không?']} time="13:52 · Đã xem" />
-          <Bubbles side="theirs" from={SELLER.name} texts={['Còn bạn nhé. Máy zin, pin 88% đo trong Cài đặt, chưa sửa gì.']} time="13:55" />
-          <PriceMove side="mine" amount="4.900.000 ₫" time="iPhone 13 Pro · 13:58" />
-          <Bubbles side="theirs" from={SELLER.name} texts={['4,9 thì hơi thấp bạn ơi. 5,1 mình bán liền, tặng thêm ốp.']} time="14:03" />
-          <PriceMove side="theirs" amount="5.100.000 ₫" time="iPhone 13 Pro · 14:03" />
-          <PriceMove side="mine" amount="5.100.000 ₫" time="iPhone 13 Pro · 14:05" kind="accept" />
-          <ChatEvent icon="handshake-outline-rounded" text="iPhone 13 Pro · Chốt 5,1 tr" />
-          <Bubbles side="theirs" from={SELLER.name} texts={[landmark]} time="14:06">
-            <a
-              slot="after"
-              href="https://maps.google.com/?q=Landmark+81"
-              target="_blank"
-              rel="noopener"
-              class="state-layer mt-1 inline-flex h-9 items-center gap-1.5 rounded-control border border-outline-variant bg-card px-3.5 text-label-large text-on-surface"
-            >
-              <Icon name="auto-awesome-rounded" size={16} class="text-primary" />Sảnh Landmark 81<Icon
-                name="map-outline-rounded"
-                size={16}
-                class="text-on-surface-variant"
-              />
-            </a>
-          </Bubbles>
-          <Bubbles side="mine" texts={['Ok, 19h mình qua.']} time="14:07 · Đã xem" quote={[SELLER.name, landmark]} />
-          <Bubbles side="mine" texts={['Bạn bán luôn AirPods Pro 2 không? Mình lấy cả hai.']} time="14:11" />
-          <PriceMove side="mine" amount={airpods.offer!} time="AirPods Pro 2 · 14:12" />
-          <Bubbles side="theirs" from={SELLER.name} texts={[asked]} time="14:13" />
-          <div data-cod-sent hidden><ChatEvent icon="local-shipping-outline-rounded" text="Đã gửi yêu cầu COD · chờ người bán tạo đơn" /></div>
-        </div>
-        <DealConsole current={1}>
-          <div class="flex flex-wrap items-center gap-3">
-            <span class={lead}><Icon name="handshake-outline-rounded" size={18} /></span>
-            <p class="flex flex-1 items-baseline text-on-surface tabular-nums">
-              <span class="text-headline-medium">5.100.000</span><span class="ml-1 text-title-large text-on-surface-variant">₫</span>
-            </p>
-            <button type="button" data-open-cod class={ink}><Icon name="local-shipping-outline-rounded" size={20} />Chọn giao COD</button>
-          </div>
-        </DealConsole>
-        <Composer peer={SELLER.name}>
-          <div slot="strip" class="mb-2 flex items-center gap-3 rounded-lg bg-card/80 py-2 pl-3 pr-1" data-strip>
-            <span class="w-[3px] flex-none self-stretch rounded-full bg-primary"></span>
-            <span class="min-w-0 flex-1">
-              <span class="block text-label-medium text-primary" data-strip-who>Trả lời {SELLER.name}</span>
-              <span class="block truncate text-body-small text-on-surface-variant" data-strip-text>{asked}</span>
-            </span>
-            <button type="button" class={iconBtn} aria-label="Bỏ trả lời" data-strip-close><Icon name="close-rounded" size={20} /></button>
-          </div>
-        </Composer>
-      </section>
-
-      <section data-conv="scam" class={pane} hidden>
-        <PaneHead title={SCAM_ITEM.title} name={SCAMMER.name} thumb={SCAM_ITEM.thumb} loading="lazy" />
-        <div data-warning class="px-3 pt-3">
-          <button
-            type="button"
-            data-open-report
-            class="state-layer flex w-full items-center gap-3 rounded-tile border border-error/20 bg-error-container/60 py-3 pl-4 pr-3 text-left"
-            aria-haspopup="dialog"
-          >
-            <Icon name="gpp-maybe-outline-rounded" size={24} class="text-error" />
-            <span class="min-w-0 flex-1">
-              <span class="block text-title-small text-on-surface">Có thể là lừa đảo</span>
-              <span class="mt-0.5 flex items-center gap-1 text-body-small text-on-surface-variant">
-                <Icon name="auto-awesome-rounded" size={14} class="text-primary" />3 dấu hiệu · đừng chuyển tiền trước
-              </span>
-            </span>
-            <Icon name="chevron-right-rounded" size={24} class="text-on-surface-variant" />
+          <h1 class="text-j-26 text-ink">{m.archived ? 'Đã lưu trữ' : 'Tin nhắn'}</h1>
+          <button type="button" class={iconBtn} aria-label="Tìm trong tin nhắn" aria-expanded={m.q ? 'true' : 'false'} data-search-toggle>
+            <Icon name="search-rounded" size={22} />
           </button>
         </div>
-        <div class={thread} data-thread>
-          <p class="pt-1 text-center text-label-medium text-on-surface-variant">Hôm nay</p>
-          <Bubbles side="mine" texts={['Máy còn không bạn? Mình ở Bình Thạnh.']} time="13:35 · Đã xem" />
-          <Bubbles
-            side="theirs"
-            from={SCAMMER.name}
-            texts={['Còn bạn, nhiều người hỏi lắm.', 'Bạn chuyển cọc 500k qua số tài khoản này để mình giữ máy nhé.']}
-            time="13:41"
-          />
-        </div>
-        <div data-live>
-          <DealConsole current={0}>
-            <div class="flex flex-wrap items-center gap-3">
-              <span class={lead}><Icon name="sell-outline-rounded" size={18} /></span>
-              <p class="flex flex-1 items-baseline text-on-surface tabular-nums">
-                <span class="text-headline-medium">8.700.000</span><span class="ml-1 text-title-large text-on-surface-variant">₫</span>
-              </p>
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  class="state-layer flex h-10 items-center justify-center gap-2 rounded-control bg-tertiary-fixed px-6 text-label-large text-on-tertiary-fixed-variant"
-                >
-                  <Icon name="sell-outline-rounded" size={20} />Trả giá
-                </button>
-                <button type="button" class={ink}><Icon name="handshake-outline-rounded" size={20} />Mua giá này</button>
-              </div>
+        <form method="get" action={R.messages} role="search" class="mt-2 flex items-center gap-1 px-1" hidden={!m.q} data-search>
+          <label class="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-line bg-card px-4 focus-within:ring-2 focus-within:ring-primary">
+            <Icon name="search-rounded" size={18} class="text-on-surface-variant" />
+            <span class="sr-only">Tìm người hoặc tin nhắn</span>
+            <input name="q" value={m.q} maxlength="100" autocomplete="off" placeholder="Tìm người, món hoặc tin nhắn" class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant" />
+          </label>
+          {
+            m.q && (
+              <a href={R.messages} class={iconBtn} aria-label="Bỏ tìm">
+                <Icon name="close-rounded" size={20} />
+              </a>
+            )
+          }
+        </form>
+        {
+          !m.q && (
+            <div class="mt-2 max-w-full overflow-x-auto px-1 no-scrollbar">
+              <Seg
+                items={['Tất cả', 'Mua', 'Bán', unreadRows ? `Chưa đọc ${unreadRows}` : 'Chưa đọc']}
+                class="bg-card/60"
+                itemClass="text-label-medium"
+                name="Lọc tin nhắn"
+              />
             </div>
-            <p class="mt-1 pl-11 text-body-small text-on-surface-variant">Giá đăng</p>
-          </DealConsole>
-          <Composer peer={SCAMMER.name} />
-        </div>
-        <div data-blocked hidden class="m-3 flex items-center gap-3 rounded-tile bg-card py-2 pl-4 pr-2">
-          <Icon name="block-rounded" size={20} class="text-on-surface-variant" />
-          <p class="min-w-0 flex-1 text-body-medium text-on-surface-variant">Bạn đã chặn và báo cáo {SCAMMER.name}</p>
-          <button type="button" data-unblock class="state-layer h-10 rounded-control px-3 text-label-large text-primary">Bỏ chặn</button>
-        </div>
+          )
+        }
+        <InboxList m={m} me={v.id} open={chat?.id} />
       </section>
 
-      <aside data-conv="kiet" class={side}>
-        <DealCard title={iphone.title} photo={iphone.photo} meta={iphone.meta} deal="iphone">
-          <div class={row}>
-            <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
-            <span class="text-body-medium text-on-surface-variant line-through tabular-nums">{iphone.listed}</span>
-          </div>
-          <div class={row}>
-            <span class="flex items-center gap-1 text-body-medium text-tertiary"><Icon name="handshake-outline-rounded" size={16} />Đã chốt</span>
-            <span class="text-title-large text-tertiary tabular-nums">{iphone.agreed}</span>
-          </div>
-        </DealCard>
-        <DealCard title={airpods.title} photo={airpods.photo} meta={airpods.meta} deal="airpods" hidden loading="lazy">
-          <div class={row}>
-            <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
-            <span class="text-body-medium text-on-surface-variant tabular-nums">{airpods.listed}</span>
-          </div>
-          <div class={row}>
-            <span class="flex items-center gap-1 text-body-medium text-on-surface-variant"
-              ><Icon name="hourglass-empty-rounded" size={16} />Chờ {SELLER.name}</span
+      {
+        chat ? (
+          <section class={pane} data-chat={chat.id} data-other={other}>
+            <PaneHead
+              title={deal?.listing.title ?? other}
+              name={other}
+              photo={chat.other.avatar_url}
+              thumb={deal?.listing.cover_thumb_url}
+              sub={activeText(chat.other)}
+              href={deal && (deal.listing.status === 'active' || deal.listing.status === 'reserved') ? R.listing(deal.listing.id) : undefined}
             >
-            <span class="text-title-large text-on-surface tabular-nums">{airpods.offer}</span>
-          </div>
-        </DealCard>
-      </aside>
-      <aside data-conv="scam" class={side} hidden>
-        <DealCard title={SCAM_ITEM.title} photo={SCAM_ITEM.photo} meta={SCAM_ITEM.meta} loading="lazy">
-          <div class={row}>
-            <span class="text-body-medium text-on-surface-variant">Giá đăng</span>
-            <span class="text-title-large text-on-surface tabular-nums">{SCAM_ITEM.listed}</span>
-          </div>
-        </DealCard>
-      </aside>
+              {!official && (
+                <Fragment slot="menu">
+                  <form method="post" action={R.messages}>
+                    <input type="hidden" name="chat" value={chat.id} />
+                    <button type="submit" name="do" value="unread" class={item}>
+                      <Icon name="mail-outline-rounded" size={18} class="text-sub" />
+                      Đánh dấu chưa đọc
+                    </button>
+                    <button type="submit" name="do" value={chat.archived ? 'unarchive' : 'archive'} class={item}>
+                      <Icon name="inventory-2-outline-rounded" size={18} class="text-sub" />
+                      {chat.archived ? 'Bỏ lưu trữ' : 'Lưu trữ'}
+                    </button>
+                  </form>
+                  {!chat.blocked && (
+                    <button type="button" class:list={[item, 'text-error']} data-open-report="form">
+                      <Icon name="block-rounded" size={18} />
+                      Chặn và báo cáo
+                    </button>
+                  )}
+                </Fragment>
+              )}
+              {chat.deals.length > 1 && (
+                <nav class="flex gap-2 overflow-x-auto px-4 pb-3 no-scrollbar" aria-label="Món đang thỏa thuận">
+                  {chat.deals.map((d) => (
+                    <a
+                      href={chatHref(chat.id, d.id)}
+                      aria-current={d.id === deal?.id ? 'true' : undefined}
+                      data-deal-chip={d.id}
+                      data-title={d.listing.title}
+                      data-thumb={d.listing.cover_thumb_url}
+                      class="state-layer flex h-8 shrink-0 items-center gap-2 rounded-control border border-outline-variant bg-card pl-1 pr-3 text-label-large text-on-surface-variant aria-[current]:border-transparent aria-[current]:bg-brand aria-[current]:text-white"
+                    >
+                      {d.listing.cover_thumb_url ? (
+                        <Photo src={d.listing.cover_thumb_url} width={48} height={48} alt="" class="h-6 w-6 rounded-full object-cover" />
+                      ) : (
+                        <span class="w-1" />
+                      )}
+                      {shortTitle(d.listing.title)}
+                    </a>
+                  ))}
+                </nav>
+              )}
+            </PaneHead>
+            <div data-part="warning">
+              {warning && (
+                <div class="px-3 pt-3">
+                  <button
+                    type="button"
+                    data-open-report="signals"
+                    class="state-layer flex w-full items-center gap-3 rounded-tile border border-error/20 bg-error-container/60 py-3 pl-4 pr-3 text-left"
+                    aria-haspopup="dialog"
+                  >
+                    <Icon name="gpp-maybe-outline-rounded" size={24} class="text-error" />
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-title-small text-on-surface">Có thể là lừa đảo</span>
+                      <span class="mt-0.5 flex items-center gap-1 text-body-small text-on-surface-variant">
+                        <Icon name="auto-awesome-rounded" size={14} class="text-primary" />
+                        {warning.signals.length} dấu hiệu · đừng chuyển tiền trước
+                      </span>
+                    </span>
+                    <Icon name="chevron-right-rounded" size={24} class="text-on-surface-variant" />
+                  </button>
+                </div>
+              )}
+            </div>
+            <div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4" data-thread>
+              <div class="flex justify-center" hidden={!chat.messages.next_cursor} data-older-wrap>
+                <button
+                  type="button"
+                  class="state-layer h-9 rounded-control px-4 text-label-large text-primary"
+                  data-older={chat.messages.next_cursor ?? ''}
+                >
+                  Tin cũ hơn
+                </button>
+              </div>
+              <div class="flex flex-col gap-2" data-older-pages />
+              <div
+                class="flex flex-col gap-2"
+                data-part="thread"
+                data-next={chat.messages.next_cursor ?? ''}
+                data-last={chat.messages.items[0]?.id ?? ''}
+                data-marked={m.marked ? '' : undefined}
+              >
+                {items.length ? (
+                  <Thread items={items} me={v.id} other={other} />
+                ) : (
+                  <p class="m-auto py-10 text-center text-body-medium text-on-surface-variant">Gửi lời chào tới {other}.</p>
+                )}
+              </div>
+              <button
+                type="button"
+                class="state-layer sticky bottom-1 flex h-9 items-center gap-1.5 self-center rounded-full bg-secondary-container px-4 text-label-large text-on-secondary-container shadow-float"
+                hidden
+                data-news
+              >
+                <Icon name="arrow-downward-rounded" size={16} />
+                Có tin mới
+              </button>
+            </div>
+            <div data-part="deals">
+              {chat.deals.map((d) => (
+                <DealConsole deal={d} other={other} offering={d.id === deal?.id && p.get('offer') === '1'} hidden={d.id !== deal?.id} />
+              ))}
+            </div>
+            <div data-part="alert" class="px-3 pt-2 empty:hidden">
+              {error && (
+                <Notice text={errorText(error)}>
+                  {error === 'phone_required' && (
+                    <a href={R.security} class="ml-1 text-primary underline">
+                      Xem Bảo mật
+                    </a>
+                  )}
+                </Notice>
+              )}
+            </div>
+            <p class="px-6 pt-1 text-body-small text-on-surface-variant" hidden data-typing>
+              {other} đang nhập…
+            </p>
+            {chat.blocked ? (
+              <form method="post" action={R.messages} class="m-3 flex items-center gap-3 rounded-tile bg-surface-container-low py-2 pl-4 pr-2">
+                <input type="hidden" name="chat" value={chat.id} />
+                <input type="hidden" name="account" value={chat.other.id} />
+                <Icon name="block-rounded" size={20} class="text-on-surface-variant" />
+                <p class="min-w-0 flex-1 text-body-medium text-on-surface-variant">
+                  {mineBlock ? `Bạn đã chặn ${other}` : `Không nhắn được với ${other}`}
+                </p>
+                {mineBlock && (
+                  <button type="submit" name="do" value="unblock" class="state-layer h-10 rounded-control px-3 text-label-large text-primary">
+                    Bỏ chặn
+                  </button>
+                )}
+              </form>
+            ) : chat.other.deleted ? (
+              <p class="m-3 rounded-tile bg-surface-container-low px-4 py-3 text-body-medium text-on-surface-variant">Người này đã xóa tài khoản.</p>
+            ) : (
+              <Composer peer={other} chat={chat.id} deal={deal?.id} text={p.get('ask') ?? undefined} />
+            )}
+          </section>
+        ) : confirm ? (
+          <section class={pane}>
+            <div class="flex h-16 items-center gap-3 border-b border-line px-4">
+              <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư">
+                <Icon name="chevron-left-rounded" size={24} />
+              </a>
+              <p class="min-w-0 flex-1 truncate text-title-medium text-ink">Nhắn về tin này</p>
+            </div>
+            <form method="post" action={R.messages} class="flex flex-col items-center gap-4 p-6 text-center">
+              <input type="hidden" name="do" value="open" />
+              <input type="hidden" name="listing" value={confirm.id} />
+              <input type="hidden" name="offer" value={confirm.offer} />
+              <input type="hidden" name="ask" value={confirm.ask} />
+              {confirm.thumb && <Photo src={confirm.thumb} width={192} height={192} alt="" class="h-24 w-24 rounded-lg object-cover" />}
+              <p class="max-w-sm text-body-large text-ink">{confirm.title}</p>
+              <button type="submit" class={btnCls('ink')}>
+                <Icon name="chat-outline-rounded" size={18} />
+                Nhắn về tin này
+              </button>
+            </form>
+          </section>
+        ) : start ? (
+          <section class={pane}>
+            <div class="flex h-16 items-center gap-3 border-b border-line px-4">
+              <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư">
+                <Icon name="chevron-left-rounded" size={24} />
+              </a>
+              <Avatar name={start.seller.display_name} photo={start.seller.avatar_url} size={40} />
+              <p class="min-w-0 flex-1 truncate text-title-medium text-ink">{start.seller.display_name}</p>
+            </div>
+            <div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
+              <p class="px-2 pb-2 text-body-medium text-on-surface-variant">
+                {start.listings.length ? `Chọn món bạn muốn hỏi ${start.seller.display_name}.` : `${start.seller.display_name} chưa có tin nào đang bán.`}
+              </p>
+              {start.listings.map((l) => (
+                <a href={`${R.messages}?listing=${l.id}`} class="state-layer flex items-center gap-3 rounded-tile p-2 hover:bg-hover">
+                  {l.cover_thumb_url ? (
+                    <Photo src={l.cover_thumb_url} width={112} height={112} alt="" class="h-14 w-14 shrink-0 rounded-md object-cover" />
+                  ) : (
+                    <span class="h-14 w-14 shrink-0 rounded-md bg-soft" />
+                  )}
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-body-large text-ink">{l.title}</span>
+                    <span class="block text-title-small tabular-nums text-ink">{group(l.price)} ₫</span>
+                  </span>
+                  <Icon name="chat-outline-rounded" size={20} class="text-primary" />
+                </a>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section class:list={[pane, 'items-center justify-center gap-3 p-6 text-center max-lg:hidden']}>
+            {error ? (
+              <Notice text={errorText(error)} class="max-w-md">
+                {error === 'phone_required' && (
+                  <a href={R.security} class="ml-1 text-primary underline">
+                    Xem Bảo mật
+                  </a>
+                )}
+              </Notice>
+            ) : (
+              <>
+                <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+                  <Icon name="chat-outline-rounded" size={24} />
+                </span>
+                <p class="text-body-large text-on-surface-variant">Chọn một cuộc trò chuyện để xem.</p>
+              </>
+            )}
+          </section>
+        )
+      }
+
+      {
+        chat && (
+          <aside class={side} data-part="side">
+            {chat.deals.map((d) => (
+              <DealCard deal={d} other={chat.other} hidden={d.id !== deal?.id} />
+            ))}
+            {chat.buyer_rating && chat.buyer_rating.count > 0 && (
+              <p class="flex items-center gap-1.5 px-2 text-body-small text-on-surface-variant">
+                <Icon name="star-rounded" size={16} class="text-tertiary" />
+                Người mua · {chat.buyer_rating.average.toLocaleString('vi-VN', { maximumFractionDigits: 1 })} ({chat.buyer_rating.count} đánh giá)
+              </p>
+            )}
+            {chat.archived && <p class="px-2 text-body-small text-on-surface-variant">Cuộc trò chuyện đang lưu trữ.</p>}
+          </aside>
+        )
+      }
     </div>
+    {
+      !chat && error && (
+        <div class="mt-3 lg:hidden">
+          <Notice text={errorText(error)}>
+            {error === 'phone_required' && (
+              <a href={R.security} class="ml-1 text-primary underline">
+                Xem Bảo mật
+              </a>
+            )}
+          </Notice>
+        </div>
+      )
+    }
   </main>
-  <ReportDialog />
-  <CodDialog name={v.name} />
+  {
+    chat && !official && (
+      <ReportDialog name={other} account={chat.other.id} chat={chat.id} signals={warning?.signals ?? []} sent={p.get('reported') === '1'} />
+    )
+  }
 </Layout>
 
 <script>
+  import { group } from '../lib/format';
+  import { idempotencyKey } from '../lib/key';
+  import { connectSocket } from '../lib/socket';
+  import { snack } from '../lib/snackbar';
+  import { UploadError, uploadPhoto } from '../lib/upload';
+
   const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
   const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
-  const dlg = $<HTMLDialogElement>('#report')!;
+  const pane = $('[data-chat]');
+  const chatId = pane?.dataset.chat ?? '';
+  const scroller = $('[data-thread]');
+  const toEnd = () => scroller && (scroller.scrollTop = scroller.scrollHeight);
+  toEnd();
+  const socket = connectSocket();
 
-  // Open one conversation: its panes show, its row turns white, its thread scrolls to the end.
-  const open = (id: string) => {
-    $$('[data-conv]').forEach((el) => (el.hidden = el.dataset.conv !== id));
-    $$('[data-open]').forEach((r) => {
-      const on = r.dataset.open === id;
-      r.classList.toggle('bg-card', on);
-      r.classList.toggle('shadow-soft', on);
-      r.classList.toggle('hover:bg-card/70', !on);
-      if (on) r.setAttribute('aria-current', 'true');
-      else r.removeAttribute('aria-current');
-    });
-    $$(`[data-conv="${id}"] [data-thread]`).forEach((t) => (t.scrollTop = t.scrollHeight));
+  // ------------------------------------------------- swap from the server --
+  // A fresh render of this page replaces each data-part; one that holds the
+  // focus waits for the next. The thread is replaced only while the reader is
+  // at its end with no older pages open; otherwise "Có tin mới" holds it.
+  const clean = () => {
+    const u = new URL(location.href);
+    ['error', 'offer', 'ask', 'reported'].forEach((k) => u.searchParams.delete(k));
+    return u;
   };
-  const pane = (p: string) => $$('[data-pane]', dlg).forEach((el) => (el.hidden = el.dataset.pane !== p));
-  const blocked = (on: boolean) => {
-    $('[data-blocked]')!.hidden = !on;
-    $('[data-live]')!.hidden = on;
-    $('[data-warning]')!.hidden = on;
-    $('[data-open="scam"]')!.hidden = on;
-  };
+  const pill = $<HTMLButtonElement>('[data-news]');
+  let held: HTMLElement | null = null;
+  // A render that marked the chat read may come back as a read update; one
+  // within 2 s of it is taken as that echo and changes nothing.
+  let markedAt = $('[data-part="thread"]')?.hasAttribute('data-marked') ? Date.now() : 0;
 
-  $$('[data-open]').forEach((r) =>
-    r.addEventListener('click', (e) => {
+  function putThread(fresh: HTMLElement) {
+    $('[data-part="thread"]')?.replaceWith(fresh);
+    $('[data-older-pages]')?.replaceChildren();
+    const next = fresh.dataset.next ?? '';
+    const older = $<HTMLButtonElement>('[data-older]');
+    if (older) older.dataset.older = next;
+    const wrap = $('[data-older-wrap]');
+    if (wrap) wrap.hidden = !next;
+    held = null;
+    if (pill) pill.hidden = true;
+    toEnd();
+  }
+  function swap(html: string, thread = false) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const atEnd = scroller ? scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 80 : false;
+    for (const fresh of $$('[data-part]', doc)) {
+      const name = fresh.dataset.part!;
+      const old = $(`[data-part="${name}"]`);
+      if (!old) continue;
+      if (name === 'thread') {
+        if (fresh.hasAttribute('data-marked')) markedAt = Date.now();
+        const node = document.importNode(fresh, true);
+        if (thread || (atEnd && !$('[data-older-pages]')?.childElementCount)) putThread(node);
+        else if (node.dataset.last !== old.dataset.last) {
+          held = node;
+          if (pill) pill.hidden = false;
+        }
+        continue;
+      }
+      if (old.contains(document.activeElement)) continue;
+      old.replaceWith(document.importNode(fresh, true));
+    }
+    filter();
+  }
+  pill?.addEventListener('click', () => held && putThread(held));
+  scroller?.addEventListener('scroll', () => {
+    // Back at the end, the held thread takes its place.
+    if (held && !$('[data-older-pages]')?.childElementCount && scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 40) putThread(held);
+  });
+
+  // The whole page for this chat's changes; the inbox partial for other chats'. Bursts wait 250 ms.
+  let want: 'page' | 'inbox' | null = null;
+  let timer = 0;
+  let busy = false;
+  function schedule(kind: 'page' | 'inbox') {
+    if (want !== 'page') want = kind;
+    clearTimeout(timer);
+    timer = window.setTimeout(run, 250);
+  }
+  async function run() {
+    if (!want || busy || document.hidden) return;
+    const kind = want;
+    want = null;
+    busy = true;
+    try {
+      if (kind === 'page') {
+        const res = await fetch(clean(), { headers: { accept: 'text/html' } });
+        if (res.ok && !res.redirected) swap(await res.text());
+      } else {
+        const res = await fetch(`/messages/inbox${clean().search}`, { headers: { accept: 'text/html' } });
+        if (res.ok && !res.redirected) {
+          const holder = document.createElement('template');
+          holder.innerHTML = await res.text();
+          const part = holder.content.querySelector<HTMLTemplateElement>('template[data-inbox-page]');
+          if (part) for (const fresh of $$('[data-part]', part.content)) $(`[data-part="${fresh.dataset.part}"]`)?.replaceWith(fresh);
+          filter();
+        }
+      }
+    } catch {
+      // The next update or a reload tries again.
+    } finally {
+      busy = false;
+      if (want) timer = window.setTimeout(run, 250);
+    }
+  }
+  document.addEventListener('visibilitychange', () => !document.hidden && want && run());
+
+  // A form sent in place: the page answers with itself after the redirect.
+  // Resolves to the error code, '' when it went through.
+  async function sendInPlace(form: HTMLFormElement, body = new FormData(form)) {
+    const res = await fetch(form.action, { method: 'POST', body, headers: { accept: 'text/html' } });
+    const to = new URL(res.url);
+    if (!res.ok || to.pathname !== location.pathname) throw new Error(String(res.status));
+    swap(await res.text(), true);
+    const code = to.searchParams.get('error') ?? '';
+    to.searchParams.delete('error');
+    history.replaceState(null, '', to);
+    return code;
+  }
+  document.addEventListener('submit', async (e) => {
+    const form = e.target as HTMLFormElement;
+    if (!form.matches('[data-in-place]')) return;
+    e.preventDefault();
+    // The fields are read before the buttons turn off; the focus would keep the form's part from being swapped.
+    const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+    const body = new FormData(form, submitter);
+    (document.activeElement as HTMLElement | null)?.blur();
+    const buttons = $$<HTMLButtonElement>('button', form);
+    buttons.forEach((b) => (b.disabled = true));
+    try {
+      await sendInPlace(form, body);
+    } catch {
+      // Out of reach: a plain post, carrying the button's move in a hidden field.
+      if (submitter?.name) form.append(Object.assign(document.createElement('input'), { type: 'hidden', name: submitter.name, value: submitter.value }));
+      form.submit();
+    }
+  });
+
+  // ------------------------------------------------------------ the deals --
+  document.addEventListener('click', (e) => {
+    const t = e.target as Element;
+    const chip = t.closest<HTMLAnchorElement>('[data-deal-chip]');
+    if (chip) {
       e.preventDefault();
-      open(r.dataset.open!);
-      history.replaceState(null, '', `#${r.dataset.open}`);
-    }),
-  );
-  $('[data-open-report]')!.addEventListener('click', () => {
-    pane('signals');
-    dlg.showModal();
-  });
-  dlg.addEventListener('click', (e) => {
-    const t = e.target as HTMLElement;
-    const go = t.closest<HTMLElement>('[data-go]');
-    if (go) {
-      pane(go.dataset.go!);
-      if (go.dataset.go === 'sent') blocked(true);
+      const id = chip.dataset.dealChip!;
+      $$('[data-deal-chip]').forEach((c) => (c === chip ? c.setAttribute('aria-current', 'true') : c.removeAttribute('aria-current')));
+      $$('[data-deal-panel]').forEach((el) => (el.hidden = el.dataset.dealPanel !== id));
+      $$('[data-deal-card]').forEach((el) => (el.hidden = el.dataset.dealCard !== id));
+      const title = $('[data-pane-title]');
+      if (title) title.textContent = chip.dataset.title ?? '';
+      const thumb = $<HTMLImageElement>('[data-pane-thumb]');
+      if (thumb && chip.dataset.thumb) {
+        thumb.removeAttribute('srcset');
+        thumb.src = chip.dataset.thumb;
+      }
+      const field = $<HTMLInputElement>('[data-composer] input[name="deal"]');
+      if (field) field.value = id;
+      const u = clean();
+      u.searchParams.set('deal', id);
+      history.replaceState(null, '', u);
+      return;
     }
-    if (t.closest('[data-close]') || t === dlg) dlg.close();
-    if (t.closest('[data-hide-warning]')) {
-      $('[data-warning]')!.hidden = true;
-      dlg.close();
+    const toggle = t.closest<HTMLAnchorElement>('[data-offer-toggle]');
+    if (toggle) {
+      e.preventDefault();
+      const panel = toggle.closest<HTMLElement>('[data-deal-panel]')!;
+      const form = $<HTMLFormElement>('[data-offer-form]', panel)!;
+      form.hidden = !form.hidden;
+      $$('[data-offer-toggle][aria-expanded]', panel).forEach((b) => b.setAttribute('aria-expanded', String(!form.hidden)));
+      if (!form.hidden) $<HTMLInputElement>('[data-amount]', form)?.focus();
+      return;
     }
-  });
-  $$('[data-unblock]').forEach((b) =>
-    b.addEventListener('click', () => {
-      blocked(false);
-      dlg.close();
-      open('scam');
-    }),
-  );
-
-  // Chọn giao COD opens the request over the chat; sending it notes it in the thread.
-  const cod = $<HTMLDialogElement>('#cod')!;
-  const codPane = (p: string) => $$('[data-pane]', cod).forEach((el) => (el.hidden = el.dataset.pane !== p));
-  const openCod = () => {
-    codPane('form');
-    cod.showModal();
-  };
-  $('[data-open-cod]')!.addEventListener('click', openCod);
-  cod.addEventListener('click', (e) => {
-    const t = e.target as HTMLElement;
-    if (t.closest('[data-go="sent"]')) {
-      codPane('sent');
-      $('[data-cod-sent]')!.hidden = false;
-      const b = $<HTMLButtonElement>('[data-open-cod]')!;
-      b.disabled = true;
-      b.classList.add('opacity-60');
-      b.lastChild!.textContent = 'Đã gửi COD';
-      const thread = $('[data-conv="kiet"] [data-thread]');
-      if (thread) thread.scrollTop = thread.scrollHeight;
-    }
-    if (t.closest('[data-close]') || t === cod) cod.close();
-  });
-
-  // The chips switch the listing in the bar and on the side; the thread is the pair's and stays.
-  $$('[data-deal]').forEach((c) =>
-    c.addEventListener('click', () => {
-      $$('[data-deal]').forEach((x) => x.setAttribute('aria-selected', String(x === c)));
-      $$('[data-deal-card]').forEach((card) => (card.hidden = card.dataset.dealCard !== c.dataset.deal));
-      const title = $('[data-conv="kiet"] [data-pane-title]');
-      if (title) title.textContent = c.dataset.title ?? '';
-    }),
-  );
-
-  // The inbox filter: buying, selling, unread.
-  $('[aria-label="Lọc tin nhắn"]')?.addEventListener('seg-change', (e) => {
-    const i = (e as CustomEvent<{ index: number }>).detail.index;
-    $$('[data-inbox] > a').forEach((r) => {
-      const show = i === 0 || (i === 1 && r.dataset.role === 'buy') || (i === 2 && r.dataset.role === 'sell') || (i === 3 && 'unread' in r.dataset);
-      r.classList.toggle('hidden', !show);
-    });
-  });
-
-  // The console folds to its steps.
-  $$('[data-collapse]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const body = b.closest('div.mx-3')?.querySelector<HTMLElement>('[data-console-body]');
+    const fold = t.closest<HTMLButtonElement>('[data-collapse]');
+    if (fold) {
+      const body = fold.closest('[data-deal-panel]')?.querySelector<HTMLElement>('[data-console-body]');
       if (!body) return;
       body.hidden = !body.hidden;
-      b.setAttribute('aria-expanded', String(!body.hidden));
-      b.classList.toggle('rotate-180', body.hidden);
-    }),
-  );
-
-  // Reply from a message's hover action; the strip names who and what.
-  $$<HTMLButtonElement>('[data-reply]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const conv = b.closest<HTMLElement>('[data-conv]')!;
-      const strip = $('[data-strip]', conv);
-      if (!strip) return;
-      strip.hidden = false;
-      $('[data-strip-who]', strip)!.textContent = `Trả lời ${b.dataset.reply}`;
-      $('[data-strip-text]', strip)!.textContent = b.parentElement?.querySelector('[data-text]')?.textContent ?? '';
-      $<HTMLInputElement>('[data-composer] input', conv)?.focus();
-    }),
-  );
-  $('[data-strip-close]')?.addEventListener('click', () => ($('[data-strip]')!.hidden = true));
-
-  // Sending adds the message to the end of the thread.
-  $$<HTMLFormElement>('[data-composer]').forEach((f) => {
-    const input = f.querySelector('input')!;
-    const send = f.querySelector<HTMLButtonElement>('[type=submit]')!;
-    input.addEventListener('input', () => (send.disabled = !input.value.trim()));
-    f.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      const conv = f.closest<HTMLElement>('[data-conv]')!;
-      const thread = $('[data-thread]', conv)!;
-      const mine = $$('[data-group="mine"]', thread).pop();
-      if (!mine) return;
-      const g = mine.cloneNode(true) as HTMLElement;
-      g.querySelectorAll('.group\\/msg').forEach((m, i) => i > 0 && m.remove());
-      const bubble = g.querySelector('.group\\/msg > div')!;
-      bubble.classList.remove('rounded-tr-xs', 'rounded-br-xs');
-      bubble.querySelector(':scope > span:not([data-text])')?.remove();
-      bubble.querySelector('[data-text]')!.textContent = text;
-      const now = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-      g.querySelector('p:last-child')!.textContent = now;
-      thread.append(g);
-      thread.scrollTop = thread.scrollHeight;
-      input.value = '';
-      send.disabled = true;
-      const strip = $('[data-strip]', conv);
-      if (strip) strip.hidden = true;
-    });
+      fold.setAttribute('aria-expanded', String(!body.hidden));
+      fold.classList.toggle('rotate-180', body.hidden);
+    }
+  });
+  // The amount groups its thousands as it is typed.
+  document.addEventListener('input', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (!t.matches('[data-amount]')) return;
+    const n = Number(t.value.replace(/\D/g, ''));
+    t.value = n ? group(n) : '';
   });
 
-  const h = location.hash.slice(1);
-  open(h === 'scam' || h === 'report' || h === 'reported' ? 'scam' : 'kiet');
-  if (h === 'cod') openCod();
-  if (h === 'report') {
-    pane('form');
-    dlg.showModal();
+  // ------------------------------------------------------------ the inbox --
+  let shown = 0;
+  function filter() {
+    $$('[data-inbox] > a[data-open]').forEach((r) => {
+      const ok = shown === 0 || (shown === 1 && r.dataset.role === 'buy') || (shown === 2 && r.dataset.role === 'sell') || (shown === 3 && 'unread' in r.dataset);
+      r.classList.toggle('hidden', !ok);
+    });
   }
-  if (h === 'reported') {
-    pane('sent');
-    blocked(true);
-    dlg.showModal();
+  $('[aria-label="Lọc tin nhắn"]')?.addEventListener('seg-change', (e) => {
+    shown = (e as CustomEvent<{ index: number }>).detail.index;
+    filter();
+  });
+  $('[data-search-toggle]')?.addEventListener('click', (e) => {
+    const form = $<HTMLFormElement>('[data-search]')!;
+    form.hidden = !form.hidden;
+    (e.currentTarget as HTMLElement).setAttribute('aria-expanded', String(!form.hidden));
+    if (!form.hidden) $<HTMLInputElement>('input', form)?.focus();
+  });
+
+  // ------------------------------------------------------- report dialog --
+  const dlg = $<HTMLDialogElement>('#report');
+  if (dlg) {
+    const show = (p: string) => {
+      const has = $(`[data-pane="${p}"]`, dlg) ? p : 'form';
+      $$('[data-pane]', dlg).forEach((el) => (el.hidden = el.dataset.pane !== has));
+    };
+    document.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLElement>('[data-open-report]');
+      if (!b) return;
+      $<HTMLElement>('#chat-menu')?.hidePopover?.();
+      show(b.dataset.openReport!);
+      dlg.showModal();
+    });
+    dlg.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const go = t.closest<HTMLElement>('[data-go]');
+      if (go) show(go.dataset.go!);
+      if (t.closest('[data-close]') || t === dlg) dlg.close();
+    });
+    if ('sent' in dlg.dataset) {
+      show('sent');
+      dlg.showModal();
+      history.replaceState(null, '', clean());
+    }
   }
+
+  // --------------------------------------------------------- the composer --
+  const composer = $<HTMLFormElement>('[data-composer]');
+  if (composer) {
+    const field = $<HTMLInputElement>('input[name="text"]', composer)!;
+    const send = $<HTMLButtonElement>('[type=submit]', composer)!;
+    const strip = $('[data-strip]', composer)!;
+    const replyTo = $<HTMLInputElement>('[data-reply-to]', composer)!;
+    const tray = $('[data-tray]', composer)!;
+    const files = $<HTMLInputElement>('[data-files]', composer)!;
+    const pick = $<HTMLButtonElement>('[data-pick]', composer)!;
+    const cell = $<HTMLTemplateElement>('[data-tray-item]')!;
+    let uploading = 0;
+    let sending = false;
+    const ready = () => (send.disabled = sending || uploading > 0 || (!field.value.trim() && !$$('input[name="photos"]', composer).length));
+    pick.hidden = false;
+    ready();
+    field.addEventListener('input', ready);
+
+    const unreply = () => {
+      strip.hidden = true;
+      replyTo.value = '';
+    };
+    $('[data-strip-close]', composer)!.addEventListener('click', unreply);
+    document.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLButtonElement>('[data-reply]');
+      if (!b) return;
+      strip.hidden = false;
+      replyTo.value = b.dataset.reply!;
+      $('[data-strip-who]', strip)!.textContent = `Trả lời ${b.dataset.replyWho}`;
+      $('[data-strip-text]', strip)!.textContent = b.dataset.replyText ?? '';
+      field.focus();
+    });
+
+    // Each photo uploads as soon as it is picked; up to 4.
+    pick.addEventListener('click', () => files.click());
+    files.addEventListener('change', () => {
+      const room = 4 - tray.childElementCount;
+      [...(files.files ?? [])].slice(0, Math.max(0, room)).forEach(async (file) => {
+        const node = (cell.content.cloneNode(true) as DocumentFragment).firstElementChild as HTMLElement;
+        const url = URL.createObjectURL(file);
+        node.querySelector('img')!.src = url;
+        tray.append(node);
+        tray.hidden = false;
+        node.querySelector('[data-drop]')!.addEventListener('click', () => {
+          node.remove();
+          URL.revokeObjectURL(url);
+          tray.hidden = !tray.childElementCount;
+          ready();
+        });
+        uploading++;
+        ready();
+        try {
+          const id = await uploadPhoto(file);
+          const input = Object.assign(document.createElement('input'), { type: 'hidden', name: 'photos', value: id });
+          node.append(input);
+          node.querySelector('[data-busy]')?.remove();
+        } catch (err) {
+          node.remove();
+          tray.hidden = !tray.childElementCount;
+          const r = err instanceof UploadError ? err.reason : 'failed';
+          snack({ text: r === 'type' ? 'Chỉ gửi được ảnh JPEG, PNG hoặc WebP.' : r === 'size' ? 'Ảnh lớn hơn 15 MB.' : 'Chưa tải được ảnh lên.', error: true });
+        } finally {
+          uploading--;
+          ready();
+        }
+      });
+      files.value = '';
+    });
+
+    composer.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (send.disabled) return;
+      sending = true;
+      ready();
+      try {
+        const code = await sendInPlace(composer);
+        if (!code) {
+          field.value = '';
+          tray.replaceChildren();
+          tray.hidden = true;
+          unreply();
+        }
+        // A sent message or a clear refusal makes the next one a new write;
+        // after an unclear outcome the retry keeps the key, so it cannot go twice.
+        if (code !== 'unknown') $<HTMLInputElement>('input[name="key"]', composer)!.value = idempotencyKey();
+        toEnd();
+      } catch {
+        snack({ text: 'Chưa gửi được. Kiểm tra kết nối rồi thử lại.', error: true });
+      } finally {
+        sending = false;
+        ready();
+        field.focus();
+      }
+    });
+
+    // Typing tells the other person, at most once in 3 seconds.
+    let typedAt = 0;
+    field.addEventListener('input', () => {
+      if (!field.value.trim() || Date.now() - typedAt < 3000) return;
+      typedAt = Date.now();
+      socket.send({ type: 'typing', conversation_id: chatId });
+    });
+  }
+
+  // ------------------------------------------------------- older messages --
+  $('[data-older]')?.addEventListener('click', async (e) => {
+    const b = e.currentTarget as HTMLButtonElement;
+    if (!b.dataset.older) return;
+    b.disabled = true;
+    try {
+      const res = await fetch(`/messages/older?${new URLSearchParams({ chat: chatId, cursor: b.dataset.older })}`, { headers: { accept: 'text/html' } });
+      if (!res.ok) throw new Error(String(res.status));
+      const holder = document.createElement('template');
+      holder.innerHTML = await res.text();
+      const page = holder.content.querySelector<HTMLTemplateElement>('template[data-older-page]')!;
+      const box = $('[data-older-pages]')!;
+      const before = scroller!.scrollHeight;
+      // A day split over the two pages keeps one heading.
+      const firstDay = $('[data-day]', box) ?? $('[data-part="thread"] [data-day]');
+      const days = $$('[data-day]', page.content);
+      if (firstDay && days.at(-1)?.dataset.day === firstDay.dataset.day) firstDay.remove();
+      box.prepend(page.content);
+      scroller!.scrollTop += scroller!.scrollHeight - before;
+      b.dataset.older = page.dataset.next ?? '';
+      $('[data-older-wrap]')!.hidden = !b.dataset.older;
+    } catch {
+      snack({ text: 'Chưa tải được tin cũ hơn.', error: true });
+    } finally {
+      b.disabled = false;
+    }
+  });
+
+  // ----------------------------------------------------------- the socket --
+  let typingTimer = 0;
+  document.addEventListener('sn:update', (e) => {
+    const f = (e as CustomEvent<{ kind: string; conversation_id?: string; deal_id?: string }>).detail;
+    const here = f.conversation_id === chatId || (!!f.deal_id && !!$(`[data-deal-panel="${f.deal_id}"]`));
+    if (f.kind === 'read' && here && Date.now() - markedAt < 2000) {
+      markedAt = 0;
+      return;
+    }
+    if (['message', 'read', 'deal', 'scam_warning'].includes(f.kind)) schedule(here ? 'page' : 'inbox');
+  });
+  document.addEventListener('sn:reset', () => schedule('page'));
+  document.addEventListener('sn:typing', (e) => {
+    if ((e as CustomEvent<{ conversation_id: string }>).detail.conversation_id !== chatId) return;
+    const line = $('[data-typing]');
+    if (!line) return;
+    line.hidden = false;
+    clearTimeout(typingTimer);
+    typingTimer = window.setTimeout(() => (line.hidden = true), 4000);
+  });
+  document.addEventListener('sn:update', (e) => {
+    // A message from the other person ends their typing.
+    if ((e as CustomEvent<{ kind: string; conversation_id?: string }>).detail.conversation_id === chatId) {
+      const line = $('[data-typing]');
+      if (line) line.hidden = true;
+    }
+  });
 </script>

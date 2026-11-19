@@ -1,0 +1,79 @@
+---
+// The inbox's list: the conversations, or a search's people and messages.
+// Archived conversations have their own list. Live updates swap it whole.
+import { type Inbox, chatHref, personName, when } from '../../../lib/messages';
+import { R } from '../../../lib/routes';
+import Avatar from '../../Avatar.astro';
+import Icon from '../../Icon.astro';
+import InboxRow from './InboxRow.astro';
+
+interface Props {
+  m: Inbox;
+  me: string;
+  /** The open chat's id, its row selected. */
+  open?: string;
+}
+
+const { m, me, open } = Astro.props;
+const rows = m.inbox.items;
+const empty = 'px-4 py-10 text-center text-body-medium text-on-surface-variant';
+const link = 'state-layer mx-auto mt-1 flex h-10 items-center gap-1.5 rounded-control px-4 text-label-large text-primary';
+const next = m.inbox.next_cursor;
+const more = (after: string) => `${R.messages}?${new URLSearchParams({ ...(m.archived ? { archived: '' } : {}), ...(open ? { chat: open } : {}), after })}`;
+---
+
+<div class="no-scrollbar mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-inbox data-part="inbox" data-unread-total={m.inbox.unread}>
+  {
+    m.q ? (
+      !m.found ? (
+        <p class={empty}>Nhập chữ hoặc số để tìm.</p>
+      ) : m.found.threads.length + m.found.messages.length === 0 ? (
+        <p class={empty}>Không thấy tin nhắn nào khớp “{m.q}”.</p>
+      ) : (
+        <>
+          {m.found.threads.map((c, i) => (
+            <InboxRow c={c} me={me} selected={c.id === open} loading={i < 6 ? 'eager' : 'lazy'} />
+          ))}
+          {m.found.messages.length > 0 && <p class="px-3 pt-3 text-label-medium text-on-surface-variant">Tin nhắn</p>}
+          {m.found.messages.map((h) => (
+            <a href={chatHref(h.conversation_id)} class="flex gap-3 rounded-tile p-3 hover:bg-card/70">
+              <Avatar name={personName(h.other)} photo={h.other.avatar_url} size={40} loading="lazy" />
+              <span class="min-w-0 flex-1">
+                <span class="flex items-baseline gap-2">
+                  <span class="min-w-0 flex-1 truncate text-title-small text-ink">{personName(h.other)}</span>
+                  <span class="text-body-small text-on-surface-variant">{when(h.message.created_at)}</span>
+                </span>
+                <span class="line-clamp-2 text-body-medium text-on-surface-variant">
+                  {h.message.sender_id === me ? 'Bạn: ' : ''}
+                  {h.message.text}
+                </span>
+              </span>
+            </a>
+          ))}
+        </>
+      )
+    ) : rows.length === 0 ? (
+      <p class={empty}>
+        {m.archived ? 'Chưa lưu trữ cuộc trò chuyện nào.' : 'Chưa có tin nhắn. Hỏi người bán ở trang tin bạn quan tâm, tin nhắn sẽ hiện ở đây.'}
+      </p>
+    ) : (
+      rows.map((c, i) => <InboxRow c={c} me={me} selected={c.id === open} loading={i < 6 ? 'eager' : 'lazy'} />)
+    )
+  }
+  {
+    !m.q && next && (
+      <a href={more(next)} class={link}>
+        Xem thêm
+        <Icon name="keyboard-arrow-down-rounded" size={17} />
+      </a>
+    )
+  }
+  {
+    !m.q && (
+      <a href={m.archived ? R.messages : `${R.messages}?archived`} class={link}>
+        <Icon name={m.archived ? 'chevron-left-rounded' : 'inventory-2-outline-rounded'} size={18} />
+        {m.archived ? 'Về hộp thư' : 'Đã lưu trữ'}
+      </a>
+    )
+  }
+</div>

@@ -65,5 +65,4 @@ export async function pageOrFirst<T>(after: string | undefined, page: (cursor?: 
   return (after ? await orNull(page(after)) : null) ?? unwrap(page());
 }
 
-/** A fresh Idempotency-Key, for a write the server may see twice. */
-export const idempotencyKey = () => crypto.randomUUID();
+export { idempotencyKey } from '../key';

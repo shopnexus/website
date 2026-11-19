@@ -774,6 +774,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/category-guesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The subcategory a draft's title and description read as.
+         * @description Compares the text with each subcategory's words and answers the
+         *     nearest. The sell form asks as the seller types the title; a read
+         *     fills its draft's category the same way. Stores nothing.
+         */
+        post: operations["guessCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/regions": {
         parameters: {
             query?: never;
@@ -1528,6 +1550,19 @@ export interface paths {
          *     `{"type":"typing","conversation_id":…}` when the other member types.
          *     The app keeps the last seq and passes it as `since` on its next
          *     connect; after `reset` it reloads everything.
+         *
+         *     The app sends its access token in `Authorization: Bearer`. A browser,
+         *     which cannot set that header on a WebSocket, offers the subprotocols
+         *     `bearer` and the token, as `new WebSocket(url, ["bearer", token])`
+         *     does (`Sec-WebSocket-Protocol: bearer, <token>`). Without an
+         *     Authorization header, a request offering exactly these two is checked
+         *     as if the token were in the header, and the handshake selects
+         *     `bearer`. A missing or bad token is 401 before the upgrade, either
+         *     way. A request with an `Origin` header opens the socket only from one
+         *     of the website's origins (`WEBSITE_ORIGINS`), scheme and host, or the
+         *     API's own host; another origin is 403. A request without `Origin`,
+         *     as the app's, is not checked. The server reads no token from the
+         *     query string.
          *
          *     The kinds, the IDs each carries, what logs one and who gets it:
          *
@@ -4986,6 +5021,14 @@ export interface components {
         CategoryList: {
             /** @description The roots in order, then each root's subcategories in order. */
             items: components["schemas"]["Category"][];
+        };
+        CategoryGuessRequest: {
+            title: string;
+            description?: string;
+        };
+        CategoryGuess: {
+            /** @description A subcategory code, null when the text reads as none. */
+            category_code: string | null;
         };
         Province: {
             code: string;
@@ -9597,6 +9640,32 @@ export interface operations {
             };
         };
     };
+    guessCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryGuessRequest"];
+            };
+        };
+        responses: {
+            /** @description The guess; category_code is null when there is none. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryGuess"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
     listProvinces: {
         parameters: {
             query?: never;
@@ -11111,6 +11180,13 @@ export interface operations {
                 content?: never;
             };
             401: components["responses"]["Unauthorized"];
+            /** @description The `Origin` header is not one of the website's origins. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     listUpdates: {

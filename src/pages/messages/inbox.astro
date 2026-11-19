@@ -1,0 +1,19 @@
+---
+// The inbox list and the header's Tin nhắn button, for Tin nhắn to swap when
+// a message arrives in another chat. Takes the page's query.
+import MessagesLink from '../../components/MessagesLink.astro';
+import InboxList from '../../components/account/chat/InboxList.astro';
+import { loadInbox } from '../../lib/messages';
+import { requireViewer } from '../../lib/session';
+
+export const partial = true;
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const m = await loadInbox(Astro);
+---
+
+<template data-inbox-page>
+  <InboxList m={m} me={v.id} open={Astro.url.searchParams.get('chat') ?? undefined} />
+  <MessagesLink unread={m.inbox.unread} />
+</template>

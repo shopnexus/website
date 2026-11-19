@@ -1,16 +1,54 @@
 ---
-// The deal under the thread: the four steps, then the price and what to do next (slot).
+// One deal under the thread: the four steps, the price that stands and the
+// moves the viewer can make now. Each move is a form post; "Trả giá" opens
+// the amount (?offer=1 without the script).
 import { PHASES } from '../../../data/common';
+import { group, money } from '../../../lib/format';
+import { type Deal, LISTING_STATUS, ORDER_STATUS, chatHref, phase } from '../../../lib/messages';
+import { R } from '../../../lib/routes';
+import { btnCls } from '../../../lib/ui';
 import Icon from '../../Icon.astro';
 
 interface Props {
-  current: number;
+  deal: Deal;
+  /** The other person's name. */
+  other: string;
+  /** The amount form shows open. */
+  offering?: boolean;
+  hidden?: boolean;
 }
 
-const { current } = Astro.props;
+const { deal: d, other, offering = false, hidden = false } = Astro.props;
+const current = phase(d);
+const buyer = d.role === 'buyer';
+const open = d.open_price ?? undefined;
+const theirs = open && open.by !== d.role;
+const range = d.offer_range ?? undefined;
+const active = d.listing.status === 'active';
+const agreed = d.agreed_price ?? undefined;
+
+let price = d.listing.price;
+let lead = 'sell-outline-rounded';
+let caption = 'Giá đăng';
+if (d.status === 'negotiating' && open) {
+  price = open.amount;
+  caption = theirs ? `Giá ${other} đưa` : `Bạn trả · chờ ${other}`;
+} else if (d.status === 'negotiating' && !buyer) {
+  caption = `Giá đăng · chờ ${other} trả giá`;
+} else if (d.status !== 'negotiating' && agreed) {
+  price = agreed;
+  lead = 'handshake-outline-rounded';
+  caption = d.status === 'sold' ? 'Đã bán' : d.order ? `Đã chốt · ${ORDER_STATUS[d.order.status][1]}` : 'Đã chốt';
+}
+const note = active ? '' : LISTING_STATUS[d.listing.status];
+const canCancel = d.status === 'agreed' && (!d.order || d.order.status === 'pending');
+const canOffer = d.status === 'negotiating' && !!range && !(open && !theirs);
+const self = chatHref(d.conversation_id, d.id);
+const offerHref = chatHref(d.conversation_id, d.id, { offer: '1' });
+const leadCls = 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant';
 ---
 
-<div class="mx-3 mt-2 rounded-card border border-line bg-card px-4 pb-3 pt-3">
+<div class="mx-3 mt-2 rounded-card border border-line bg-card px-4 pb-3 pt-3" data-deal-panel={d.id} hidden={hidden}>
   <div class="flex items-center justify-between">
     <div class="flex items-center" role="img" aria-label={`Bước ${current + 1}/4 · ${PHASES[current].label}`}>
       {
@@ -44,5 +82,88 @@ const { current } = Astro.props;
       <Icon name="keyboard-arrow-down-rounded" size={20} />
     </button>
   </div>
-  <div class="pt-2" data-console-body><slot /></div>
+  <div class="pt-2" data-console-body>
+    <form method="post" action={R.messages} class="flex flex-wrap items-center gap-3" data-in-place>
+      <input type="hidden" name="chat" value={d.conversation_id} />
+      <input type="hidden" name="deal" value={d.id} />
+      <span class={leadCls}><Icon name={lead} size={18} /></span>
+      <p class="flex flex-1 items-baseline text-on-surface tabular-nums">
+        <span class="text-headline-medium">{group(price)}</span><span class="ml-1 text-title-large text-on-surface-variant">₫</span>
+      </p>
+      <div class="flex flex-wrap gap-2">
+        {canOffer && (
+          <a href={offerHref} class={btnCls('line')} aria-expanded={offering ? 'true' : 'false'} data-offer-toggle>
+            <Icon name="sell-outline-rounded" size={18} />
+            {theirs ? 'Trả giá khác' : 'Trả giá'}
+          </a>
+        )}
+        {d.status === 'negotiating' && theirs && (
+          <>
+            <button type="submit" name="do" value="decline" class={btnCls('line')}>Từ chối</button>
+            <input type="hidden" name="price" value={open!.amount} />
+            <button type="submit" name="do" value="accept" class={btnCls('ink')} disabled={!active}>
+              <Icon name="handshake-outline-rounded" size={18} />
+              Đồng ý
+            </button>
+          </>
+        )}
+        {d.status === 'negotiating' && open && !theirs && (
+          <button type="submit" name="do" value="withdraw" class={btnCls('line')}>
+            <Icon name="undo-rounded" size={18} />
+            Rút lại
+          </button>
+        )}
+        {d.status === 'negotiating' && !open && buyer && active && (
+          <>
+            <input type="hidden" name="price" value={d.listing.price} />
+            <button type="submit" name="do" value="accept" class={btnCls('ink')}>
+              <Icon name="handshake-outline-rounded" size={18} />
+              Mua giá này
+            </button>
+          </>
+        )}
+        {canCancel && (
+          <button type="submit" name="do" value="cancel" class={btnCls('line')}>
+            Hủy giá đã chốt
+          </button>
+        )}
+      </div>
+    </form>
+    <p class="mt-1 pl-11 text-body-small text-on-surface-variant">
+      {[caption, note, d.status === 'agreed' && buyer && !d.order && active ? 'Đặt giao COD trong app ShopNexus' : ''].filter(Boolean).join(' · ')}
+    </p>
+    {
+      canOffer && (
+        <form method="post" action={R.messages} class="mt-3 rounded-tile bg-surface-container-low p-3" hidden={!offering} data-offer-form data-in-place>
+          <input type="hidden" name="chat" value={d.conversation_id} />
+          <input type="hidden" name="deal" value={d.id} />
+          <label class="flex items-baseline gap-1">
+            <span class="sr-only">Giá bạn trả</span>
+            <input
+              name="amount"
+              inputmode="numeric"
+              autocomplete="off"
+              required
+              placeholder={group(range!.max)}
+              class="min-w-0 flex-1 bg-transparent text-headline-small tabular-nums text-ink outline-none placeholder:text-on-surface-variant/60"
+              data-amount
+            />
+            <span class="text-title-medium text-on-surface-variant">₫</span>
+          </label>
+          <div class="mt-2 flex items-center justify-between gap-3">
+            <p class="text-body-small text-on-surface-variant">
+              {range!.min === range!.max ? money(range!.min) : `${money(range!.min)} – ${money(range!.max)}`}
+            </p>
+            <div class="flex gap-2">
+              <a href={self} class={btnCls('ghost', 'sm')} data-offer-toggle>Đóng</a>
+              <button type="submit" name="do" value="offer" class={btnCls('ink', 'sm')}>
+                <Icon name="send-rounded" size={16} />
+                Gửi giá
+              </button>
+            </div>
+          </div>
+        </form>
+      )
+    }
+  </div>
 </div>

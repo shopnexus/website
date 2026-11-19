@@ -31,6 +31,9 @@ export default defineConfig({
         access: 'secret',
         default: 'http://localhost:8080',
       }),
+      // The API's address as a browser reaches it, for the socket. Unset, it is
+      // api.<the site's host>; a dev server on localhost sets it.
+      PUBLIC_API_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
 });

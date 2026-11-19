@@ -4,13 +4,15 @@
 // docks bottom-right and the page stays usable; "Thu nhỏ" folds it into a
 // pill. On a phone it is a bottom sheet. The page marks its openers with
 // data-quickchat ("chat", "offer", or the question to send); they stay links
-// to Tin nhắn, so without the script they still work.
+// to Tin nhắn, so without the script they still work. Messages and offers go
+// to the server through /api/listings/<id>/chat, which opens the buyer's deal.
 import Icon from '../Icon.astro';
 import Avatar from '../Avatar.astro';
 import Photo from '../Photo.astro';
 import { group } from '../../lib/format';
 
 interface Props {
+  listing: string;
   /** photo: the avatar's URL, absent without one. */
   seller: { name: string; photo?: string };
   title: string;
@@ -22,7 +24,7 @@ interface Props {
   href: string;
 }
 
-const { seller, title, thumb, price, questions, href } = Astro.props;
+const { listing, seller, title, thumb, price, questions, href } = Astro.props;
 
 // Three quick cuts, about 4, 6 and 10 % off, on round steps.
 const unit = price >= 1_000_000 ? 100_000 : 10_000;
@@ -37,18 +39,13 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
   aria-label={`Chat với ${seller.name}`}
   data-qc
   data-price={price}
+  data-listing={listing}
 >
   <span class="mx-auto mt-2 h-1 w-8 shrink-0 rounded-full bg-on-surface-variant/40 lg:hidden"></span>
   <div class="flex items-center gap-2.5 px-3 pt-3">
-    <span class="relative shrink-0">
-      <Avatar name={seller.name} photo={seller.photo} size={36} loading="lazy" />
-      <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-ghtk ring-2 ring-card"></span>
-    </span>
-    <div class="min-w-0 flex-1">
-      <p class="flex items-center gap-1 text-title-small">{seller.name}<Icon name="verified-rounded" size={15} class="text-primary" /></p>
-      <p class="text-body-small text-on-surface-variant">Thường trả lời trong 10 phút</p>
-    </div>
-    <a href={href} class={iconBtn} aria-label="Mở ở trang Tin nhắn" title="Mở ở trang Tin nhắn"><Icon name="open-in-new-rounded" size={19} /></a>
+    <Avatar name={seller.name} photo={seller.photo} size={36} loading="lazy" />
+    <p class="min-w-0 flex-1 truncate text-title-small">{seller.name}</p>
+    <a href={href} data-qc-full class={iconBtn} aria-label="Mở ở trang Tin nhắn" title="Mở ở trang Tin nhắn"><Icon name="open-in-new-rounded" size={19} /></a>
     <button type="button" class:list={[iconBtn, 'max-lg:hidden']} aria-label="Thu nhỏ" title="Thu nhỏ" data-qc-min><Icon name="remove-rounded" size={19} /></button>
     <button type="button" class={iconBtn} aria-label="Đóng" title="Đóng" data-qc-close><Icon name="close-rounded" size={19} /></button>
   </div>
@@ -157,6 +154,11 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
 </template>
 
 <script>
+  import { errorText } from '../../lib/chat-errors';
+  import { group } from '../../lib/format';
+  import { idempotencyKey } from '../../lib/key';
+  import { API, R, loginHref } from '../../lib/routes';
+
   const box = document.querySelector<HTMLDialogElement>('[data-qc]');
   if (box) {
     const $ = <T extends Element = HTMLElement>(s: string) => box.querySelector<T>(s)!;
@@ -170,7 +172,7 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
     const amount = $<HTMLInputElement>('[data-qc-amount]');
     const price = Number(box.dataset.price);
     const wide = matchMedia('(min-width: 64rem)');
-    const fmt = (n: number) => Math.round(n).toLocaleString('de-DE');
+    const full = $<HTMLAnchorElement>('[data-qc-full]');
     let status: HTMLElement | null = null;
 
     const open = (offer = false) => {
@@ -190,21 +192,46 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
       tray.classList.toggle('hidden', !on);
       offerBtn.setAttribute('aria-expanded', String(on));
     };
-    // Each sent line goes at the end with one "Đã gửi" under the last.
-    const post = (node: Node) => {
+    // Each line goes at the end with its state under it: Đang gửi, then Đã
+    // gửi (only under the last) or why it did not go.
+    const post = async (node: Node, body: object) => {
       $('[data-qc-empty]')?.remove();
-      status?.remove();
+      if (status?.dataset.ok !== undefined) status.remove();
       thread.append(node);
-      status = document.createElement('p');
-      status.className = 'px-1 text-right text-body-small text-on-surface-variant';
-      status.textContent = 'Đã gửi';
-      thread.append(status);
+      const line = document.createElement('p');
+      line.className = 'px-1 text-right text-body-small text-on-surface-variant';
+      line.textContent = 'Đang gửi';
+      thread.append(line);
+      status = line;
+      thread.scrollTop = thread.scrollHeight;
+      const res = await fetch(API.quickChat(box.dataset.listing!), {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      }).catch(() => null);
+      if (res?.status === 401) {
+        location.href = loginHref(location.pathname);
+        return;
+      }
+      const data = ((await res?.json().catch(() => null)) ?? {}) as { chat?: string; deal?: string; code?: string };
+      if (res?.ok && data.chat) {
+        line.textContent = 'Đã gửi';
+        line.dataset.ok = '';
+        full.href = `${R.messages}?${new URLSearchParams({ chat: data.chat, deal: data.deal ?? '' })}`;
+      } else {
+        line.textContent = data.code === 'move_not_allowed' ? 'Món này đã có giá đang chờ hoặc đã chốt. Xem ở trang Tin nhắn.' : errorText(data.code ?? '');
+        line.classList.replace('text-right', 'text-left');
+        if (data.code === 'phone_required') {
+          const a = Object.assign(document.createElement('a'), { href: R.security, textContent: ' Xem Bảo mật', className: 'text-primary underline' });
+          line.append(a);
+        }
+      }
       thread.scrollTop = thread.scrollHeight;
     };
     const say = (text: string) => {
       const t = document.querySelector<HTMLTemplateElement>('[data-qc-mine]')!.content.cloneNode(true) as DocumentFragment;
       t.querySelector('p')!.textContent = text;
-      post(t);
+      post(t, { text, key: idempotencyKey() });
       // A question already asked leaves the chips.
       box.querySelectorAll<HTMLElement>('[data-qc-ask]').forEach((b) => b.dataset.qcAsk === text && b.remove());
     };
@@ -252,13 +279,13 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
     cuts.forEach((c) =>
       c.addEventListener('click', () => {
         const v = Number(c.dataset.qcCut);
-        amount.value = fmt(v);
+        amount.value = group(v);
         mark(v);
       }),
     );
     amount.addEventListener('input', () => {
       const v = Number(amount.value.replace(/\D/g, ''));
-      amount.value = v ? fmt(v) : '';
+      amount.value = v ? group(v) : '';
       mark(v);
     });
     tray.addEventListener('submit', (e) => {
@@ -269,8 +296,8 @@ const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-fu
         return;
       }
       const t = document.querySelector<HTMLTemplateElement>('[data-qc-price]')!.content.cloneNode(true) as DocumentFragment;
-      t.querySelector('span')!.textContent = `${fmt(v)} ₫`;
-      post(t);
+      t.querySelector('span')!.textContent = `${group(v)} ₫`;
+      post(t, { amount: v });
       setTray(false);
       field.focus();
     });
