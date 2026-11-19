@@ -12,7 +12,7 @@ import { NO_ARBITRATION, ORDERS, QUICK_QUESTIONS, REPORT, SUPPORT_REPLY, SUPPORT
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
-import { btnCls, CONTENT, PANEL } from '../lib/ui';
+import { btnCls, CONTENT_WIDE, PANEL } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
@@ -24,7 +24,7 @@ const current = TICKET_KINDS[TICKETS[0].kind];
 ---
 
 <Layout title="Hỗ trợ · ShopNexus" description="Yêu cầu hỗ trợ của bạn với ShopNexus." section={null}>
-  <main class={CONTENT}>
+  <main class={CONTENT_WIDE}>
     <div class="flex flex-wrap items-end justify-between gap-4 pt-8">
       <div>
         <h1 class="text-j-28 text-ink lg:text-j-30">Hỗ trợ</h1>
