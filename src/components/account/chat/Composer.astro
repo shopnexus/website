@@ -52,7 +52,7 @@ const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-
     >{text}</textarea>
     <button
       type="submit"
-      class="grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant enabled:text-primary enabled:hover:bg-primary/10"
+      class="grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant enabled:text-primary enabled:hover:bg-primary/10 aria-busy:text-primary"
       aria-label="Gửi"
     >
       <Icon name="send-rounded" size={22} />
@@ -63,7 +63,7 @@ const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-
 <template data-tray-item>
   <span class="relative h-16 w-16 overflow-hidden rounded-md bg-surface-container-high">
     <img alt="" class="h-full w-full object-cover" />
-    <span class="absolute inset-0 grid place-items-center bg-black/30 text-white" data-busy><Icon name="hourglass-top-rounded" size={20} /></span>
+    <span class="absolute inset-0 grid place-items-center bg-black/30 text-white" data-busy><span class="spinner"></span></span>
     <button type="button" class="absolute right-0.5 top-0.5 grid h-6 w-6 place-items-center rounded-full bg-black/50 text-white" aria-label="Bỏ ảnh" data-drop>
       <Icon name="close-rounded" size={14} />
     </button>

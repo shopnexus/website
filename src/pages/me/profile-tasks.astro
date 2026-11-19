@@ -124,7 +124,6 @@ const doneSub: Record<TaskKey, string | undefined> = {
           )
         }
       </div>
-      <p class="w-full text-body-small text-on-surface-variant empty:hidden" aria-live="polite" data-avatar-status></p>
     </form>
 
     <form method="post" class="mt-5 flex flex-col gap-3">
@@ -195,6 +194,7 @@ const doneSub: Record<TaskKey, string | undefined> = {
 </SettingsFrame>
 
 <script>
+  import { busy } from '../../lib/busy';
   import { snack } from '../../lib/snackbar';
   import { R, loginHref } from '../../lib/routes';
   import { UploadError, uploadPhoto } from '../../lib/upload';
@@ -214,9 +214,9 @@ const doneSub: Record<TaskKey, string | undefined> = {
   }
 
   // A chosen photo uploads, then its upload id posts with the avatar form.
+  // Its button stays busy until the page comes back.
   const form = document.querySelector<HTMLFormElement>('[data-avatar-form]');
   const input = document.querySelector<HTMLInputElement>('[data-avatar-input]');
-  const status = document.querySelector<HTMLElement>('[data-avatar-status]');
   const words: Record<UploadError['reason'], string> = {
     'sign-in': 'Phiên đăng nhập đã hết. Đăng nhập lại nhé.',
     type: 'Chọn ảnh JPEG, PNG hoặc WebP.',
@@ -225,18 +225,17 @@ const doneSub: Record<TaskKey, string | undefined> = {
   };
   input?.addEventListener('change', async () => {
     const file = input.files?.[0];
-    if (!file || !form || !status) return;
-    status.textContent = 'Đang tải ảnh lên…';
-    input.disabled = true;
+    const label = input.closest('label');
+    if (!file || !form || label?.getAttribute('aria-busy') === 'true') return;
+    busy(label);
     try {
       form.querySelector<HTMLInputElement>('[data-avatar-id]')!.value = await uploadPhoto(file);
-      status.textContent = 'Đang lưu ảnh…';
       form.requestSubmit(form.querySelector<HTMLButtonElement>('[data-avatar-submit]'));
     } catch (e) {
       const reason = e instanceof UploadError ? e.reason : 'failed';
       if (reason === 'sign-in') location.href = loginHref(R.profileTasks);
-      status.textContent = words[reason];
-      input.disabled = false;
+      else snack({ text: words[reason], error: true });
+      busy(label, false);
       input.value = '';
     }
   });

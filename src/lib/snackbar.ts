@@ -6,7 +6,7 @@ import { SPRING, reducedMotion } from './motion';
 
 export interface Snack {
   text: string;
-  /** A name Snackbar.astro lists. */
+  /** A name Snackbar.astro lists; a failure's own icon by default. */
   icon?: string;
   /** A failure turns the icon and the ring `error`. */
   error?: boolean;
@@ -22,7 +22,7 @@ function leave(el: HTMLElement) {
   animate(el, { opacity: 0, y: 12, scale: 0.98 }, reducedMotion() ? { duration: 0 } : SPRING.effects).then(() => el.remove());
 }
 
-export function snack({ text, icon = 'check-rounded', error = false, action, ms = 4000 }: Snack) {
+export function snack({ text, error = false, icon = error ? 'error-outline-rounded' : 'check-rounded', action, ms = 4000 }: Snack) {
   const region = document.querySelector<HTMLElement>('[data-snackbar]');
   if (!region) return;
   if (current) leave(current);

@@ -24,15 +24,9 @@ const { id, title, text, action, value, confirm } = Astro.props;
 >
   <h2 id={`${id}-title`} class="text-headline-small">{title}</h2>
   <p class="mt-2 text-body-medium text-on-surface-variant">{text}</p>
-  <form method="post" action={action} class="mt-6 flex justify-end gap-2" data-once>
+  <form method="post" action={action} class="mt-6 flex justify-end gap-2">
     <slot />
     <button type="button" popovertarget={id} popovertargetaction="hide" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">Quay lại</button>
     <button type="submit" name="do" value={value} class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">{confirm}</button>
   </form>
 </div>
-
-<script>
-  import { submitOnce } from '../../lib/once';
-
-  submitOnce();
-</script>

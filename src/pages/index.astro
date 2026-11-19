@@ -109,7 +109,9 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
 </Layout>
 
 <script>
+  import { busy } from '../lib/busy';
   import { R } from '../lib/routes';
+  import { snack } from '../lib/snackbar';
   import { FEED_PAGE, FEED_TABS } from '../lib/feed-tabs';
   import { locate } from '../lib/locate';
 
@@ -166,6 +168,7 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
         clearTimeout(timer);
         bones.forEach((b) => b.remove());
         more.hidden = !next;
+        if (mine === run) snack({ text: 'Chưa tải được tin. Thử lại sau.', error: true });
       } finally {
         if (mine === run) grid.removeAttribute('aria-busy');
       }
@@ -185,11 +188,11 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
     });
     grid.addEventListener('click', async (e) => {
       const ask = (e.target as Element).closest<HTMLButtonElement>('[data-locate]');
-      if (!ask) return;
-      ask.disabled = true;
+      if (!ask || ask.getAttribute('aria-busy') === 'true') return;
+      busy(ask);
       if (await locate()) show(tab, '', true);
       else {
-        ask.disabled = false;
+        busy(ask, false);
         ask.textContent = 'Chưa lấy được vị trí. Thử lại';
       }
     });

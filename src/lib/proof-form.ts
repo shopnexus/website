@@ -1,3 +1,4 @@
+import { busy, leaveWith } from './busy';
 import { firebaseError, firebaseReady, googleToken, loadFirebase } from './firebase';
 import { clock } from './format';
 import type { TokenKind } from './sign-in';
@@ -23,7 +24,7 @@ export function alertLine(box: HTMLElement | null): Say {
   };
 }
 
-/** Posts a token through a hidden form with `kind` and `token` fields (and `step`, when the form has one to set). */
+/** Posts a token through a hidden form with `kind` and `token` fields (and `step`, when the form has one to set). The step's button stays busy until the page answers. */
 export function postToken(form: HTMLFormElement, kind: TokenKind, token: string, step?: string) {
   const set = (name: string, value: string) => {
     const input = form.querySelector<HTMLInputElement>(`[name=${name}]`);
@@ -32,7 +33,7 @@ export function postToken(form: HTMLFormElement, kind: TokenKind, token: string,
   if (step) set('step', step);
   set('kind', kind);
   set('token', token);
-  form.submit();
+  leaveWith(form);
 }
 
 /**
@@ -41,17 +42,17 @@ export function postToken(form: HTMLFormElement, kind: TokenKind, token: string,
  * it, the latest one only. `keep` decides whether the button stays disabled.
  */
 export function stepper(say: Say): Step {
-  let busy = false;
+  let running = false;
   let queued: (() => void) | undefined;
   const step: Step = async (button, run, keep = () => false) => {
-    if (busy) {
+    if (running) {
       queued = () => void step(button, run, keep);
       return;
     }
-    busy = true;
+    running = true;
     if (button) {
       button.disabled = true;
-      button.setAttribute('aria-busy', 'true');
+      busy(button);
     }
     say(null);
     try {
@@ -59,9 +60,9 @@ export function stepper(say: Say): Step {
     } catch (e) {
       say(firebaseError(e));
     } finally {
-      busy = false;
+      running = false;
       if (button) {
-        button.removeAttribute('aria-busy');
+        busy(button, false);
         button.disabled = keep();
       }
       const next = queued;

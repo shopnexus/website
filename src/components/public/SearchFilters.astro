@@ -110,7 +110,9 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
 </form>
 
 <script>
+  import { busy } from '../../lib/busy';
   import { locate } from '../../lib/locate';
+  import { snack } from '../../lib/snackbar';
 
   // A checkbox submits at once, a price on change; "Dùng vị trí hiện tại" and
   // "Đổi" ask the browser for its place and load the page again with it.
@@ -118,9 +120,11 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
     f.addEventListener('change', () => f.requestSubmit());
     f.querySelectorAll<HTMLButtonElement>('[data-here]').forEach((b) =>
       b.addEventListener('click', async () => {
-        b.disabled = true;
-        if (await locate()) location.reload();
-        else b.disabled = false;
+        if (b.getAttribute('aria-busy') === 'true') return;
+        busy(b);
+        if (await locate()) return location.reload();
+        busy(b, false);
+        snack({ text: 'Chưa lấy được vị trí.', error: true });
       }),
     );
   });

@@ -63,7 +63,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
   </div>
 
   <div class="contents" data-qc-pane>
-    <p class="m-auto text-body-medium text-on-surface-variant">Đang mở…</p>
+    <span class="spinner m-auto text-primary" role="status" aria-label="Đang mở chat"></span>
   </div>
 
   <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto px-3 pb-1" data-qc-chips>
@@ -132,9 +132,11 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
 </button>
 
 <script>
+  import { whileBusy } from '../../lib/busy';
   import { mountChatPane } from '../../lib/chat-pane';
   import { group } from '../../lib/format';
   import { R, loginHref } from '../../lib/routes';
+  import { snack } from '../../lib/snackbar';
 
   const box = document.querySelector<HTMLDialogElement>('[data-qc]');
   if (box) {
@@ -162,13 +164,20 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
     };
 
     // The pane loads on the first open and then follows the chat by itself.
-    let loaded: Promise<void> | null = null;
+    // Resolves to whether it is in; a failure closes the box so a tap tries again.
+    let loaded: Promise<boolean> | null = null;
     const load = () =>
       (loaded ??= (async () => {
-        const res = await fetch(paneUrl(), { headers: { accept: 'text/html' } });
-        if (res.redirected || res.status === 401) {
+        const res = await fetch(paneUrl(), { headers: { accept: 'text/html' } }).catch(() => null);
+        if (res?.redirected || res?.status === 401) {
           location.href = loginHref(location.pathname);
-          return;
+          return false;
+        }
+        if (!res?.ok) {
+          loaded = null;
+          close();
+          snack({ text: 'Chưa mở được chat. Thử lại sau.', error: true });
+          return false;
         }
         $('[data-qc-pane]').innerHTML = await res.text();
         synced();
@@ -179,10 +188,11 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
           shows: (u) => !!u.deal_id && u.deal_id === box.querySelector<HTMLElement>('[data-part="meta"]')?.dataset.deal,
           afterSwap: synced,
         });
+        return true;
       })());
 
     const say = async (text: string) => {
-      await load();
+      if (!(await load())) return;
       const form = box.querySelector<HTMLFormElement>('[data-composer]');
       const field = form?.querySelector<HTMLTextAreaElement>('[name="text"]');
       if (!form || !field) return;
@@ -197,7 +207,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
       pill.classList.remove('flex');
       if (!box.open) wide.matches ? box.show() : box.showModal();
       setTray(offer);
-      load().then(() => (offer ? amount : box.querySelector<HTMLTextAreaElement>('[data-composer] [name="text"]'))?.focus({ preventScroll: true }));
+      load().then((ok) => ok && (offer ? amount : box.querySelector<HTMLTextAreaElement>('[data-composer] [name="text"]'))?.focus({ preventScroll: true }));
     };
     const close = () => box.close();
     const fold = () => {
@@ -236,7 +246,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
       }
     });
 
-    box.querySelectorAll<HTMLButtonElement>('[data-qc-ask]').forEach((b) => b.addEventListener('click', () => say(b.dataset.qcAsk!)));
+    box.querySelectorAll<HTMLButtonElement>('[data-qc-ask]').forEach((b) => b.addEventListener('click', () => whileBusy(b, () => say(b.dataset.qcAsk!))));
     offerBtn.addEventListener('click', () => setTray(tray.classList.contains('hidden')));
 
     const cuts = [...box.querySelectorAll<HTMLButtonElement>('[data-qc-cut]')];
@@ -253,7 +263,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
       amount.value = v ? group(v) : '';
       mark(v);
     });
-    // An offer under the price goes in place (chat-pane's data-in-place); anything else stays here.
+    // An offer under the price goes in place (chat-pane's data-in-place) and the tray folds once it is in; anything else stays here.
     tray.addEventListener(
       'submit',
       (e) => {
@@ -262,12 +272,11 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
           e.preventDefault();
           e.stopImmediatePropagation();
           amount.focus();
-          return;
         }
-        setTimeout(() => setTray(false));
       },
       { capture: true },
     );
+    tray.addEventListener('sent', () => setTray(false));
 
     // The left edge drags the docked box wider or narrower; the width is kept per browser.
     const KEY = 'sn:qc-width';
