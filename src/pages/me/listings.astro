@@ -5,6 +5,7 @@
 import Icon from '../../components/Icon.astro';
 import Notice from '../../components/Notice.astro';
 import PageTitle from '../../components/PageTitle.astro';
+import Skeleton from '../../components/Skeleton.astro';
 import Photo from '../../components/Photo.astro';
 import MyListingRow from '../../components/account/MyListingRow.astro';
 import AccountFrame from '../../components/orders/AccountFrame.astro';
@@ -91,7 +92,7 @@ const empty: Record<Pane, string> = {
   drafts: 'Chưa có nháp. Nháp tự lưu khi bạn điền Đăng tin.',
   sold: 'Chưa có tin nào đã bán.',
 };
-const tab = 'state-layer flex h-9 items-center rounded-full px-4 text-label-large';
+const tab = 'state-layer flex h-9 items-center rounded-full bg-surface-container-low px-4 text-label-large text-on-surface-variant aria-[current]:bg-mint aria-[current]:text-on-mint';
 ---
 
 <AccountFrame title="Tin của bạn" description="Tin đang bán, nháp và tin đã bán của bạn." active="listings">
@@ -121,7 +122,8 @@ const tab = 'state-layer flex h-9 items-center rounded-full px-4 text-label-larg
         <a
           href={`${R.myListings}?pane=${p}`}
           aria-current={p === pane ? 'page' : undefined}
-          class:list={[tab, p === pane ? 'bg-mint text-on-mint' : 'bg-surface-container-low text-on-surface-variant']}
+          class={tab}
+          data-pending="[data-my-listings]"
         >
           {PANES[p]}
           {p === 'drafts' && ` · ${drafts.length}`}
@@ -133,7 +135,7 @@ const tab = 'state-layer flex h-9 items-center rounded-full px-4 text-label-larg
   {done && <Notice ok text={done} class="mt-4" />}
   {error && <Notice text={error} class="mt-4" />}
 
-  <section class="mt-4 flex flex-col gap-2.5">
+  <section class="mt-4 flex flex-col gap-2.5" data-my-listings data-skeleton-kind="row" data-skeleton-count="4">
     {items.map((it, i) => <MyListingRow it={it} loading={i < 6 ? 'eager' : 'lazy'} />)}
     {
       pane === 'drafts' &&
@@ -197,20 +199,23 @@ const tab = 'state-layer flex h-9 items-center rounded-full px-4 text-label-larg
           </a>
         )}
         {view.next_cursor && (
-          <a href={here(`&after=${view.next_cursor}`)} class={btnCls('line')}>
+          <a href={here(`&after=${view.next_cursor}`)} class={btnCls('line')} data-more="[data-my-listings]">
             Xem thêm
           </a>
         )}
       </div>
     )
   }
+  <Skeleton kind="row" />
 </AccountFrame>
 
 <script>
-  // Deleting asks once.
-  document.querySelectorAll<HTMLButtonElement>('[data-confirm]').forEach((b) =>
-    b.addEventListener('click', (e) => {
-      if (!confirm(b.dataset.confirm)) e.preventDefault();
-    }),
-  );
+  import '../../lib/more';
+  import '../../lib/pending';
+
+  // Deleting asks once, on rows "Xem thêm" added too.
+  document.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLButtonElement>('[data-confirm]');
+    if (b && !confirm(b.dataset.confirm)) e.preventDefault();
+  });
 </script>

@@ -28,7 +28,7 @@ const head = 'text-title-small text-ink';
 const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] border-field bg-card text-transparent peer-checked:border-brand peer-checked:bg-brand peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand';
 ---
 
-<form action={base} class="self-start overflow-hidden rounded-card border border-line bg-card lg:sticky-fit lg:sticky lg:top-[88px]" data-filters>
+<form action={base} data-pending="[data-grid],[data-list]" class="self-start overflow-hidden rounded-card border border-line bg-card lg:sticky-fit lg:sticky lg:top-[88px]" data-filters>
   {search.q && <input type="hidden" name="q" value={search.q} />}
   {search.category && <input type="hidden" name="category" value={search.category} />}
   {search.off.map((o) => <input type="hidden" name="off" value={o} />)}
@@ -78,10 +78,11 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
     {
       place ? (
         <>
-          <div class="mt-3 grid grid-cols-5 gap-0.5 rounded-control bg-soft p-0.5">
+          <div class="mt-3 grid grid-cols-5 gap-0.5 rounded-control bg-soft p-0.5" data-pending-group>
             {distances.map((d) => (
               <a
                 href={d.href}
+                data-pending="[data-grid],[data-list]"
                 aria-current={d.on ? 'true' : undefined}
                 class="grid h-8 place-items-center whitespace-nowrap rounded-sm text-body-small text-sub hover:text-ink aria-[current]:bg-card aria-[current]:font-medium aria-[current]:text-ink aria-[current]:shadow-knob"
               >
@@ -111,6 +112,7 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
 
 <script>
   import { locate } from '../../lib/locate';
+  import { pending } from '../../lib/pending';
 
   // A checkbox submits at once, a price on change; "Dùng vị trí hiện tại" and
   // "Đổi" ask the browser for its place and load the page again with it.
@@ -119,8 +121,10 @@ const box = 'grid h-4 w-4 shrink-0 place-items-center rounded-xs border-[1.5px] 
     f.querySelectorAll<HTMLButtonElement>('[data-here]').forEach((b) =>
       b.addEventListener('click', async () => {
         b.disabled = true;
-        if (await locate()) location.reload();
-        else b.disabled = false;
+        if (await locate()) {
+          pending(f.dataset.pending!);
+          location.reload();
+        } else b.disabled = false;
       }),
     );
   });

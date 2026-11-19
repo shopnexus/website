@@ -8,6 +8,7 @@ import { R } from '../../lib/routes';
 import { btnCls, PANEL } from '../../lib/ui';
 import Icon from '../Icon.astro';
 import PageTitle from '../PageTitle.astro';
+import Skeleton from '../Skeleton.astro';
 import AccountFrame from './AccountFrame.astro';
 import OrderRow from './OrderRow.astro';
 
@@ -27,37 +28,41 @@ const cap = screen.cod_orders;
 const waiting = screen.awaiting_shipment ?? 0;
 // The arrow opens this page's first waiting order, else the list.
 const pending = waiting ? items.find((i) => i.order.status === 'pending') : undefined;
+// Mua and Bán open the other list; skeletons hold this one meanwhile.
+const rows = '[data-orders]';
 const tab = 'flex h-8 items-center rounded-sm px-4 text-title-small text-sub aria-[current]:bg-card aria-[current]:text-ink aria-[current]:shadow-knob';
 ---
 
 <AccountFrame title={buyer ? 'Đơn mua' : 'Đơn bán'} description="Đơn mua và đơn bán giao COD của bạn." active={buyer ? 'orders' : 'sales'}>
   <PageTitle title="Đơn hàng" meta={items.length ? `${count} đơn ${buyer ? 'mua' : 'bán'}` : undefined}>
     <nav class="inline-flex rounded-control bg-black/[.04] p-0.5" aria-label="Loại đơn">
-      <a href={R.orders} class={tab} aria-current={buyer ? 'page' : undefined}>Mua</a>
-      <a href={R.sales} class={tab} aria-current={buyer ? undefined : 'page'}>Bán</a>
+      <a href={R.orders} class={tab} aria-current={buyer ? 'page' : undefined} data-pending={rows}>Mua</a>
+      <a href={R.sales} class={tab} aria-current={buyer ? undefined : 'page'} data-pending={rows}>Bán</a>
     </nav>
   </PageTitle>
   <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <section class="flex min-w-0 flex-col gap-3">
-      {
-        items.length ? (
-          items.map((it, i) => <OrderRow item={it} role={role} loading={i < 5 ? 'eager' : 'lazy'} />)
-        ) : (
-          <div class:list={[PANEL, 'flex flex-col items-center gap-3 px-6 py-12 text-center']}>
-            <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
-              <Icon name="receipt-long-outline-rounded" size={24} />
-            </span>
-            <p class="text-body-large text-on-surface-variant">{buyer ? 'Chưa có đơn mua nào.' : 'Chưa có đơn bán nào.'}</p>
-            <a href={R.home} class={btnCls('line')}>Khám phá tin đang bán</a>
-          </div>
-        )
-      }
+      <div class="flex flex-col gap-3" data-orders data-skeleton-kind="row" data-skeleton-count="4">
+        {
+          items.length ? (
+            items.map((it, i) => <OrderRow item={it} role={role} loading={i < 5 ? 'eager' : 'lazy'} />)
+          ) : (
+            <div class:list={[PANEL, 'flex flex-col items-center gap-3 px-6 py-12 text-center']}>
+              <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+                <Icon name="receipt-long-outline-rounded" size={24} />
+              </span>
+              <p class="text-body-large text-on-surface-variant">{buyer ? 'Chưa có đơn mua nào.' : 'Chưa có đơn bán nào.'}</p>
+              <a href={R.home} class={btnCls('line')}>Khám phá tin đang bán</a>
+            </div>
+          )
+        }
+      </div>
       {
         (paged || screen.next_cursor) && (
           <div class="mt-2 flex justify-center gap-2">
             {paged && <a href={here} class={btnCls('ghost')}>Mới nhất</a>}
             {screen.next_cursor && (
-              <a href={`${here}?after=${screen.next_cursor}`} class={btnCls('line')}>
+              <a href={`${here}?after=${screen.next_cursor}`} class={btnCls('line')} data-more={rows}>
                 Xem thêm đơn
                 <Icon name="keyboard-arrow-down-rounded" size={17} />
               </a>
@@ -65,6 +70,7 @@ const tab = 'flex h-8 items-center rounded-sm px-4 text-title-small text-sub ari
           </div>
         )
       }
+      <Skeleton kind="row" />
     </section>
     <aside class="flex flex-col gap-4 self-start xl:sticky-fit xl:sticky xl:top-[80px] xl:-m-1 xl:p-1">
       {
@@ -109,3 +115,8 @@ const tab = 'flex h-8 items-center rounded-sm px-4 text-title-small text-sub ari
     </aside>
   </div>
 </AccountFrame>
+
+<script>
+  import '../../lib/more';
+  import '../../lib/pending';
+</script>
