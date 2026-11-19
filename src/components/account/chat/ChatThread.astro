@@ -4,6 +4,7 @@
 // goes above the messages. lib/chat-pane drives it.
 import type { ThreadItem } from '../../../lib/messages';
 import Icon from '../../Icon.astro';
+import Skeleton from '../../Skeleton.astro';
 import Thread from './Thread.astro';
 
 interface Props {
@@ -43,4 +44,5 @@ const { items, me, other, next, last, marked, empty, photo } = Astro.props;
     <Icon name="arrow-downward-rounded" size={16} />
     Có tin mới
   </button>
+  <Skeleton kind="bubbles" />
 </div>

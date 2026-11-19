@@ -10,6 +10,7 @@
 import Icon from '../Icon.astro';
 import Avatar from '../Avatar.astro';
 import Photo from '../Photo.astro';
+import Skeleton from '../Skeleton.astro';
 import { group } from '../../lib/format';
 
 interface Props {
@@ -63,7 +64,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
   </div>
 
   <div class="contents" data-qc-pane>
-    <p class="m-auto text-body-medium text-on-surface-variant">Đang mở…</p>
+    <div class="flex min-h-0 flex-1 flex-col px-5"><Skeleton kind="bubbles" inline /></div>
   </div>
 
   <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto px-3 pb-1" data-qc-chips>
@@ -135,6 +136,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
   import { mountChatPane } from '../../lib/chat-pane';
   import { group } from '../../lib/format';
   import { R, loginHref } from '../../lib/routes';
+  import { failure } from '../../lib/skeleton';
 
   const box = document.querySelector<HTMLDialogElement>('[data-qc]');
   if (box) {
@@ -161,16 +163,29 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
       if (meta?.dataset.chat) full.href = `${R.messages}?${new URLSearchParams({ chat: meta.dataset.chat, deal: meta.dataset.deal ?? '' })}`;
     };
 
-    // The pane loads on the first open and then follows the chat by itself.
+    // The pane loads on the first open and then follows the chat by itself;
+    // one that did not load offers "Thử lại".
+    const slot = $('[data-qc-pane]');
+    const waiting = [...slot.childNodes];
     let loaded: Promise<void> | null = null;
     const load = () =>
       (loaded ??= (async () => {
-        const res = await fetch(paneUrl(), { headers: { accept: 'text/html' } });
-        if (res.redirected || res.status === 401) {
+        const res = await fetch(paneUrl(), { headers: { accept: 'text/html' } }).catch(() => null);
+        if (res?.redirected || res?.status === 401) {
           location.href = loginHref(location.pathname);
           return;
         }
-        $('[data-qc-pane]').innerHTML = await res.text();
+        if (!res?.ok) {
+          loaded = null;
+          const retry = failure(() => {
+            slot.replaceChildren(...waiting);
+            load();
+          });
+          retry.classList.add('m-auto');
+          slot.replaceChildren(retry);
+          return;
+        }
+        slot.innerHTML = await res.text();
         synced();
         mountChatPane({
           root: box,

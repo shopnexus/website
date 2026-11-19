@@ -26,7 +26,8 @@ const thumb = c.deal?.listing.cover_thumb_url;
 
 <a
   href={chatHref(c.id, c.deal?.id)}
-  class:list={['flex gap-3 rounded-tile p-3', selected ? 'bg-card shadow-soft' : 'hover:bg-card/70']}
+  class="flex gap-3 rounded-tile p-3 hover:bg-card/70 aria-[current]:bg-card aria-[current]:shadow-soft"
+  data-pending="[data-chat-slot]"
   data-open={c.id}
   data-role={role}
   data-unread={unread ? '' : undefined}

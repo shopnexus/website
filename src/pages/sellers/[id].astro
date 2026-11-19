@@ -199,6 +199,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
 
 <script>
   import { API } from '../../lib/routes';
+  import { snack } from '../../lib/snackbar';
   import { toggleRemote } from '../../lib/toggle';
 
   // "Đánh giá" jumps to the reviews; Khi bán and Khi mua switch their pane. "Theo dõi" follows through /api/follows/<id>;
@@ -218,7 +219,9 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
     b.addEventListener('click', async () => {
       const on = b.getAttribute('aria-pressed') !== 'true';
       show(b, on);
-      if (!(await toggleRemote(API.follows(b.dataset.follow!), on))) show(b, !on);
+      if (await toggleRemote(API.follows(b.dataset.follow!), on)) return;
+      show(b, !on);
+      snack({ text: 'Chưa đổi được. Thử lại sau.', icon: 'error-outline-rounded', error: true });
     }),
   );
 </script>

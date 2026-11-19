@@ -27,6 +27,7 @@ import { activeText, chatHref, errorCode, errorText, loadMessages, openDeal, per
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { CONTENT_WIDE, btnCls } from '../lib/ui';
+import Skeleton from '../components/Skeleton.astro';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
@@ -256,7 +257,7 @@ const detail = !!(chat || start || confirm);
 
       {
         chat ? (
-          <section class={pane} data-chat={chat.id} data-other={other}>
+          <section class={pane} data-chat={chat.id} data-other={other} data-chat-slot data-skeleton-kind="chat">
             <PaneHead
               title={deal?.listing.title ?? other}
               name={other}
@@ -380,7 +381,7 @@ const detail = !!(chat || start || confirm);
             )}
           </section>
         ) : confirm ? (
-          <section class={pane}>
+          <section class={pane} data-chat-slot data-skeleton-kind="chat">
             <div class="flex h-16 items-center gap-3 border-b border-line px-4">
               <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư">
                 <Icon name="chevron-left-rounded" size={24} />
@@ -401,7 +402,7 @@ const detail = !!(chat || start || confirm);
             </form>
           </section>
         ) : start ? (
-          <section class={pane}>
+          <section class={pane} data-chat-slot data-skeleton-kind="chat">
             <div class="flex h-16 items-center gap-3 border-b border-line px-4">
               <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư">
                 <Icon name="chevron-left-rounded" size={24} />
@@ -430,7 +431,7 @@ const detail = !!(chat || start || confirm);
             </div>
           </section>
         ) : (
-          <section class:list={[pane, 'items-center justify-center gap-3 p-6 text-center max-lg:hidden']}>
+          <section class:list={[pane, 'items-center justify-center gap-3 p-6 text-center max-lg:hidden']} data-chat-slot data-skeleton-kind="chat">
             {error ? (
               <Notice text={errorText(error)} class="max-w-md">
                 {error === 'phone_required' && (
@@ -453,7 +454,7 @@ const detail = !!(chat || start || confirm);
 
       {
         chat && (
-          <aside class={side} data-part="side">
+          <aside class={side} data-part="side" data-chat-slot data-skeleton-kind="none">
             {chat.deals.map((d) => (
               <DealCard deal={d} other={chat.other} hidden={d.id !== deal?.id} />
             ))}
@@ -481,6 +482,7 @@ const detail = !!(chat || start || confirm);
         </div>
       )
     }
+    <Skeleton kind="chat" />
   </main>
   {
     chat && !official && (
@@ -493,6 +495,7 @@ const detail = !!(chat || start || confirm);
 <script>
   import { group } from '../lib/format';
   import { mountChatPane } from '../lib/chat-pane';
+  import '../lib/pending';
 
   const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
   const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
