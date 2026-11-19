@@ -1,4 +1,13 @@
-import { THEME_COOKIE } from './session';
+import type { AstroGlobal } from 'astro';
+
+/** "Giao diện tối" on Tôi: light or dark, or nothing to follow the system. A
+ * cookie, so the server renders the chosen theme and the page does not flash. */
+const THEME_COOKIE = 'sn_theme';
+
+export function theme(ctx: Pick<AstroGlobal, 'cookies'>): 'light' | 'dark' | undefined {
+  const t = ctx.cookies.get(THEME_COOKIE)?.value;
+  return t === 'light' || t === 'dark' ? t : undefined;
+}
 
 /** The theme picks on Tôi and in the account menu, in their order. */
 export const THEMES = ['Theo hệ thống', 'Sáng', 'Tối'];

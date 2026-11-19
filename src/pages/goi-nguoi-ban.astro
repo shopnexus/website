@@ -8,12 +8,12 @@ import Price from '../components/Price.astro';
 import Layout from '../layouts/Layout.astro';
 import { PAY_WAYS, PLANS, TIERS } from '../data/flows';
 import { R } from '../lib/routes';
-import { viewer } from '../lib/session';
+import { loginUrl, viewer } from '../lib/session';
 import { btnCls, CONTENT, PANEL } from '../lib/ui';
 
 const me = viewer(Astro);
 const chosen = 1;
-const confirmHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(R.plans)}`;
+const confirmHref = me ? undefined : loginUrl(Astro.url);
 ---
 
 <Layout title="Gói người bán · ShopNexus" description="Thêm lượt đẩy và thống kê cho người bán thường xuyên. Gói Cơ bản miễn phí.">

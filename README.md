@@ -17,7 +17,9 @@ bun run dev
 holds the mascot art, the favicon and the app icons; pages import them as
 `@brand/<name>`, for example `@brand/art_deal.webp`.
 
-`API_URL` points at the Go server and defaults to `http://localhost:8080/v1`. Astro reads it at runtime, so one image runs in the dev and prod stacks.
+`API_URL` is the Go server's origin and defaults to `http://localhost:8080`. Astro reads it at runtime, so one image runs in the dev and prod stacks. Pages call the server through `src/lib/api/client.ts`, typed from `src/lib/api/schema.d.ts`. After the server's `api/` changes, `bun run api` writes that file again from `../server/api`, and `bun run api:check` fails while it is out of date.
+
+The buyer's access and refresh tokens are httpOnly cookies. `src/middleware.ts` refreshes the access token when its cookie has expired, and the browser never reads either token.
 
 `bun run check` type-checks the project and `bun run build` writes the server to `dist/`.
 

@@ -1,7 +1,6 @@
 ---
-import Photo from '../../Photo.astro';
-// A person's face, or their initial on one of the app's four tones (by the name's hash).
-import { img } from '../../../lib/format';
+import Photo from './Photo.astro';
+// A person's face from its URL, or their initial on one of the app's four tones (by the name's hash).
 
 interface Props {
   name: string;
@@ -25,7 +24,7 @@ const style = `width:${size}px;height:${size}px`;
 
 {
   photo ? (
-    <Photo src={img(photo, size * 2, size * 2)} width={size * 2} height={size * 2} alt="" loading={loading} class:list={['shrink-0 rounded-full object-cover', cls]} style={style} />
+    <Photo src={photo} width={size * 2} height={size * 2} alt="" loading={loading} class:list={['shrink-0 rounded-full object-cover', cls]} style={style} />
   ) : (
     <span class:list={['grid shrink-0 place-items-center rounded-full text-label-medium', tone, cls]} style={style} aria-hidden="true">
       {name[0]}

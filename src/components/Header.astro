@@ -6,10 +6,11 @@ import brandMark from '@brand/brand_mark.svg';
 import { CATEGORY_INDEX } from '../data/public';
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
-import { theme, viewer } from '../lib/session';
-import { THEMES } from '../lib/theme';
+import { loginUrl, viewer } from '../lib/session';
+import { THEMES, theme } from '../lib/theme';
 import { BAR } from '../lib/ui';
 import Icon from './Icon.astro';
+import Avatar from './Avatar.astro';
 import Photo from './Photo.astro';
 import Popover from './Popover.astro';
 import Seg from './Seg.astro';
@@ -109,7 +110,7 @@ const account = [
               class="state-layer ml-1 flex h-10 shrink-0 items-center gap-0.5 rounded-full pl-1 pr-1.5 hover:bg-hover"
               aria-label="Tài khoản"
             >
-              <Photo src={img(me.photo, 80, 80)} width={80} height={80} alt="" class="h-8 w-8 rounded-full object-cover" />
+              <Avatar name={me.name} photo={me.photo} size={32} />
               <Icon name="keyboard-arrow-down-rounded" size={16} class="text-faint" />
             </button>
           </>
@@ -120,7 +121,7 @@ const account = [
               Đăng tin
             </a>
             <a
-              href={`${R.login}?tiep=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`}
+              href={loginUrl(Astro.url, Astro.locals.session.ended)}
               class="state-layer ml-1 flex h-10 items-center rounded-control border border-field bg-card px-4 text-title-small text-ink hover:bg-hover"
             >
               Đăng nhập
@@ -187,10 +188,10 @@ const account = [
   me && (
     <Popover id="hdr-me" align="end" class="w-[320px]" label="Tài khoản">
       <a href={R.me} class="state-layer flex items-center gap-3 rounded-control p-2 hover:bg-hover">
-        <Photo src={img(me.photo, 96, 96)} width={96} height={96} alt="" class="h-11 w-11 rounded-full object-cover" />
+        <Avatar name={me.name} photo={me.photo} size={44} />
         <span class="min-w-0 flex-1">
           <span class="block text-title-medium">{me.name}</span>
-          <span class="block text-body-small text-faint">Xem trang của bạn · ★ {me.rating}</span>
+          <span class="block text-body-small text-faint">Xem trang của bạn</span>
         </span>
         <Icon name="chevron-right-rounded" size={18} class="text-faint" />
       </a>

@@ -8,6 +8,8 @@ import SettingsFrame from '../../components/account/SettingsFrame.astro';
 import SideList from '../../components/account/SideList.astro';
 import { PRIVACY } from '../../data/account';
 import { LISTINGS } from '../../data/listings';
+import Avatar from '../../components/Avatar.astro';
+import { ME } from '../../data/common';
 import { img } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
@@ -16,7 +18,7 @@ import { LABEL, PANEL } from '../../lib/ui';
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
 
-const seen = ['Tên và ảnh đại diện', `Khu vực: ${v.area}`, 'Hạng uy tín và đánh giá', 'Các tin bạn đăng'];
+const seen = ['Tên và ảnh đại diện', `Khu vực: ${ME.area}`, 'Hạng uy tín và đánh giá', 'Các tin bạn đăng'];
 const hidden = ['Số điện thoại', 'Địa chỉ nhà, công ty', 'CCCD và ảnh khuôn mặt'];
 const thumbs = [LISTINGS[5], LISTINGS[9], LISTINGS[4]].map((l) => l.photo);
 ---
@@ -53,13 +55,13 @@ const thumbs = [LISTINGS[5], LISTINGS[9], LISTINGS[4]].map((l) => l.photo);
       </div>
       <div class="rounded-card border border-line bg-card p-4 shadow-soft md:col-span-2 xl:col-span-1">
         <div class="flex items-center gap-3">
-          <Photo src={img(v.photo, 120, 120)} width={120} height={120} alt="" class="h-12 w-12 rounded-full object-cover" />
+          <Avatar name={v.name} photo={v.photo} size={48} />
           <div class="min-w-0">
             <p class="flex items-center gap-1 text-title-medium font-semibold text-ink">
               {v.name}<Icon name="verified-rounded" size={16} class="text-primary" />
             </p>
             <p class="flex items-center gap-1 text-body-small text-on-surface-variant">
-              Bình Thạnh · <Icon name="star-rounded" size={12} class="text-star" />{v.rating} · Tin cậy
+              Bình Thạnh · <Icon name="star-rounded" size={12} class="text-star" />{ME.rating} · Tin cậy
             </p>
           </div>
         </div>

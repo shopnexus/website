@@ -26,6 +26,9 @@ const NEAR_KM = 10;
 /** 1.250.000 */
 export const group = (n: number) => Math.round(n).toLocaleString('de-DE');
 
+/** Seconds as a countdown: 0:45. */
+export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
 /** 1,2 */
 export const decimal = (n: number, digits = 1) =>
   n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: digits });

@@ -11,11 +11,12 @@ import AccountShell from '../../components/account/AccountShell.astro';
 import Ring from '../../components/account/Ring.astro';
 import Row from '../../components/account/Row.astro';
 import { MY_LISTINGS } from '../../data/account';
-import { ADDRESS_BOOK, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
+import { ADDRESS_BOOK, ME, PROFILE_TASKS, TASKS_DONE } from '../../data/common';
+import Avatar from '../../components/Avatar.astro';
 import { img } from '../../lib/format';
 import { R } from '../../lib/routes';
-import { requireViewer, theme } from '../../lib/session';
-import { THEMES } from '../../lib/theme';
+import { requireViewer } from '../../lib/session';
+import { THEMES, theme } from '../../lib/theme';
 import { btnCls, LABEL, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
@@ -43,14 +44,14 @@ const settings = [
   <div class:list={[PANEL, 'p-5 md:p-6']}>
     <div class="flex flex-wrap items-center gap-5">
       <div class="relative shrink-0">
-        <Photo src={img(v.photo, 176, 176)} width={176} height={176} alt="" class="h-[88px] w-[88px] rounded-full object-cover ring-4 ring-card" />
+        <Avatar name={v.name} photo={v.photo} size={88} class="ring-4 ring-card" />
         <Photo src={tierTrusted} alt="" class="absolute -bottom-1 -right-2 h-9 w-9" />
       </div>
       <div class="min-w-[200px] flex-1">
         <h1 class="text-j-32 text-ink">{v.name}</h1>
         <p class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-body-medium text-on-surface-variant">
-          <span class="flex items-center gap-1"><Icon name="star-rounded" size={15} class="text-star" />{v.rating} · 27 đánh giá</span>
-          <span class="flex items-center gap-1"><Icon name="location-on-outline-rounded" size={15} />{v.area}</span>
+          <span class="flex items-center gap-1"><Icon name="star-rounded" size={15} class="text-star" />{ME.rating} · 27 đánh giá</span>
+          <span class="flex items-center gap-1"><Icon name="location-on-outline-rounded" size={15} />{ME.area}</span>
           <span class="flex items-center gap-1"><Icon name="verified-rounded" size={15} class="text-primary" />Đã xác minh số điện thoại</span>
         </p>
         <span class="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-label-large text-primary">
@@ -117,7 +118,7 @@ const settings = [
                 width={112}
                 height={112}
                 alt=""
-                loading={i < 3 ? 'eager' : 'lazy'}
+                loading={i < 2 ? 'eager' : 'lazy'}
                 class:list={['h-14 w-14 shrink-0 rounded-field object-cover', l.kind === 'sold' && 'opacity-60']}
               />
               <span class="min-w-0 flex-1">

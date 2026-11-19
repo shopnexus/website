@@ -1,9 +1,13 @@
 import type { APIRoute } from 'astro';
 import { R } from '../lib/routes';
-import { SESSION_COOKIE } from '../lib/session';
+import { dropTokens } from '../lib/session';
 
-/** "Đăng xuất": clears the mock session and goes Home. */
-export const POST: APIRoute = ({ cookies, redirect }) => {
-  cookies.delete(SESSION_COOKIE, { path: '/' });
+/** "Đăng xuất": ends the session on the server, forgets the tokens and goes Home. */
+export const POST: APIRoute = async ({ cookies, locals, redirect }) => {
+  if (locals.session.token) {
+    // Signed out on the server already, or out of reach: the cookies go either way.
+    await locals.api.DELETE('/v1/auth/sessions/current').catch(() => {});
+  }
+  dropTokens(cookies);
   return redirect(R.home, 303);
 };

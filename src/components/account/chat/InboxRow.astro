@@ -4,7 +4,8 @@ import Photo from '../../Photo.astro';
 // last message and a status tag. A scam warning is the error shield on a neutral tag.
 import type { Conversation } from '../../../data/account';
 import Icon from '../../Icon.astro';
-import Avatar from './Avatar.astro';
+import Avatar from '../../Avatar.astro';
+import { img } from '../../../lib/format';
 
 interface Props {
   c: Conversation;
@@ -32,11 +33,11 @@ const role = c.role ?? (c.item ? 'buy' : 'none');
       <span class="relative h-12 w-12 shrink-0">
         <Photo src={c.thumb} width={160} height={160} alt="" loading={loading} class="h-12 w-12 rounded-md object-cover" />
         <span class="absolute -bottom-1 -right-1">
-          <Avatar name={c.name} photo={c.photo} size={24} class="ring-2 ring-card" loading={loading} />
+          <Avatar name={c.name} photo={c.photo && img(c.photo, 48)} size={24} class="ring-2 ring-card" loading={loading} />
         </span>
       </span>
     ) : (
-      <Avatar name={c.name} photo={c.photo} size={48} loading={loading} />
+      <Avatar name={c.name} photo={c.photo && img(c.photo, 96)} size={48} loading={loading} />
     )
   }
   <span class="min-w-0 flex-1">

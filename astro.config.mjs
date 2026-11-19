@@ -29,7 +29,7 @@ export default defineConfig({
       API_URL: envField.string({
         context: 'server',
         access: 'secret',
-        default: 'http://localhost:8080/v1',
+        default: 'http://localhost:8080',
       }),
     },
   },

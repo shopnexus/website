@@ -13,7 +13,7 @@ import Switch from '../Switch.astro';
 import { SELL } from '../../data/flows';
 import { crop, decimal, group } from '../../lib/format';
 import { R } from '../../lib/routes';
-import { viewer } from '../../lib/session';
+import { loginUrl, viewer } from '../../lib/session';
 import { btnCls, PANEL } from '../../lib/ui';
 
 const me = viewer(Astro);
@@ -45,7 +45,7 @@ const deal = [
   { icon: 'location-on-outline-rounded', title: 'Bình Thạnh', sub: 'Chỉ hiện quận', action: R.addresses },
 ];
 const badge = 'grid shrink-0 place-items-center rounded-full bg-brand text-white';
-const postHref = me ? undefined : `${R.login}?tiep=${encodeURIComponent(Astro.url.pathname)}`;
+const postHref = me ? undefined : loginUrl(Astro.url);
 ---
 
 <div class="flex flex-wrap items-end justify-between gap-4 pt-8">
