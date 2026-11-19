@@ -10,6 +10,7 @@
 import Icon from '../Icon.astro';
 import Avatar from '../Avatar.astro';
 import Photo from '../Photo.astro';
+import Skeleton from '../Skeleton.astro';
 import { group } from '../../lib/format';
 
 interface Props {
@@ -63,7 +64,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
   </div>
 
   <div class="contents" data-qc-pane>
-    <span class="spinner m-auto text-primary" role="status" aria-label="Đang mở chat"></span>
+    <div class="flex min-h-0 flex-1 flex-col px-5"><Skeleton kind="bubbles" inline /></div>
   </div>
 
   <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto px-3 pb-1" data-qc-chips>
@@ -136,7 +137,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
   import { mountChatPane } from '../../lib/chat-pane';
   import { group } from '../../lib/format';
   import { R, loginHref } from '../../lib/routes';
-  import { snack } from '../../lib/snackbar';
+  import { failure } from '../../lib/skeleton';
 
   const box = document.querySelector<HTMLDialogElement>('[data-qc]');
   if (box) {
@@ -164,7 +165,9 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
     };
 
     // The pane loads on the first open and then follows the chat by itself.
-    // Resolves to whether it is in; a failure closes the box so a tap tries again.
+    // Resolves to whether it is in; one that did not load offers "Thử lại".
+    const slot = $('[data-qc-pane]');
+    const waiting = [...slot.childNodes];
     let loaded: Promise<boolean> | null = null;
     const load = () =>
       (loaded ??= (async () => {
@@ -175,11 +178,15 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
         }
         if (!res?.ok) {
           loaded = null;
-          close();
-          snack({ text: 'Chưa mở được chat. Thử lại sau.', error: true });
+          const retry = failure(() => {
+            slot.replaceChildren(...waiting);
+            load();
+          });
+          retry.classList.add('m-auto');
+          slot.replaceChildren(retry);
           return false;
         }
-        $('[data-qc-pane]').innerHTML = await res.text();
+        slot.innerHTML = await res.text();
         synced();
         mountChatPane({
           root: box,

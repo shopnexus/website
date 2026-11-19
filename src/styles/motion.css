@@ -419,9 +419,10 @@ details[data-faq] {
 
 /* ---------------------------------------------------------- skeletons -- */
 /* A block standing in for content that is on its way: the placeholder tone
-   with a soft band of light sweeping across it. ListingSkeleton.astro is a
-   card made of them. */
-.skeleton {
+   with a soft band of light sweeping across it. Skeleton.astro and
+   ListingSkeleton.astro are made of them; lib/skeleton.ts shows them. */
+.skeleton,
+[data-stale] {
   background: var(--md-surface-container-high);
   background-image: linear-gradient(
     100deg,
@@ -432,6 +433,18 @@ details[data-faq] {
   background-size: 220% 100%;
   background-repeat: no-repeat;
   animation: shimmer 1.3s linear infinite;
+}
+/* A region waiting keeps its height; its skeletons stay at the top. */
+:not(button, label, a)[aria-busy="true"] {
+  align-content: start;
+}
+/* A value being read again hides its old text under the shimmer. */
+[data-stale] {
+  border-radius: 4px;
+  color: transparent;
+  & * {
+    visibility: hidden;
+  }
 }
 /* A photo that has not loaded yet shimmers the same way in its frame. */
 html.js :has(> img[data-fade]:not([data-loaded])) {
@@ -459,6 +472,7 @@ html.js :has(> img[data-fade]:not([data-loaded])) {
 }
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
+  [data-stale],
   html.js :has(> img[data-fade]:not([data-loaded])) {
     animation: none;
   }

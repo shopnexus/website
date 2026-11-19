@@ -22,7 +22,7 @@ const next = m.inbox.next_cursor;
 const more = (after: string) => `${R.messages}?${new URLSearchParams({ ...(m.archived ? { archived: '' } : {}), ...(open ? { chat: open } : {}), after })}`;
 ---
 
-<div class="no-scrollbar mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-inbox data-part="inbox" data-unread-total={m.inbox.unread}>
+<div class="no-scrollbar mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-pending-group data-inbox data-part="inbox" data-unread-total={m.inbox.unread}>
   {
     m.q ? (
       !m.found ? (
@@ -36,7 +36,7 @@ const more = (after: string) => `${R.messages}?${new URLSearchParams({ ...(m.arc
           ))}
           {m.found.messages.length > 0 && <p class="px-3 pt-3 text-label-medium text-on-surface-variant">Tin nhắn</p>}
           {m.found.messages.map((h) => (
-            <a href={chatHref(h.conversation_id)} class="flex gap-3 rounded-tile p-3 hover:bg-card/70">
+            <a href={chatHref(h.conversation_id)} class="flex gap-3 rounded-tile p-3 hover:bg-card/70" data-pending="[data-chat-slot]">
               <Avatar name={personName(h.other)} photo={h.other.avatar_url} size={40} loading="lazy" />
               <span class="min-w-0 flex-1">
                 <span class="flex items-baseline gap-2">

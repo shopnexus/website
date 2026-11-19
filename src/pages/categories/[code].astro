@@ -67,14 +67,12 @@ const items = view?.items.map(card) ?? [];
             return (
               <a
                 href={searchHref(s, { category: p.code }, base)}
+                data-pending="[data-grid],[data-list]"
                 aria-current={on ? 'true' : undefined}
-                class:list={[
-                  'state-layer flex h-9 shrink-0 items-center gap-1.5 rounded-control px-3 text-label-large',
-                  on ? 'border border-brand bg-mint text-on-mint' : 'border border-line bg-card text-ink',
-                ]}
+                class="group state-layer flex h-9 shrink-0 items-center gap-1.5 rounded-control border border-line bg-card px-3 text-label-large text-ink aria-[current]:border-brand aria-[current]:bg-mint aria-[current]:text-on-mint"
               >
                 {p.name}
-                <span class:list={['text-label-small tabular-nums', on ? 'text-on-mint/70' : 'text-faint']}>{group(p.count)}</span>
+                <span class="text-label-small tabular-nums text-faint group-aria-[current]:text-on-mint/70">{group(p.count)}</span>
               </a>
             );
           })}
@@ -88,3 +86,7 @@ const items = view?.items.map(card) ?? [];
     </Layout>
   )
 }
+
+<script>
+  import '../../lib/pending';
+</script>

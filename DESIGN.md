@@ -148,11 +148,17 @@ every page.
   ảnh" opens a full-window viewer on the same photo, and closing it leaves
   the gallery on the photo the viewer ended on. Going back from the listing
   flies the photo in view, not the first one, into its card.
-- While a feed page is on its way, `ListingSkeleton` cards hold its place:
-  the card's frame with a shimmering photo and three lines. They appear only
-  after 80 ms and then stay at least 350 ms, so a fast answer does not flash
-  them. The cards that replace them fade in. A listing photo that has not
-  loaded shimmers in its frame the same way.
+- While a list or a pane is on its way, skeletons from `Skeleton.astro` hold
+  its place: listing cards, rows, notice lines or chat bubbles in the
+  `.skeleton` shimmer. They appear only after 80 ms and then stay at least
+  350 ms, so a fast answer does not flash them (`src/lib/skeleton.ts`). The
+  items that replace them fade in. A region that did not load shows "Chưa tải
+  được." with "Thử lại". A listing photo that has not loaded shimmers in its
+  frame the same way, and so does a shipping fee being read again.
+- A sort, filter, tab or chat row that opens another page (`data-pending`)
+  turns current at once, and skeletons fill the region that page will
+  replace. "Xem thêm" appends the next page under the current one
+  (`data-more`).
 - A carousel row snaps its items to the start and fades the edge that hides
   more items. On a mouse two arrows beside the heading page it by 85 % of its
   width on the spatial spring; on touch the row scrolls directly.

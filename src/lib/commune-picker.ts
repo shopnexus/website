@@ -6,8 +6,11 @@ import { API } from './routes';
 export function wireCommunes(province: HTMLSelectElement | null, commune: HTMLSelectElement | null, onFill?: () => void) {
   province?.addEventListener('change', async () => {
     if (!commune) return;
-    commune.replaceChildren(new Option('Đang tải…', '', true, true));
+    // Off until the province's communes are in.
+    commune.replaceChildren(new Option('Chọn phường, xã', '', true, true));
+    commune.disabled = true;
     const res = await fetch(API.communes(province.value)).catch(() => null);
+    commune.disabled = false;
     const items: { code: string; name: string }[] = res?.ok ? await res.json() : [];
     const first = new Option(items.length ? 'Chọn phường, xã' : 'Chưa tải được. Chọn lại tỉnh.', '', true, true);
     first.disabled = true;

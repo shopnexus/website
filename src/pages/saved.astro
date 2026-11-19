@@ -4,6 +4,7 @@
 import Notice from '../components/Notice.astro';
 import Icon from '../components/Icon.astro';
 import PageTitle from '../components/PageTitle.astro';
+import Skeleton from '../components/Skeleton.astro';
 import AccountFrame from '../components/orders/AccountFrame.astro';
 import SavedCard from '../components/orders/SavedCard.astro';
 import { ApiError, orNull, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
@@ -146,7 +147,7 @@ const count = `${saved.items.length}${saved.next_cursor ? '+' : ''} tin`;
     saved.items.length ? (
       <section class="mt-6">
         {!after && watches.length > 0 && <h2 class="mb-2 pl-1 text-title-small text-ink">Tin đã lưu</h2>}
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5" data-saved data-skeleton-kind="card" data-skeleton-count="5">
           {saved.items.map((it, i) => (
             <SavedCard it={it} loading={i < 8 ? 'eager' : 'lazy'} />
           ))}
@@ -172,7 +173,7 @@ const count = `${saved.items.length}${saved.next_cursor ? '+' : ''} tin`;
           </a>
         )}
         {saved.next_cursor && (
-          <a href={`?${new URLSearchParams({ after: saved.next_cursor })}`} class={btnCls('line')}>
+          <a href={`?${new URLSearchParams({ after: saved.next_cursor })}`} class={btnCls('line')} data-more="[data-saved]">
             Xem thêm tin
             <Icon name="keyboard-arrow-down-rounded" size={17} />
           </a>
@@ -180,9 +181,11 @@ const count = `${saved.items.length}${saved.next_cursor ? '+' : ''} tin`;
       </div>
     )
   }
+  <Skeleton kind="card" />
 </AccountFrame>
 
 <script>
+  import '../lib/more';
   import { API } from '../lib/routes';
   import { snack } from '../lib/snackbar';
   import { toggleRemote } from '../lib/toggle';

@@ -17,6 +17,7 @@ import { CARRIER, TICKET_KIND, at, isCarrier, orderError, ticketSubject } from '
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { btnCls, CONTENT_WIDE, PANEL } from '../lib/ui';
+import Skeleton from '../components/Skeleton.astro';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
@@ -112,7 +113,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 
     <div class="mt-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:h-[660px] xl:grid-cols-[340px_minmax(0,1fr)_300px]">
       <div class="flex flex-col gap-4">
-        <section class="flex flex-col rounded-panel border border-line bg-card p-3" data-part="tickets">
+        <section class="flex flex-col rounded-panel border border-line bg-card p-3" data-part="tickets" data-pending-group>
           {!list.length && <p class="px-2 py-3 text-body-medium text-on-surface-variant">Chưa có yêu cầu nào</p>}
           {
             [open, done].map((group, g) =>
@@ -128,12 +129,13 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                           href={`${R.support}?ticket=${t.ticket.id}`}
                           aria-current={sel ? 'true' : undefined}
                           data-conv={t.ticket.conversation_id}
-                          class:list={['flex gap-3 rounded-tile p-2.5', sel ? 'bg-card shadow-soft ring-1 ring-line' : 'hover:bg-hover']}
+                          data-pending="[data-chat-slot]"
+                          class="group flex gap-3 rounded-tile p-2.5 hover:bg-hover aria-[current]:bg-card aria-[current]:shadow-soft aria-[current]:ring-1 aria-[current]:ring-line"
                         >
                           <span
                             class:list={[
-                              'grid h-10 w-10 shrink-0 place-items-center rounded-full',
-                              sel ? 'bg-brand text-white' : g === 0 ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-low text-on-surface-variant',
+                              'grid h-10 w-10 shrink-0 place-items-center rounded-full group-aria-[current]:bg-brand group-aria-[current]:text-white',
+                              g === 0 ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-low text-on-surface-variant',
                             ]}
                           >
                             <Icon name={k.icon} size={20} />
@@ -174,7 +176,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
         </section>
       </div>
 
-      <section class:list={[PANEL, 'flex min-h-[480px] flex-col overflow-hidden xl:h-full']} data-chat={chat?.id}>
+      <section class:list={[PANEL, 'flex min-h-[480px] flex-col overflow-hidden xl:h-full']} data-chat={chat?.id} data-chat-slot data-skeleton-kind="chat">
         {
           creating || !ticket ? (
             <form method="post" action={R.support} class="flex flex-1 flex-col gap-4 overflow-y-auto p-5 md:p-6">
@@ -273,7 +275,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 
       {
         ticket && !creating && (
-          <aside class="flex flex-col gap-4 lg:col-span-2 lg:grid lg:grid-cols-2 xl:col-span-1 xl:flex" data-part="side">
+          <aside class="flex flex-col gap-4 lg:col-span-2 lg:grid lg:grid-cols-2 xl:col-span-1 xl:flex" data-part="side" data-chat-slot data-skeleton-kind="none">
             {ticket.order && (
               <div class:list={[PANEL, 'p-4']}>
                 <p class="text-label-medium text-on-surface-variant">Đơn trong yêu cầu</p>
@@ -320,11 +322,13 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
         )
       }
     </div>
+    <Skeleton kind="chat" />
   </main>
 </Layout>
 
 <script>
   import { mountChatPane } from '../lib/chat-pane';
+  import '../lib/pending';
 
   // The chat is lib/chat-pane's, as on Tin nhắn; a change to another ticket's chat refreshes the list.
   mountChatPane({

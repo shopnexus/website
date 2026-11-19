@@ -196,23 +196,30 @@ const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-
 }
 
 <script>
+  import { stale } from '../../lib/skeleton';
   // Ask the partial (/orders/<id>/ship) for the fees and the preview as the
-  // fields change, and put them in. The address keeps the fields for a reload.
+  // fields change, and put them in; the old ones shimmer meanwhile. The
+  // address keeps the fields for a reload.
   const form = document.querySelector<HTMLFormElement>('[data-ship]');
   if (form) {
     form.querySelector<HTMLElement>('[data-refresh]')!.hidden = true;
     let timer = 0;
     let run = 0;
+    const reads = () => [...form.querySelectorAll<HTMLElement>('[data-fee], [data-part]')];
     const refresh = async () => {
       const mine = ++run;
       const q = new URLSearchParams();
       for (const [k, v] of new FormData(form)) if (k !== 'key' && k !== 'do') q.set(k, String(v));
       const url = `${location.pathname}?${q}`;
+      const dim = stale(reads());
       const res = await fetch(`${location.pathname}/ship?${q}&price=${form.dataset.price}`, { headers: { accept: 'text/html' } }).catch(() => null);
-      if (!res?.ok || mine !== run) return;
-      const doc = new DOMParser().parseFromString(await res.text(), 'text/html').querySelector('template')?.content;
+      const html = res?.ok ? await res.text() : '';
+      if (mine !== run) return;
+      await dim.end();
+      if (mine !== run) return;
+      const doc = new DOMParser().parseFromString(html, 'text/html').querySelector('template')?.content;
       if (!doc) return;
-      for (const el of form.querySelectorAll<HTMLElement>('[data-fee], [data-part]')) {
+      for (const el of reads()) {
         const sel = el.dataset.fee ? `[data-fee="${el.dataset.fee}"]` : `[data-part="${el.dataset.part}"]`;
         const fresh = doc.querySelector(sel);
         if (fresh) el.innerHTML = fresh.innerHTML;

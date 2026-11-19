@@ -13,7 +13,7 @@ const { label, remove = '#' } = Astro.props;
 
 <span class="flex h-8 shrink-0 items-center gap-1 rounded-full border border-field bg-card pl-3 pr-1 text-body-medium text-ink">
   {label}
-  <a href={remove} class="state-layer grid h-6 w-6 place-items-center rounded-full text-faint hover:bg-hover" aria-label={`Bỏ ${label}`}>
+  <a href={remove} data-pending="[data-grid],[data-list]" class="state-layer grid h-6 w-6 place-items-center rounded-full text-faint hover:bg-hover" aria-label={`Bỏ ${label}`}>
     <Icon name="close-rounded" size={13} />
   </a>
 </span>

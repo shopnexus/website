@@ -1,6 +1,7 @@
 import { busy, leaveWith } from './busy';
 import { idempotencyKey } from './key';
 import { connectSocket } from './socket';
+import { hold } from './skeleton';
 import { snack } from './snackbar';
 import { UploadError, uploadPhoto } from './upload';
 
@@ -311,13 +312,15 @@ export function mountChatPane(o: PaneOptions) {
     if (!b.dataset.older) return;
     b.disabled = true;
     busy(b);
+    const box = q('[data-older-pages]')!;
+    const h = hold(box, { kind: 'bubbles', at: 'prepend' });
     try {
       const res = await fetch(`/messages/older?${new URLSearchParams({ chat: chat(), cursor: b.dataset.older })}`, { headers: { accept: 'text/html' } });
       if (!res.ok) throw new Error(String(res.status));
       const holder = document.createElement('template');
       holder.innerHTML = await res.text();
       const page = holder.content.querySelector<HTMLTemplateElement>('template[data-older-page]')!;
-      const box = q('[data-older-pages]')!;
+      await h.end();
       const before = scroller!.scrollHeight;
       // A day split over the two pages keeps one heading.
       const firstDay = $('[data-day]', box) ?? q('[data-part="thread"] [data-day]');
@@ -328,6 +331,7 @@ export function mountChatPane(o: PaneOptions) {
       b.dataset.older = page.dataset.next ?? '';
       q('[data-older-wrap]')!.hidden = !b.dataset.older;
     } catch {
+      h.undo();
       snack({ text: 'Chưa tải được tin cũ hơn.', error: true });
     } finally {
       busy(b, false);

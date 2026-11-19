@@ -6,6 +6,7 @@ import PageTitle from '../components/PageTitle.astro';
 import Switch from '../components/Switch.astro';
 import AccountShell from '../components/account/AccountShell.astro';
 import Row from '../components/account/Row.astro';
+import Skeleton from '../components/Skeleton.astro';
 import { ApiError, orNull, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
 import { ago, dayLabel } from '../lib/format';
 import { R, localPath } from '../lib/routes';
@@ -157,7 +158,7 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
       )
     }
   </PageTitle>
-  <div class:list={[PANEL, 'p-3']}>
+  <div class:list={[PANEL, 'p-3']} data-notes data-skeleton-kind="line" data-skeleton-count="4">
     {
       groups.length === 0 ? (
         <div class="flex flex-col items-center px-6 py-12 text-center">
@@ -168,10 +169,10 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
           <p class="mt-1 text-body-medium text-on-surface-variant">Lời trả giá, đơn COD và tin giảm giá sẽ hiện ở đây.</p>
         </div>
       ) : (
-        groups.map(([day, items], i) => (
-          <section class:list={[i > 0 && 'mt-3 border-t border-line pt-3']}>
+        groups.map(([day, items]) => (
+          <section class="not-first:mt-3 not-first:border-t not-first:border-line not-first:pt-3" data-more-key={day}>
             <h2 class="px-3 pb-1 text-label-medium text-on-surface-variant">{day}</h2>
-            <ul class="flex flex-col gap-0.5">
+            <ul class="flex flex-col gap-0.5" data-more-items>
               {items.map((n) => {
                 const [icon, tone] = look(n.type);
                 const to = href(n.target);
@@ -222,7 +223,7 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
           </a>
         )}
         {listed.next_cursor && (
-          <a href={`?${new URLSearchParams({ after: listed.next_cursor })}`} class={btnCls('line')}>
+          <a href={`?${new URLSearchParams({ after: listed.next_cursor })}`} class={btnCls('line')} data-more="[data-notes]">
             Xem thêm
             <Icon name="keyboard-arrow-down-rounded" size={17} />
           </a>
@@ -230,6 +231,8 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
       </div>
     )
   }
+
+  <Skeleton kind="line" />
 
   <Fragment slot="side">
     <form method="post" id="settings" class:list={[PANEL, 'scroll-mt-24 p-4']}>
@@ -268,3 +271,7 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
     </form>
   </Fragment>
 </AccountShell>
+
+<script>
+  import '../lib/more';
+</script>
