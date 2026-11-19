@@ -1,0 +1,48 @@
+---
+// One review of a person: the reviewer, the stars, the order's listing and
+// the text, with the reviewed person's one reply under it.
+import type { components } from '../../lib/api/schema';
+import { ago } from '../../lib/format';
+import Avatar from '../Avatar.astro';
+import Stars from './Stars.astro';
+
+interface Props {
+  review: components['schemas']['Review'];
+  /** The reviewed person, who wrote the reply. */
+  subject: string;
+  /** Smaller, for the listing page's aside. */
+  compact?: boolean;
+  class?: string;
+}
+
+const { review: r, subject, compact = false, class: cls } = Astro.props;
+const who = r.role === 'seller' ? 'Người mua' : 'Người bán';
+// The reviewer bought from the subject, or sold to them.
+const deal = `${r.role === 'seller' ? 'Đã mua' : 'Đã bán'} ${r.listing.title}`;
+---
+
+<div class:list={['flex gap-3', cls]}>
+  <Avatar name={r.reviewer.display_name || who} photo={r.reviewer.avatar_url} size={compact ? 36 : 40} loading="lazy" />
+  <div class="min-w-0 flex-1">
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span class="text-title-small text-ink">{r.reviewer.deleted ? 'Tài khoản đã xóa' : r.reviewer.display_name}</span>
+      <Stars n={r.stars} size={compact ? 12 : 14} />
+      <span class="text-body-small text-on-surface-variant">{ago(r.created_at)} trước</span>
+      {
+        !compact && (
+          <span class="rounded-full bg-surface-container-low px-2.5 py-0.5 text-body-small text-on-surface-variant md:ml-auto">{deal}</span>
+        )
+      }
+    </div>
+    {r.text && <p class="mt-1 text-body-medium text-ink">{r.text}</p>}
+    {compact && <p class="mt-1 text-body-small text-faint">{deal}</p>}
+    {
+      r.reply && (
+        <div class="mt-2 rounded-control bg-surface-container-low px-3 py-2">
+          <p class="text-body-small text-on-surface-variant">{subject} trả lời</p>
+          <p class="text-body-medium text-ink">{r.reply.text}</p>
+        </div>
+      )
+    }
+  </div>
+</div>

@@ -11,7 +11,7 @@ import Photo from '../../components/Photo.astro';
 import Price from '../../components/Price.astro';
 import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
-import Stars from '../../components/public/Stars.astro';
+import ReviewItem from '../../components/public/ReviewItem.astro';
 import QuickChat from '../../components/public/QuickChat.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Layout from '../../layouts/Layout.astro';
@@ -271,19 +271,7 @@ const ld = it && {
                 </div>
                 <div class="mt-4 flex flex-col gap-4">
                   {reviews.map((r, i) => (
-                    <div class:list={['flex gap-3', i > 0 && 'border-t border-line pt-4']}>
-                      <Avatar name={r.buyer.display_name || 'Người mua'} photo={r.buyer.avatar_url} size={36} loading="lazy" />
-                      <div class="min-w-0">
-                        <p class="flex items-center gap-2 text-title-small text-ink">
-                          {r.buyer.deleted ? 'Tài khoản đã xóa' : r.buyer.display_name}
-                          <Stars n={r.stars} size={12} />
-                        </p>
-                        {r.text && <p class="mt-1 text-body-large leading-6 text-ink">{r.text}</p>}
-                        <p class="mt-1 text-body-small text-faint">
-                          {r.listing.title} · {ago(r.created_at)} trước
-                        </p>
-                      </div>
-                    </div>
+                    <ReviewItem review={r} subject={seller.display_name} compact class={i > 0 ? 'border-t border-line pt-4' : undefined} />
                   ))}
                 </div>
               </section>

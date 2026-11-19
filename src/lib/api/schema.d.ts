@@ -1979,10 +1979,13 @@ export interface paths {
         };
         get?: never;
         /**
-         * Review the seller of an order the caller bought, or edit the review.
-         * @description The order is shipped, completed or failed. A review changes, and a
-         *     deleted one is posted again, only within 7 days of its first
-         *     submission.
+         * Review the other party to an order, or edit the review.
+         * @description The buyer reviews the seller (role seller) and the seller the buyer
+         *     (role buyer). A first review needs the order completed or failed. It
+         *     stays hidden from the other party and the public until they review
+         *     too or 7 days after the order closed. A review changes, and a deleted
+         *     one is posted again, only within 7 days of its first submission and
+         *     before the other party replies.
          */
         put: operations["putReview"];
         post?: never;
@@ -2000,10 +2003,48 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** A seller's reviews, newest first. */
+        /** A seller's visible reviews, newest first; the same as /v1/accounts/{id}/reviews?role=seller. */
         get: operations["listSellerReviews"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/accounts/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A person's visible reviews in one role, newest first. */
+        get: operations["listAccountReviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reviews/{id}/reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The reviewed person's one reply, which closes the review.
+         * @description Only the subject replies, once, to a review they can see. After it the
+         *     reviewer can no longer edit or delete the review.
+         */
+        post: operations["replyReview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5255,7 +5296,12 @@ export interface components {
             /** @description ShopNexus itself, the other side of every support chat. */
             official?: boolean;
         };
-        /** @description The buyer's review state. Dates and id are null before the first submission. Deleted reviews carry no stars or text. The seven-day window starts at the original created_at; locked uses the same boundary as edits and deletion. */
+        ReviewReply: {
+            text: string;
+            /** Format: date-time */
+            at: string;
+        };
+        /** @description The caller's review of the other side of an order. Dates and id are null before the first submission. Deleted reviews carry no stars or text. The seven-day window starts at the original created_at; locked uses the same boundary as edits and deletion, and is true once the subject replied. */
         OwnReview: {
             /** @enum {string} */
             state: "none" | "active" | "deleted";
@@ -5267,9 +5313,31 @@ export interface components {
             updated_at: string | null;
             /** Format: date-time */
             change_until: string | null;
+            /**
+             * Format: date-time
+             * @description When the other side and the public see the review; it waits for their review or 7 days after the order closed.
+             */
+            visible_at: string | null;
             locked: boolean;
             stars?: number;
             text?: string;
+            reply?: components["schemas"]["ReviewReply"];
+        };
+        /** @description The other side's review of the caller. A hidden one carries only when it shows; a visible one carries its stars, text, date and reply. */
+        TheirReview: {
+            /** @enum {string} */
+            state: "hidden" | "visible";
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            visible_at: string;
+            /** Format: date-time */
+            created_at?: string;
+            stars?: number;
+            text?: string;
+            reply?: components["schemas"]["ReviewReply"];
+            /** @description Visible and without a reply. A reply closes the review for both sides. */
+            can_reply: boolean;
         };
         /** @enum {string} */
         TicketKind: "not_received" | "carrier_request" | "other";
@@ -5308,12 +5376,14 @@ export interface components {
             opened_at: string;
             events: components["schemas"]["TicketEvent"][];
         };
-        /** @description The selected order and its current deal. Buyer-only fields are absent for a seller. */
+        /** @description The selected order and its current deal, with the caller's review of the other party and theirs of the caller. The ticket is the buyer's only and absent for a seller. */
         OrderScreen: {
             order: components["schemas"]["Order"];
             deal: components["schemas"]["Deal"];
             counterpart: components["schemas"]["Person"];
-            own_review?: components["schemas"]["OwnReview"];
+            own_review: components["schemas"]["OwnReview"];
+            /** @description The other party's review of the caller; null when they have not reviewed or deleted it. */
+            their_review: components["schemas"]["TheirReview"] | null;
             ticket?: components["schemas"]["Ticket"] | null;
         };
         /** @description An order with its deal and its listing as it is now. */
@@ -5344,11 +5414,11 @@ export interface components {
             deal_id: string;
             listing: components["schemas"]["DealListing"];
         };
-        /** @description An order with the other party and, on the buyer's rows only, own_review. */
+        /** @description An order with the other party and the caller's review of them. */
         OrdersScreenItem: {
             order: components["schemas"]["OrderItem"];
             counterpart: components["schemas"]["Person"];
-            own_review?: components["schemas"]["OwnReview"];
+            own_review: components["schemas"]["OwnReview"];
         };
         OrdersScreen: {
             items: components["schemas"]["OrdersScreenItem"][];
@@ -5864,6 +5934,11 @@ export interface components {
              */
             next_cursor?: string;
         };
+        Rating: {
+            /** @description The average stars over every review of the seller; 0 without reviews. */
+            average: number;
+            count: number;
+        };
         ChatScreen: {
             /** Format: uuid */
             id: string;
@@ -5883,6 +5958,8 @@ export interface components {
             scam_warning?: components["schemas"]["ScamWarning"];
             /** @description Present for a support chat, whose other side is ShopNexus. */
             ticket?: components["schemas"]["Ticket"];
+            /** @description The other member's rating as a buyer; present when the caller sells to them in one of the deals. */
+            buyer_rating?: components["schemas"]["Rating"];
         };
         /** @description A subcategory under a root of the category tree. */
         HomeSubcategory: {
@@ -5984,11 +6061,6 @@ export interface components {
             /** @description Absent when signed out, without a listing opened in the last 30 days, or when the subcategory has no listing to show. */
             viewed?: components["schemas"]["HomeViewed"];
         };
-        Rating: {
-            /** @description The average stars over every review of the seller; 0 without reviews. */
-            average: number;
-            count: number;
-        };
         /** @description The seller of a listing, as the listing view shows them. */
         SellerSummary: {
             /** Format: uuid */
@@ -6044,7 +6116,10 @@ export interface components {
             bio: string;
             /** Format: date-time */
             joined_at: string;
+            /** @description The rating as a seller, which search and the seller head use. */
             rating: components["schemas"]["Rating"];
+            /** @description The rating as a buyer. */
+            buyer_rating: components["schemas"]["Rating"];
             /** @description Listings sold, through an order or marked by hand. */
             sold: number;
             /** @description Listings active or reserved for an order on its way. */
@@ -6068,16 +6143,22 @@ export interface components {
              */
             next_cursor?: string;
         };
+        /**
+         * @description The side the reviewed person was on. seller rates the person who sold, written by the buyer; buyer rates the person who bought, written by the seller.
+         * @enum {string}
+         */
+        ReviewRole: "seller" | "buyer";
         Review: {
             /** Format: uuid */
             id: string;
+            role: components["schemas"]["ReviewRole"];
             stars: number;
             text: string;
-            buyer: {
+            reviewer: {
                 /** Format: uuid */
                 id: string;
                 display_name: string;
-                /** @description The buyer deleted their account; display_name is empty and there is no avatar. */
+                /** @description The reviewer deleted their account; display_name is empty and there is no avatar. */
                 deleted: boolean;
                 /**
                  * Format: uri
@@ -6090,9 +6171,11 @@ export interface components {
                 id: string;
                 title: string;
             };
+            /** @description The subject's one reply; null without one. */
+            reply: components["schemas"]["ReviewReply"] | null;
             /**
              * Format: date-time
-             * @description The first submission; the review changes only for 7 days after it.
+             * @description The first submission; the review changes only for 7 days after it, and not after a reply.
              */
             created_at: string;
             /** Format: date-time */
@@ -6124,7 +6207,10 @@ export interface components {
         SellerScreen: {
             seller: components["schemas"]["SellerProfile"];
             listings: components["schemas"]["SearchItemList"];
+            /** @description The first page of the person's reviews as a seller (Khi bán). */
             reviews: components["schemas"]["ReviewList"];
+            /** @description The first page of the person's reviews as a buyer (Khi mua). */
+            buyer_reviews: components["schemas"]["ReviewList"];
             viewer?: components["schemas"]["SellerViewer"];
         };
         ProfileTask: {
@@ -6184,6 +6270,8 @@ export interface components {
         /** @description Uy tín của bạn. Every figure is read when the view is. */
         ReputationScreen: {
             rating: components["schemas"]["ReputationRating"];
+            /** @description The caller's rating as a buyer. */
+            buyer_rating: components["schemas"]["ReputationRating"];
             /** @description The caller's listings sold, through an order or marked by hand, as the seller page counts them. */
             sold: number;
             /** Format: date-time */
@@ -6199,6 +6287,10 @@ export interface components {
             stars: number;
             /** @description At most 500 characters after trimming; may be empty. */
             text?: string;
+        };
+        ReplyDraft: {
+            /** @description 1 to 500 characters after trimming; a business rule, so another length is 422. */
+            text: string;
         };
         ReportCreate: {
             /** Format: uuid */
@@ -11768,7 +11860,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description The order is not shipped yet (order_not_shipped), 7 days have passed since the first submission (review_locked), or another write of the review came first (try_again). */
+            /** @description The order is not completed or failed yet (order_not_delivered), 7 days have passed since the first submission (review_locked), the other party replied (review_closed), or another write of the review came first (try_again). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11817,7 +11909,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description 7 days have passed since the first submission (review_locked), or another write of the review came first (try_again). */
+            /** @description 7 days have passed since the first submission (review_locked), the other party replied (review_closed), or another write of the review came first (try_again). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -11856,6 +11948,108 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             /** @description No such account (account_not_found). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listAccountReviews: {
+        parameters: {
+            query?: {
+                role?: components["schemas"]["ReviewRole"];
+                /** @description The next_cursor of the previous page; absent for the first page. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of reviews. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description No such account (account_not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    replyReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplyDraft"];
+            };
+        };
+        responses: {
+            /** @description The review with its reply. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Review"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description The account is suspended (account_suspended). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No such review of the caller, or it was deleted (review_not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The review is still hidden (review_hidden), it has a reply (review_replied), or another write came first (try_again). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The text is empty or too long (invalid_review, with fields). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

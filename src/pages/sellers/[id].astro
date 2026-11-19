@@ -1,11 +1,13 @@
 ---
 // Người bán: the seller's name and facts, the four figures, their listings
-// a page at a time, and the reviews. An unknown id is the 404.
+// a page at a time, and the reviews in two tabs, as a seller and as a buyer.
+// An unknown id is the 404.
 import Avatar from '../../components/Avatar.astro';
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
 import NotFound from '../../components/public/NotFound.astro';
+import ReviewItem from '../../components/public/ReviewItem.astro';
 import Stars from '../../components/public/Stars.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Seg from '../../components/Seg.astro';
@@ -50,6 +52,13 @@ const stats: [string, string, string][] = s
       [String(s.sold), '', 'đã bán'],
       [String(s.on_sale), '', 'đang bán'],
       [String(s.followers), '', 'người theo dõi'],
+    ]
+  : [];
+// Someone who never sold shows only Khi mua.
+const reviewTabs = s
+  ? [
+      ...(s.sold || s.rating.count ? [{ label: 'Khi bán', rating: s.rating, items: found!.reviews.items }] : []),
+      { label: 'Khi mua', rating: s.buyer_rating, items: found!.buyer_reviews.items },
     ]
   : [];
 const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border border-line bg-card text-on-surface-variant';
@@ -122,7 +131,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
 
         <div class="mt-8">
           <div class="border border-line bg-card sticky top-[76px] z-20 flex w-fit items-center gap-2 rounded-full p-1 shadow-soft" data-tabs>
-            <Seg items={[`Đang bán ${s.on_sale}`, `Đánh giá ${s.rating.count}`]} class="bg-soft" name="Tin và đánh giá" />
+            <Seg items={[`Đang bán ${s.on_sale}`, `Đánh giá ${s.rating.count + s.buyer_rating.count}`]} class="bg-soft" name="Tin và đánh giá" />
           </div>
           {items.length ? (
             <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
@@ -144,43 +153,44 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
         </div>
 
         <section class="mt-10 scroll-mt-24" id="danh-gia">
-          <SectionTitle title="Người mua nói gì" />
-          <div class="mt-4 grid grid-cols-1 gap-6 rounded-panel border border-line bg-card p-5 md:grid-cols-[240px_1fr]">
-            <div>
-              {s.rating.count ? (
-                <>
-                  <p class="text-j-32 text-ink tabular-nums">
-                    {decimal(s.rating.average)}
-                    <span class="text-title-large font-medium tracking-normal text-on-surface-variant">/5</span>
-                  </p>
-                  <p class="mt-1">
-                    <Stars n={Math.round(s.rating.average)} size={18} />
-                  </p>
-                  <p class="mt-1 text-body-small text-on-surface-variant">{s.rating.count} đánh giá</p>
-                </>
-              ) : (
-                <p class="text-body-large text-sub">Chưa có đánh giá.</p>
-              )}
+          <SectionTitle title="Đánh giá" />
+          {reviewTabs.length > 1 && (
+            <div class="mt-2 border-b border-line" data-review-tabs>
+              <Seg variant="tabs" items={reviewTabs.map((t) => `${t.label} · ${t.rating.count}`)} name="Đánh giá" />
             </div>
-            <ul class="min-w-0">
-              {found.reviews.items.map((r, i) => (
-                <li class:list={['flex gap-3 py-4', i > 0 && 'border-t border-line', i === 0 && 'pt-0']}>
-                  <Avatar name={r.buyer.display_name || 'Người mua'} photo={r.buyer.avatar_url} size={40} loading="lazy" />
-                  <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span class="text-title-small text-ink">{r.buyer.deleted ? 'Tài khoản đã xóa' : r.buyer.display_name}</span>
-                      <Stars n={r.stars} size={14} />
-                      <span class="text-body-small text-on-surface-variant">{ago(r.created_at)} trước</span>
-                      <span class="rounded-full bg-surface-container-low px-2.5 py-0.5 text-body-small text-on-surface-variant md:ml-auto">
-                        Đã mua {r.listing.title}
-                      </span>
-                    </div>
-                    {r.text && <p class="mt-1 text-body-medium text-ink">{r.text}</p>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          )}
+          {reviewTabs.map((t, ti) => (
+            <div
+              class="mt-4 grid grid-cols-1 gap-6 rounded-panel border border-line bg-card p-5 md:grid-cols-[240px_1fr]"
+              hidden={ti > 0}
+              data-review-pane
+            >
+              <div>
+                {reviewTabs.length === 1 && <p class="mb-2 text-title-small text-ink">{t.label}</p>}
+                {t.rating.count ? (
+                  <>
+                    <p class="text-j-32 text-ink tabular-nums">
+                      {decimal(t.rating.average)}
+                      <span class="text-title-large font-medium tracking-normal text-on-surface-variant">/5</span>
+                    </p>
+                    <p class="mt-1">
+                      <Stars n={Math.round(t.rating.average)} size={18} />
+                    </p>
+                    <p class="mt-1 text-body-small text-on-surface-variant">{t.rating.count} đánh giá</p>
+                  </>
+                ) : (
+                  <p class="text-body-large text-sub">Chưa có đánh giá.</p>
+                )}
+              </div>
+              <ul class="min-w-0">
+                {t.items.map((r, i) => (
+                  <li class:list={['py-4', i > 0 && 'border-t border-line', i === 0 && 'pt-0']}>
+                    <ReviewItem review={r} subject={s.display_name} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </section>
       </main>
     </Layout>
@@ -191,10 +201,14 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
   import { API } from '../../lib/routes';
   import { toggleRemote } from '../../lib/toggle';
 
-  // "Đánh giá" jumps to the reviews. "Theo dõi" follows through /api/follows/<id>;
+  // "Đánh giá" jumps to the reviews; Khi bán and Khi mua switch their pane. "Theo dõi" follows through /api/follows/<id>;
   // a guest goes to Đăng nhập, and a failed call puts the button back.
   document.querySelector('[data-tabs]')?.addEventListener('seg-change', (e) => {
     if ((e as CustomEvent).detail.index === 1) document.getElementById('danh-gia')?.scrollIntoView({ behavior: 'smooth' });
+  });
+  const panes = document.querySelectorAll<HTMLElement>('[data-review-pane]');
+  document.querySelector('[data-review-tabs] [data-seg]')?.addEventListener('seg-change', (e) => {
+    panes.forEach((p, i) => (p.hidden = i !== (e as CustomEvent).detail.index));
   });
   const show = (b: HTMLButtonElement, on: boolean) => {
     b.setAttribute('aria-pressed', String(on));
