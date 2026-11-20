@@ -6,6 +6,7 @@
 // data-main, which the page transition pairs with the card the buyer clicked.
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
+import PhotoViewer from '../PhotoViewer.astro';
 
 interface Props {
   photos: { big: string; thumb: string }[];
@@ -87,46 +88,11 @@ const side =
     }
   </div>
 
-  <dialog
-    class="m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-black/95 p-0 text-white backdrop:bg-black/70 backdrop:backdrop-blur-sm"
-    aria-label={`Ảnh của tin: ${title}`}
-    data-viewer
-  >
-    <div class="relative flex h-full flex-col">
-      <div class="flex h-16 shrink-0 items-center justify-between px-4">
-        <span class="text-label-large tabular-nums" data-viewer-at>1/{n}</span>
-        <button type="button" class="state-layer grid h-10 w-10 place-items-center rounded-full" aria-label="Đóng" data-close>
-          <Icon name="close-rounded" size={24} />
-        </button>
-      </div>
-      <div class="gallery-track no-scrollbar flex min-h-0 flex-1 overflow-x-auto" data-viewer-slides>
-        {
-          photos.map((p, i) => (
-            <Photo src={p.big} width={1200} height={1200} alt={alt(i)} loading="lazy" class="h-full w-full object-contain" />
-          ))
-        }
-      </div>
-      <button type="button" class:list={[side, 'left-4 bg-white/10 text-white']} aria-label="Ảnh trước" data-viewer-prev>
-        <Icon name="chevron-left-rounded" size={26} />
-      </button>
-      <button type="button" class:list={[side, 'right-4 bg-white/10 text-white']} aria-label="Ảnh sau" data-viewer-next>
-        <Icon name="chevron-right-rounded" size={26} />
-      </button>
-      <div class="h-16 shrink-0"></div>
-    </div>
-  </dialog>
+  <PhotoViewer photos={photos.map((p) => p.big)} label={`Ảnh của tin: ${title}`} alt={title} />
 </div>
 
 <script>
-  import { glide } from '../../lib/motion';
-
-  // One row of slides, the width of its frame each. `at` is the slide in view.
-  const at = (track: HTMLElement) => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-  const go = (track: HTMLElement, i: number, instant = false) => {
-    const left = Math.max(0, Math.min(track.children.length - 1, i)) * track.clientWidth;
-    if (instant) track.scrollLeft = left;
-    else glide(track, left);
-  };
+  import { arrowKeys, openViewer, slideAt, slideTo, viewerAt } from '../../lib/photo-viewer';
 
   document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
     const track = g.querySelector<HTMLElement>('[data-slides]')!;
@@ -137,12 +103,10 @@ const side =
     const thumbs = [...g.querySelectorAll<HTMLButtonElement>('[data-thumb]')];
     const dots = [...g.querySelectorAll<HTMLElement>('[data-dot-i]')];
     const viewer = g.querySelector<HTMLDialogElement>('[data-viewer]')!;
-    const vtrack = viewer.querySelector<HTMLElement>('[data-viewer-slides]')!;
-    const vlabel = viewer.querySelector<HTMLElement>('[data-viewer-at]')!;
 
     let shown = -1;
     const sync = () => {
-      const i = at(track);
+      const i = slideAt(track);
       if (i === shown) return;
       shown = i;
       prev.disabled = i === 0;
@@ -153,46 +117,16 @@ const side =
     };
     track.addEventListener('scroll', sync, { passive: true });
     new ResizeObserver(() => {
-      go(track, shown, true);
+      slideTo(track, shown, true);
     }).observe(track);
-    prev.addEventListener('click', () => go(track, at(track) - 1));
-    next.addEventListener('click', () => go(track, at(track) + 1));
-    thumbs.forEach((t, k) => t.addEventListener('click', () => go(track, k)));
-    track.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        go(track, at(track) + (e.key === 'ArrowRight' ? 1 : -1));
-      }
-    });
+    prev.addEventListener('click', () => slideTo(track, slideAt(track) - 1));
+    next.addEventListener('click', () => slideTo(track, slideAt(track) + 1));
+    thumbs.forEach((t, k) => t.addEventListener('click', () => slideTo(track, k)));
+    arrowKeys(track, track);
     sync();
 
     // The viewer opens on the photo in the frame and hands its photo back on close.
-    const vprev = viewer.querySelector<HTMLButtonElement>('[data-viewer-prev]')!;
-    const vnext = viewer.querySelector<HTMLButtonElement>('[data-viewer-next]')!;
-    const vsync = () => {
-      const i = at(vtrack);
-      vlabel.textContent = `${i + 1}/${n}`;
-      vprev.disabled = i === 0;
-      vnext.disabled = i === n - 1;
-    };
-    vtrack.addEventListener('scroll', vsync, { passive: true });
-    g.querySelector('[data-open-viewer]')!.addEventListener('click', () => {
-      viewer.showModal();
-      vtrack.querySelectorAll('img').forEach((img) => (img.loading = 'eager'));
-      go(vtrack, at(track), true);
-      vsync();
-    });
-    vprev.addEventListener('click', () => go(vtrack, at(vtrack) - 1));
-    vnext.addEventListener('click', () => go(vtrack, at(vtrack) + 1));
-    viewer.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        go(vtrack, at(vtrack) + (e.key === 'ArrowRight' ? 1 : -1));
-      }
-    });
-    viewer.addEventListener('click', (e) => {
-      if ((e.target as Element).closest('[data-close]')) viewer.close();
-    });
-    viewer.addEventListener('close', () => go(track, at(vtrack), true));
+    g.querySelector('[data-open-viewer]')!.addEventListener('click', () => openViewer(viewer, slideAt(track)));
+    viewer.addEventListener('close', () => slideTo(track, viewerAt(viewer), true));
   });
 </script>

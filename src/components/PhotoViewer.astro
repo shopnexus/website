@@ -1,0 +1,51 @@
+---
+// Photos large over the whole window, one at a time, with a counter, arrows
+// and ×. lib/photo-viewer.ts opens it on a photo and runs it.
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+
+interface Props {
+  id?: string;
+  /** Each photo's large URL. */
+  photos: string[];
+  /** The dialog's name. */
+  label: string;
+  /** What the photos show, for their alt; the label when left out. */
+  alt?: string;
+}
+
+const { id, photos, label, alt = label } = Astro.props;
+const n = photos.length;
+const side =
+  'state-layer absolute top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white disabled:pointer-events-none disabled:opacity-0';
+---
+
+<dialog
+  id={id}
+  class="m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-black/95 p-0 text-white backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+  aria-label={label}
+  data-viewer
+>
+  <div class="relative flex h-full flex-col">
+    <div class="flex h-16 shrink-0 items-center justify-between px-4">
+      <span class="text-label-large tabular-nums" data-viewer-at>1/{n}</span>
+      <button type="button" class="state-layer grid h-10 w-10 place-items-center rounded-full" aria-label="Đóng" data-close>
+        <Icon name="close-rounded" size={24} />
+      </button>
+    </div>
+    <div class="gallery-track no-scrollbar flex min-h-0 flex-1 overflow-x-auto" data-viewer-slides>
+      {
+        photos.map((src, i) => (
+          <Photo src={src} width={1200} height={1200} alt={n > 1 ? `${alt}, ảnh ${i + 1}/${n}` : alt} loading="lazy" class="h-full w-full object-contain" />
+        ))
+      }
+    </div>
+    <button type="button" class:list={[side, 'left-4']} aria-label="Ảnh trước" data-viewer-prev>
+      <Icon name="chevron-left-rounded" size={26} />
+    </button>
+    <button type="button" class:list={[side, 'right-4']} aria-label="Ảnh sau" data-viewer-next>
+      <Icon name="chevron-right-rounded" size={26} />
+    </button>
+    <div class="h-16 shrink-0"></div>
+  </div>
+</dialog>
