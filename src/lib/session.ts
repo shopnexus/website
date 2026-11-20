@@ -74,7 +74,8 @@ export interface Session extends Caller {
 
 /** The middleware's step: a live access token for this request, refreshed when needed. */
 export async function openSession(cookies: AstroCookies, url: URL, caller: Omit<Caller, 'token'>): Promise<Session> {
-  const token = cookies.get(ACCESS)?.value;
+  const kept = cookies.get(ACCESS)?.value;
+  const token = kept && !expired(kept) ? kept : undefined;
   const refreshToken = cookies.get(REFRESH)?.value;
   if (token || !refreshToken) return { ...caller, token };
   const t = await refresh(refreshToken, caller.forwardedFor ?? '');
@@ -97,13 +98,24 @@ export async function openSession(cookies: AstroCookies, url: URL, caller: Omit<
  * Infinity when unknown. The server still decides: this only picks the next step.
  */
 export function authAge(token?: string) {
+  const { auth_time } = claims(token);
+  return typeof auth_time === 'number' ? Date.now() / 1000 - auth_time : Infinity;
+}
+
+/** The access token's claims, unverified: the server checks the signature. */
+function claims(token?: string): { auth_time?: number; exp?: number } {
   try {
-    const { auth_time } = JSON.parse(Buffer.from(token!.split('.')[1], 'base64url').toString()) as { auth_time?: number };
-    return typeof auth_time === 'number' ? Date.now() / 1000 - auth_time : Infinity;
+    return JSON.parse(Buffer.from(token!.split('.')[1], 'base64url').toString());
   } catch {
-    return Infinity;
+    return {};
   }
 }
+
+/** Whether the token has run out, so the refresh token takes over now. */
+const expired = (token: string) => {
+  const { exp } = claims(token);
+  return typeof exp === 'number' && exp <= Date.now() / 1000;
+};
 
 /**
  * A fresh access token before the current one runs out, for a caller that
