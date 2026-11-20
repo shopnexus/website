@@ -45,7 +45,7 @@ const tab = 'flex h-8 items-center rounded-sm px-4 text-title-small text-sub ari
       <div class="flex flex-col gap-3" data-orders data-skeleton-kind="row" data-skeleton-count="4">
         {
           items.length ? (
-            items.map((it, i) => <OrderRow item={it} role={role} loading={i < 5 ? 'eager' : 'lazy'} />)
+            items.map((it, i) => <OrderRow item={it} role={role} loading={i < 6 ? 'eager' : 'lazy'} />)
           ) : (
             <div class:list={[PANEL, 'flex flex-col items-center gap-3 px-6 py-12 text-center']}>
               <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
