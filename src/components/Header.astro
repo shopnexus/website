@@ -1,7 +1,7 @@
 ---
 // K2's bar: one sticky 64 px row across the window, the search centred (720 px
-// at most) and opening recent searches. From expanded up it adds Danh mục, Đã lưu,
-// Thông báo, Tin nhắn, "Đăng tin" and the avatar's menu; BottomNav has them below.
+// at most) and opening recent searches, Thông báo and the avatar's menu. From expanded
+// up it adds Danh mục, Đã lưu, Tin nhắn and "Đăng tin"; BottomNav has them below.
 import brandMark from '@brand/brand_mark.svg';
 import { categories } from '../lib/catalog';
 import { img } from '../lib/format';
@@ -11,6 +11,8 @@ import { THEMES, theme } from '../lib/theme';
 import { BAR } from '../lib/ui';
 import Icon from './Icon.astro';
 import MessagesLink from './MessagesLink.astro';
+import NotificationsLink from './NotificationsLink.astro';
+import Peek from './Peek.astro';
 import Avatar from './Avatar.astro';
 import Photo from './Photo.astro';
 import Popover from './Popover.astro';
@@ -93,15 +95,7 @@ const account = [
             <a href={R.saved} class={iconBtn} aria-label="Đã lưu" title="Đã lưu">
               <Icon name="favorite-outline-rounded" size={19} />
             </a>
-            <a
-              href={R.notifications}
-              class={iconBtn}
-              aria-label={me.unread.notifications ? 'Thông báo, có tin mới' : 'Thông báo'}
-              title="Thông báo"
-            >
-              <Icon name="notifications-outline-rounded" size={19} />
-              {me.unread.notifications > 0 && <span class="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-page bg-error" />}
-            </a>
+            <NotificationsLink unread={me.unread.notifications} />
             <MessagesLink unread={me.unread.messages} />
             <span class="mx-1.5 hidden h-6 w-px bg-field lg:block" />
             <a href={R.post} class={sell}>
@@ -183,6 +177,15 @@ const account = [
     <Icon name="chevron-right-rounded" size={18} class="text-faint" />
   </a>
 </Popover>
+
+{
+  me && (
+    <>
+      <Peek id="hdr-notes" title="Thông báo" href={R.notifications} src="/notifications/peek" />
+      <Peek id="hdr-chats" title="Tin nhắn" href={R.messages} src="/messages/peek" />
+    </>
+  )
+}
 
 {
   me && (

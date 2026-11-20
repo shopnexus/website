@@ -244,6 +244,14 @@ the avatar and "Đăng tin" in teal. Signed out, those give way to
 "Đăng nhập". The sections are in BottomNav below expanded and in Home's rail
 above it.
 
+Thông báo and Tin nhắn open a 380 px panel under their button (`Peek.astro`,
+full width less 16 px a side on a phone): the latest eight notices, with
+"Đánh dấu đã đọc", or the latest six chats, then "Xem tất cả". The rows are
+the page's own (`NoticeGroups`, `InboxRow`), loaded from `/notifications/peek`
+and `/messages/peek` each time the panel opens. Thông báo shows on phones too;
+Tin nhắn there stays the bottom bar's page. Drafts:
+`.superdesign/mockups/notif-preview-*.html` (`tools/build_notif_preview.py`).
+
 ### Footer
 
 A white band under a hairline: the brand line, then Khám phá, Mua và bán and
