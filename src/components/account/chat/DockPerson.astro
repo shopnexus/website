@@ -1,0 +1,39 @@
+---
+// The chat box's person: face, name and when they were last active, or the
+// scam tag. Their page's link shows their card on hover.
+import Avatar from '../../Avatar.astro';
+import Icon from '../../Icon.astro';
+
+interface Props {
+  name: string;
+  photo?: string;
+  /** Their page; none for ShopNexus or a deleted account. */
+  href?: string;
+  /** "Đang hoạt động", or how long ago. */
+  sub?: string;
+  /** The chat carries a scam warning. */
+  warned?: boolean;
+}
+
+const { name, photo, href, sub, warned = false } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<div class="min-w-0 flex-1" data-part="head" data-name={name}>
+  <Tag href={href} data-person={href ? '' : undefined} class:list={['flex min-w-0 items-center gap-2.5 rounded-control py-0.5 pr-2', href && 'state-layer']}>
+    <span data-dock-face><Avatar name={name} photo={photo} size={36} /></span>
+    <span class="min-w-0">
+      <span class="block truncate text-title-small text-ink">{name}</span>
+      {
+        warned ? (
+          <span class="flex items-center gap-1 text-body-small text-on-surface-variant">
+            <Icon name="gpp-maybe-outline-rounded" size={14} class="text-error" />
+            Nghi lừa đảo
+          </span>
+        ) : (
+          sub && <span class="block truncate text-body-small text-faint">{sub}</span>
+        )
+      }
+    </span>
+  </Tag>
+</div>

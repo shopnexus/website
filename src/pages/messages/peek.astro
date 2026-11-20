@@ -1,6 +1,7 @@
 ---
 // The header's Tin nhắn panel (Peek): the latest chats as the inbox draws
-// them, the unread count, and the Tin nhắn button with its badge.
+// them, the unread count, and the Tin nhắn button with its badge. From 840 px
+// a chat opens in the chat box (lib/chat-dock) over the page.
 import MessagesLink from '../../components/MessagesLink.astro';
 import InboxRow from '../../components/account/chat/InboxRow.astro';
 import { unwrap } from '../../lib/api/client';
@@ -18,7 +19,7 @@ const id = 'hdr-chats';
 <div data-part={`${id}-body`}>
   {
     inbox.items.length ? (
-      <div class="flex flex-col gap-0.5">
+      <div class="flex flex-col gap-0.5" data-dock-rows>
         {inbox.items.map((c) => (
           <InboxRow c={c} me={v.id} on="card" />
         ))}

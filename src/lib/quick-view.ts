@@ -76,13 +76,9 @@ if (panel && region) {
       if (!body) throw new Error('empty');
       slot.replaceChildren(body);
       body.querySelectorAll<HTMLElement>('[data-gallery]').forEach(mountGallery);
-      // Chat nhanh docks beside the panel until the next listing.
-      const box = t.content.querySelector<HTMLDialogElement>('[data-qc]');
-      const pill = t.content.querySelector<HTMLButtonElement>('[data-qc-pill]');
-      if (box && pill) {
-        panel!.after(box, pill);
-        dropChat = mountQuickChat(box, pill);
-      }
+      // Chat nhanh opens the chat box on this listing until the next one.
+      const tools = t.content.querySelector<HTMLElement>('[data-qc]');
+      if (tools) dropChat = mountQuickChat(tools);
     } catch {
       await h.end();
       if (mine === run) slot.replaceChildren(failure(() => load(slug)));

@@ -1,0 +1,45 @@
+---
+// The listing a chat box is about: its photo and title, the price that
+// stands, and, once a price is on the table, the way to Tin nhắn for the
+// deal's moves the box leaves out.
+import { money } from '../../../lib/format';
+import Icon from '../../Icon.astro';
+import Photo from '../../Photo.astro';
+
+interface Props {
+  title: string;
+  thumb?: string;
+  price: number;
+  icon: string;
+  caption: string;
+  /** The chat on Tin nhắn, while the deal has moves to make there. */
+  moves?: string;
+}
+
+const { title, thumb, price, icon, caption, moves } = Astro.props;
+---
+
+<div class="mx-3 mt-2.5 flex items-center gap-2.5 rounded-lg bg-surface-container-low p-1.5 pr-2" data-part="ref">
+  {
+    thumb ? (
+      <Photo src={thumb} width={88} height={88} alt="" class="h-11 w-11 shrink-0 rounded-control object-cover" />
+    ) : (
+      <span class="h-11 w-11 shrink-0 rounded-control bg-surface-container-high" />
+    )
+  }
+  <div class="min-w-0 flex-1">
+    <p class="truncate text-body-medium text-ink">{title}</p>
+    <p class="mt-0.5 flex items-center gap-1 text-body-small">
+      <Icon name={icon} size={14} class="shrink-0 text-primary" />
+      <span class="shrink-0 font-semibold tabular-nums text-ink">{money(price)}</span>
+      <span class="min-w-0 flex-1 truncate text-sub">· {caption}</span>
+      {
+        moves && (
+          <a href={moves} class="state-layer shrink-0 rounded-sm px-1.5 py-0.5 text-label-medium text-primary hover:bg-hover" data-dock-leave>
+            Mở trong Tin nhắn
+          </a>
+        )
+      }
+    </p>
+  </div>
+</div>

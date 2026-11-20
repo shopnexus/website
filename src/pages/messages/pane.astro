@@ -1,15 +1,21 @@
 ---
-// The chat box on a listing (QuickChat): the buyer's chat about it as the
-// same thread, typing line and composer as Tin nhắn, for lib/chat-pane to
-// drive in the box. ?listing= is the listing, ?chat= and ?deal= the buyer's
-// chat and deal once there is one. A post sends a message (do=send) or an
-// offer (do=offer); the first one opens the deal, then answers with the pane.
+// The chat box (ChatDock): one chat as Tin nhắn draws it, for lib/chat-pane to
+// drive in the box: the person, the listing with the price that stands, the
+// thread, the typing line and the composer. ?chat= (and ?deal=) is a chat
+// from the header's Tin nhắn panel; ?listing= is a listing's Chat nhanh, with
+// ?chat= and ?deal= once the buyer has them. A post sends a message (do=send)
+// or an offer (do=offer); on a listing the first one opens the deal. Either
+// answers with the pane.
+import MessagesLink from '../../components/MessagesLink.astro';
 import Notice from '../../components/Notice.astro';
 import ChatThread from '../../components/account/chat/ChatThread.astro';
 import Composer from '../../components/account/chat/Composer.astro';
+import DockPerson from '../../components/account/chat/DockPerson.astro';
+import DockRef from '../../components/account/chat/DockRef.astro';
 import { idempotencyKey, orNull, unwrap } from '../../lib/api/client';
 import { isId } from '../../lib/listing';
-import { errorCode, errorText, openDeal, personName, thread } from '../../lib/messages';
+import { activeText, chatHref, errorCode, errorText, openDeal, personHref, personName, standing, thread } from '../../lib/messages';
+import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 
 export const partial = true;
@@ -19,10 +25,10 @@ if (v instanceof Response) return v;
 const api = Astro.locals.api;
 const p = Astro.url.searchParams;
 const listing = p.get('listing') ?? '';
-if (!isId(listing)) return new Response(null, { status: 404 });
-const name = p.get('name') ?? '';
+const onListing = isId(listing);
+if (!onListing && !isId(p.get('chat') ?? '')) return new Response(null, { status: 404 });
 const here = (chat: string, deal: string, extra: Record<string, string> = {}) =>
-  `/messages/pane?${new URLSearchParams({ listing, ...(name ? { name } : {}), ...(isId(chat) ? { chat } : {}), ...(isId(deal) ? { deal } : {}), ...extra })}`;
+  `/messages/pane?${new URLSearchParams({ ...(onListing ? { listing } : {}), ...(isId(chat) ? { chat } : {}), ...(isId(deal) ? { deal } : {}), ...extra })}`;
 
 if (Astro.request.method === 'POST') {
   const f = await Astro.request.formData();
@@ -30,8 +36,8 @@ if (Astro.request.method === 'POST') {
   let chat = s('chat') || (p.get('chat') ?? '');
   let deal = s('deal') || (p.get('deal') ?? '');
   try {
-    // The first message or offer opens the buyer's deal, which opens the chat.
-    if (!isId(chat) || !isId(deal)) {
+    // On a listing the first message or offer opens the buyer's deal, which opens the chat.
+    if (onListing && (!isId(chat) || !isId(deal))) {
       const d = await openDeal(api, listing);
       chat = d.conversation_id;
       deal = d.id;
@@ -46,7 +52,12 @@ if (Astro.request.method === 'POST') {
         await unwrap(
           api.POST('/v1/conversations/{id}/messages', {
             params: { path: { id: chat }, header: { 'Idempotency-Key': s('key') || idempotencyKey() } },
-            body: { text: s('text') || undefined, photos: photos.length ? photos : undefined, reply_to: isId(reply) ? reply : undefined, listing_id: listing },
+            body: {
+              text: s('text') || undefined,
+              photos: photos.length ? photos : undefined,
+              reply_to: isId(reply) ? reply : undefined,
+              listing_id: onListing ? listing : undefined,
+            },
           }),
         );
       }
@@ -59,6 +70,11 @@ if (Astro.request.method === 'POST') {
 
 const id = p.get('chat') ?? '';
 const chat = isId(id) ? await orNull(api.GET('/v1/screens/chat/{conversation_id}', { params: { path: { conversation_id: id } } })) : null;
+const deal = chat ? (onListing ? chat.deals.find((d) => d.listing.id === listing) : (chat.deals.find((d) => d.id === p.get('deal')) ?? chat.deals[0])) : undefined;
+// Before the buyer's deal, the listing itself names the seller and the price.
+const item = onListing && !deal ? await orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id: listing } } })) : null;
+if (!chat && !item) return new Response(null, { status: 404 });
+
 // Reading the box marks the chat read, as Tin nhắn does.
 let marked = false;
 const newest = chat?.messages.items.find((m) => m.status === 'sent');
@@ -66,13 +82,43 @@ if (chat && newest && newest.sender_id !== v.id) {
   await orNull(api.POST('/v1/conversations/{id}/read', { params: { path: { id: chat.id } }, body: { message_id: newest.id } }));
   marked = true;
 }
-const other = chat ? personName(chat.other) : name;
-const deal = chat?.deals.find((d) => d.listing.id === listing) ?? null;
+// The header's badge drops with the chat read.
+const unread = marked ? await orNull(api.GET('/v1/me/unread')) : null;
+const other = chat ? personName(chat.other) : item!.seller.display_name;
 const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id) : [];
 const error = p.get('error') ?? '';
+const now = deal && standing(deal, other);
 ---
 
-<span hidden data-part="meta" data-chat={chat?.id} data-deal={deal?.id}></span>
+{unread && <MessagesLink unread={unread.unread} />}
+<span hidden data-part="meta" data-chat={chat?.id} data-deal={deal?.id} data-full={chat ? chatHref(chat.id, deal?.id) : `${R.messages}?listing=${listing}`}></span>
+{
+  chat ? (
+    <DockPerson
+      name={other}
+      photo={chat.other.avatar_url}
+      href={personHref(chat.other)}
+      sub={activeText(chat.other)}
+      warned={!!chat.scam_warning && !chat.scam_warning.dismissed}
+    />
+  ) : (
+    <DockPerson name={other} photo={item!.seller.avatar_url} href={R.seller(item!.seller.id)} />
+  )
+}
+{
+  deal && now ? (
+    <DockRef
+      title={deal.listing.title}
+      thumb={deal.listing.cover_thumb_url}
+      {...now}
+      moves={deal.open_price || deal.agreed_price ? chatHref(deal.conversation_id, deal.id) : undefined}
+    />
+  ) : item ? (
+    <DockRef title={item.listing.title} thumb={item.listing.photos.find((x) => x.thumb_url)?.thumb_url} price={item.listing.price} icon="sell-outline-rounded" caption="Giá đăng" />
+  ) : (
+    <div hidden data-part="ref"></div>
+  )
+}
 <ChatThread
   items={items}
   me={v.id}
@@ -81,10 +127,18 @@ const error = p.get('error') ?? '';
   next={chat?.messages.next_cursor ?? undefined}
   last={chat?.messages.items[0]?.id}
   marked={marked}
-  empty={`Hỏi ${other} về món này.`}
+  empty={onListing ? `Hỏi ${other} về món này.` : `Gửi lời chào tới ${other}.`}
 />
 <div data-part="alert" class="px-3 empty:hidden">
   {error && <Notice text={error === 'move_not_allowed' ? 'Món này đã có giá đang chờ hoặc đã chốt. Xem ở trang Tin nhắn.' : errorText(error)} />}
 </div>
 <p class="px-5 text-body-small text-on-surface-variant" hidden data-typing>{other} đang nhập…</p>
-<Composer peer={other} chat={chat?.id ?? ''} deal={deal?.id} action={here(chat?.id ?? '', deal?.id ?? '')} />
+{
+  chat?.blocked || chat?.other.deleted ? (
+    <p class="m-3 rounded-tile bg-surface-container-low px-4 py-3 text-body-medium text-on-surface-variant" data-composer-off>
+      {chat.blocked ? `Không nhắn được với ${other}.` : 'Người này đã xóa tài khoản.'}
+    </p>
+  ) : (
+    <Composer peer={other} chat={chat?.id ?? ''} deal={deal?.id} action={here(chat?.id ?? '', deal?.id ?? '')} />
+  )
+}
