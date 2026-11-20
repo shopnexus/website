@@ -299,7 +299,9 @@ The gallery, then a sticky right column with the condition, title, price,
 listing takes no offers), Hỏi nhanh, then the seller card with three numbers
 and three of their listings. "Mua ngay" opens the COD order at the listed
 price in a dialog (`BuyDialog.astro`, the form from `/listings/<id>/buy`);
-the others open Chat nhanh. The seller card's face and name open their page,
+the others open Chat nhanh. "Thêm địa chỉ" in that dialog and in Giao COD
+shows the address form from Địa chỉ (`AddressForm.astro`) in the dialog,
+with a back arrow, and the saved address comes back picked. The seller card's face and name open their page,
 and so does a reviewer's. Under the gallery: Mô tả with the listing code and counts, Tình
 trạng as a three-step scale, Thông số, and Đánh giá. On a phone the price
 and actions come right after the gallery. The page shows no shipping origin,

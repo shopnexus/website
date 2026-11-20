@@ -23,14 +23,13 @@ interface Props {
   blocked?: boolean;
   /** The Idempotency-Key of this render's form. */
   idem: string;
+  /** The buy page; it also shows this form again for the address picker. */
   action: string;
-  /** Where "Đóng" goes without script, and where the address book comes back to. */
+  /** Where "Đóng" goes without script. */
   back: string;
-  /** The address book comes back here once an address is saved. */
-  book: string;
 }
 
-const { listing, seller, addresses, picked, error, fix, blocked = false, idem, action, back, book } = Astro.props;
+const { listing, seller, addresses, picked, error, fix, blocked = false, idem, action, back } = Astro.props;
 const close = 'state-layer -mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
 ---
 
@@ -65,7 +64,7 @@ const close = 'state-layer -mr-2 grid h-10 w-10 shrink-0 place-items-center roun
     )
   }
 
-  <AddressPick addresses={addresses} picked={picked} back={book} class="mt-6" />
+  <AddressPick addresses={addresses} picked={picked} back={action} class="mt-6" />
 
   <div class="mt-6 flex items-end justify-between gap-3 rounded-tile bg-soft p-4">
     <p class="text-body-medium text-sub">Trả khi nhận</p>

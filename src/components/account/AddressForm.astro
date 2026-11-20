@@ -1,0 +1,169 @@
+---
+// The address form: kind, recipient, phone, street, province and commune, and
+// the default switch. Địa chỉ shows it as a panel that posts the page; a
+// dialog (lib/address-in-place) shows it in its body with a back arrow, and
+// its script sends it to /api/addresses and fills the error lines below.
+import type { AddressDraft } from '../../lib/addresses';
+import { ADDRESS_KIND } from '../../lib/profile';
+import { btnCls, PANEL } from '../../lib/ui';
+import Field from '../Field.astro';
+import Icon from '../Icon.astro';
+import Notice from '../Notice.astro';
+
+type Region = { code: string; name: string };
+
+interface Props {
+  draft: AddressDraft;
+  provinces: Region[];
+  /** The draft province's communes. */
+  communes: Region[];
+  title: string;
+  action: string;
+  /** The Idempotency-Key of this render's form. */
+  idem: string;
+  /** Whether the default switch shows; the default address stays the default. */
+  canDefault: boolean;
+  error?: string;
+  /** A line under each field the server marked, by field. */
+  fields?: Record<string, string>;
+  /** On the page: where "Đóng" and "Hủy" go, absent when there is nowhere to go back to. */
+  close?: string;
+  /** In a dialog: one column, a back arrow, a full-width Lưu. */
+  inDialog?: boolean;
+}
+
+const { draft, provinces, communes, title, action, idem, canDefault, error, fields = {}, close, inDialog = false } = Astro.props;
+const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none';
+const select = `${input} appearance-none cursor-pointer`;
+const bad = 'mt-1 block px-1 text-body-small text-error';
+const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
+---
+
+<form method="post" action={action} class:list={inDialog ? 'p-6' : [PANEL, 'p-5']} aria-labelledby="address-title" data-address-form>
+  <input type="hidden" name="key" value={idem} />
+  {draft.id && <input type="hidden" name="id" value={draft.id} />}
+  <div class:list={['flex items-center', inDialog ? 'gap-1' : 'justify-between']}>
+    {
+      inDialog && (
+        <button type="button" class:list={[iconBtn, '-ml-2']} aria-label="Quay lại" data-address-back>
+          <Icon name="chevron-left-rounded" size={24} />
+        </button>
+      )
+    }
+    <h2 id="address-title" class="text-j-20 text-ink">{title}</h2>
+    {
+      close && (
+        <a href={close} class={iconBtn} aria-label="Đóng">
+          <Icon name="close-rounded" size={20} />
+        </a>
+      )
+    }
+  </div>
+  <div class="mt-3" data-address-error hidden={!error}>
+    <Notice text={error ?? ''} />
+  </div>
+  <fieldset class="mt-4 flex flex-wrap gap-2">
+    <legend class="sr-only">Loại địa chỉ</legend>
+    {
+      Object.entries(ADDRESS_KIND).map(([value, k]) => (
+        <label class="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-label-large text-ink has-checked:border-transparent has-checked:bg-mint has-checked:text-on-mint has-focus-visible:ring-2 has-focus-visible:ring-primary">
+          <input type="radio" name="kind" value={value} class="sr-only" checked={value === draft.kind} />
+          <Icon name={k.icon} size={17} />
+          {k.label}
+        </label>
+      ))
+    }
+  </fieldset>
+  <div class:list={['mt-4 grid grid-cols-1 gap-3', !inDialog && 'md:grid-cols-2']}>
+    <div>
+      <Field label="Người nhận">
+        <input name="name" value={draft.name} required maxlength={50} autocomplete="name" class={input} />
+      </Field>
+      <span class={bad} data-error-for="name" hidden={!fields.name}>{fields.name}</span>
+    </div>
+    <div>
+      <Field label="Số điện thoại">
+        <input name="phone" type="tel" inputmode="tel" value={draft.phone} required autocomplete="tel-national" class:list={[input, 'tabular-nums']} />
+      </Field>
+      <span class={bad} data-error-for="phone" hidden={!fields.phone}>{fields.phone}</span>
+    </div>
+    <div class:list={[!inDialog && 'md:col-span-2']}>
+      <Field label="Số nhà, đường">
+        <input name="street" value={draft.street} required maxlength={200} autocomplete="street-address" class={input} />
+      </Field>
+      <span class={bad} data-error-for="street" hidden={!fields.street}>{fields.street}</span>
+    </div>
+    <div>
+      <Field label="Tỉnh, thành phố">
+        <select name="province" required class={select} data-province>
+          <option value="" disabled selected={!draft.province}>Chọn tỉnh, thành phố</option>
+          {
+            provinces.map((p) => (
+              <option value={p.code} selected={p.code === draft.province}>
+                {p.name}
+              </option>
+            ))
+          }
+        </select>
+        <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
+      </Field>
+      <noscript>
+        <button name="step" value="province" formnovalidate class="state-layer mt-1 h-8 rounded-control px-2 text-label-large text-primary">
+          Chọn phường, xã của tỉnh này
+        </button>
+      </noscript>
+    </div>
+    <div>
+      <Field label="Phường, xã">
+        <select name="commune" required class={select} data-commune>
+          <option value="" disabled selected={!communes.some((c) => c.code === draft.commune)}>
+            {draft.province ? 'Chọn phường, xã' : 'Chọn tỉnh trước'}
+          </option>
+          {
+            communes.map((c) => (
+              <option value={c.code} selected={c.code === draft.commune}>
+                {c.name}
+              </option>
+            ))
+          }
+        </select>
+        <Icon slot="trail" name="keyboard-arrow-down-rounded" size={20} class="pointer-events-none text-on-surface-variant" />
+      </Field>
+      <span class={bad} data-error-for="commune_code" hidden={!fields.commune_code}>{fields.commune_code}</span>
+    </div>
+  </div>
+  {
+    canDefault && (
+      <label class="mt-4 flex cursor-pointer items-center justify-between gap-3 rounded-lg bg-surface-container-low px-4 py-3">
+        <span class="text-body-large text-ink">Đặt làm địa chỉ mặc định</span>
+        <input type="checkbox" name="is_default" checked={draft.isDefault} class="peer sr-only" />
+        <span class="relative h-7 w-12 shrink-0 rounded-full bg-surface-container-highest transition-colors duration-(--duration-effects-default) peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-knob after:transition-transform after:duration-(--duration-spatial-fast) after:ease-spatial-fast peer-checked:after:translate-x-5" />
+      </label>
+    )
+  }
+  {
+    inDialog ? (
+      <button name="step" value="save" class:list={[btnCls('ink', 'lg'), 'mt-6 w-full']}>
+        Lưu
+      </button>
+    ) : (
+      <div class="mt-4 flex justify-end gap-2">
+        {close && (
+          <a href={close} class={btnCls('line')}>
+            Hủy
+          </a>
+        )}
+        <button name="step" value="save" class={btnCls('ink')}>
+          Lưu
+        </button>
+      </div>
+    )
+  }
+</form>
+
+<script>
+  import { wireAddressCommunes } from '../../lib/commune-picker';
+
+  // On Địa chỉ; a dialog wires the form it brings in itself.
+  document.querySelectorAll<HTMLFormElement>('[data-address-form]').forEach(wireAddressCommunes);
+</script>

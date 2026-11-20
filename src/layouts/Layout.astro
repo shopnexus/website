@@ -100,7 +100,7 @@ const { title, description, section = null, search, footer = true, fab = true, i
       // A transition draws above the top layer, so a photo paired under an open
       // dialog or popover would cover it until the transition ends.
       const covered = () => {
-        try { return !!document.querySelector('dialog:modal, :popover-open'); } catch { return false; }
+        try { return !!document.querySelector('dialog[open], :popover-open'); } catch { return false; }
       };
       const pair = (img, vt) => {
         if (!img || covered()) return;
@@ -124,6 +124,11 @@ const { title, description, section = null, search, footer = true, fab = true, i
       addEventListener('pagereveal', (e) => {
         dropSkeleton();
         if (!e.viewTransition) return;
+        // A page that arrives with a dialog open (Giao COD) shows it at once.
+        if (covered()) {
+          e.viewTransition.ready.catch(() => {});
+          return e.viewTransition.skipTransition();
+        }
         if (gallery()) return pair(gallery(), e.viewTransition);
         const from = window.navigation?.activation?.from?.url;
         if (!from) return;

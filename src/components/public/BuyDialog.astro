@@ -3,7 +3,7 @@
 // sheet on a phone. The page marks its opener with data-buy; it stays a link
 // to the buy page, so without the script it still works. The form posts in
 // place and the dialog follows the server to the order (or the deal it found).
-// ?buy=1 opens it, as the address book does on its way back.
+// "Thêm địa chỉ" opens the address form in the dialog (lib/address-in-place).
 
 interface Props {
   /** The buy page, R.buy. */
@@ -38,6 +38,7 @@ const bar = 'skeleton rounded-full';
 </dialog>
 
 <script>
+  import '../../lib/address-in-place';
   import { busy } from '../../lib/busy';
   import { failure } from '../../lib/skeleton';
   import { snack } from '../../lib/snackbar';
@@ -94,6 +95,7 @@ const bar = 'skeleton rounded-full';
     // The form posts in place; its button stays busy until the next page.
     dlg.addEventListener('submit', async (e) => {
       const form = e.target as HTMLFormElement;
+      if (!form.hasAttribute('data-buy-form')) return;
       const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
       e.preventDefault();
       if (btn?.getAttribute('aria-busy') === 'true') return;
@@ -103,12 +105,5 @@ const bar = 'skeleton rounded-full';
       if (!(await take(res))) snack({ text: 'Chưa gửi được. Thử lại nhé.', error: true });
       if (!left) busy(btn, false);
     });
-
-    const u = new URL(location.href);
-    if (u.searchParams.get('buy') === '1') {
-      u.searchParams.delete('buy');
-      history.replaceState(history.state, '', u);
-      open();
-    }
   }
 </script>

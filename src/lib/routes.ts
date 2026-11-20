@@ -47,6 +47,8 @@ export const API = {
   follows: (id: string) => `/api/follows/${id}`,
   area: '/api/area',
   communes: (province: string) => `/api/communes/${province}`,
+  /** A new address from a dialog's address form. */
+  addresses: '/api/addresses',
   uploads: '/api/uploads',
   watches: '/api/watches',
   watchAlert: (id: string) => `/api/watches/${id}/alert`,
