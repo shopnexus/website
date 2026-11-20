@@ -207,7 +207,7 @@ const ld = it && {
             </div>
 
             <div class:list={[PANEL, 'p-5']}>
-              <a href={R.seller(seller.id)} class="state-layer -m-2 flex items-center gap-3 rounded-control p-2 hover:bg-hover">
+              <a href={R.seller(seller.id)} data-person class="state-layer -m-2 flex items-center gap-3 rounded-control p-2 hover:bg-hover">
                 <Avatar name={seller.display_name} photo={seller.avatar_url} size={44} />
                 <span class="min-w-0 flex-1">
                   <span class="block truncate text-title-medium text-ink">{seller.display_name}</span>
