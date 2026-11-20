@@ -1,8 +1,8 @@
 ---
 import Photo from '../Photo.astro';
-// A saved listing: the filled heart to unsave, the cut since it was saved on
-// the photo, and the price alert under it. Sold ones go grey with a link to
-// similar listings; a hidden or deleted one shows only that it is gone.
+// A saved listing: the filled heart to unsave, how far the price moved since
+// it was saved, and the price alert. Sold ones go grey with a link to similar
+// listings; a hidden or deleted one shows only that it is gone.
 import type { Schemas } from '../../lib/api/client';
 import { money } from '../../lib/format';
 import { conditionLabel } from '../../lib/listing';
@@ -22,7 +22,8 @@ const l = it.listing;
 const gone = !l.title || ['hidden', 'deleted', 'rejected'].includes(l.status);
 const sold = l.status === 'sold';
 const onSale = l.status === 'active';
-const cut = onSale && l.price !== undefined && l.price < it.saved_price ? it.saved_price - l.price : 0;
+// Up or down since the save, while the listing is still for sale.
+const moved = !gone && !sold && l.price !== undefined ? l.price - it.saved_price : 0;
 const pop = `alert-${it.listing_id}`;
 const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Boolean).join(' · ');
 ---
@@ -50,14 +51,6 @@ const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Bool
     </button>
     {sold && <span class="absolute left-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-label-medium text-white backdrop-blur">Đã bán</span>}
     {l.status === 'reserved' && <span class="absolute left-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-label-medium text-white backdrop-blur">Đang giao dịch</span>}
-    {
-      cut > 0 && (
-        <span class="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-label-medium text-photo-accent backdrop-blur">
-          <Icon name="arrow-downward-rounded" size={13} />
-          Giảm {money(cut, true)}
-        </span>
-      )
-    }
   </div>
   <div class="px-1.5 pb-1 pt-2">
     {
@@ -71,6 +64,14 @@ const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Bool
             ) : (
               <Price vnd={l.price} size="text-j-16" class="block" />
             ))}
+          {moved !== 0 && (
+            <p class:list={['text-body-small tabular-nums', moved < 0 ? 'text-primary' : 'text-faint']}>
+              <span class="font-medium">
+                {moved < 0 ? '↓' : '↑'} {money(Math.abs(moved))}
+              </span>{' '}
+              <span class="whitespace-nowrap">từ khi bạn lưu</span>
+            </p>
+          )}
           <h3 class:list={['line-clamp-1 text-body-medium', sold ? 'text-on-surface-variant' : 'text-ink']}>
             <a href={R.listing(it.listing.slug ?? it.listing_id)} class="after:absolute after:inset-0 after:rounded-card">
               {l.title}

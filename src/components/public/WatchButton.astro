@@ -6,15 +6,24 @@ import { btnCls } from '../../lib/ui';
 import Icon from '../Icon.astro';
 
 interface Props {
-  /** The search's URL, which /api/watches reads and comes back to. */
+  /** The search's URL, which /api/watches reads. */
   href: string;
+  /** Where to come back to; the search by default. */
+  back?: string;
+  label?: string;
+  size?: 'sm' | 'lg';
+  /** Fills its row. */
+  wide?: boolean;
 }
+
+const { href, back, label = 'Báo khi có tin mới', size = 'sm', wide = false } = Astro.props;
 ---
 
 <form method="post" action={API.watches}>
-  <input type="hidden" name="search" value={Astro.props.href} />
-  <button class={btnCls('ink', 'sm')}>
-    <Icon name="notifications-outline-rounded" size={16} />
-    Báo khi có tin mới
+  <input type="hidden" name="search" value={href} />
+  {back && <input type="hidden" name="back" value={back} />}
+  <button class:list={[btnCls('ink', size), wide && 'w-full']}>
+    <Icon name="notifications-outline-rounded" size={size === 'lg' ? 18 : 16} />
+    {label}
   </button>
 </form>

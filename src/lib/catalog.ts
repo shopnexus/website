@@ -73,5 +73,10 @@ export async function findCategory(code: string) {
   return undefined;
 }
 
+/** The root a category code is, or is under. */
+export async function rootOf(code: string) {
+  return (await categories()).find((r) => r.code === code || r.children.some((c) => c.code === code));
+}
+
 /** The display name of any category code, root or sub. */
 export const categoryName = async (code: string) => (await findCategory(code))?.name;

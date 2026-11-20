@@ -1,0 +1,113 @@
+---
+// A sold listing's page: the photos greyed under "Đã bán", the title, the
+// price it sold at and the date, then "Báo khi có món giống vậy", which
+// follows the title in its category and price band, and listings like it
+// still for sale. No buy, offer or chat.
+import type { Schemas } from '../../lib/api/client';
+import { unwrap } from '../../lib/api/client';
+import { near } from '../../lib/area';
+import { findCategory, rootOf } from '../../lib/catalog';
+import { date, money } from '../../lib/format';
+import { card, conditionLabel } from '../../lib/listing';
+import { R } from '../../lib/routes';
+import { priceBand, searchHref, searchOf } from '../../lib/search';
+import { viewer } from '../../lib/session';
+import { CONTENT, PANEL, btnCls } from '../../lib/ui';
+import Crumbs from '../Crumbs.astro';
+import Icon from '../Icon.astro';
+import ListingCard from '../ListingCard.astro';
+import Notice from '../Notice.astro';
+import SectionTitle from '../SectionTitle.astro';
+import Gallery from './Gallery.astro';
+import WatchButton from './WatchButton.astro';
+
+interface Props {
+  listing: Schemas['SoldListing'];
+}
+
+const { listing: l } = Astro.props;
+const api = Astro.locals.api;
+const band = priceBand(l.price);
+const like = searchHref(searchOf({ q: l.title, category: l.category_code }));
+const watch = searchHref(searchOf({ q: l.title, category: l.category_code, ...band }));
+const folded = l.title.trim().toLocaleLowerCase('vi');
+const [similar, watched, root, category] = await Promise.all([
+  unwrap(api.GET('/v1/search', { params: { query: { q: l.title, category: l.category_code, limit: 5, ...near(Astro.cookies) } } }))
+    .then((r) => r.items.filter((s) => s.id !== l.id).map(card))
+    .catch(() => []),
+  viewer(Astro)
+    ? unwrap(api.GET('/v1/search/watches'))
+        .then((r) => r.items.find((w) => w.query.trim().toLocaleLowerCase('vi') === folded))
+        .catch(() => undefined)
+    : undefined,
+  rootOf(l.category_code).catch(() => undefined),
+  findCategory(l.category_code).catch(() => undefined),
+]);
+const photos = l.photos.filter((p) => p.url).map((p) => ({ big: p.url!, thumb: p.thumb_url ?? p.url! }));
+const crumbs: [string, string?][] = [['Khám phá', R.home], ...(root ? [[root.name, R.category(root.code)] as [string, string]] : []), [l.title]];
+const scope = [category?.name, `${money(band.min, true)} – ${money(band.max, true)}`].filter(Boolean).join(' · ');
+const full = Astro.url.searchParams.get('watches') === 'full';
+---
+
+<main class={CONTENT}>
+  <Crumbs parts={crumbs} class="pt-5" />
+  <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-x-8">
+    <div class="min-w-0">
+      {
+        photos.length > 0 ? (
+          <Gallery photos={photos} title={l.title} sold />
+        ) : (
+          <div class="rounded-card border border-line bg-card p-2">
+            <div class="grid place-items-center rounded-card bg-soft text-faint" style="aspect-ratio: 16 / 10.5">
+              <Icon name="photo-camera-outline-rounded" size={32} />
+            </div>
+          </div>
+        )
+      }
+    </div>
+    <aside class="self-start lg:sticky lg:top-[84px]">
+      <div class:list={[PANEL, 'p-5 lg:p-6']}>
+        <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
+          <span class="rounded-xs bg-soft px-1.5 py-0.5 font-medium text-sub">{conditionLabel(l.condition)}</span>
+          {l.location.commune.display_name} · Đã bán ngày {date(l.sold_at)}
+        </p>
+        <h1 class="mt-3 text-j-22 text-sub">{l.title}</h1>
+        <p class="mt-3 text-j-30 text-faint tabular-nums">{money(l.price)}</p>
+        <div class="mt-5 rounded-tile bg-mint p-4">
+          <p class="text-title-medium text-on-mint">Món này đã có chủ</p>
+          <p class="mt-0.5 text-body-medium text-on-mint/80">{scope}</p>
+          <div class="mt-3">
+            {
+              watched ? (
+                <a href={`${R.search}?watch=${watched.id}`} class:list={[btnCls('line', 'lg'), 'w-full']}>
+                  <Icon name="check-circle-outline-rounded" size={18} class="text-primary" />
+                  Đang theo dõi món giống vậy
+                </a>
+              ) : (
+                <WatchButton href={watch} back={R.listing(l.slug)} label="Báo khi có món giống vậy" size="lg" wide />
+              )
+            }
+          </div>
+        </div>
+        {full && <Notice text="Bạn đã lưu 20 tìm kiếm. Xóa bớt trong Đã lưu để lưu thêm." class="mt-3" />}
+        <a href={like} class:list={[btnCls('line', 'lg'), 'mt-2 w-full']}>
+          <Icon name="search-rounded" size={17} />
+          Xem tin tương tự
+        </a>
+      </div>
+    </aside>
+  </div>
+
+  {
+    similar.length > 0 && (
+      <section class="mt-16 lg:mt-10">
+        <SectionTitle title="Tin tương tự" link="Xem tất cả" href={like} />
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-5">
+          {similar.map((s) => (
+            <ListingCard item={s} loading="lazy" />
+          ))}
+        </div>
+      </section>
+    )
+  }
+</main>

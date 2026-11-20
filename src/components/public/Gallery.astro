@@ -5,6 +5,7 @@
 // viewer on the same photo, with arrow keys. The first photo carries
 // data-main, which the page transition pairs with the card the buyer clicked.
 // `compact` (Xem nhanh) leaves out the frame, the thumbnails and the in-app badge.
+// `sold` greys the photos under one "Đã bán" chip; the viewer keeps their colour.
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
 import PhotoViewer from '../PhotoViewer.astro';
@@ -13,9 +14,10 @@ interface Props {
   photos: { big: string; thumb: string }[];
   title: string;
   compact?: boolean;
+  sold?: boolean;
 }
 
-const { photos, title, compact = false } = Astro.props;
+const { photos, title, compact = false, sold = false } = Astro.props;
 const n = photos.length;
 const alt = (i: number) => (i === 0 ? title : `${title}, ảnh ${i + 1}/${n}`);
 const side =
@@ -25,7 +27,7 @@ const side =
 <div class:list={[!compact && 'rounded-card border border-line bg-card p-2']} data-gallery>
   <div class="group relative overflow-hidden rounded-card bg-surface-container-high" style="aspect-ratio: 16 / 10.5">
     <div
-      class="gallery-track no-scrollbar flex h-full overflow-x-auto"
+      class:list={['gallery-track no-scrollbar flex h-full overflow-x-auto', sold && 'opacity-50 grayscale']}
       tabindex="0"
       role="group"
       aria-roledescription="carousel"
@@ -47,7 +49,17 @@ const side =
       }
     </div>
     {
-      !compact && (
+      sold && (
+        <span class="pointer-events-none absolute inset-0 grid place-items-center">
+          <span class="flex items-center gap-1.5 rounded-full bg-black/70 px-4 py-2 text-title-medium text-white backdrop-blur">
+            <Icon name="done-all-rounded" size={18} />
+            Đã bán
+          </span>
+        </span>
+      )
+    }
+    {
+      !compact && !sold && (
         <span class="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
           <Icon name="photo-camera-outline-rounded" size={15} />
           Cả {n} ảnh chụp trong app
@@ -80,7 +92,7 @@ const side =
   </div>
   {
     !compact && (
-      <div class="mt-2 hidden grid-cols-5 gap-2 md:grid">
+      <div class:list={['mt-2 hidden grid-cols-5 gap-2 md:grid', sold && 'grayscale']}>
         {photos.map((p, i) => (
           <button
             type="button"

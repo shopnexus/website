@@ -49,6 +49,12 @@ export const card = (it: Schemas['SearchItem']): Card => ({
   previousPrice: it.price_drop?.previous_price,
 });
 
+/** Statuses whose saves list after the rest, as the server orders them: sold or taken down. */
+const ENDED: Schemas['ListingStatus'][] = ['sold', 'hidden', 'deleted'];
+
+/** Whether a saved listing sold or was taken down. */
+export const saveEnded = (it: Schemas['SavedListing']) => ENDED.includes(it.listing.status);
+
 /** The questions Hỏi nhanh sends with one tap. */
 export const QUESTIONS = ['Còn không bạn?', 'Xem ở đâu được?'];
 
