@@ -1,0 +1,32 @@
+---
+// "Việc của bạn" at the top of an order: what the viewer does next, a line or
+// two, and slot "action" for the state's one primary move.
+import type { NextStep } from '../../lib/orders';
+import Icon from '../Icon.astro';
+
+interface Props {
+  next: NextStep;
+}
+
+const { next } = Astro.props;
+---
+
+<section class="flex flex-col gap-4 rounded-panel border border-primary/25 bg-mint/50 p-4 md:flex-row md:items-center md:gap-5 md:p-5" aria-labelledby="next-title">
+  <div class="min-w-0 flex-1">
+    <p class="text-label-medium text-on-mint">Việc của bạn</p>
+    <h2 id="next-title" class="mt-1 text-j-20 text-ink">{next.title}</h2>
+    {
+      next.lines.length > 0 && (
+        <ul class="mt-2 flex flex-col gap-1.5">
+          {next.lines.map((l) => (
+            <li class="flex items-center gap-2 text-body-medium text-on-surface-variant">
+              <Icon name={l.icon} size={18} class="shrink-0 text-primary" />
+              {l.text}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+  <slot name="action" />
+</section>

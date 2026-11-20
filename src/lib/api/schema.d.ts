@@ -5432,6 +5432,11 @@ export interface components {
             status: components["schemas"]["ShipmentStatus"];
             /**
              * Format: date-time
+             * @description When the carrier first reported the parcel past pending_pickup; absent while it waits for pickup.
+             */
+            picked_up_at?: string;
+            /**
+             * Format: date-time
              * @description When the carrier reported the parcel delivered; present while status is delivered.
              */
             delivered_at?: string;
@@ -5471,6 +5476,14 @@ export interface components {
             shipped_at?: string;
             /** Format: date-time */
             closed_at?: string;
+            /**
+             * Format: date-time
+             * @description When the server moves the order on unless someone acts first: a
+             *     pending order is cancelled with seller_timeout, a parcel still
+             *     waiting for pickup is cancelled with pickup_timeout, a delivered
+             *     one completes. Absent while no such wait runs.
+             */
+            due_at?: string;
         };
         Move: {
             /** @enum {string} */
@@ -5757,6 +5770,14 @@ export interface components {
             shipped_at?: string;
             /** Format: date-time */
             closed_at?: string;
+            /**
+             * Format: date-time
+             * @description When the server moves the order on unless someone acts first: a
+             *     pending order is cancelled with seller_timeout, a parcel still
+             *     waiting for pickup is cancelled with pickup_timeout, a delivered
+             *     one completes. Absent while no such wait runs.
+             */
+            due_at?: string;
             /** Format: uuid */
             deal_id: string;
             listing: components["schemas"]["DealListing"];
