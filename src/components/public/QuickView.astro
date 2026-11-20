@@ -1,0 +1,133 @@
+---
+// Xem nhanh on Tìm kiếm and a category page: a tap on a result in the region
+// marked data-quick-view opens the listing here instead of leaving the
+// results. From 840 px a panel on the right, with the regions marked
+// data-quick-room making room beside it; below, a sheet from the bottom. The
+// listing comes from /listings/<slug>/quick (lib/quick-view); "Mở trang"
+// opens its page. Drafts: .superdesign/mockups/quick-view-*.html.
+import { R } from '../../lib/routes';
+import Icon from '../Icon.astro';
+import Skeleton from '../Skeleton.astro';
+import BuyDialog from './BuyDialog.astro';
+
+const icon = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-control text-ink hover:bg-hover disabled:pointer-events-none disabled:opacity-40';
+---
+
+<dialog class="quick-view flex-col overflow-hidden border-0 bg-card p-0 text-ink outline-none open:flex" aria-label="Xem nhanh" tabindex="-1" data-quick-panel>
+  <span class="mx-auto mt-2 block h-1 w-8 shrink-0 rounded-full bg-on-surface-variant/40 lg:hidden" aria-hidden="true"></span>
+  <div class="flex h-14 shrink-0 items-center gap-1 px-3 lg:border-b lg:border-line">
+    <button type="button" class={icon} aria-label="Tin trước" data-quick-step="-1">
+      <Icon name="chevron-left-rounded" size={20} />
+    </button>
+    <button type="button" class={icon} aria-label="Tin sau" data-quick-step="1">
+      <Icon name="chevron-right-rounded" size={20} />
+    </button>
+    <span class="flex-1"></span>
+    <a href={R.search} class="state-layer flex h-9 items-center gap-1.5 rounded-control px-2.5 text-title-small text-ink hover:bg-hover" data-quick-page>
+      <Icon name="open-in-new-rounded" size={16} />
+      Mở trang
+    </a>
+    <button type="button" class={icon} aria-label="Đóng" data-quick-close>
+      <Icon name="close-rounded" size={20} />
+    </button>
+  </div>
+  <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-quick-slot></div>
+</dialog>
+<Skeleton kind="listing" />
+<BuyDialog />
+
+<script>
+  import '../../lib/quick-view';
+</script>
+
+<style is:global>
+  /* Below 840 px a sheet at the window's foot over a dim backdrop, rising on
+     the spatial spring; from 840 px a panel under the header on the right. */
+  .quick-view {
+    position: fixed;
+    inset: auto 0 0;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    height: 88dvh;
+    max-height: none;
+    border-radius: 28px 28px 0 0;
+    translate: 0 100%;
+    transition:
+      translate var(--duration-spatial-default) var(--ease-spatial),
+      opacity var(--duration-effects-default) var(--ease-effects),
+      overlay var(--duration-spatial-default) allow-discrete,
+      display var(--duration-spatial-default) allow-discrete;
+    &[open] {
+      translate: 0 0;
+    }
+    &::backdrop {
+      background: rgb(0 0 0 / 0.3);
+      opacity: 0;
+      transition:
+        opacity var(--duration-effects-default) var(--ease-effects),
+        overlay var(--duration-effects-default) allow-discrete,
+        display var(--duration-effects-default) allow-discrete;
+    }
+    &[open]::backdrop {
+      opacity: 1;
+    }
+  }
+  @starting-style {
+    .quick-view[open] {
+      translate: 0 100%;
+    }
+    .quick-view[open]::backdrop {
+      opacity: 0;
+    }
+  }
+  @media (width >= 840px) {
+    .quick-view {
+      inset: 76px 12px 12px auto;
+      z-index: 25;
+      width: 400px;
+      height: auto;
+      border: 1px solid var(--color-line);
+      border-radius: 16px;
+      box-shadow: var(--shadow-pop);
+      translate: 16px 0;
+      opacity: 0;
+      &[open] {
+        opacity: 1;
+      }
+    }
+    @starting-style {
+      .quick-view[open] {
+        translate: 16px 0;
+        opacity: 0;
+      }
+    }
+    /* The page makes room for the panel; cards fit as many columns as the room takes. */
+    html[data-quick-open] [data-quick-room] {
+      padding-right: max(2rem, calc(436px - max(0px, (100vw - 1280px) / 2)));
+    }
+    html[data-quick-open] [data-quick-view] [data-grid] {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+  }
+  /* Under 1200 px the filters step aside while it is open; they keep their state. */
+  @media (840px <= width < 1200px) {
+    html[data-quick-open] [data-quick-room] > [data-filters] {
+      display: none;
+    }
+    html[data-quick-open] main[data-quick-room] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  /* Chat nhanh docks beside the panel instead of over it. */
+  @media (width >= 1024px) {
+    html[data-quick-open] dialog.quickchat {
+      right: 436px;
+    }
+  }
+  /* The result that is open. */
+  [data-quick-view] article[data-quick-current] {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 1px var(--color-brand);
+  }
+</style>

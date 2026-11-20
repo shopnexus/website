@@ -46,7 +46,7 @@ const items = view?.items.map(card) ?? [];
     </Layout>
   ) : (
     <Layout title={`Danh mục ${cat.name} · ShopNexus`} description={`${group(total)} tin ${cat.name.toLowerCase()} đang bán trên ShopNexus.`} section="categories">
-      <main class={CONTENT}>
+      <main class={CONTENT} data-quick-room>
         <Crumbs parts={[['Khám phá', R.home], ['Danh mục', R.categories], [cat.name]]} class="pt-4" />
         <section class="mt-4 grid grid-cols-1 items-end gap-6 lg:grid-cols-[1fr_520px] lg:gap-8">
           <div>

@@ -292,6 +292,20 @@ buyer's area. On the right: the query's conditions as removable chips, the
 sort tabs with the grid and list switch, four cards a row, and the alert
 strip after the eighth.
 
+A tap on a result opens Xem nhanh (`QuickView.astro`) in place of the
+listing page. From 840 px it is a 400 px panel on the right under the header,
+and the results make room beside it: three columns at 1280, with the filters
+hidden under 1200 px. Below 840 px it is a sheet from the bottom with the
+buttons at its foot. It shows the gallery, condition, place, title, price, the
+listing's buttons with the heart (`ListingActions.astro`, shared with the
+listing page), the seller and four lines of the description, loaded from
+`/listings/<slug>/quick`. The arrows step to the previous and next result;
+"Mở trang" opens the listing page and the photo flies into its gallery. The
+address takes `?view=<slug>` as a new history entry, so Back or Esc closes the
+panel and a reload or a shared link opens it again. A modifier or middle click
+opens the page. Category pages and Tìm bằng ảnh show the same results. Drafts:
+`.superdesign/mockups/quick-view-*.html` (`tools/build_quick_view.py`).
+
 ### Listing detail
 
 The gallery, then a sticky right column with the condition, title, price,

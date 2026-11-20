@@ -1,0 +1,112 @@
+---
+// Xem nhanh (QuickView): a listing beside the results it was tapped in. The
+// gallery, condition, place, title, price, the listing's buttons with the
+// heart, the seller, the description's first lines, and Chat nhanh for a
+// buyer signed in. A listing gone is a 404 with one line.
+import Avatar from '../../../components/Avatar.astro';
+import Icon from '../../../components/Icon.astro';
+import Gallery from '../../../components/public/Gallery.astro';
+import ListingActions from '../../../components/public/ListingActions.astro';
+import QuickChat from '../../../components/public/QuickChat.astro';
+import { orNull } from '../../../lib/api/client';
+import { near } from '../../../lib/area';
+import { ago, group, ratingText, where } from '../../../lib/format';
+import { QUESTIONS, conditionLabel, dealState } from '../../../lib/listing';
+import { R } from '../../../lib/routes';
+import { viewer } from '../../../lib/session';
+import { btnCls } from '../../../lib/ui';
+
+export const partial = true;
+
+const api = Astro.locals.api;
+const screen = await orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id: Astro.params.slug ?? '' }, query: near(Astro.cookies) } }));
+if (!screen) Astro.response.status = 404;
+const me = viewer(Astro);
+const it = screen?.listing;
+const seller = screen?.seller;
+const deal = screen && dealState(screen, me);
+const photos = (it?.photos ?? []).filter((p) => p.url).map((p) => ({ big: p.url!, thumb: p.url! }));
+const [rating] = seller ? ratingText(seller.rating) : [''];
+---
+
+{
+  !it || !seller || !deal ? (
+    <article class="flex flex-col items-center gap-2 px-6 py-16 text-center" data-quick-body>
+      <Icon name="search-off-rounded" size={28} class="text-faint" />
+      <p class="text-body-large text-sub">Tin này đã bán hoặc đã gỡ.</p>
+    </article>
+  ) : (
+    <article class="flex flex-col p-4" aria-label={it.title} data-quick-body data-slug={it.slug}>
+      {photos.length > 0 ? (
+        <Gallery photos={photos} title={it.title} compact />
+      ) : (
+        <div class="grid place-items-center rounded-card bg-soft text-faint" style="aspect-ratio: 16 / 10.5">
+          <Icon name="photo-camera-outline-rounded" size={32} />
+        </div>
+      )}
+      <div class="px-1 pt-4">
+        <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
+          <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{conditionLabel(it.condition)}</span>
+          {where(screen.distance_km, it.location.commune.display_name)} · {ago(it.published_at ?? it.created_at)} trước
+        </p>
+        <h2 class="mt-2.5 text-j-18 text-ink">{it.title}</h2>
+        <p class="mt-2 text-j-26 text-ink tabular-nums">
+          {group(it.price)}<span class="ml-1 text-title-medium font-medium tracking-normal text-sub">₫</span>
+        </p>
+        {deal.reserved && <p class="mt-1 text-body-small text-faint">Món này đang được giao cho một người mua.</p>}
+      </div>
+      <!-- On a phone the buttons stay at the sheet's foot. -->
+      <ListingActions
+        screen={screen}
+        me={me}
+        class="z-10 flex gap-2 bg-card [&>a]:flex-1 max-lg:sticky max-lg:bottom-0 max-lg:order-last max-lg:-mx-4 max-lg:-mb-4 max-lg:mt-4 max-lg:border-t max-lg:border-line max-lg:px-4 max-lg:pb-4 max-lg:pt-3 lg:mt-4 lg:px-1"
+      >
+        {!deal.mine && (
+          <button
+            type="button"
+            class={`${btnCls('line', 'lg')} w-11 px-0!`}
+            aria-label={screen.viewer?.saved ? 'Bỏ lưu tin' : 'Lưu tin'}
+            aria-pressed={screen.viewer?.saved ? 'true' : 'false'}
+            data-save={it.id}
+          >
+            <Icon name="favorite-outline-rounded" size={18} class="save-off" />
+            <Icon name="favorite-rounded" size={18} class="save-on text-error" />
+          </button>
+        )}
+      </ListingActions>
+      <div class="mt-4 border-t border-line px-1 pt-3">
+        <a href={R.seller(seller.id)} class="state-layer -mx-2 flex items-center gap-3 rounded-control p-2 hover:bg-hover">
+          <Avatar name={seller.display_name} photo={seller.avatar_url} size={36} />
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-title-small text-ink">{seller.display_name}</span>
+            <span class="flex items-center gap-1 text-body-small text-faint">
+              <Icon name="star-rounded" size={12} class="text-star" />
+              {rating} · {seller.sold} đã bán
+            </span>
+          </span>
+          <Icon name="chevron-right-rounded" size={18} class="text-faint" />
+        </a>
+      </div>
+      {it.description && (
+        <div class="mt-3 border-t border-line px-1 pt-4">
+          <h3 class="text-title-small text-sub">Mô tả</h3>
+          <p class="mt-1.5 line-clamp-4 whitespace-pre-line text-body-large text-ink">{it.description}</p>
+        </div>
+      )}
+    </article>
+  )
+}
+{
+  it && seller && deal && me && !deal.mine && (
+    <QuickChat
+      listing={it.id}
+      chat={screen!.viewer?.conversation_id}
+      seller={{ name: seller.display_name, photo: seller.avatar_url }}
+      title={it.title}
+      thumb={photos[0]?.thumb}
+      price={it.price}
+      questions={QUESTIONS}
+      href={deal.chat}
+    />
+  )
+}

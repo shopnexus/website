@@ -57,7 +57,16 @@ const { title, description, section = null, search, footer = true, fab = true, i
 
       let tapped = null;
       addEventListener('click', (e) => (tapped = e.target.closest?.('a[href]') ?? null), true);
-      const photoOf = (a) => a.querySelector('img') ?? a.closest('article, li')?.querySelector('img');
+      // The gallery photo in view (Gallery.astro) inside `root`, when one shows.
+      const slideOf = (root) => {
+        const t = root?.querySelector('[data-gallery] [data-slides]');
+        return t?.checkVisibility() ? (t.children[Math.round(t.scrollLeft / Math.max(1, t.clientWidth))] ?? t.children[0]) : null;
+      };
+      // A link's photo: its own, or its card's, row's or dialog's (Xem nhanh's gallery).
+      const photoOf = (a) => {
+        const box = a.closest('article, li, dialog');
+        return a.querySelector('img') ?? slideOf(box) ?? box?.querySelector('img');
+      };
 
       // A listing tap still on this page after 100 ms grows the card's photo into
       // a skeleton of the listing page; the real page then replaces it.
@@ -68,7 +77,8 @@ const { title, description, section = null, search, footer = true, fab = true, i
         skeleton?.remove();
         skeleton = null;
       };
-      const showSkeleton = (img) => {
+      const showSkeleton = (a) => {
+        const img = photoOf(a);
         const tpl = document.getElementById('listing-skeleton');
         if (!tpl || skeleton) return;
         const el = tpl.content.firstElementChild.cloneNode(true);
@@ -79,6 +89,9 @@ const { title, description, section = null, search, footer = true, fab = true, i
         const swap = () => {
           if (img) img.style.viewTransitionName = '';
           if (img?.currentSrc) photo.style.viewTransitionName = 'listing-photo';
+          // The skeleton takes the place of the dialog or popover the tap came from.
+          a.closest('dialog[open]')?.close();
+          a.closest(':popover-open')?.hidePopover();
           document.body.append(el);
           skeleton = el;
         };
@@ -92,27 +105,24 @@ const { title, description, section = null, search, footer = true, fab = true, i
         if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.origin !== location.origin) return;
         if (!a.pathname.startsWith('/listings/') || a.pathname === location.pathname) return;
         clearTimeout(wait);
-        wait = setTimeout(() => showSkeleton(photoOf(a)), 100);
+        wait = setTimeout(() => showSkeleton(a), 100);
       });
       // Back from the next page, or a navigation the buyer stopped.
       addEventListener('pageshow', dropSkeleton);
       addEventListener('keydown', (e) => e.key === 'Escape' && dropSkeleton());
       // A transition draws above the top layer, so a photo paired under an open
       // dialog or popover would cover it until the transition ends.
-      const covered = () => {
-        try { return !!document.querySelector('dialog:modal, :popover-open'); } catch { return false; }
+      const covered = (img) => {
+        try { return [...document.querySelectorAll('dialog:modal, :popover-open')].some((d) => !d.contains(img)); } catch { return false; }
       };
       const pair = (img, vt) => {
-        if (!img || covered()) return;
+        if (!img || covered(img)) return;
         img.style.viewTransitionName = 'listing-photo';
         img.dataset.loaded = '';
         vt.finished.finally(() => (img.style.viewTransitionName = ''));
       };
-      // The gallery photo in view (Gallery.astro): the first one on arrival.
-      const gallery = () => {
-        const t = document.querySelector('[data-gallery] [data-slides]');
-        return t ? (t.children[Math.round(t.scrollLeft / Math.max(1, t.clientWidth))] ?? t.children[0]) : null;
-      };
+      // The page's gallery photo in view: the first one on arrival.
+      const gallery = () => slideOf(document);
       addEventListener('pageswap', (e) => {
         clearTimeout(wait);
         if (!e.viewTransition || !e.activation?.entry?.url) return;
