@@ -1471,6 +1471,291 @@
       },
       "note": "Reply time on the seller card; photos and Hữu ích on reviews; photos in the order review form.",
       "updatedAt": "2026-11-20T03:51:27.037293+00:00"
+    },
+    "#chat-safety": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "90ab2c1a-7fce-4fd0-8b88-a229550464e1",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_chat_safety.py"
+      ],
+      "drafts": {
+        "90ab2c1a-7fce-4fd0-8b88-a229550464e1": {
+          "title": "Tin nhắn · cảnh báo lừa đảo dưới tin",
+          "currentVersion": 1,
+          "visualDirection": "Scam line under the other person's message: soft #F3F3F1 block, 1px line, 12px corners, shield-flash 18px ink, the server's sign texts in 13/18 medium, then 'ShopNexus chỉ có COD: xem hàng rồi mới trả · Báo cáo' (teal link) in 12.5 sub, × to hide; no red"
+        },
+        "3bcb9595-8c18-4ac6-9dcb-1f712c1929db": {
+          "title": "Tin nhắn · cảnh báo lừa đảo dưới tin · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Scam line under the other person's message: soft #F3F3F1 block, 1px line, 12px corners, shield-flash 18px ink, the server's sign texts in 13/18 medium, then 'ShopNexus chỉ có COD: xem hàng rồi mới trả · Báo cáo' (teal link) in 12.5 sub, × to hide; no red"
+        },
+        "e1223d95-3e66-45d0-9e3a-cbb2c20d1455": {
+          "title": "Tin nhắn · câu trả lời mẫu",
+          "currentVersion": 1,
+          "visualDirection": "Seller composer: chat-quote button beside the photo button; saved replies in a 380px popover above the field (title + '/' kbd + 'Sửa' teal), rows 14/20 with hover/active bg #EEEEEB; bottom sheet on phone"
+        },
+        "c56d9a6a-67e4-46e9-9d00-621c3a9e54d0": {
+          "title": "Tin nhắn · câu trả lời mẫu · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Seller composer: chat-quote button beside the photo button; saved replies in a 380px popover above the field (title + '/' kbd + 'Sửa' teal), rows 14/20 with hover/active bg #EEEEEB; bottom sheet on phone"
+        },
+        "d9315e4b-2611-430b-941e-4f7ecd3e3e83": {
+          "title": "Tin nhắn · sửa câu trả lời mẫu",
+          "currentVersion": 1,
+          "visualDirection": "Same panel in edit mode: back arrow, 'Sửa câu trả lời mẫu', n/20; one field per reply (rounded-control, field border, teal focus ring) with ×; 'Thêm câu' teal, Hủy, Lưu in brand"
+        },
+        "9e3f3227-d1f8-4da0-90c9-6fc98970aa8b": {
+          "title": "Tin nhắn · sửa câu trả lời mẫu · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Same panel in edit mode: back arrow, 'Sửa câu trả lời mẫu', n/20; one field per reply (rounded-control, field border, teal focus ring) with ×; 'Thêm câu' teal, Hủy, Lưu in brand"
+        }
+      }
+    },
+    "/orders/[id]#order-steps": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "8f72942e-7855-4d4e-b89b-eebdd4ea9487",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_order_steps.py"
+      ],
+      "drafts": {
+        "8f72942e-7855-4d4e-b89b-eebdd4ea9487": {
+          "title": "Đơn COD · người mua, đang giao",
+          "currentVersion": 1,
+          "visualDirection": "Order page in K2: a 'Việc của bạn' card heads the left column (teal 5% wash over white, 1px teal/22 border, 16px corners, 20/28 semibold title, one muted line with a teal icon, the state's one primary button on the right or full width on a phone); Hành trình lists the steps oldest first, done dots teal, the ones to come hollow grey."
+        },
+        "f0c5c470-4b73-4804-9e08-9a1cbacef9fa": {
+          "title": "Đơn COD · người mua, đang giao · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Order page in K2: a 'Việc của bạn' card heads the left column (teal 5% wash over white, 1px teal/22 border, 16px corners, 20/28 semibold title, one muted line with a teal icon, the state's one primary button on the right or full width on a phone); Hành trình lists the steps oldest first, done dots teal, the ones to come hollow grey."
+        },
+        "144ff792-3e70-43f1-afb3-098f26b1f168": {
+          "title": "Đơn bán · chờ tạo vận đơn",
+          "currentVersion": 1,
+          "visualDirection": "Order page in K2: a 'Việc của bạn' card heads the left column (teal 5% wash over white, 1px teal/22 border, 16px corners, 20/28 semibold title, one muted line with a teal icon, the state's one primary button on the right or full width on a phone); Hành trình lists the steps oldest first, done dots teal, the ones to come hollow grey."
+        },
+        "2b1d75cf-a416-40fe-93a7-f4543e8ce51b": {
+          "title": "Đơn bán · chờ tạo vận đơn · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Order page in K2: a 'Việc của bạn' card heads the left column (teal 5% wash over white, 1px teal/22 border, 16px corners, 20/28 semibold title, one muted line with a teal icon, the state's one primary button on the right or full width on a phone); Hành trình lists the steps oldest first, done dots teal, the ones to come hollow grey."
+        }
+      }
+    },
+    "polish": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "85cd7fb7-fddb-4e58-bc2b-090cd3d258e0",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_polish.py"
+      ],
+      "drafts": {
+        "85cd7fb7-fddb-4e58-bc2b-090cd3d258e0": {
+          "title": "Người bán · đã xác minh SĐT",
+          "currentVersion": 1,
+          "visualDirection": "Shared badge: verified-badge-fill 14 px in primary + 'Đã xác minh SĐT' in sub at the line's size, title tooltip 'Đã xác minh số điện thoại'; seller card subline 'Tham gia 2023 · badge'; person card: a third line under the stars"
+        },
+        "109c82c9-62a6-42e1-8ced-f5933bff8ed0": {
+          "title": "Người bán · đã xác minh SĐT · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Phone: the badge in the seller page's facts row (16 px glyph) and on the listing's seller card"
+        },
+        "fc6add1d-1d8f-4554-bc02-2eef3f935039": {
+          "title": "Độ tương phản và bo góc · trước và sau",
+          "currentVersion": 1,
+          "visualDirection": "faint #8C8C87 to #6C6C68 light, #7D7D78 to #92928D dark, 4.5:1 on page/card/soft/hover/mint; every text field one style: 10 px, field border, card fill"
+        },
+        "8e02bc6f-fcb6-4a8b-a49a-62b361eb565f": {
+          "title": "Độ tương phản và bo góc · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "The same board stacked at 390"
+        }
+      }
+    },
+    "seller-tools": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "63a748aa-8df8-4b55-b513-c4a377257a7a",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_seller_tools_k2.py"
+      ],
+      "drafts": {
+        "63a748aa-8df8-4b55-b513-c4a377257a7a": {
+          "title": "Tin của bạn · đổi giá tại chỗ",
+          "currentVersion": 1,
+          "visualDirection": "Row price is a button (price, struck old price, pencil) opening a 340 px Đổi giá popover (sheet on phone): 48 px money field with 2 px teal ring, -5/-10/-15% pills, a soft-track preview of the card price with the white 'Vừa giảm' chip, Hủy / Lưu giá. Row actions: line buttons Đã bán (asks once) and Sửa, then ⋮ (Ẩn tin, Xóa tin); a sold row has Đăng lại."
+        },
+        "c45ee41a-f176-4275-8e96-7615e6baa03a": {
+          "title": "Tin của bạn · đổi giá, điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Row price is a button (price, struck old price, pencil) opening a 340 px Đổi giá popover (sheet on phone): 48 px money field with 2 px teal ring, -5/-10/-15% pills, a soft-track preview of the card price with the white 'Vừa giảm' chip, Hủy / Lưu giá. Row actions: line buttons Đã bán (asks once) and Sửa, then ⋮ (Ẩn tin, Xóa tin); a sold row has Đăng lại."
+        },
+        "6037e896-eabd-4e6e-869f-712b4ff90569": {
+          "title": "Đăng tin · xem trước",
+          "currentVersion": 1,
+          "visualDirection": "Đăng tin opens Xem trước: from 840 px a 460 px panel inset 12 px on the right over a 30% backdrop, on a phone a full sheet. 'Thẻ tin' shows the real card at grid width (228 / 171 px) with a soft-track list of what buyers would miss ('Tiêu đề bị cắt trên thẻ' + Sửa tiêu đề); 'Trang tin' the gallery and the head panel (condition chip, place · vừa xong, title, price). Footer: Sửa (line) and Đăng tin (teal)."
+        },
+        "efa2d60c-9be2-4a0e-869d-30434e02421a": {
+          "title": "Đăng tin · xem trước, điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Đăng tin opens Xem trước: from 840 px a 460 px panel inset 12 px on the right over a 30% backdrop, on a phone a full sheet. 'Thẻ tin' shows the real card at grid width (228 / 171 px) with a soft-track list of what buyers would miss ('Tiêu đề bị cắt trên thẻ' + Sửa tiêu đề); 'Trang tin' the gallery and the head panel (condition chip, place · vừa xong, title, price). Footer: Sửa (line) and Đăng tin (teal)."
+        }
+      }
+    },
+    "#chat-dock": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "4513f64b-2ef8-4869-a4f7-54723b2933fd",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_notif_preview.py",
+        ".superdesign/tools/build_chat_dock.py"
+      ],
+      "drafts": {
+        "9facc61a-71f8-4743-b3fa-0918ba89abf7": {
+          "title": "Hộp chat · chọn từ Tin nhắn",
+          "currentVersion": 1,
+          "visualDirection": "Header Tin nhắn panel (380 px) over K2 Chi tiết tin; a row under the pointer opens the chat box instead of the Tin nhắn page"
+        },
+        "4513f64b-2ef8-4869-a4f7-54723b2933fd": {
+          "title": "Hộp chat · mở trên trang",
+          "currentVersion": 2,
+          "visualDirection": "440x600 white box bottom-right, 16 px corners, shadow-pop: person (hover card) with open/minimize/close, listing ref with the standing price first (\"4.200.000 ₫ · Giá Minh Anh đưa\") and 'Mở trong Tin nhắn', thread, composer with a 10 px field between round photo and send"
+        },
+        "016337b4-02c4-4ee7-a522-3e2a9c90eeb3": {
+          "title": "Hộp chat · thu nhỏ",
+          "currentVersion": 1,
+          "visualDirection": "Folded box: a 48 px white pill bottom-right with the face, name and a teal dot plus 'Tin mới' when a message came in"
+        },
+        "bc89861c-a674-4203-8796-f6ddf50aff12": {
+          "title": "Chat nhanh · điện thoại, ô nhắn bo góc",
+          "currentVersion": 2,
+          "visualDirection": "Phone Chat nhanh sheet: same head and listing ref; chips and the message field share the 10 px control corner"
+        }
+      }
+    },
+    "#offers-inbox": {
+      "targetKind": "new-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "e2c658cf-1f27-4040-abbf-56591e94c16b",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_notif_preview.py",
+        ".superdesign/tools/build_offers_inbox.py"
+      ],
+      "drafts": {
+        "e2c658cf-1f27-4040-abbf-56591e94c16b": {
+          "title": "Trả giá · người bán",
+          "currentVersion": 1,
+          "visualDirection": "Account page Trả giá in K2: account nav with the count, one white card per open offer (thumb, title, listed price, buyer with hover card, time; the offer and its gap on the right; chat, Từ chối, Trả giá lại, Đồng ý), Trả giá lại opens the money field under the row; a held listing keeps only Từ chối"
+        },
+        "2512fb40-ba54-4506-843a-0871293d47d4": {
+          "title": "Trả giá · menu tài khoản",
+          "currentVersion": 1,
+          "visualDirection": "The avatar menu with Trả giá and a teal count between Đơn bán and Tin của bạn"
+        },
+        "7a3a1328-894a-462b-860c-2aa73d051d97": {
+          "title": "Trả giá · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "390 wide: stacked cards, the offer on its own line, three equal buttons; Trả giá lại opens the field in the card"
+        }
+      }
+    },
+    "#saved-sold": {
+      "targetKind": "new-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "8bedb51f-58f0-4765-ab46-d98b9f71c095",
+      "contextFiles": [
+        ".superdesign/tools/build_saved_sold.py",
+        ".superdesign/tools/build_k2.py"
+      ],
+      "drafts": {
+        "d5c02fcb-0674-4f74-aefd-01f50e001f9f": {
+          "title": "Đã lưu · giá đổi, tin đã bán xuống cuối",
+          "currentVersion": 1,
+          "visualDirection": "K2 (tools/build_saved_sold.py)"
+        },
+        "de48aad4-0928-42d9-9f22-f8d186ed9c36": {
+          "title": "Đã lưu · giá đổi, điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "K2 (tools/build_saved_sold.py)"
+        },
+        "8bedb51f-58f0-4765-ab46-d98b9f71c095": {
+          "title": "Tin đã bán · ảnh mờ, báo món giống vậy",
+          "currentVersion": 2,
+          "visualDirection": "K2 (tools/build_saved_sold.py)"
+        },
+        "eb5c8fe6-401b-40db-ab55-e05456478a97": {
+          "title": "Tin đã bán · điện thoại",
+          "currentVersion": 2,
+          "visualDirection": "K2 (tools/build_saved_sold.py)"
+        }
+      },
+      "updatedAt": "2026-11-20T05:59:02.849569+00:00"
+    },
+    "/search#quick-view-2": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "activeDraftId": "56f3f38d-8d20-4253-bdd8-3a3fd661656a",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_quick_view.py",
+        ".superdesign/tools/build_quick_view_2.py"
+      ],
+      "drafts": {
+        "2f534073-af54-44c8-b92e-9ba1d9037b06": {
+          "title": "Xem nhanh · A. Hover hiện popup",
+          "currentVersion": 1,
+          "visualDirection": "Popover 372 px beside the hovered card (gallery, thumbs, price, 3 lines, seller), covering its neighbours; shown to compare"
+        },
+        "c50b2e14-8bcc-4f58-97ad-4a2141b0f533": {
+          "title": "Xem nhanh · B. Nút Xem nhanh khi rê chuột",
+          "currentVersion": 1,
+          "visualDirection": "Chosen: hover shows a 'Xem nhanh' pill (eye) at the photo's bottom-left; card click opens the page; the pill opens a 400 px drawer over the results with a black/20 scrim under the header; grid stays 4 columns; no scrub (search API sends one cover)"
+        },
+        "56f3f38d-8d20-4253-bdd8-3a3fd661656a": {
+          "title": "Xem nhanh · B. Lớp phủ mở",
+          "currentVersion": 1,
+          "visualDirection": "Chosen: hover shows a 'Xem nhanh' pill (eye) at the photo's bottom-left; card click opens the page; the pill opens a 400 px drawer over the results with a black/20 scrim under the header; grid stays 4 columns; no scrub (search API sends one cover)"
+        },
+        "52b7d599-f370-4558-831c-577c129ff724": {
+          "title": "Xem nhanh · B. điện thoại (chạm mở trang)",
+          "currentVersion": 1,
+          "visualDirection": "Phone: no pill, tap opens the listing page"
+        },
+        "2caefbcd-4d58-44e6-bbbf-1d41a95ed7a6": {
+          "title": "Xem nhanh · C. Panel đẩy lưới (hiện tại)",
+          "currentVersion": 1,
+          "visualDirection": "Today: 400 px panel beside the results, grid falls to 3 columns (build_quick_view.desktop)"
+        }
+      }
     }
   }
 }
