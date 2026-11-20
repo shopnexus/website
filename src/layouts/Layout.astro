@@ -9,6 +9,7 @@ import Header, { type Section } from '../components/Header.astro';
 import PersonCard from '../components/PersonCard.astro';
 import ListingPageSkeleton from '../components/public/ListingPageSkeleton.astro';
 import Snackbar from '../components/Snackbar.astro';
+import { isPrivate } from '../lib/seo';
 import { theme } from '../lib/theme';
 
 interface Props {
@@ -22,11 +23,18 @@ interface Props {
   footer?: boolean;
   /** Hides the compact "Đăng tin" button on the posting pages. */
   fab?: boolean;
-  /** Open Graph image. */
+  /** Open Graph image, absolute or a path here. */
   image?: string;
+  /** The image's pixel size; a wide one gets the large card in link previews. */
+  imageSize?: { width: number; height: number };
+  /** The page's one address, a path, when others show the same content. */
+  canonical?: string;
 }
 
-const { title, description, section = null, search, footer = true, fab = true, image } = Astro.props;
+const { title, description, section = null, search, footer = true, fab = true, image, imageSize, canonical } = Astro.props;
+// Search engines: absolute addresses, and private pages kept out (lib/seo.ts).
+const abs = (path?: string) => path && new URL(path, Astro.url).href;
+const noindex = isPrivate(Astro.url.pathname + Astro.url.search);
 ---
 
 <html lang="vi" data-theme={theme(Astro)}>
@@ -40,7 +48,13 @@ const { title, description, section = null, search, footer = true, fab = true, i
     {description && <meta name="description" content={description} />}
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
-    {image && <meta property="og:image" content={image} />}
+    {image && <meta property="og:image" content={abs(image)} />}
+    {imageSize && <meta property="og:image:width" content={String(imageSize.width)} />}
+    {imageSize && <meta property="og:image:height" content={String(imageSize.height)} />}
+    {image && <meta name="twitter:card" content={imageSize && imageSize.width > imageSize.height ? 'summary_large_image' : 'summary'} />}
+    {canonical && <link rel="canonical" href={abs(canonical)} />}
+    {canonical && <meta property="og:url" content={abs(canonical)} />}
+    {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:site_name" content="ShopNexus" />
     <slot name="head" />
     <!-- Hold the first paint until the page is parsed, so pagereveal below
