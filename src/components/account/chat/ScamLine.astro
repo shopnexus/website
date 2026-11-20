@@ -1,0 +1,49 @@
+---
+// A scam warning under the other person's message it was found at: the
+// signs in the server's words, the COD rule, "Báo cáo" and × to hide it.
+// The server sends it to the warned person only.
+import type { Schemas } from '../../../lib/api/client';
+import { chatHref } from '../../../lib/messages';
+import { R } from '../../../lib/routes';
+import Icon from '../../Icon.astro';
+
+interface Props {
+  signals: Schemas['ScamSignal'][];
+  chat: string;
+  /** Chat nhanh's pane URL; there "Báo cáo" opens Tin nhắn. Tin nhắn by default, where it opens the dialog. */
+  pane?: string;
+}
+
+const { signals, chat, pane } = Astro.props;
+const link = 'font-medium text-primary underline-offset-2 hover:underline';
+---
+
+<div class="flex gap-1.5" role="note" aria-label="Cảnh báo lừa đảo" data-scam>
+  <span class="w-7 shrink-0"></span>
+  <div class="flex min-w-0 flex-1 items-start gap-2.5 rounded-tile border border-line bg-soft py-2 pl-3 pr-2 md:max-w-[80%] md:flex-none">
+    <Icon name="gpp-maybe-outline-rounded" size={18} class="mt-px text-ink" />
+    <div class="min-w-0 flex-1">
+      <p class="text-label-large text-ink">{signals.map((s) => s.text).join(' · ')}</p>
+      <p class="mt-0.5 text-body-small text-sub">
+        ShopNexus chỉ có COD: xem hàng rồi mới trả ·{' '}
+        {
+          pane ? (
+            <a href={chatHref(chat, undefined, { report: '1' })} class={link}>
+              Báo cáo
+            </a>
+          ) : (
+            <button type="button" class={link} data-open-report="form" aria-haspopup="dialog">
+              Báo cáo
+            </button>
+          )
+        }
+      </p>
+    </div>
+    <form method="post" action={pane ?? R.messages} data-in-place>
+      <input type="hidden" name="chat" value={chat} />
+      <button type="submit" name="do" value="dismiss" class="state-layer -mr-1 -mt-0.5 grid h-7 w-7 place-items-center rounded-full text-sub" aria-label="Ẩn cảnh báo">
+        <Icon name="close-rounded" size={16} />
+      </button>
+    </form>
+  </div>
+</div>

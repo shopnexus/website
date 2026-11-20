@@ -1,8 +1,7 @@
 ---
 // "Chặn và báo cáo": the app's bottom sheet, a dialog on a wide window. The
-// scam warning's signals when there is one, then the form, which reports the
-// person and blocks them, then sent. Each step is a form post.
-import type { Schemas } from '../../../lib/api/client';
+// form reports the person and blocks them, then sent. Each step is a form
+// post; opens shows a pane at once, as after the report went through.
 import { R } from '../../../lib/routes';
 import Icon from '../../Icon.astro';
 
@@ -10,76 +9,27 @@ interface Props {
   name: string;
   account: string;
   chat: string;
-  signals: Schemas['ScamSignal'][];
-  /** Opens on the sent pane, after the report went through. */
-  sent?: boolean;
+  /** The pane the dialog opens on as the page loads. */
+  opens?: 'form' | 'sent';
 }
 
-const { name, account, chat, signals, sent = false } = Astro.props;
+const { name, account, chat, opens } = Astro.props;
 const REASONS = [
   { key: 'scam', label: 'Có dấu hiệu lừa đảo' },
   { key: 'fake', label: 'Hàng giả, hàng nhái' },
   { key: 'banned', label: 'Hàng cấm bán' },
   { key: 'other', label: 'Lý do khác' },
 ];
-/** Each signal's icon; a code the server adds later gets Info. */
-const ICONS: Record<string, string> = {
-  prepayment_request: 'account-balance-outline-rounded',
-  off_app_contact: 'call-outline-rounded',
-  suspicious_link: 'link-rounded',
-  sensitive_info_request: 'password-rounded',
-  impersonation: 'badge-outline-rounded',
-  fake_payment_proof: 'receipt-long-outline-rounded',
-  pressure: 'timer-outline-rounded',
-  new_account: 'person-add-outline-rounded',
-  price_far_below: 'trending-down-rounded',
-};
 const close = 'state-layer -mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
-const btn = 'state-layer h-10 w-full rounded-full text-label-large';
-const count = `${signals.length} dấu hiệu`;
 ---
 
 <dialog
   id="report"
   class="m-auto w-[min(480px,calc(100vw-32px))] rounded-card border-0 bg-card/90 p-6 text-on-surface backdrop-blur-[20px] backdrop:bg-black/30 backdrop:backdrop-blur-[2px]"
   aria-labelledby="report-title"
-  data-sent={sent ? '' : undefined}
+  data-opens={opens}
 >
-  {
-    signals.length > 0 && (
-      <div data-pane="signals">
-        <div class="flex items-center justify-between">
-          <h2 class="text-headline-small">Có thể là lừa đảo</h2>
-          <button type="button" data-close class={close} aria-label="Đóng">
-            <Icon name="close-rounded" size={22} />
-          </button>
-        </div>
-        <p class="mt-1 flex items-center gap-1 text-label-medium text-primary">
-          <Icon name="auto-awesome-rounded" size={16} />
-          {count}
-        </p>
-        <ul class="mt-2">
-          {signals.map((s) => (
-            <li class="flex min-h-12 items-center gap-4">
-              <Icon name={ICONS[s.code] ?? 'info-outline-rounded'} size={24} class="text-on-surface-variant" />
-              <span class="text-body-large">{s.text}</span>
-            </li>
-          ))}
-        </ul>
-        <button type="button" data-go="form" class:list={[btn, 'mt-6 bg-primary text-on-primary']}>
-          Chặn và báo cáo
-        </button>
-        <form method="post" action={R.messages}>
-          <input type="hidden" name="chat" value={chat} />
-          <button type="submit" name="do" value="dismiss" class:list={[btn, 'mt-2 text-primary']}>
-            Ẩn cảnh báo
-          </button>
-        </form>
-      </div>
-    )
-  }
-
-  <form method="post" action={R.messages} data-pane="form" hidden={signals.length > 0}>
+  <form method="post" action={R.messages} data-pane="form">
     <input type="hidden" name="chat" value={chat} />
     <input type="hidden" name="account" value={account} />
     <div class="flex items-center justify-between">
@@ -104,17 +54,7 @@ const count = `${signals.length} dấu hiệu`;
       <textarea name="note" rows="2" maxlength="500" class="mt-0.5 block w-full resize-none border-0 bg-transparent p-0 text-body-large outline-none"></textarea>
     </label>
     <div class="mt-6 flex justify-end gap-2">
-      {
-        signals.length > 0 ? (
-          <button type="button" data-go="signals" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">
-            Quay lại
-          </button>
-        ) : (
-          <button type="button" data-close class="state-layer h-10 rounded-control px-4 text-label-large text-primary">
-            Hủy
-          </button>
-        )
-      }
+      <button type="button" data-close class="state-layer h-10 rounded-control px-4 text-label-large text-primary">Hủy</button>
       <button type="submit" name="do" value="report" class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">Chặn và gửi báo cáo</button>
     </div>
   </form>

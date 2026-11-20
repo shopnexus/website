@@ -124,6 +124,11 @@ if (Astro.request.method === 'POST') {
       case 'dismiss':
         await unwrap(api.POST('/v1/conversations/{id}/scam-warning/dismiss', { params: { path: { id: chat } } }));
         break;
+      case 'replies': {
+        const items = f.getAll('reply').map((r) => String(r).trim()).filter(Boolean);
+        await unwrap(api.PUT('/v1/me/quick-replies', { body: { items: items.slice(0, 20) } }));
+        break;
+      }
       case 'report': {
         const reason = s('reason') as Schemas['ReportCreate']['reason'];
         await unwrap(api.POST('/v1/reports', { body: { account_id: account, conversation_id: chat, reason, note: s('note') } }));
@@ -179,9 +184,11 @@ const m = await loadMessages(Astro, true);
 const chat = m.chat;
 const error = entryError || p.get('error') || (p.has('chat') && !chat ? 'conversation_not_found' : '');
 const other = chat ? personName(chat.other) : '';
-const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id) : [];
+const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id, chat.scam_warning) : [];
 const deal = m.deal;
-const warning = chat?.scam_warning && !chat.scam_warning.dismissed ? chat.scam_warning : null;
+// A seller's saved answers for the composer; none while the server cannot say.
+const replies =
+  chat && chat.deals.some((d) => d.role === 'seller') ? await orNull(api.GET('/v1/me/quick-replies')).then((r) => r?.items) : undefined;
 // ?cod=1 opens Giao COD over the chat, for the buyer of an agreed deal.
 const address = p.get('address') ?? '';
 const cod =
@@ -316,28 +323,6 @@ const detail = !!(chat || start || confirm);
                 </nav>
               )}
             </PaneHead>
-            <div data-part="warning">
-              {warning && (
-                <div class="px-3 pt-3">
-                  <button
-                    type="button"
-                    data-open-report="signals"
-                    class="state-layer flex w-full items-center gap-3 rounded-tile border border-error/20 bg-error-container/60 py-3 pl-4 pr-3 text-left"
-                    aria-haspopup="dialog"
-                  >
-                    <Icon name="gpp-maybe-outline-rounded" size={24} class="text-error" />
-                    <span class="min-w-0 flex-1">
-                      <span class="block text-title-small text-on-surface">Có thể là lừa đảo</span>
-                      <span class="mt-0.5 flex items-center gap-1 text-body-small text-on-surface-variant">
-                        <Icon name="auto-awesome-rounded" size={14} class="text-primary" />
-                        {warning.signals.length} dấu hiệu · đừng chuyển tiền trước
-                      </span>
-                    </span>
-                    <Icon name="chevron-right-rounded" size={24} class="text-on-surface-variant" />
-                  </button>
-                </div>
-              )}
-            </div>
             <ChatThread
               items={items}
               me={v.id}
@@ -347,6 +332,7 @@ const detail = !!(chat || start || confirm);
               last={chat.messages.items[0]?.id}
               marked={m.marked}
               empty={`Gửi lời chào tới ${other}.`}
+              chat={chat.id}
             />
             <div data-part="deals">
               {chat.deals.map((d) => (
@@ -384,7 +370,7 @@ const detail = !!(chat || start || confirm);
             ) : chat.other.deleted ? (
               <p class="m-3 rounded-tile bg-surface-container-low px-4 py-3 text-body-medium text-on-surface-variant">Người này đã xóa tài khoản.</p>
             ) : (
-              <Composer peer={other} chat={chat.id} deal={deal?.id} text={p.get('ask') ?? undefined} />
+              <Composer peer={other} chat={chat.id} deal={deal?.id} text={p.get('ask') ?? undefined} replies={replies} />
             )}
           </section>
         ) : confirm ? (
@@ -495,7 +481,7 @@ const detail = !!(chat || start || confirm);
   </main>
   {
     chat && !official && (
-      <ReportDialog name={other} account={chat.other.id} chat={chat.id} signals={warning?.signals ?? []} sent={p.get('reported') === '1'} />
+      <ReportDialog name={other} account={chat.other.id} chat={chat.id} opens={p.get('reported') === '1' ? 'sent' : p.get('report') === '1' ? 'form' : undefined} />
     )
   }
   {cod && <CodDialog checkout={cod.checkout} addresses={cod.addresses} seller={other} error={error || undefined} idem={isId(p.get('key') ?? '') ? p.get('key')! : idempotencyKey()} />}
@@ -510,7 +496,7 @@ const detail = !!(chat || start || confirm);
   const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
   const clean = () => {
     const u = new URL(location.href);
-    ['error', 'offer', 'ask', 'reported', 'cod', 'address', 'key'].forEach((k) => u.searchParams.delete(k));
+    ['error', 'offer', 'ask', 'report', 'reported', 'cod', 'address', 'key'].forEach((k) => u.searchParams.delete(k));
     return u;
   };
   // The chat pane is lib/chat-pane's; other chats' changes refresh the inbox partial.
@@ -616,12 +602,10 @@ const detail = !!(chat || start || confirm);
     });
     dlg.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
-      const go = t.closest<HTMLElement>('[data-go]');
-      if (go) show(go.dataset.go!);
       if (t.closest('[data-close]') || t === dlg) dlg.close();
     });
-    if ('sent' in dlg.dataset) {
-      show('sent');
+    if (dlg.dataset.opens) {
+      show(dlg.dataset.opens);
       dlg.showModal();
       history.replaceState(null, '', clean());
     }

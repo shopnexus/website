@@ -1932,6 +1932,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/quick-replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The caller's quick replies; an account that never saved any reads the defaults.
+         * @description The defaults are three answers a seller often gives. Reading them
+         *     writes nothing; the first PUT saves the list.
+         */
+        get: operations["getQuickReplies"];
+        /**
+         * Replace the caller's quick replies.
+         * @description The list replaces the saved one whole, in the order given; an empty
+         *     list saves no answer, and the defaults do not come back. The last PUT
+         *     wins.
+         */
+        put: operations["putQuickReplies"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/screens/inbox": {
         parameters: {
             query?: never;
@@ -6211,6 +6238,14 @@ export interface components {
             /** @description The caller's unread notices. */
             notifications: number;
         };
+        /**
+         * @description The caller's saved chat answers, in their order, which a composer
+         *     offers to put in the field. An account that never saved any reads
+         *     three defaults.
+         */
+        QuickReplies: {
+            items: string[];
+        };
         /** @description A deal at a glance, as the caller sees it. */
         DealSummary: {
             /** Format: uuid */
@@ -6248,6 +6283,14 @@ export interface components {
             code: string;
             /** @description Vietnamese, written by the server, as "Tài khoản mới tạo 2 ngày". */
             text: string;
+            /**
+             * Format: uuid
+             * @description The other member's newest message in the check that found the
+             *     signal, so a client shows the warning under it. Absent when the
+             *     check read no message of theirs, and on signals found before
+             *     2026-11-20.
+             */
+            message_id?: string;
         };
         /** @description What the caller is told about the other member of a conversation; that member never sees it. */
         ScamWarning: {
@@ -12159,6 +12202,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Unread"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getQuickReplies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The quick replies. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuickReplies"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    putQuickReplies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuickReplies"];
+            };
+        };
+        responses: {
+            /** @description The saved quick replies, trimmed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuickReplies"];
+                };
+            };
+            /** @description A malformed body (invalid_request, malformed_json): over 20 answers, or an answer that is blank or over 200 characters. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             401: components["responses"]["Unauthorized"];

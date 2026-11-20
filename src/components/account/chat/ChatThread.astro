@@ -21,9 +21,14 @@ interface Props {
   empty: string;
   /** The other person's photo, beside their messages. */
   photo?: string;
+  /** The chat, and Chat nhanh's pane URL, for a scam warning's actions. */
+  chat?: string;
+  pane?: string;
 }
 
-const { items, me, other, next, last, marked, empty, photo } = Astro.props;
+const { items, me, other, next, last, marked, empty, photo, chat, pane } = Astro.props;
+// The warning's signs, so a fresh render that only adds a sign still swaps in.
+const warned = items.flatMap((it) => (it.kind === 'scam' ? it.signals.map((s) => s.code) : [])).join();
 ---
 
 <div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4" data-thread>
@@ -32,8 +37,8 @@ const { items, me, other, next, last, marked, empty, photo } = Astro.props;
     <button type="button" class="state-layer h-9 rounded-control px-4 text-label-large text-primary" data-older={next ?? ''}>Tin cũ hơn</button>
   </div>
   <div class="flex flex-col gap-2" data-older-pages></div>
-  <div class="flex flex-col gap-2" data-part="thread" data-next={next ?? ''} data-last={last ?? ''} data-marked={marked ? '' : undefined}>
-    {items.length ? <Thread items={items} me={me} other={other} photo={photo} /> : <p class="m-auto py-10 text-center text-body-medium text-on-surface-variant">{empty}</p>}
+  <div class="flex flex-col gap-2" data-part="thread" data-next={next ?? ''} data-last={last ?? ''} data-warned={warned} data-marked={marked ? '' : undefined}>
+    {items.length ? <Thread items={items} me={me} other={other} photo={photo} chat={chat} pane={pane} /> : <p class="m-auto py-10 text-center text-body-medium text-on-surface-variant">{empty}</p>}
   </div>
   <button
     type="button"

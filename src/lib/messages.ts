@@ -128,16 +128,24 @@ export type ThreadItem =
   | { kind: 'day'; label: string }
   | { kind: 'group'; side: 'mine' | 'theirs'; messages: Message[]; time: string }
   | { kind: 'move'; side: 'mine' | 'theirs'; amount: string; time: string; accept: boolean }
-  | { kind: 'event'; icon: string; text: string };
+  | { kind: 'event'; icon: string; text: string }
+  | { kind: 'scam'; signals: Schemas['ScamSignal'][] };
 
 const GAP = 5 * 60_000;
 
 /**
  * The messages, oldest first, as the thread shows them: a day line where the
  * day changes, a sender's run within 5 minutes as one group with the time
- * under it, a price as a pill and any other move as an event line.
+ * under it, a price as a pill and any other move as an event line. A scam
+ * warning that is not dismissed goes under the group of the message each
+ * sign was found at (see scamAnchors).
  */
-export function thread(items: Message[], chat: Pick<Chat, 'other' | 'deals' | 'other_read_message_id'>, me: string): ThreadItem[] {
+export function thread(
+  items: Message[],
+  chat: Pick<Chat, 'other' | 'deals' | 'other_read_message_id'>,
+  me: string,
+  warning?: Schemas['ScamWarning'],
+): ThreadItem[] {
   const out: ThreadItem[] = [];
   const titles = new Map(chat.deals.map((d) => [d.id, shortTitle(d.listing.title)]));
   const named = chat.deals.length > 1;
@@ -184,6 +192,27 @@ export function thread(items: Message[], chat: Pick<Chat, 'other' | 'deals' | 'o
     const end = g.messages.at(-1)!;
     const status = end.status === 'processing' ? 'Đang gửi' : end.status === 'failed' ? 'Không gửi được' : g.messages.some((m) => m.id === seenId) ? 'Đã xem' : '';
     g.time = [hm(end.created_at), status].filter(Boolean).join(' · ');
+  }
+  if (!warning || warning.dismissed) return out;
+  const signs = scamAnchors(items, me, warning.signals);
+  return out.flatMap((g) => {
+    const found = g.kind === 'group' ? g.messages.flatMap((m) => signs.get(m.id) ?? []) : [];
+    return found.length ? [g, { kind: 'scam' as const, signals: found }] : [g];
+  });
+}
+
+/**
+ * The signs of a scam warning by the message each sits under: the one the
+ * server names when it is among items, else the other person's newest
+ * message, so an older sign or one off this page still shows.
+ */
+function scamAnchors(items: Message[], me: string, signals: Schemas['ScamSignal'][]) {
+  const theirs = items.filter((m) => m.sender_id !== me && !m.deal);
+  const newest = theirs.at(-1)?.id;
+  const out = new Map<string, Schemas['ScamSignal'][]>();
+  for (const s of signals) {
+    const at = s.message_id && theirs.some((m) => m.id === s.message_id) ? s.message_id : newest;
+    if (at) out.set(at, [...(out.get(at) ?? []), s]);
   }
   return out;
 }

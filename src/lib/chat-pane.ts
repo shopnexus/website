@@ -1,6 +1,7 @@
 import { busy, leaveWith } from './busy';
 import { idempotencyKey } from './key';
 import { offerPush } from './push';
+import { mountQuickReplies } from './quick-replies';
 import { connectSocket } from './socket';
 import { hold } from './skeleton';
 import { snack } from './snackbar';
@@ -56,7 +57,8 @@ export function mountChatPane(o: PaneOptions) {
   // ------------------------------------------------- swap from the server --
   // A fresh render replaces each data-part; one that holds the focus waits
   // for the next. The thread is replaced only while the reader is at its end
-  // with no older pages open; otherwise "Có tin mới" holds it.
+  // with no older pages open; otherwise "Có tin mới" holds it, and a render
+  // that only changes the scam warning takes its place where the reader is.
   const pill = q<HTMLButtonElement>('[data-news]');
   let held: HTMLElement | null = null;
   // A render that marked the chat read may come back as a read update; one
@@ -89,7 +91,7 @@ export function mountChatPane(o: PaneOptions) {
         else if (node.dataset.last !== old.dataset.last) {
           held = node;
           if (pill) pill.hidden = false;
-        }
+        } else if (node.dataset.warned !== old.dataset.warned) old.replaceWith(node);
         continue;
       }
       if (old.contains(document.activeElement)) continue;
@@ -191,6 +193,7 @@ export function mountChatPane(o: PaneOptions) {
       e.preventDefault();
       composer.requestSubmit();
     });
+    mountQuickReplies(composer, field);
 
     const unreply = () => {
       strip.hidden = true;
