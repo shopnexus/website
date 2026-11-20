@@ -58,6 +58,7 @@ export const API = {
   addresses: '/api/addresses',
   uploads: '/api/uploads',
   watches: '/api/watches',
+  searchHistory: '/api/search-history',
   watchAlert: (id: string) => `/api/watches/${id}/alert`,
   /** The socket's address and an access token for it, for Tin nhắn. */
   socket: '/api/socket',

@@ -1,0 +1,47 @@
+---
+// Tìm kiếm while it is on its way, in SearchResults' grid: the title the
+// results will have, the filter panel and the sort row as lines, eight cards.
+// PageSkeletons.astro holds it for lib/page-skeleton.ts.
+import { CONTENT, PANEL } from '../../lib/ui';
+import ListingSkeleton from '../ListingSkeleton.astro';
+
+const bar = 'skeleton rounded-full';
+const groups = [1, 4, 1];
+---
+
+<div class={CONTENT}>
+  <div class="pt-6">
+    <p class="truncate text-j-24 text-ink lg:text-j-28" data-skeleton-title></p>
+    <div class:list={[bar, 'mt-2.5 h-3 w-56']}></div>
+  </div>
+</div>
+<div class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[256px_minmax(0,1fr)]']}>
+  <div>
+    <div class="skeleton h-9 w-24 rounded-control lg:hidden"></div>
+    <div class:list={[PANEL, 'hidden overflow-hidden lg:block']}>
+      {
+        groups.map((lines) => (
+          <div class="border-b border-line px-4 py-4 last:border-0">
+            <div class:list={[bar, 'h-3.5 w-1/3']} />
+            {Array.from({ length: lines }, (_, i) => (
+              <div class:list={[bar, 'mt-3 h-3']} style={`width: ${70 - i * 10}%`} />
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+  <div class="min-w-0">
+    <div class="flex h-10 items-center justify-between gap-4 border-b border-line">
+      <div class="flex gap-6">
+        <div class:list={[bar, 'h-3.5 w-20']}></div>
+        <div class:list={[bar, 'h-3.5 w-14']}></div>
+        <div class:list={[bar, 'h-3.5 w-12']}></div>
+      </div>
+      <div class="skeleton h-8 w-16 rounded-control"></div>
+    </div>
+    <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-4 xl:grid-cols-4">
+      {Array.from({ length: 8 }, () => <ListingSkeleton />)}
+    </div>
+  </div>
+</div>
