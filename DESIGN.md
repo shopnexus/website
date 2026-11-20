@@ -280,9 +280,12 @@ strip after the eighth.
 ### Listing detail
 
 The gallery, then a sticky right column with the condition, title, price,
-"Tin giống vậy" range, "Nhắn tin" and "Trả giá" (both open Chat nhanh),
-Hỏi nhanh, then the seller card with three numbers and three of their
-listings. Under the gallery: Mô tả with the listing code and counts, Tình
+"Tin giống vậy" range, "Mua ngay" and "Trả giá" ("Nhắn tin" when the
+listing takes no offers), Hỏi nhanh, then the seller card with three numbers
+and three of their listings. "Mua ngay" opens the COD order at the listed
+price in a dialog (`BuyDialog.astro`, the form from `/listings/<id>/buy`);
+the others open Chat nhanh. The seller card's face and name open their page,
+and so does a reviewer's. Under the gallery: Mô tả with the listing code and counts, Tình
 trạng as a three-step scale, Thông số, and Đánh giá. On a phone the price
 and actions come right after the gallery. The page shows no shipping origin,
 map or COD checklist.

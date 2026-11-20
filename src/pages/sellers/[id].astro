@@ -2,7 +2,7 @@
 // Người bán: the seller's name and facts, the four figures, their listings
 // a page at a time, and the reviews in two tabs, as a seller and as a buyer.
 // An unknown id is the 404.
-import Avatar from '../../components/Avatar.astro';
+import AvatarZoom from '../../components/AvatarZoom.astro';
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
@@ -34,6 +34,8 @@ const [found, next] = isId(id)
 if (!found) Astro.response.status = 404;
 const page = next ?? found?.listings;
 const items = page?.items.map(card) ?? [];
+/** The listings on sale this page shows, for the reviews' listing links. */
+const onSale = Object.fromEntries(items.map((c) => [c.id, c.slug]));
 const s = found?.seller;
 const me = viewer(Astro);
 const mine = !!me && me.id === s?.id;
@@ -79,7 +81,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
         <Crumbs parts={[['Khám phá', R.home], ['Người bán']]} class="pt-4" />
         <section class="mt-4 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
           <div class="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
-            <Avatar name={s.display_name} photo={s.avatar_url} size={112} class="ring-4 ring-white" />
+            <AvatarZoom name={s.display_name} photo={s.avatar_url} size={112} class="ring-4 ring-white" />
             <div class="min-w-0">
               <h1 class="text-j-28 text-ink md:text-j-32">{s.display_name}</h1>
               {s.bio && <p class="mt-1 max-w-[560px] text-body-large text-sub">{s.bio}</p>}
@@ -185,7 +187,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
               <ul class="min-w-0">
                 {t.items.map((r, i) => (
                   <li class:list={['py-4', i > 0 && 'border-t border-line', i === 0 && 'pt-0']}>
-                    <ReviewItem review={r} subject={s.display_name} />
+                    <ReviewItem review={r} subject={s.display_name} onSale={onSale} />
                   </li>
                 ))}
               </ul>

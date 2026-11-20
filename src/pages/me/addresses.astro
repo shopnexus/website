@@ -1,7 +1,8 @@
 ---
 // Địa chỉ: the address book as cards, the default first; ?new or ?edit=<id>
-// opens the form under them. Every action is a form post, so the page works
-// without script; the script only refills the communes when the province changes.
+// opens the form under them; ?next= is the page a save goes back to. Every action
+// is a form post, so the page works without script; the script only refills
+// the communes when the province changes.
 import { communes, provinces } from '../../lib/regions';
 import Notice from '../../components/Notice.astro';
 import Field from '../../components/Field.astro';
@@ -10,13 +11,17 @@ import SettingsFrame from '../../components/account/SettingsFrame.astro';
 import { ApiError, idempotencyKey, unwrap } from '../../lib/api/client';
 import { phoneText } from '../../lib/format';
 import { ADDRESS_KIND, identity } from '../../lib/profile';
-import { R } from '../../lib/routes';
+import { R, localPath } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 import { btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
 const api = Astro.locals.api;
+const next = localPath(Astro.url.searchParams.get('next') ?? '', '');
+const nextQ = next ? `&next=${encodeURIComponent(next)}` : '';
+/** The book itself, still carrying ?next=. */
+const bookHref = next ? `${R.addresses}?next=${encodeURIComponent(next)}` : R.addresses;
 
 type Kind = keyof typeof ADDRESS_KIND;
 const kindOf = (k: string): Kind => (k in ADDRESS_KIND ? (k as Kind) : 'other');
@@ -51,11 +56,11 @@ if (Astro.request.method === 'POST') {
   try {
     if (step === 'default') {
       await unwrap(api.POST('/v1/addresses/{id}/default', { params: { path: { id } } }));
-      return Astro.redirect(R.addresses, 303);
+      return Astro.redirect(bookHref, 303);
     }
     if (step === 'delete') {
       await unwrap(api.DELETE('/v1/addresses/{id}', { params: { path: { id } } }));
-      return Astro.redirect(R.addresses, 303);
+      return Astro.redirect(bookHref, 303);
     }
     posted = {
       id: id || undefined,
@@ -75,10 +80,10 @@ if (Astro.request.method === 'POST') {
           ? api.PUT('/v1/addresses/{id}', { params: { path: { id: posted.id } }, body })
           : api.POST('/v1/addresses', { params: { header: { 'Idempotency-Key': get('key') || idempotencyKey() } }, body }),
       );
-      return Astro.redirect(R.addresses, 303);
+      return Astro.redirect(next || R.addresses, 303);
     }
   } catch (e) {
-    if (e instanceof ApiError && e.code === 'address_not_found') return Astro.redirect(R.addresses, 303);
+    if (e instanceof ApiError && e.code === 'address_not_found') return Astro.redirect(bookHref, 303);
     if (e instanceof ApiError && e.code === 'invalid_address') {
       fields = Object.fromEntries(Object.keys(e.fields).map((k) => [k, FIELD_TEXT[k] ?? 'Mục này chưa đúng.']));
       error = 'Kiểm tra lại các mục được đánh dấu.';
@@ -121,7 +126,7 @@ const bad = 'mt-1 block px-1 text-body-small text-error';
 <SettingsFrame title="Địa chỉ của tôi" page="Địa chỉ" meta={main ? `${list.length} địa chỉ · ${ADDRESS_KIND[kindOf(main.kind)].label} là mặc định` : 'Chưa có địa chỉ'}>
   {
     list.length > 0 && (
-      <a slot="end" href={`${R.addresses}?new`} class={btnCls('ink')}>
+      <a slot="end" href={`${R.addresses}?new${nextQ}`} class={btnCls('ink')}>
         <Icon name="add-rounded" size={18} />
         Thêm địa chỉ
       </a>
@@ -179,7 +184,7 @@ const bad = 'mt-1 block px-1 text-body-small text-error';
                 )}
               </div>
               <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
-                <a href={`${R.addresses}?edit=${a.id}`} class={btnCls('line')}>
+                <a href={`${R.addresses}?edit=${a.id}${nextQ}`} class={btnCls('line')}>
                   <Icon name="edit-outline-rounded" size={18} />
                   Sửa
                 </a>
@@ -203,15 +208,15 @@ const bad = 'mt-1 block px-1 text-body-small text-error';
 
   {
     draft && (
-      <form method="post" action={draft.id ? `${R.addresses}?edit=${draft.id}` : `${R.addresses}?new`} class:list={[PANEL, 'p-5']} aria-labelledby="edit-title">
+      <form method="post" action={draft.id ? `${R.addresses}?edit=${draft.id}${nextQ}` : `${R.addresses}?new${nextQ}`} class:list={[PANEL, 'p-5']} aria-labelledby="edit-title">
         <input type="hidden" name="key" value={key} />
         {draft.id && <input type="hidden" name="id" value={draft.id} />}
         <div class="flex items-center justify-between">
           <h2 id="edit-title" class="text-j-20 text-ink">
             {old ? `Sửa địa chỉ ${ADDRESS_KIND[kindOf(old.kind)].label}` : 'Thêm địa chỉ'}
           </h2>
-          {list.length > 0 && (
-            <a href={R.addresses} class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Đóng">
+          {(list.length > 0 || next) && (
+            <a href={list.length ? bookHref : next} class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant" aria-label="Đóng">
               <Icon name="close-rounded" size={20} />
             </a>
           )}
@@ -293,8 +298,8 @@ const bad = 'mt-1 block px-1 text-body-small text-error';
           </label>
         )}
         <div class="mt-4 flex justify-end gap-2">
-          {list.length > 0 && (
-            <a href={R.addresses} class={btnCls('line')}>
+          {(list.length > 0 || next) && (
+            <a href={list.length ? bookHref : next} class={btnCls('line')}>
               Hủy
             </a>
           )}

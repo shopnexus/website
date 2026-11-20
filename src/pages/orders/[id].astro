@@ -21,7 +21,7 @@ import Layout from '../../layouts/Layout.astro';
 import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../../lib/api/client';
 import { money } from '../../lib/format';
 import { isId } from '../../lib/listing';
-import { chatHref, personName } from '../../lib/messages';
+import { chatHref, personHref, personName } from '../../lib/messages';
 import { CARRIER, LINKED, SHIPMENT_STATUS, at, cancelText, orderCode, orderError, orderState, recipientLines, timeline, trackUrl } from '../../lib/orders';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
@@ -266,6 +266,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
         person={other}
         personPhoto={counterpart.avatar_url}
         personSub={buyer ? 'Người bán' : 'Người mua · giao COD'}
+        personHref={personHref(counterpart)}
         chatHref={chat}
         total={total}
         lines={lines}
