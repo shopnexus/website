@@ -3,10 +3,12 @@ import '../styles/global.css';
 import appleTouchIcon from '@brand/apple-touch-icon.png';
 import favicon from '@brand/favicon.svg';
 import favicon32 from '@brand/favicon-32.png';
+import AppHead from '../components/AppHead.astro';
 import BottomNav from '../components/BottomNav.astro';
 import Footer from '../components/Footer.astro';
 import Header, { type Section } from '../components/Header.astro';
 import ListingPageSkeleton from '../components/public/ListingPageSkeleton.astro';
+import PushOffer from '../components/PushOffer.astro';
 import Snackbar from '../components/Snackbar.astro';
 import { theme } from '../lib/theme';
 
@@ -35,6 +37,7 @@ const { title, description, section = null, search, footer = true, fab = true, i
     <link rel="icon" type="image/svg+xml" href={favicon.src} />
     <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
     <link rel="apple-touch-icon" href={appleTouchIcon.src} />
+    <AppHead />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     <meta property="og:title" content={title} />
@@ -146,6 +149,7 @@ const { title, description, section = null, search, footer = true, fab = true, i
     </div>
     <BottomNav section={section} fab={fab} />
     <Snackbar />
+    <PushOffer />
     <template id="listing-skeleton"><ListingPageSkeleton /></template>
     <span id="page-end" hidden></span>
     <script>

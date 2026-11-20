@@ -1,0 +1,14 @@
+---
+// What lets a browser install the site as an app: the manifest, and the bar
+// colour of each theme, the picked one alone once "Giao diện" has one.
+import { BAR_COLOR, barMedia, theme } from '../lib/theme';
+
+const picked = theme(Astro);
+---
+
+<link rel="manifest" href="/manifest.webmanifest" />
+{
+  (['light', 'dark'] as const).map((scheme) => (
+    <meta name="theme-color" content={BAR_COLOR[scheme]} media={barMedia(scheme, picked)} data-scheme={scheme} />
+  ))
+}

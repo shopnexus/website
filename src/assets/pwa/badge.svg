@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="21 21 66 66">
+  <!-- brand/masters/icon/face_mono.svg cropped as the app's notification icon: Android draws a push's badge from its alpha. -->
+  <defs>
+    <mask id="cut">
+      <rect x="25" y="36.5" width="58" height="35" rx="15.5" fill="#fff"/>
+      <path d="M35.8 52a5.2 5.2 0 0 1 10.4 0M61.8 52a5.2 5.2 0 0 1 10.4 0" fill="none" stroke="#000" stroke-width="3.6" stroke-linecap="round"/>
+      <path d="M48.6 58.2q5.4 4.6 10.8 0" fill="none" stroke="#000" stroke-width="3.2" stroke-linecap="round"/>
+      <ellipse cx="34.6" cy="60.4" rx="3.7" ry="2.3" fill="#000"/>
+      <ellipse cx="73.4" cy="60.4" rx="3.7" ry="2.3" fill="#000"/>
+    </mask>
+  </defs>
+  <rect x="25" y="36.5" width="58" height="35" rx="15.5" fill="#FFFFFF" mask="url(#cut)"/>
+</svg>

@@ -1,15 +1,27 @@
+import type { FirebaseApp } from 'firebase/app';
 import type { Auth, ConfirmationResult, RecaptchaVerifier } from 'firebase/auth';
 
 // In the browser: Firebase Auth proves a Google account or a phone number,
 // and the page posts the proof to this site, which signs in with the server.
-// The SDK loads on first use, only on the pages that ask for it.
+// Firebase Messaging gives the browser's push token (lib/push.ts). The SDK
+// loads on first use, only on the pages that ask for it.
 
 const CONFIG = {
   apiKey: 'AIzaSyDPvHRO5LiwnsxKXaujtZSnAc8gQDVRZfY',
   authDomain: 'shopnexus-26aca.firebaseapp.com',
   projectId: 'shopnexus-26aca',
   appId: '1:5362373878:web:937000112e3b0db4c5c8d7',
+  messagingSenderId: '5362373878',
 };
+
+let starting: Promise<FirebaseApp> | undefined;
+
+/** The Firebase app, set up once for Auth and Messaging. */
+export function firebaseApp() {
+  starting ??= import('firebase/app').then((sdk) => sdk.initializeApp(CONFIG));
+  starting.catch(() => (starting = undefined));
+  return starting;
+}
 
 type Sdk = typeof import('firebase/auth');
 let loading: Promise<{ sdk: Sdk; auth: Auth }> | undefined;
@@ -17,9 +29,9 @@ let loaded: { sdk: Sdk; auth: Auth } | undefined;
 
 /** Loads the SDK once. */
 export function loadFirebase() {
-  loading ??= Promise.all([import('firebase/app'), import('firebase/auth')]).then(([app, sdk]) => {
+  loading ??= Promise.all([firebaseApp(), import('firebase/auth')]).then(([app, sdk]) => {
     // In memory only: the server's session is the one that lasts.
-    const auth = sdk.initializeAuth(app.initializeApp(CONFIG), {
+    const auth = sdk.initializeAuth(app, {
       persistence: sdk.inMemoryPersistence,
       popupRedirectResolver: sdk.browserPopupRedirectResolver,
     });
