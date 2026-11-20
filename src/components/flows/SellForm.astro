@@ -1,11 +1,13 @@
 ---
 // The Đăng tin form: photos, the item, the price with its guide, and where it
 // is. One form posts it (step=post) or keeps it as a draft (step=draft); the
-// script uploads photos, autosaves the draft, runs "AI điền giúp" and the price guide.
+// script uploads photos, autosaves the draft, runs "AI điền giúp" and the price
+// guide. A new listing's "Đăng tin" opens Xem trước (SellPreview) first.
 import Field from '../Field.astro';
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
 import Switch from '../Switch.astro';
+import SellPreview from './SellPreview.astro';
 import { categories } from '../../lib/catalog';
 import { group } from '../../lib/format';
 import { CONDITIONS } from '../../lib/listing';
@@ -357,6 +359,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
     </div>
   </aside>
 </form>
+{!editId && <SellPreview />}
 
 <script>
   import { busy } from '../../lib/busy';
@@ -366,6 +369,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
   import { moneyOf, setMoney } from '../../lib/money-input';
   import { API, R, loginHref } from '../../lib/routes';
   import { DESCRIPTION_MAX, PHOTOS_MAX, SPECS_MAX, TITLE_MAX } from '../../lib/sell';
+  import { mountSellPreview } from '../../lib/sell-preview';
   import { UploadError, uploadPhoto } from '../../lib/upload';
 
   type Spec = { label: string; value: string };
@@ -628,11 +632,24 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
     // A post or Lưu nháp waits for uploads and stops the autosave. A save already sent
     // finishes first (aborted after 5 s), so it cannot land after the post deletes or rewrites the draft.
     let leaving = false;
+    // "Đăng tin" shows Xem trước first; its own "Đăng tin" posts.
+    let previewed = false;
+    const preview = editing
+      ? null
+      : mountSellPreview(form, () => {
+          previewed = true;
+          form.requestSubmit(form.querySelector<HTMLButtonElement>('[data-submit]'));
+        });
     form.addEventListener('submit', async (e) => {
       if (leaving) return;
       if (uploading) {
         e.preventDefault();
         status.textContent = 'Đợi ảnh tải lên xong rồi bấm lại nhé.';
+        return;
+      }
+      if (preview && !previewed && (e as SubmitEvent).submitter?.getAttribute('value') === 'post') {
+        e.preventDefault();
+        preview();
         return;
       }
       clearTimeout(saveTimer);

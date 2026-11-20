@@ -1,0 +1,26 @@
+---
+// A price as the cards show it, the price before a drop struck through and
+// "Vừa giảm" beside it. Both parts are always drawn and show with data-drop,
+// so lib/price-line.ts can show another price in place.
+import Price from './Price.astro';
+import PriceDropBadge from './PriceDropBadge.astro';
+
+interface Props {
+  vnd: number;
+  /** The price before a drop; absent without one. */
+  was?: number;
+  size?: string;
+  class?: string;
+}
+
+const { vnd, was, size, class: cls } = Astro.props;
+---
+
+<span
+  class:list={['flex min-w-0 items-center gap-2 [&:not([data-drop])_:is([data-was],[data-drop-badge])]:hidden', cls]}
+  data-price-line
+  data-drop={was !== undefined ? '' : undefined}
+>
+  <Price vnd={vnd} was={was ?? vnd} size={size} />
+  <PriceDropBadge inline data-drop-badge />
+</span>

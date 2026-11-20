@@ -1,18 +1,20 @@
 ---
 // A question before a step that cannot be undone, as a popover in the middle
 // of the window: a button with popovertarget opens it, no script needed. The
-// default slot holds the form's hidden fields; the submit sends do=<value>.
+// default slot holds the form's hidden fields; the submit sends do=<value>,
+// or <name>=<value>.
 interface Props {
   id: string;
   title: string;
   text?: string;
-  /** The form's action and the do= value its button sends. */
-  action: string;
+  /** The form's action (the page itself without one) and the do= value its button sends. */
+  action?: string;
+  name?: string;
   value: string;
   confirm: string;
 }
 
-const { id, title, text, action, value, confirm } = Astro.props;
+const { id, title, text, action, name = 'do', value, confirm } = Astro.props;
 ---
 
 <div
@@ -27,6 +29,6 @@ const { id, title, text, action, value, confirm } = Astro.props;
   <form method="post" action={action} class="mt-6 flex justify-end gap-2">
     <slot />
     <button type="button" popovertarget={id} popovertargetaction="hide" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">Quay lại</button>
-    <button type="submit" name="do" value={value} class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">{confirm}</button>
+    <button type="submit" name={name} value={value} class="state-layer h-10 rounded-control bg-brand px-6 text-label-large text-white">{confirm}</button>
   </form>
 </div>

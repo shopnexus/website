@@ -13,7 +13,7 @@ import BuyDialog from './BuyDialog.astro';
 const icon = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-control text-ink hover:bg-hover disabled:pointer-events-none disabled:opacity-40';
 ---
 
-<dialog class="quick-view flex-col overflow-hidden border-0 bg-card p-0 text-ink outline-none open:flex" aria-label="Xem nhanh" tabindex="-1" data-quick-panel>
+<dialog class="side-sheet quick-view flex-col overflow-hidden border-0 bg-card p-0 text-ink outline-none open:flex" aria-label="Xem nhanh" tabindex="-1" data-quick-panel>
   <span class="mx-auto mt-2 block h-1 w-8 shrink-0 rounded-full bg-on-surface-variant/40 lg:hidden" aria-hidden="true"></span>
   <div class="flex h-14 shrink-0 items-center gap-1 px-3 lg:border-b lg:border-line">
     <button type="button" class={icon} aria-label="Tin trước" data-quick-step="-1">
@@ -41,67 +41,8 @@ const icon = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-contr
 </script>
 
 <style is:global>
-  /* Below 840 px a sheet at the window's foot over a dim backdrop, rising on
-     the spatial spring; from 840 px a panel under the header on the right. */
-  .quick-view {
-    position: fixed;
-    inset: auto 0 0;
-    margin: 0;
-    width: 100%;
-    max-width: none;
-    height: 88dvh;
-    max-height: none;
-    border-radius: 28px 28px 0 0;
-    translate: 0 100%;
-    transition:
-      translate var(--duration-spatial-default) var(--ease-spatial),
-      opacity var(--duration-effects-default) var(--ease-effects),
-      overlay var(--duration-spatial-default) allow-discrete,
-      display var(--duration-spatial-default) allow-discrete;
-    &[open] {
-      translate: 0 0;
-    }
-    &::backdrop {
-      background: rgb(0 0 0 / 0.3);
-      opacity: 0;
-      transition:
-        opacity var(--duration-effects-default) var(--ease-effects),
-        overlay var(--duration-effects-default) allow-discrete,
-        display var(--duration-effects-default) allow-discrete;
-    }
-    &[open]::backdrop {
-      opacity: 1;
-    }
-  }
-  @starting-style {
-    .quick-view[open] {
-      translate: 0 100%;
-    }
-    .quick-view[open]::backdrop {
-      opacity: 0;
-    }
-  }
+  /* The sheet and the panel are styles/side-sheet.css. */
   @media (width >= 840px) {
-    .quick-view {
-      inset: 76px 12px 12px auto;
-      z-index: 25;
-      width: 400px;
-      height: auto;
-      border: 1px solid var(--color-line);
-      border-radius: 16px;
-      box-shadow: var(--shadow-pop);
-      translate: 16px 0;
-      opacity: 0;
-      &[open] {
-        opacity: 1;
-      }
-    }
-    @starting-style {
-      .quick-view[open] {
-        translate: 16px 0;
-        opacity: 0;
-      }
-    }
     /* The page makes room for the panel; cards fit as many columns as the room takes. */
     html[data-quick-open] [data-quick-room] {
       padding-right: max(2rem, calc(436px - max(0px, (100vw - 1280px) / 2)));

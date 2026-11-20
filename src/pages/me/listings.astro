@@ -1,7 +1,7 @@
 ---
 // Tin của bạn: the last seven days, then one pane, ?pane=on_sale (processing
-// to reserved), drafts or sold, a page at a time (?after=). Every action is a
-// form post that comes back with ?done=.
+// to reserved), drafts or sold, a page at a time (?after=). A row's steps run
+// in place (lib/my-listings-edit), or as form posts without script.
 import Icon from '../../components/Icon.astro';
 import Notice from '../../components/Notice.astro';
 import PageTitle from '../../components/PageTitle.astro';
@@ -9,9 +9,12 @@ import Skeleton from '../../components/Skeleton.astro';
 import Photo from '../../components/Photo.astro';
 import MyListingRow from '../../components/account/MyListingRow.astro';
 import AccountFrame from '../../components/orders/AccountFrame.astro';
-import { ApiError, pageOrFirst, unwrap } from '../../lib/api/client';
-import { money } from '../../lib/format';
+import ConfirmPop from '../../components/orders/ConfirmPop.astro';
+import { ApiError, idempotencyKey, pageOrFirst, unwrap } from '../../lib/api/client';
+import { runListingStep } from '../../lib/api/listing-steps';
+import { money, parseMoney } from '../../lib/format';
 import { isId } from '../../lib/listing';
+import { isListingStep, priceAllowed, stepRefusal } from '../../lib/my-listings';
 import { reputation } from '../../lib/profile';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
@@ -35,39 +38,29 @@ const DONE: Record<string, string> = {
   'unmark-sold': 'Tin đã quay lại Đang bán.',
   delete: 'Đã xóa tin.',
   'delete-draft': 'Đã xóa nháp.',
+  price: 'Đã đổi giá.',
+  relist: 'Đã đăng lại tin.',
 };
 
+// Without script each step is a form post that comes back with ?done=.
 let error: string | undefined;
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   const step = String(form.get('step') ?? '');
   const id = String(form.get('id') ?? '');
-  const path = { params: { path: { id } } };
-  const calls: Record<string, () => Promise<unknown>> = {
-    hide: () => unwrap(api.POST('/v1/listings/{id}/hide', path)),
-    unhide: () => unwrap(api.POST('/v1/listings/{id}/unhide', path)),
-    'mark-sold': () => unwrap(api.POST('/v1/listings/{id}/mark-sold', path)),
-    'unmark-sold': () => unwrap(api.POST('/v1/listings/{id}/unmark-sold', path)),
-    delete: () => unwrap(api.DELETE('/v1/listings/{id}', path)),
-    'delete-draft': () => unwrap(api.DELETE('/v1/listing-drafts/{id}', path)),
-  };
-  if (isId(id) && calls[step]) {
-    try {
-      await calls[step]();
-      return Astro.redirect(here(`&done=${step}`), 303);
-    } catch (e) {
-      if (!(e instanceof ApiError)) throw e;
-      // Gone already (a listing, or another device's deleted draft): the list shows what is left.
-      if (e.code === 'listing_not_found' || e.code === 'draft_not_found') return Astro.redirect(here(), 303);
-      error =
-        e.code === 'listing_held'
-          ? 'ShopNexus đã ẩn tin này, chỉ ShopNexus mở lại được. Bạn gửi yêu cầu hỗ trợ nhé.'
-          : e.code === 'listing_cap_reached'
-            ? 'Bạn đã có đủ số tin cho phép. Xóa hoặc đánh dấu đã bán một tin khác trước.'
-            : e.code === 'listing_state_conflict'
-              ? 'Tin vừa đổi trạng thái nên chưa làm được. Xem lại danh sách nhé.'
-              : 'Chưa làm được. Thử lại sau ít phút.';
-    }
+  const price = parseMoney(String(form.get('price') ?? ''));
+  try {
+    if (!isId(id)) throw new ApiError(400, 'bad_request');
+    if (step === 'delete-draft') await unwrap(api.DELETE('/v1/listing-drafts/{id}', { params: { path: { id } } }));
+    else if (step === 'price' && !priceAllowed(price)) throw new ApiError(422, 'invalid_listing');
+    else if (isListingStep(step)) await runListingStep(api, step, id, { price: price ?? undefined, key: String(form.get('key') ?? '') || idempotencyKey() });
+    else throw new ApiError(400, 'bad_request');
+    return Astro.redirect(here(`&done=${step}`), 303);
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e;
+    // Gone already (a listing, or another device's deleted draft): the list shows what is left.
+    if (e.code === 'listing_not_found' || e.code === 'draft_not_found') return Astro.redirect(here(), 303);
+    error = stepRefusal(e.code);
   }
 }
 
@@ -161,18 +154,17 @@ const tab = 'state-layer flex h-9 items-center rounded-full bg-surface-container
             <a href={`${R.post}?draft=${d.id}`} class={btnCls('tonal', 'sm')}>
               Tiếp tục
             </a>
-            <form method="post">
+            <button
+              type="button"
+              popovertarget={`delete-draft-${d.id}`}
+              class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant"
+              aria-label={`Xóa nháp ${d.title}`}
+            >
+              <Icon name="delete-outline-rounded" size={20} />
+            </button>
+            <ConfirmPop id={`delete-draft-${d.id}`} title="Xóa nháp này?" name="step" value="delete-draft" confirm="Xóa">
               <input type="hidden" name="id" value={d.id} />
-              <button
-                name="step"
-                value="delete-draft"
-                class="state-layer grid h-9 w-9 place-items-center rounded-full text-on-surface-variant"
-                aria-label={`Xóa nháp ${d.title}`}
-                data-confirm="Xóa nháp này?"
-              >
-                <Icon name="delete-outline-rounded" size={20} />
-              </button>
-            </form>
+            </ConfirmPop>
           </article>
         ))
     }
@@ -212,10 +204,5 @@ const tab = 'state-layer flex h-9 items-center rounded-full bg-surface-container
 <script>
   import '../../lib/more';
   import '../../lib/pending';
-
-  // Deleting asks once, on rows "Xem thêm" added too.
-  document.addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLButtonElement>('[data-confirm]');
-    if (b && !confirm(b.dataset.confirm)) e.preventDefault();
-  });
+  import '../../lib/my-listings-edit';
 </script>

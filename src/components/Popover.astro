@@ -29,10 +29,14 @@ const { id, align = 'start', match = false, class: cls, label, sheet = false, ty
 </div>
 
 <script>
-  // Place each panel under its control as it opens.
-  for (const pop of document.querySelectorAll<HTMLElement>('.pop[popover]')) {
-    pop.addEventListener('beforetoggle', (e) => {
-      if ((e as ToggleEvent).newState !== 'open') return;
+  // Place each panel under its control as it opens. One listener on the
+  // document (beforetoggle does not bubble, so it listens on the way down)
+  // also places panels a page adds later, such as rows from "Xem thêm".
+  document.addEventListener(
+    'beforetoggle',
+    (e) => {
+      const pop = e.target as HTMLElement;
+      if ((e as ToggleEvent).newState !== 'open' || !pop.matches?.('.pop[popover]')) return;
       const anchor = document.querySelector(`[popovertarget="${pop.id}"], [data-anchor="${pop.id}"]`);
       if (!anchor) return;
       // A sheet on a phone keeps the place its CSS gives it.
@@ -57,8 +61,9 @@ const { id, align = 'start', match = false, class: cls, label, sheet = false, ty
         pop.style.right = 'auto';
       }
       if ('match' in pop.dataset) pop.style.width = `${r.width}px`;
-    });
-  }
+    },
+    true,
+  );
 </script>
 
 <style>

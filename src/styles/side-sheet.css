@@ -1,0 +1,69 @@
+/*
+ * A dialog that is a sheet at the window's foot below 840 px, over a dim
+ * backdrop, rising on the spatial spring, and from 840 px a panel on the
+ * right that slides in. Xem nhanh and Đăng tin's Xem trước use it; each sets
+ * the sheet's height and the panel's place and width:
+ *   --sheet-height (88dvh), --sheet-radius (28px),
+ *   --panel-inset (76px 12px 12px auto, under the header), --panel-width (400px).
+ * Unlayered, so it wins over the dialog's utilities (border-0).
+ */
+.side-sheet {
+  position: fixed;
+  inset: auto 0 0;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  height: var(--sheet-height, 88dvh);
+  max-height: none;
+  border-radius: var(--sheet-radius, 28px) var(--sheet-radius, 28px) 0 0;
+  translate: 0 100%;
+  transition:
+    translate var(--duration-spatial-default) var(--ease-spatial),
+    opacity var(--duration-effects-default) var(--ease-effects),
+    overlay var(--duration-spatial-default) allow-discrete,
+    display var(--duration-spatial-default) allow-discrete;
+  &[open] {
+    translate: 0 0;
+  }
+  &::backdrop {
+    background: rgb(0 0 0 / 0.3);
+    opacity: 0;
+    transition:
+      opacity var(--duration-effects-default) var(--ease-effects),
+      overlay var(--duration-effects-default) allow-discrete,
+      display var(--duration-effects-default) allow-discrete;
+  }
+  &[open]::backdrop {
+    opacity: 1;
+  }
+}
+@starting-style {
+  .side-sheet[open] {
+    translate: 0 100%;
+  }
+  .side-sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+@media (width >= 840px) {
+  .side-sheet {
+    inset: var(--panel-inset, 76px 12px 12px auto);
+    z-index: 25;
+    width: var(--panel-width, 400px);
+    height: auto;
+    border: 1px solid var(--color-line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-pop);
+    translate: 16px 0;
+    opacity: 0;
+    &[open] {
+      opacity: 1;
+    }
+  }
+  @starting-style {
+    .side-sheet[open] {
+      translate: 16px 0;
+      opacity: 0;
+    }
+  }
+}

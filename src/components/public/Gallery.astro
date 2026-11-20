@@ -6,6 +6,7 @@
 // data-main, which the page transition pairs with the card the buyer clicked.
 // `compact` (Xem nhanh) leaves out the frame, the thumbnails and the in-app badge.
 // `sold` greys the photos under one "Đã bán" chip; the viewer keeps their colour.
+// Without photos it is the empty frame with a camera.
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
 import PhotoViewer from '../PhotoViewer.astro';
@@ -24,92 +25,102 @@ const side =
   'state-layer absolute top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full disabled:pointer-events-none disabled:opacity-0';
 ---
 
-<div class:list={[!compact && 'rounded-card border border-line bg-card p-2']} data-gallery>
-  <div class="group relative overflow-hidden rounded-card bg-surface-container-high" style="aspect-ratio: 16 / 10.5">
-    <div
-      class:list={['gallery-track no-scrollbar flex h-full overflow-x-auto', sold && 'opacity-50 grayscale']}
-      tabindex="0"
-      role="group"
-      aria-roledescription="carousel"
-      aria-label={`${n} ảnh của tin`}
-      data-slides
-    >
-      {
-        photos.map((p, i) => (
-          <Photo
-            src={p.big}
-            width={1200}
-            height={1200}
-            alt={alt(i)}
-            class="h-full w-full object-cover"
-            fetchpriority={i === 0 ? 'high' : 'low'}
-            data-main={i === 0 ? '' : undefined}
-          />
-        ))
-      }
-    </div>
-    {
-      sold && (
-        <span class="pointer-events-none absolute inset-0 grid place-items-center">
-          <span class="flex items-center gap-1.5 rounded-full bg-black/70 px-4 py-2 text-title-medium text-white backdrop-blur">
-            <Icon name="done-all-rounded" size={18} />
-            Đã bán
-          </span>
-        </span>
-      )
-    }
-    {
-      !compact && !sold && (
-        <span class="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
-          <Icon name="photo-camera-outline-rounded" size={15} />
-          Cả {n} ảnh chụp trong app
-        </span>
-      )
-    }
-    <button type="button" class:list={[side, 'gallery-arrow left-3 bg-white/85 text-photo-ink backdrop-blur']} aria-label="Ảnh trước" data-prev disabled>
-      <Icon name="chevron-left-rounded" size={22} />
-    </button>
-    <button type="button" class:list={[side, 'gallery-arrow right-3 bg-white/85 text-photo-ink backdrop-blur']} aria-label="Ảnh sau" data-next>
-      <Icon name="chevron-right-rounded" size={22} />
-    </button>
-    <span
-      class="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/50 px-2.5 py-1 text-label-medium text-white tabular-nums backdrop-blur"
-      aria-hidden="true"
-      data-at>1/{n}</span
-    >
-    <div class="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center gap-1.5 md:hidden" aria-hidden="true">
-      {photos.map((_, i) => <span class="gallery-dot h-1.5 w-1.5 rounded-full bg-white/60" data-dot-i={i} />)}
-    </div>
-    <button
-      type="button"
-      class="state-layer absolute bottom-3 right-3 flex h-9 items-center gap-1.5 rounded-control bg-white/85 px-2.5 text-label-large text-photo-ink backdrop-blur md:px-3.5"
-      aria-haspopup="dialog"
-      data-open-viewer
-    >
-      <Icon name="fullscreen-rounded" size={18} />
-      <span class="max-md:sr-only">Xem {n} ảnh</span>
-    </button>
-  </div>
-  {
-    !compact && (
-      <div class:list={['mt-2 hidden grid-cols-5 gap-2 md:grid', sold && 'grayscale']}>
-        {photos.map((p, i) => (
-          <button
-            type="button"
-            data-thumb={i}
-            aria-pressed={i === 0 ? 'true' : 'false'}
-            aria-label={`Ảnh ${i + 1}`}
-            class="overflow-hidden rounded-lg opacity-80 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
-          >
-            <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
-          </button>
-        ))}
+{
+  n === 0 ? (
+    <div class:list={[!compact && 'rounded-card border border-line bg-card p-2']}>
+      <div class="grid place-items-center rounded-card bg-soft text-faint" style="aspect-ratio: 16 / 10.5">
+        <Icon name="photo-camera-outline-rounded" size={32} />
       </div>
-    )
-  }
+    </div>
+  ) : (
+    <div class:list={[!compact && 'rounded-card border border-line bg-card p-2']} data-gallery>
+      <div class="group relative overflow-hidden rounded-card bg-surface-container-high" style="aspect-ratio: 16 / 10.5">
+        <div
+          class:list={['gallery-track no-scrollbar flex h-full overflow-x-auto', sold && 'opacity-50 grayscale']}
+          tabindex="0"
+          role="group"
+          aria-roledescription="carousel"
+          aria-label={`${n} ảnh của tin`}
+          data-slides
+        >
+          {
+            photos.map((p, i) => (
+              <Photo
+                src={p.big}
+                width={1200}
+                height={1200}
+                alt={alt(i)}
+                class="h-full w-full object-cover"
+                fetchpriority={i === 0 ? 'high' : 'low'}
+                data-main={i === 0 ? '' : undefined}
+              />
+            ))
+          }
+        </div>
+        {
+          sold && (
+            <span class="pointer-events-none absolute inset-0 grid place-items-center">
+              <span class="flex items-center gap-1.5 rounded-full bg-black/70 px-4 py-2 text-title-medium text-white backdrop-blur">
+                <Icon name="done-all-rounded" size={18} />
+                Đã bán
+              </span>
+            </span>
+          )
+        }
+        {
+          !compact && !sold && (
+            <span class="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
+              <Icon name="photo-camera-outline-rounded" size={15} />
+              Cả {n} ảnh chụp trong app
+            </span>
+          )
+        }
+        <button type="button" class:list={[side, 'gallery-arrow left-3 bg-white/85 text-photo-ink backdrop-blur']} aria-label="Ảnh trước" data-prev disabled>
+          <Icon name="chevron-left-rounded" size={22} />
+        </button>
+        <button type="button" class:list={[side, 'gallery-arrow right-3 bg-white/85 text-photo-ink backdrop-blur']} aria-label="Ảnh sau" data-next>
+          <Icon name="chevron-right-rounded" size={22} />
+        </button>
+        <span
+          class="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/50 px-2.5 py-1 text-label-medium text-white tabular-nums backdrop-blur"
+          aria-hidden="true"
+          data-at>1/{n}</span
+        >
+        <div class="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center gap-1.5 md:hidden" aria-hidden="true">
+          {photos.map((_, i) => <span class="gallery-dot h-1.5 w-1.5 rounded-full bg-white/60" data-dot-i={i} />)}
+        </div>
+        <button
+          type="button"
+          class="state-layer absolute bottom-3 right-3 flex h-9 items-center gap-1.5 rounded-control bg-white/85 px-2.5 text-label-large text-photo-ink backdrop-blur md:px-3.5"
+          aria-haspopup="dialog"
+          data-open-viewer
+        >
+          <Icon name="fullscreen-rounded" size={18} />
+          <span class="max-md:sr-only">Xem {n} ảnh</span>
+        </button>
+      </div>
+      {
+        !compact && (
+          <div class:list={['mt-2 hidden grid-cols-5 gap-2 md:grid', sold && 'grayscale']}>
+            {photos.map((p, i) => (
+              <button
+                type="button"
+                data-thumb={i}
+                aria-pressed={i === 0 ? 'true' : 'false'}
+                aria-label={`Ảnh ${i + 1}`}
+                class="overflow-hidden rounded-lg opacity-80 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
+              >
+                <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )
+      }
 
-  <PhotoViewer photos={photos.map((p) => p.big)} label={`Ảnh của tin: ${title}`} alt={title} />
-</div>
+      <PhotoViewer photos={photos.map((p) => p.big)} label={`Ảnh của tin: ${title}`} alt={title} />
+    </div>
+  )
+}
 
 <script>
   import { mountGallery } from '../../lib/gallery';

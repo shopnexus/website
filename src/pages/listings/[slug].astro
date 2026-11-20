@@ -14,7 +14,7 @@ import Price from '../../components/Price.astro';
 import BuyDialog from '../../components/public/BuyDialog.astro';
 import Gallery from '../../components/public/Gallery.astro';
 import ListingActions from '../../components/public/ListingActions.astro';
-import ListingPrice from '../../components/public/ListingPrice.astro';
+import ListingHead from '../../components/public/ListingHead.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import SoldListing from '../../components/public/SoldListing.astro';
 import ReviewItem from '../../components/public/ReviewItem.astro';
@@ -144,24 +144,11 @@ const ld = it && {
              expanded up the actions stick in the right column beside both. -->
         <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr] lg:gap-x-8">
           <div class="min-w-0 lg:col-start-1 lg:row-start-1">
-            {photos.length > 0 ? (
-              <Gallery photos={photos} title={it.title} />
-            ) : (
-              <div class="rounded-card border border-line bg-card p-2">
-                <div class="grid place-items-center rounded-card bg-soft text-faint" style="aspect-ratio: 16 / 10.5">
-                  <Icon name="photo-camera-outline-rounded" size={32} />
-                </div>
-              </div>
-            )}
+            <Gallery photos={photos} title={it.title} />
           </div>
           <aside class="flex flex-col gap-4 self-start lg:sticky-fit lg:sticky lg:top-[84px] lg:-m-1 lg:p-1 lg:col-start-2 lg:row-span-2 lg:row-start-1">
             <div class:list={[PANEL, 'p-5 lg:p-6']}>
-              <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
-                <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{condition}</span>
-                {place} · <Ago at={posted} />
-              </p>
-              <h1 class="mt-3 text-j-22 text-ink">{it.title}</h1>
-              <ListingPrice price={it.price} drop={it.price_drop} size="text-j-30" class="mt-3" />
+              <ListingHead condition={condition} place={place} posted={posted} title={it.title} price={it.price} drop={it.price_drop} />
               {reserved && <p class="mt-1 text-body-small text-faint">Món này đang được giao cho một người mua.</p>}
               <ListingActions screen={screen!} me={me} class="mt-5 flex flex-col gap-2" />
               {!mine && (

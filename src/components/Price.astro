@@ -1,7 +1,8 @@
 ---
 // A price in two sizes: the number in the given J step, the unit small.
 // Cards shorten 10 triệu and above ("12,5 tr ₫"); pass short={false} for the full figure.
-// `was`, a price before a recent drop, follows struck through.
+// `was`, a price before a recent drop, follows struck through. The data-
+// marks let a page show another price in place (lib/price-line.ts).
 import { money, priceParts, struckPrice } from '../lib/format';
 
 interface Props {
@@ -18,5 +19,5 @@ const [num, unit] = priceParts(vnd, short);
 ---
 
 <span class:list={['whitespace-nowrap text-ink tabular-nums', size, cls]}
-  >{num}<span class="ml-0.5 text-body-small font-medium tracking-normal text-sub">{unit}</span>{was !== undefined && <s class="ml-1.5 text-body-small font-normal tracking-normal text-faint"><span class="sr-only">Giá cũ </span>{short ? struckPrice(was) : money(was)}</s>}</span
+  ><span data-num>{num}</span><span class="ml-0.5 text-body-small font-medium tracking-normal text-sub" data-unit>{unit}</span>{was !== undefined && <s class="ml-1.5 text-body-small font-normal tracking-normal text-faint" data-was><span class="sr-only">Giá cũ </span><span data-was-text>{short ? struckPrice(was) : money(was)}</span></s>}</span
 >

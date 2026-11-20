@@ -1,0 +1,29 @@
+---
+// The top of a listing as a buyer reads it: the condition, the place and
+// how long ago, the title and the price. The listing page, Xem nhanh
+// (`compact`) and Đăng tin's Xem trước draw it.
+import type { Schemas } from '../../lib/api/client';
+import Ago from '../Ago.astro';
+import ListingPrice from './ListingPrice.astro';
+
+interface Props {
+  condition: string;
+  place: string;
+  /** When it went on sale. */
+  posted: string;
+  title: string;
+  price: number;
+  drop?: Schemas['PriceDrop'];
+  compact?: boolean;
+}
+
+const { condition, place, posted, title, price, drop, compact = false } = Astro.props;
+const Heading = compact ? 'h2' : 'h1';
+---
+
+<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
+  <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{condition}</span>
+  {place} · <Ago at={posted} />
+</p>
+<Heading class:list={['text-ink', compact ? 'mt-2.5 text-j-18' : 'mt-3 text-j-22']}>{title}</Heading>
+<ListingPrice price={price} drop={drop} size={compact ? 'text-j-26' : 'text-j-30'} class={compact ? 'mt-2' : 'mt-3'} />

@@ -25,6 +25,9 @@ export const TITLE_MAX = 70;
 export const DESCRIPTION_MAX = 1500;
 export const PHOTOS_MAX = 10;
 export const SPECS_MAX = 20;
+/** A listing's price bounds, in đồng. */
+export const PRICE_MIN = 10_000;
+export const PRICE_MAX = 1_000_000_000;
 /** The web's layout of a draft's body; the app writes 1. */
 const WEB_DRAFT = 100;
 

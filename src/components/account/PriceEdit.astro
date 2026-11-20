@@ -1,0 +1,53 @@
+---
+// Đổi giá on a row of Tin của bạn: a panel under the price (a sheet on a
+// phone) with the new price, -5/-10/-15 % picks and the price as cards will
+// show it, "Vừa giảm" included. lib/my-listings-edit saves it in place;
+// without script the form posts step=price.
+import { idempotencyKey } from '../../lib/api/client';
+import { group } from '../../lib/format';
+import { FIELD, btnCls } from '../../lib/ui';
+import Popover from '../Popover.astro';
+import PriceLine from '../PriceLine.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  price: number;
+  /** It has gone on sale, so a drop shows to buyers. */
+  published: boolean;
+}
+
+const { id, title, price, published } = Astro.props;
+const pop = `price-${id}`;
+---
+
+<Popover id={pop} sheet class="w-[340px] !p-4" label="Đổi giá">
+  <form method="post" data-price-form data-price={price} data-published={published ? '' : undefined}>
+    <input type="hidden" name="id" value={id} />
+    <input type="hidden" name="key" value={idempotencyKey()} />
+    <p class="text-j-16 text-ink">Đổi giá</p>
+    <p class="mt-0.5 truncate text-body-small text-faint">{title}</p>
+    <label class:list={[FIELD, 'mt-3 flex h-12 items-center gap-3 px-4']}>
+      <span class="sr-only">Giá mới</span>
+      <input name="price" value={group(price)} inputmode="numeric" autocomplete="off" class="min-w-0 flex-1 bg-transparent text-j-22 text-ink tabular-nums outline-none" data-price-input data-money />
+      <span class="text-on-surface-variant">₫</span>
+    </label>
+    <div class="mt-2.5 flex gap-2">
+      {
+        [5, 10, 15].map((pct) => (
+          <button type="button" class="state-layer flex h-8 items-center rounded-full border border-field px-3 text-label-large text-ink aria-pressed:border-transparent aria-pressed:bg-mint aria-pressed:text-on-mint" aria-pressed="false" data-pct={pct}>
+            -{pct}%
+          </button>
+        ))
+      }
+    </div>
+    <div class="mt-3 rounded-tile bg-soft px-3 py-2.5" data-price-preview>
+      <PriceLine vnd={price} class="justify-between" />
+    </div>
+    <p class="mt-2 text-body-small text-error empty:hidden" role="alert" data-price-error></p>
+    <div class="mt-4 flex justify-end gap-2">
+      <button type="button" popovertarget={pop} popovertargetaction="hide" class={btnCls('ghost')}>Hủy</button>
+      <button name="step" value="price" class={btnCls('ink')}>Lưu giá</button>
+    </div>
+  </form>
+</Popover>
