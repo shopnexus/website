@@ -1,11 +1,15 @@
 ---
-// One review of a person: the reviewer, the stars, the order's listing and
-// the text, with the reviewed person's one reply under it. The reviewer links
-// to their page, and the listing to its page while it is on sale.
+// One review of a person: the reviewer, the stars, the order's listing, the
+// text and photos, the reviewed person's one reply, and "Hữu ích". The
+// reviewer links to their page, and the listing to its page while it is on
+// sale.
 import type { components } from '../../lib/api/schema';
 import { ago } from '../../lib/format';
 import { R } from '../../lib/routes';
+import { viewer } from '../../lib/session';
 import Avatar from '../Avatar.astro';
+import Icon from '../Icon.astro';
+import ReviewPhotos from './ReviewPhotos.astro';
 import Stars from './Stars.astro';
 
 interface Props {
@@ -27,12 +31,17 @@ const who = r.role === 'seller' ? 'Người mua' : 'Người bán';
 const done = r.role === 'seller' ? 'Đã mua' : 'Đã bán';
 const name = r.reviewer.deleted ? 'Tài khoản đã xóa' : r.reviewer.display_name;
 const link = 'hover:text-primary hover:underline';
+const helpful = r.helpful?.count ?? 0;
+// The server sends `marked` to a reader who may mark; a guest gets the
+// button too and signs in from it. The reviewer and the subject see the count.
+const canMark = r.helpful?.marked !== undefined || !viewer(Astro);
+const marked = !!r.helpful?.marked;
 ---
 
 <div class:list={['flex gap-3', cls]}>
   {
     person ? (
-      <a href={person} tabindex="-1" aria-hidden="true" class="flex shrink-0 self-start rounded-full">
+      <a href={person} tabindex="-1" aria-label={name} class="flex shrink-0 self-start rounded-full">
         <Avatar name={r.reviewer.display_name || who} photo={r.reviewer.avatar_url} size={compact ? 36 : 40} loading="lazy" />
       </a>
     ) : (
@@ -53,6 +62,7 @@ const link = 'hover:text-primary hover:underline';
       }
     </div>
     {r.text && <p class="mt-1 text-body-medium text-ink">{r.text}</p>}
+    <ReviewPhotos id={r.id} photos={r.photos ?? []} by={name} class="mt-2" />
     {
       compact && (
         <p class="mt-1 text-body-small text-faint">
@@ -68,5 +78,46 @@ const link = 'hover:text-primary hover:underline';
         </div>
       )
     }
+    {
+      canMark ? (
+        <button
+          type="button"
+          aria-pressed={marked ? 'true' : 'false'}
+          class="group mt-2 inline-flex h-8 items-center gap-1.5 rounded-full border border-field px-3 text-label-large text-sub tabular-nums hover:bg-hover aria-pressed:border-transparent aria-pressed:bg-mint aria-pressed:text-on-mint aria-pressed:hover:bg-mint"
+          data-helpful={r.id}
+          data-count={helpful}
+        >
+          <Icon name="thumb-up-outline-rounded" size={16} class="group-aria-pressed:hidden" />
+          <Icon name="thumb-up-rounded" size={16} class="hidden group-aria-pressed:block" />
+          <span>{helpful ? `Hữu ích · ${helpful}` : 'Hữu ích'}</span>
+        </button>
+      ) : (
+        helpful > 0 && <p class="mt-2 text-body-small text-faint">{helpful} người thấy hữu ích</p>
+      )
+    }
   </div>
 </div>
+
+<script>
+  import { API } from '../../lib/routes';
+  import { snack } from '../../lib/snackbar';
+  import { toggleRemote } from '../../lib/toggle';
+
+  // "Hữu ích" flips at once and asks the server; a failed call puts the
+  // button back and says so.
+  const show = (b: HTMLElement, on: boolean) => {
+    const n = Number(b.dataset.count) + (on ? 1 : -1);
+    b.dataset.count = String(n);
+    b.setAttribute('aria-pressed', String(on));
+    b.querySelector('span')!.textContent = n ? `Hữu ích · ${n}` : 'Hữu ích';
+  };
+  document.addEventListener('click', async (e) => {
+    const b = (e.target as Element).closest<HTMLElement>('[data-helpful]');
+    if (!b) return;
+    const on = b.getAttribute('aria-pressed') !== 'true';
+    show(b, on);
+    if (await toggleRemote(API.helpful(b.dataset.helpful!), on)) return;
+    show(b, !on);
+    snack({ text: 'Chưa đổi được. Thử lại sau.', error: true });
+  });
+</script>

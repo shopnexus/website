@@ -1,0 +1,49 @@
+---
+// A review's photos as small squares; a tap opens them large on that photo.
+import type { Schemas } from '../../lib/api/client';
+import Photo from '../Photo.astro';
+import PhotoViewer from '../PhotoViewer.astro';
+
+interface Props {
+  /** The review, whose ID names its viewer. */
+  id: string;
+  photos: Schemas['ReviewPhoto'][];
+  /** Who wrote the review, for the viewer's name. */
+  by: string;
+  /** eager where the review sits in the first screen. */
+  loading?: 'eager' | 'lazy';
+  class?: string;
+}
+
+const { id, photos, by, loading = 'lazy', class: cls } = Astro.props;
+const viewer = `review-photos-${id}`;
+---
+
+{
+  photos.length > 0 && (
+    <div class:list={['flex gap-2', cls]}>
+      {photos.map((p, i) => (
+        <button
+          type="button"
+          class="h-16 w-16 overflow-hidden rounded-control bg-surface-container-high hover:opacity-90"
+          aria-label={`Ảnh ${i + 1}/${photos.length}`}
+          aria-haspopup="dialog"
+          data-review-photo={viewer}
+          data-i={i}
+        >
+          <Photo src={p.thumb_url} width={128} height={128} alt="" loading={loading} class="h-full w-full object-cover" />
+        </button>
+      ))}
+      <PhotoViewer id={viewer} photos={photos.map((p) => p.url)} label={`Ảnh đánh giá của ${by}`} />
+    </div>
+  )
+}
+
+<script>
+  import { openViewer } from '../../lib/photo-viewer';
+
+  document.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLElement>('[data-review-photo]');
+    if (b) openViewer(document.getElementById(b.dataset.reviewPhoto!) as HTMLDialogElement, Number(b.dataset.i));
+  });
+</script>

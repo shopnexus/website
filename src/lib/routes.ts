@@ -45,6 +45,7 @@ export const R = {
 export const API = {
   saved: (id: string) => `/api/saved/${id}`,
   follows: (id: string) => `/api/follows/${id}`,
+  helpful: (review: string) => `/api/reviews/${review}/helpful`,
   area: '/api/area',
   communes: (province: string) => `/api/communes/${province}`,
   uploads: '/api/uploads',

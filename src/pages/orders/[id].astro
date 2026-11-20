@@ -53,7 +53,12 @@ if (Astro.request.method === 'POST') {
         back.set('done', 'cancel');
         break;
       case 'review':
-        await unwrap(api.PUT('/v1/orders/{order_id}/review', { ...path, body: { stars: Number(s('stars')), text: s('text') } }));
+        await unwrap(
+          api.PUT('/v1/orders/{order_id}/review', {
+            ...path,
+            body: { stars: Number(s('stars')), text: s('text'), photos: f.getAll('photo').map(String).filter(Boolean) },
+          }),
+        );
         back.set('done', 'review');
         break;
       case 'unreview':

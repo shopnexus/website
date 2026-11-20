@@ -2086,7 +2086,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** A seller's visible reviews, newest first; the same as /v1/accounts/{id}/reviews?role=seller. */
+        /**
+         * A seller's visible reviews, newest first; the same as /v1/accounts/{id}/reviews?role=seller.
+         * @description A signed-in reader gets helpful.marked on each review they may mark.
+         */
         get: operations["listSellerReviews"];
         put?: never;
         post?: never;
@@ -2103,7 +2106,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** A person's visible reviews in one role, newest first. */
+        /**
+         * A person's visible reviews in one role, newest first.
+         * @description A signed-in reader gets helpful.marked on each review they may mark.
+         */
         get: operations["listAccountReviews"];
         put?: never;
         post?: never;
@@ -2129,6 +2135,28 @@ export interface paths {
          */
         post: operations["replyReview"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reviews/{id}/helpful": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mark a visible review helpful; marking it again changes nothing.
+         * @description Anyone signed in but the review's reviewer and its subject. The count
+         *     shows in Review.helpful.
+         */
+        put: operations["markReviewHelpful"];
+        post?: never;
+        /** Take back the caller's helpful mark; an absent one is fine. */
+        delete: operations["unmarkReviewHelpful"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3330,8 +3358,10 @@ export interface paths {
          * The agent conversation of a record, those about records of a kind, or the caller's own.
          * @description With subject_kind and subject_id, the conversation of that ticket or
          *     account, which every member shares (at most one). With subject_kind
-         *     alone, the conversations about records of that kind. With neither,
-         *     the caller's conversations without a record. Newest activity first.
+         *     alone, the conversations about records of that kind. With
+         *     mention_kind and mention_id, the caller's conversations without a
+         *     record in which a question mentioned that record. With none, the
+         *     caller's conversations without a record. Newest activity first.
          */
         get: operations["listConsoleAgentConversations"];
         put?: never;
@@ -3409,7 +3439,10 @@ export interface paths {
          *     service with the picked agent's configuration (the Console assistant
          *     when agent_id is left out), then answers 202 with the turn's id; the
          *     console opens GET /v1/console/agent/turns/{id}/events to watch the
-         *     run step by step. Closing the stream does not stop the run.
+         *     run step by step. Closing the stream does not stop the run. The
+         *     attachments are kept on the turn, each record once; the run is told
+         *     the kind and id of every record the conversation's questions
+         *     mention, without the labels.
          */
         post: operations["askConsoleAgent"];
         delete?: never;
@@ -5418,6 +5451,23 @@ export interface components {
             /** Format: date-time */
             at: string;
         };
+        ReviewPhoto: {
+            /**
+             * Format: uuid
+             * @description What ReviewDraft.photos names to keep the photo.
+             */
+            upload_id: string;
+            /**
+             * Format: uri
+             * @description The photo, at most 1600 px on its long side.
+             */
+            url: string;
+            /**
+             * Format: uri
+             * @description A 400 px thumbnail.
+             */
+            thumb_url: string;
+        };
         /** @description The caller's review of the other side of an order. Dates and id are null before the first submission. Deleted reviews carry no stars or text. change_until is when the review shows or 7 days after the original created_at, whichever comes first; locked uses the same boundary as edits and deletion, and is true once the subject replied. */
         OwnReview: {
             /** @enum {string} */
@@ -5439,6 +5489,8 @@ export interface components {
             stars?: number;
             text?: string;
             reply?: components["schemas"]["ReviewReply"];
+            /** @description The review's photos; absent on a deleted review. */
+            photos?: components["schemas"]["ReviewPhoto"][];
         };
         /** @description The other side's review of the caller. A hidden one carries only when it shows; a visible one carries its stars, text, date and reply. */
         TheirReview: {
@@ -5455,6 +5507,8 @@ export interface components {
             reply?: components["schemas"]["ReviewReply"];
             /** @description Visible and without a reply. A reply closes the review for both sides. */
             can_reply: boolean;
+            /** @description A visible review's photos. */
+            photos?: components["schemas"]["ReviewPhoto"][];
         };
         /** @enum {string} */
         TicketKind: "not_received" | "carrier_request" | "other";
@@ -6235,6 +6289,18 @@ export interface components {
             /** @description Absent when signed out, without a listing opened in the last 30 days, or when the subcategory has no listing to show. */
             viewed?: components["schemas"]["HomeViewed"];
         };
+        /**
+         * @description How soon the seller usually answers someone who writes about one of
+         *     their listings: the median wait over the answers of the last 30 days.
+         *     A wait starts at the other person's first message after the seller's
+         *     last one, when that came at least an hour before, or at the first
+         *     message of the conversation; the seller's next message ends it. minutes
+         *     is within 10 minutes, hour within an hour, hours within 6 hours and day
+         *     within 24 hours. Absent with fewer than 5 answers in the 30 days, or a
+         *     median over a day.
+         * @enum {string}
+         */
+        ReplyTime: "minutes" | "hour" | "hours" | "day";
         /** @description The seller of a listing, as the listing view shows them. */
         SellerSummary: {
             /** Format: uuid */
@@ -6250,6 +6316,7 @@ export interface components {
             rating: components["schemas"]["Rating"];
             /** @description Listings sold, through an order or marked by hand. */
             sold: number;
+            reply_time?: components["schemas"]["ReplyTime"];
         };
         /**
          * @description The reader's own ties to the listing, sent when the reader is signed in
@@ -6300,6 +6367,7 @@ export interface components {
             on_sale: number;
             /** @description How many accounts follow the seller. */
             followers: number;
+            reply_time?: components["schemas"]["ReplyTime"];
             /**
              * Format: date-time
              * @description When the person last had the app open, to the 30 seconds; absent
@@ -6322,6 +6390,16 @@ export interface components {
          * @enum {string}
          */
         ReviewRole: "seller" | "buyer";
+        /** @description The people who found the review helpful. */
+        ReviewHelpful: {
+            count: number;
+            /**
+             * @description Whether the reader marked the review helpful; present only when the
+             *     reader may mark it: signed in, and neither its reviewer nor its
+             *     subject.
+             */
+            marked?: boolean;
+        };
         Review: {
             /** Format: uuid */
             id: string;
@@ -6347,6 +6425,9 @@ export interface components {
             };
             /** @description The subject's one reply; null without one. */
             reply: components["schemas"]["ReviewReply"] | null;
+            /** @description The reviewer's photos in their order; empty without any. */
+            photos?: components["schemas"]["ReviewPhoto"][];
+            helpful?: components["schemas"]["ReviewHelpful"];
             /**
              * Format: date-time
              * @description The first submission; the review changes only while hidden and for 7 days after it, and not after a reply.
@@ -6461,6 +6542,13 @@ export interface components {
             stars: number;
             /** @description At most 500 characters after trimming; may be empty. */
             text?: string;
+            /**
+             * @description Upload IDs of the caller's photos, in the order they show; [] removes
+             *     them, and leaving the field out keeps the review's photos. Each is a
+             *     photo upload of the caller's, uploaded and not yet used elsewhere, or
+             *     already one of this review's.
+             */
+            photos?: string[];
         };
         ReplyDraft: {
             /** @description 1 to 500 characters after trimming; a business rule, so another length is 422. */
@@ -7140,6 +7228,11 @@ export interface components {
          * @enum {string}
          */
         AgentSubjectKind: "ticket" | "account";
+        /**
+         * @description A record a question may mention.
+         * @enum {string}
+         */
+        AgentAttachmentKind: "ticket" | "account" | "order" | "listing" | "report_case" | "document";
         AgentConversation: {
             /** Format: uuid */
             id: string;
@@ -7158,6 +7251,14 @@ export interface components {
             subject_kind?: components["schemas"]["AgentSubjectKind"];
             /** Format: uuid */
             subject_id?: string;
+        };
+        /** @description A record or a document the question is about, once per question. */
+        AgentAttachment: {
+            kind: components["schemas"]["AgentAttachmentKind"];
+            /** Format: uuid */
+            id: string;
+            /** @description What the console showed for the record, trimmed. The console's alone; the agent never gets it. */
+            label?: string;
         };
         /**
          * @description A turn's status. paused and awaiting_input wait on the member; the ones after them are final.
@@ -7221,6 +7322,8 @@ export interface components {
             member_id: string;
             /** @description The question. */
             text: string;
+            /** @description The records the question mentioned; absent when it mentioned none. */
+            attachments?: components["schemas"]["AgentAttachment"][];
             /** @description The agent's answer as text, once it has one. */
             answer?: string;
             status: components["schemas"]["AgentTurnStatus"];
@@ -7276,14 +7379,6 @@ export interface components {
         };
         AgentConversationRename: {
             title: string;
-        };
-        /** @description A record or a document the question is about. */
-        AgentAttachment: {
-            /** @enum {string} */
-            kind: "ticket" | "account" | "order" | "listing" | "report_case" | "document";
-            /** Format: uuid */
-            id: string;
-            label?: string;
         };
         AgentQuestion: {
             text: string;
@@ -12170,7 +12265,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Stars or text break a rule (invalid_review, with fields). */
+            /** @description Stars or text break a rule (invalid_review, with fields), or a photo is not one the caller may use (invalid_upload). */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -12358,6 +12453,77 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    markReviewHelpful: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Marked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description The account is suspended (account_suspended). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No such visible review (review_not_found). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description The caller wrote the review or is its subject (own_review). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    unmarkReviewHelpful: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Not marked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
     };
     listMyReports: {
@@ -14461,6 +14627,10 @@ export interface operations {
             query?: {
                 subject_kind?: components["schemas"]["AgentSubjectKind"];
                 subject_id?: string;
+                /** @description Taken with mention_id and without a subject. */
+                mention_kind?: components["schemas"]["AgentAttachmentKind"];
+                /** @description Taken with mention_kind. */
+                mention_id?: string;
             };
             header: {
                 /**
@@ -14482,6 +14652,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentConversationList"];
+                };
+            };
+            /** @description The request does not match the API description, or mention_kind and mention_id come apart or with a subject (invalid_request). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             401: components["responses"]["Unauthorized"];

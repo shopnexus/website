@@ -1,3 +1,5 @@
+import type { Schemas } from './api/client';
+
 const NEAR_KM = 10;
 
 /** 1.250.000 */
@@ -16,6 +18,14 @@ export function ago(iso: string, now = Date.now()) {
 /** A seller's rating as a figure and its line: ["4,9", "32 đánh giá"], or a dash without reviews. */
 export const ratingText = (r: { average: number | null; count: number }): [string, string] =>
   r.count && r.average !== null ? [decimal(r.average), `${r.count} đánh giá`] : ['–', 'Chưa có đánh giá'];
+
+/** How soon a seller usually answers, from the server's ReplyTime. */
+export const REPLY_TIME: Record<Schemas['ReplyTime'], string> = {
+  minutes: 'Thường trả lời trong vài phút',
+  hour: 'Thường trả lời trong 1 giờ',
+  hours: 'Thường trả lời trong vài giờ',
+  day: 'Thường trả lời trong 1 ngày',
+};
 
 /** Vietnam's time zone, for every date the site shows. */
 export const TZ = 'Asia/Ho_Chi_Minh';

@@ -133,6 +133,8 @@ export const RI = {
   'support-agent-rounded': 'customer-service-2-fill',
   'tablet-outline-rounded': 'tablet-line',
   'tag-rounded': 'hashtag',
+  'thumb-up-outline-rounded': 'thumb-up-line',
+  'thumb-up-rounded': 'thumb-up-fill',
   'timer-outline-rounded': 'timer-line',
   'trending-down-rounded': 'arrow-right-down-line',
   'trending-up-rounded': 'arrow-right-up-line',

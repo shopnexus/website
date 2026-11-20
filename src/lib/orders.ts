@@ -168,6 +168,7 @@ const ERRORS: Record<string, string> = {
   review_closed: 'Người kia đã trả lời nên đánh giá không đổi được nữa.',
   review_not_found: 'Bạn chưa có đánh giá cho đơn này.',
   invalid_review: 'Chọn từ 1 đến 5 sao, lời nhận xét tối đa 500 ký tự.',
+  invalid_upload: 'Có ảnh chưa dùng được. Bỏ ảnh đó rồi gửi lại nhé.',
   try_again: 'Vừa có thay đổi ở nơi khác. Thử lại nhé.',
   ticket_not_allowed: 'Báo chưa nhận được khi đơn đang giao, hoặc trong 7 ngày sau khi đơn tự hoàn tất.',
   too_many_tickets: 'Bạn đã gửi 10 yêu cầu trong 24 giờ. Thử lại sau nhé.',

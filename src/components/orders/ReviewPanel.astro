@@ -1,11 +1,14 @@
 ---
 // The two reviews of a closed order: the viewer's of the other person, with
-// its form while it can change, and theirs of the viewer once it shows.
+// its form (stars, words, up to 4 photos) while it can change, and theirs of
+// the viewer once it shows.
 // Each review hides until both are in or 7 days pass.
 import type { Schemas } from '../../lib/api/client';
 import { date } from '../../lib/format';
 import { btnCls, PANEL } from '../../lib/ui';
 import Icon from '../Icon.astro';
+import PhotoSlots from '../PhotoSlots.astro';
+import ReviewPhotos from '../public/ReviewPhotos.astro';
 import ConfirmPop from './ConfirmPop.astro';
 
 interface Props {
@@ -46,6 +49,13 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
           <span class="block text-body-small text-on-surface-variant">Nhận xét (không bắt buộc)</span>
           <textarea name="text" rows="3" maxlength="500" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none">{own.text ?? ''}</textarea>
         </label>
+        <PhotoSlots
+          name="photo"
+          max={4}
+          label="Ảnh (không bắt buộc)"
+          photos={(own.photos ?? []).map((p) => ({ id: p.upload_id, thumb: p.thumb_url }))}
+          class="mt-3"
+        />
         <div class="mt-3 flex justify-end gap-2">
           {editing && <a href={action} class={btnCls('ghost')}>Thôi</a>}
           <button type="submit" name="do" value="review" class={btnCls('ink')}>
@@ -60,6 +70,7 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
           {[1, 2, 3, 4, 5].map((n) => <Icon name={n <= (own.stars ?? 0) ? 'star-rounded' : 'star-outline-rounded'} size={20} />)}
         </p>
         {own.text && <p class="mt-1 text-body-large text-ink">{own.text}</p>}
+        <ReviewPhotos id={own.id!} photos={own.photos ?? []} by="Bạn" loading="eager" class="mt-2" />
         {own.reply && (
           <p class="mt-2 rounded-tile bg-surface-container-low p-3 text-body-medium text-ink">
             <span class="block text-label-medium text-on-surface-variant">{other} trả lời</span>
@@ -99,6 +110,7 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
             {[1, 2, 3, 4, 5].map((n) => <Icon name={n <= (their.stars ?? 0) ? 'star-rounded' : 'star-outline-rounded'} size={18} />)}
           </p>
           {their.text && <p class="mt-1 text-body-large text-ink">{their.text}</p>}
+          <ReviewPhotos id={their.id} photos={their.photos ?? []} by={other} loading="eager" class="mt-2" />
           {their.reply && <p class="mt-2 text-body-small text-on-surface-variant">Bạn trả lời: {their.reply.text}</p>}
         </div>
       )

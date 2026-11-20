@@ -15,7 +15,7 @@ import ShareSheet from '../../components/ShareSheet.astro';
 import Layout from '../../layouts/Layout.astro';
 import { orNull } from '../../lib/api/client';
 import { near } from '../../lib/area';
-import { ago, decimal, ratingText } from '../../lib/format';
+import { REPLY_TIME, ago, decimal, ratingText } from '../../lib/format';
 import { card, isId } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
@@ -46,6 +46,7 @@ const facts: [string, string][] = s
   ? [
       ['calendar-month-outline-rounded', `Tham gia ${new Date(s.joined_at).getFullYear()}`],
       ...(s.last_active_at ? [['schedule-outline-rounded', active ? 'Đang hoạt động' : `Hoạt động ${ago(s.last_active_at)} trước`] as [string, string]] : []),
+      ...(s.reply_time ? [['chat-outline-rounded', REPLY_TIME[s.reply_time]] as [string, string]] : []),
     ]
   : [];
 const [rated, ratedLine] = s ? ratingText(s.rating) : ['', ''];
