@@ -59,6 +59,8 @@ export const API = {
   watchAlert: (id: string) => `/api/watches/${id}/alert`,
   /** The socket's address and an access token for it, for Tin nhắn. */
   socket: '/api/socket',
+  /** This browser's push token for the session (lib/push.ts). */
+  pushToken: '/api/push-token',
   /** Chat nhanh on a listing: a message or an offer (QuickChat). */
   /** Đăng tin: the autosaved draft, the read of the cover, the price guide and the category guess. */
   listingDraft: (id: string) => `/api/listing-drafts/${id}`,

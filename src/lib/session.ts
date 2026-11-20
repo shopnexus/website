@@ -1,5 +1,6 @@
 import type { AstroCookies, AstroGlobal } from 'astro';
 import { type Api, ApiError, type Caller, type Schemas, apiClient, unwrap } from './api/client';
+import { PUSH_COOKIE } from './push';
 import { loginHref } from './routes';
 
 // The buyer's session with the server. The access and refresh tokens live in
@@ -44,6 +45,8 @@ const dropAccess = (cookies: AstroCookies) => cookies.delete(ACCESS, { path: '/'
 export function dropTokens(cookies: AstroCookies) {
   dropAccess(cookies);
   cookies.delete(REFRESH, { path: '/' });
+  // The next session gives the browser's push token again.
+  cookies.delete(PUSH_COOKIE, { path: '/' });
 }
 
 // A refresh token works once, and two refreshes with one token sign the

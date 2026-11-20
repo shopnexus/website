@@ -10,6 +10,7 @@ import { loginUrl, viewer } from '../lib/session';
 import { THEMES, theme } from '../lib/theme';
 import { BAR } from '../lib/ui';
 import Icon from './Icon.astro';
+import InstallHint from './InstallHint.astro';
 import MessagesLink from './MessagesLink.astro';
 import NotificationsLink from './NotificationsLink.astro';
 import Peek from './Peek.astro';
@@ -182,6 +183,7 @@ const account = [
     <>
       <Peek id="hdr-notes" title="Thông báo" href={R.notifications} src="/notifications/peek" />
       <Peek id="hdr-chats" title="Tin nhắn" href={R.messages} src="/messages/peek" />
+      <InstallHint />
     </>
   )
 }
@@ -206,6 +208,10 @@ const account = [
           </a>
         ))
       }
+      <button type="button" class={item} hidden data-install>
+        <Icon name="install-mobile-outline-rounded" size={18} class="text-sub" />
+        Cài ShopNexus
+      </button>
       <div class="my-1.5 h-px bg-line" />
       <div class="px-3 pb-2 pt-1">
         <p class="flex h-8 items-center gap-3 text-body-large">
@@ -230,6 +236,7 @@ const account = [
 }
 
 <script>
+  import '../lib/install';
   import { setTheme } from '../lib/theme';
 
   const KEY = 'sn_recent';

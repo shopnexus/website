@@ -23,7 +23,7 @@ const knob =
       <span class:list={[knob, 'peer-checked:translate-x-5']} />
     </label>
   ) : (
-    <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={label} class:list={['group relative', track, 'aria-checked:bg-primary']} data-switch>
+    <button type="button" role="switch" aria-checked={on ? 'true' : 'false'} aria-label={label} class:list={['group relative disabled:opacity-40', track, 'aria-checked:bg-primary']} data-switch>
       <span class:list={[knob, 'group-aria-checked:translate-x-5']} />
     </button>
   )
