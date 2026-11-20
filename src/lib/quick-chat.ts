@@ -1,6 +1,6 @@
 import { whileBusy } from './busy';
 import { mountChatPane } from './chat-pane';
-import { group } from './format';
+import { moneyOf, setMoney } from './money-input';
 import { R, loginHref } from './routes';
 import { failure } from './skeleton';
 
@@ -23,9 +23,10 @@ if (!(window as { snQuickChat?: boolean }).snQuickChat) {
 /** Wires a box and its folded pill; returns how to take them off the page. */
 export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement): () => void {
   const $ = <T extends Element = HTMLElement>(s: string) => box.querySelector<T>(s)!;
-  const tray = $<HTMLFormElement>('[data-qc-tray]');
-  const offerBtn = $<HTMLButtonElement>('[data-qc-offer]');
-  const amount = $<HTMLInputElement>('[data-qc-amount]');
+  // Without offers on the listing the box has no tray and no "Trả giá".
+  const tray = box.querySelector<HTMLFormElement>('[data-qc-tray]');
+  const offerBtn = box.querySelector<HTMLButtonElement>('[data-qc-offer]');
+  const amount = box.querySelector<HTMLInputElement>('[data-qc-amount]');
   const price = Number(box.dataset.price);
   const wide = matchMedia('(min-width: 64rem)');
   const full = $<HTMLAnchorElement>('[data-qc-full]');
@@ -40,7 +41,7 @@ export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement):
     return u;
   };
   const synced = () => {
-    tray.action = paneUrl().pathname + paneUrl().search;
+    if (tray) tray.action = paneUrl().pathname + paneUrl().search;
     const meta = box.querySelector<HTMLElement>('[data-part="meta"]');
     if (meta?.dataset.chat) full.href = `${R.messages}?${new URLSearchParams({ chat: meta.dataset.chat, deal: meta.dataset.deal ?? '' })}`;
   };
@@ -96,7 +97,7 @@ export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement):
     pill.classList.remove('flex');
     if (!box.open) wide.matches ? box.show() : box.showModal();
     setTray(offer);
-    load().then((ok) => ok && (offer ? amount : box.querySelector<HTMLTextAreaElement>('[data-composer] [name="text"]'))?.focus({ preventScroll: true }));
+    load().then((ok) => ok && ((offer && amount) || box.querySelector<HTMLTextAreaElement>('[data-composer] [name="text"]'))?.focus({ preventScroll: true }));
   };
   const close = () => box.close();
   const fold = () => {
@@ -105,8 +106,8 @@ export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement):
     pill.classList.add('flex');
   };
   const setTray = (on: boolean) => {
-    tray.classList.toggle('hidden', !on);
-    offerBtn.setAttribute('aria-expanded', String(on));
+    tray?.classList.toggle('hidden', !on);
+    offerBtn?.setAttribute('aria-expanded', String(on));
   };
 
   const take = (what: string) => {
@@ -133,36 +134,27 @@ export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement):
   });
 
   box.querySelectorAll<HTMLButtonElement>('[data-qc-ask]').forEach((b) => b.addEventListener('click', () => whileBusy(b, () => say(b.dataset.qcAsk!))));
-  offerBtn.addEventListener('click', () => setTray(tray.classList.contains('hidden')));
-
-  const cuts = [...box.querySelectorAll<HTMLButtonElement>('[data-qc-cut]')];
-  const mark = (v: number) => cuts.forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.qcCut) === v)));
-  cuts.forEach((c) =>
-    c.addEventListener('click', () => {
-      const v = Number(c.dataset.qcCut);
-      amount.value = group(v);
-      mark(v);
-    }),
-  );
-  amount.addEventListener('input', () => {
-    const v = Number(amount.value.replace(/\D/g, ''));
-    amount.value = v ? group(v) : '';
-    mark(v);
-  });
-  // An offer under the price goes in place (chat-pane's data-in-place) and the tray folds once it is in; anything else stays here.
-  tray.addEventListener(
-    'submit',
-    (e) => {
-      const v = Number(amount.value.replace(/\D/g, ''));
-      if (!v || v >= price) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        amount.focus();
-      }
-    },
-    { capture: true },
-  );
-  tray.addEventListener('sent', () => setTray(false));
+  if (tray && offerBtn && amount) {
+    offerBtn.addEventListener('click', () => setTray(tray.classList.contains('hidden')));
+    // The cut chips set the amount; the one it matches stays pressed.
+    const cuts = [...box.querySelectorAll<HTMLButtonElement>('[data-qc-cut]')];
+    cuts.forEach((c) => c.addEventListener('click', () => setMoney(amount, Number(c.dataset.qcCut))));
+    amount.addEventListener('input', () => cuts.forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.qcCut) === moneyOf(amount)))));
+    // An offer under the price goes in place (chat-pane's data-in-place) and the tray folds once it is in; anything else stays here.
+    tray.addEventListener(
+      'submit',
+      (e) => {
+        const v = moneyOf(amount);
+        if (!v || v >= price) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          amount.focus();
+        }
+      },
+      { capture: true },
+    );
+    tray.addEventListener('sent', () => setTray(false));
+  }
 
   // The left edge drags the docked box wider or narrower; the width is kept per browser.
   const KEY = 'sn:qc-width';

@@ -1,6 +1,7 @@
 import type { AstroCookies } from 'astro';
 import type { Schemas } from './api/client';
 import { near } from './area';
+import { parseMoney } from './format';
 import type { Condition } from './listing';
 import { R } from './routes';
 
@@ -32,10 +33,7 @@ const SORT_KEYS: Record<string, Sort> = { relevance: 'relevance', newest: 'newes
 export const NEAR_STEPS = [2, 5, 10, 20] as const;
 
 const keyOf = <T>(map: Record<string, T>, v: T) => Object.entries(map).find(([, x]) => x === v)?.[0];
-const num = (s: string | null) => {
-  const digits = s?.replace(/\D/g, '');
-  return digits ? Number(digits) : undefined;
-};
+const num = (s: string | null) => parseMoney(s ?? '') ?? undefined;
 
 /** A sort's key in the URL: price_asc → price-asc. */
 export const sortKey = (s?: Sort) => (s ? keyOf(SORT_KEYS, s) : undefined);

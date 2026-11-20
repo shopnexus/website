@@ -1,5 +1,6 @@
 import type { Schemas } from './api/client';
 import type { Condition } from './listing';
+import { parseMoney } from './format';
 
 // The Đăng tin form as the server takes it: the posted fields, a listing to
 // post, a draft to keep, and the form filled back from a draft or a listing.
@@ -42,12 +43,6 @@ export const emptyFields = (): SellFields => ({
 
 const isCondition = (c: string): c is Condition => c === 'new' || c === 'like_new' || c === 'used';
 
-/** Digits only: "4.800.000 ₫" is 4800000; null without digits. */
-export function parsePrice(raw: string) {
-  const d = raw.replace(/\D/g, '');
-  return d ? Number(d.slice(0, 13)) : null;
-}
-
 /** The form as posted, from the page or from the autosave. */
 export function readSellForm(form: FormData): SellFields {
   const s = (k: string) => String(form.get(k) ?? '');
@@ -59,7 +54,7 @@ export function readSellForm(form: FormData): SellFields {
     description: s('description').trim(),
     category: s('category'),
     condition: isCondition(condition) ? condition : '',
-    price: parsePrice(s('price')),
+    price: parseMoney(s('price')),
     offers: form.has('allow_offers'),
     province: s('province'),
     commune: s('commune'),
@@ -131,7 +126,7 @@ export function fromListing(l: Schemas['Listing']): { fields: SellFields; urls: 
       photos: l.photos.map((p) => p.upload_id),
       specs: l.specs,
     },
-    urls: Object.fromEntries(l.photos.flatMap((p) => (p.thumb_url ?? p.url ? [[p.upload_id, (p.thumb_url ?? p.url)!]] : []))),
+    urls: Object.fromEntries(l.photos.flatMap((p) => ((p.thumb_url ?? p.url) ? [[p.upload_id, (p.thumb_url ?? p.url)!]] : []))),
   };
 }
 

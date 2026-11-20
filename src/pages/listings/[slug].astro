@@ -57,7 +57,7 @@ const [similar, others, reviews, cats] = it
   : [[], [], [], []];
 
 const me = viewer(Astro);
-const { mine, reserved, ordered, chat } = screen ? dealState(screen, me) : { mine: false, reserved: false, ordered: false, chat: '' };
+const { mine, reserved, offers, ordered, chat } = screen ? dealState(screen, me) : { mine: false, reserved: false, offers: false, ordered: false, chat: '' };
 const condition = it ? conditionLabel(it.condition) : '';
 const place = it ? where(screen!.distance_km, it.location.commune.display_name) : '';
 const posted = it ? ago(it.published_at ?? it.created_at) : '';
@@ -291,6 +291,7 @@ const ld = it && {
           title={it.title}
           thumb={photos[0]?.thumb}
           price={it.price}
+          offers={offers}
           questions={QUESTIONS}
           href={chat}
         />

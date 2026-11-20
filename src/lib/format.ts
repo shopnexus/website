@@ -5,6 +5,12 @@ const NEAR_KM = 10;
 /** 1.250.000 */
 export const group = (n: number) => Math.round(n).toLocaleString('de-DE');
 
+/** An amount as typed or grouped, digits only: "4.800.000 ₫" is 4800000; null without digits. */
+export function parseMoney(raw: string) {
+  const d = raw.replace(/\D/g, '');
+  return d ? Number(d.slice(0, 13)) : null;
+}
+
 /** How long ago, as the app says it: "12 phút", "3 giờ", "5 ngày", "2 tháng". */
 export function ago(iso: string, now = Date.now()) {
   const m = Math.max(1, Math.floor((now - Date.parse(iso)) / 60_000));
@@ -47,8 +53,7 @@ export function dayLabel(iso: string, now = new Date()) {
 export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 /** 1,2 */
-export const decimal = (n: number, digits = 1) =>
-  n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: digits });
+export const decimal = (n: number, digits = 1) => n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: digits });
 
 /** The number and unit of a price, for the two-size price: ["1.250.000", "₫"]; on a card,
  * 10 triệu and above shortens to ["12,5", "tr ₫"]. */
@@ -78,8 +83,7 @@ export function crop(id: string, size: number, fx = 0.5, fy = 0.5, zoom = 1) {
 }
 
 /** A day as Vietnam writes it, in Vietnam's time: 02/10/2026. */
-export const date = (iso: string) =>
-  new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ });
+export const date = (iso: string) => new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ });
 
 /** "0912 345 678", "912345678" or "+84 912…" as +84912345678; undefined when it is not a Vietnamese mobile number. */
 export function vnMobile(raw: string) {
