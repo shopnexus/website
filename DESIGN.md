@@ -343,8 +343,15 @@ step to the previous and next result; "Mở trang" opens the listing page and
 the photo flies into its gallery. The address takes `?view=<slug>` as a new
 history entry, so Back, Esc, the scrim or Đóng closes the drawer and puts the
 focus back on the result's "Xem nhanh", and a reload or a shared link opens
-it again. Category pages and Tìm bằng ảnh show the same results. The search
-API sends one cover per result, so the card has no photo scrubbing on hover.
+it again. Category pages and Tìm bằng ảnh show the same results.
+
+From 840 px a mouse across a result's photo steps through its first five
+photos, one per vertical strip, with a bar of segments on a dark fade at
+the photo's bottom (`src/lib/photo-scrub.ts`, from the card's
+`photo_thumb_urls`). The other photos load on the first hover. Leaving the
+result shows the cover again; keyboard focus and phones do not scrub. A
+click flies the photo on show into the listing's gallery, and Back returns
+to the cover.
 Drafts: `.superdesign/mockups/quick-view-2-*.html`
 (`tools/build_quick_view_2.py`); A, a popup beside the hovered card, and C,
 the earlier panel that pushed the grid to three columns, are on the canvas

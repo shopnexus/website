@@ -6362,6 +6362,8 @@ export interface components {
             price: number;
             /** Format: uri */
             cover_thumb_url?: string;
+            /** @description The thumbnails of the listing's first five photos in order, the cover first. */
+            photo_thumb_urls?: string[];
             /** @description The listing's subcategory, such as phones.iphone. */
             category_code: string;
             condition: components["schemas"]["Condition"];

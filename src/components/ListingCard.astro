@@ -3,7 +3,7 @@ import Photo from './Photo.astro';
 // K2's listing card: white, 16 px, hairline; the photo at 12 px inside an 8 px
 // inset. The app's card: price, the title on two lines, then condition and
 // place. A hairline darkens and a soft shadow comes on hover.
-import type { Card } from '../lib/listing';
+import { type Card, scrubPhotos } from '../lib/listing';
 import { where } from '../lib/format';
 import { R } from '../lib/routes';
 import Icon from './Icon.astro';
@@ -17,7 +17,7 @@ interface Props {
   ratio?: string;
   /** "lazy" when it sits below the first screen. */
   loading?: 'eager' | 'lazy';
-  /** Search results: "Xem nhanh" on the photo. */
+  /** Search results: "Xem nhanh" and the hover scrub on the photo. */
   quick?: boolean;
 }
 
@@ -26,7 +26,7 @@ const meta = [item.condition, where(item.km, item.area)].join(' · ');
 ---
 
 <article class="lift relative flex min-w-0 flex-col rounded-card border border-line bg-card p-2">
-  <div class="relative overflow-hidden rounded-tile bg-soft" style={`aspect-ratio: ${ratio}`}>
+  <div class="relative overflow-hidden rounded-tile bg-soft" style={`aspect-ratio: ${ratio}`} data-scrub={quick ? scrubPhotos(item) : undefined}>
     {item.photo && <Photo src={item.photo} width={480} height={480} alt={item.title} loading={loading} fade class="h-full w-full object-cover" />}
     {item.previousPrice !== undefined && <PriceDropBadge />}
     <button
