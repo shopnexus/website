@@ -165,7 +165,10 @@ every page.
 - A sort, filter, tab or chat row that opens another page (`data-pending`)
   turns current at once, and skeletons fill the region that page will
   replace. "Xem thêm" appends the next page under the current one
-  (`data-more`).
+  (`data-more`). Back to that page shows the same pages at the same scroll
+  position: the browser's page cache keeps them, and when it has dropped the
+  page, `src/lib/keep.ts` puts back the grown regions, Home's feed tab and the
+  scroll from sessionStorage.
 - A carousel row snaps its items to the start and fades the edge that hides
   more items. On a mouse two arrows beside the heading page it by 85 % of its
   width on the spatial spring; on touch the row scrolls directly.

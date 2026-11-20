@@ -111,7 +111,8 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
 <script>
   import { busy } from '../lib/busy';
   import { R } from '../lib/routes';
-  import { FEED_PAGE, FEED_TABS } from '../lib/feed-tabs';
+  import { FEED_PAGE, FEED_TABS, type FeedTab } from '../lib/feed-tabs';
+  import { keep, markup } from '../lib/keep';
   import { locate } from '../lib/locate';
   import { type Hold, failure, hold } from '../lib/skeleton';
 
@@ -122,12 +123,26 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
   if (root) {
     const grid = root.querySelector<HTMLElement>('[data-feed-grid]')!;
     const more = root.querySelector<HTMLAnchorElement>('[data-feed-more]')!;
-    let tab: string = FEED_TABS[0];
+    let tab: FeedTab = FEED_TABS[0];
     let next = '';
     let run = 0;
     // Dành cho bạn is one page the server sent with Home: going back to it
     // shows those cards again instead of asking for Home once more.
     const first = [...grid.children];
+    // Another tab or more pages than Home came with: Back brings them again.
+    let grown = false;
+    keep<{ tab: number; cards: string; next: string }>(
+      'feed',
+      () => (grown ? { tab: FEED_TABS.indexOf(tab), cards: markup(grid), next } : undefined),
+      (kept) => {
+        tab = FEED_TABS[kept.tab] ?? FEED_TABS[0];
+        root.querySelectorAll('[role="tab"]').forEach((b, i) => b.setAttribute('aria-selected', String(i === kept.tab)));
+        grid.innerHTML = kept.cards;
+        next = kept.next;
+        more.hidden = !next;
+        grown = true;
+      },
+    );
 
     const fetchPage = async (t: string, after: string) => {
       const res = await fetch(`${R.feed}?${new URLSearchParams({ tab: t, ...(after ? { after } : {}) })}`);
@@ -154,6 +169,7 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
         page.cards.forEach((c) => c.setAttribute('data-fresh', ''));
         if (replace) grid.replaceChildren(...page.cards);
         else grid.append(...page.cards);
+        grown = true;
         next = page.next;
         more.hidden = !next;
       } catch {
@@ -175,6 +191,7 @@ const tabs = [me ? 'Dành cho bạn' : 'Gợi ý', 'Gần bạn', 'Mới nhất'
       active?.undo();
       grid.replaceChildren(...first);
       more.hidden = true;
+      grown = false;
     });
     more.addEventListener('click', (e) => {
       e.preventDefault();
