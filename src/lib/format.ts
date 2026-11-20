@@ -15,6 +15,16 @@ export function ago(iso: string, now = Date.now()) {
   return `${Math.floor(m / 525_600)} năm`;
 }
 
+/** The time left until iso: "2 ngày 5 giờ", "3 giờ", "40 phút"; empty once it passed. */
+export function left(iso: string, now = Date.now()) {
+  const m = Math.floor((Date.parse(iso) - now) / 60_000);
+  if (m < 1) return '';
+  if (m < 60) return `${m} phút`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} giờ`;
+  return h % 24 ? `${Math.floor(h / 24)} ngày ${h % 24} giờ` : `${h / 24} ngày`;
+}
+
 /** A seller's rating as a figure and its line: ["4,9", "32 đánh giá"], or a dash without reviews. */
 export const ratingText = (r: { average: number | null; count: number }): [string, string] =>
   r.count && r.average !== null ? [decimal(r.average), `${r.count} đánh giá`] : ['–', 'Chưa có đánh giá'];
@@ -32,13 +42,14 @@ export const TZ = 'Asia/Ho_Chi_Minh';
 
 const dayKey = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: TZ });
 
-/** A day as a list heading: Hôm nay, Hôm qua, the weekday within a week, then the date. */
+/** A day as a list heading: Hôm nay, Hôm qua or Ngày mai, the weekday within a week either way, then the date. */
 export function dayLabel(iso: string, now = new Date()) {
   const d = new Date(iso);
   const days = Math.round((Date.parse(dayKey(now)) - Date.parse(dayKey(d))) / 86_400_000);
-  if (days <= 0) return 'Hôm nay';
+  if (days === 0) return 'Hôm nay';
   if (days === 1) return 'Hôm qua';
-  if (days < 7) return d.toLocaleDateString('vi-VN', { timeZone: TZ, weekday: 'long' }).replace(/^./, (c) => c.toUpperCase());
+  if (days === -1) return 'Ngày mai';
+  if (Math.abs(days) < 7) return d.toLocaleDateString('vi-VN', { timeZone: TZ, weekday: 'long' }).replace(/^./, (c) => c.toUpperCase());
   const [y, m, day] = dayKey(d).split('-');
   return y === dayKey(now).slice(0, 4) ? `${day}/${m}` : `${day}/${m}/${y}`;
 }

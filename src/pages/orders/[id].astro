@@ -1,9 +1,10 @@
 ---
-// One COD order, from either side. The state and the four steps; for the
-// seller of a pending order, the shipment form; the order's timeline, the
-// waybill and where it goes; the reviews once it closed; on the right what
-// the buyer hands the shipper, and the moves the viewer can make now. Every
-// move is a form post here; a refusal comes back as ?error=.
+// One COD order, from either side. The state and the four steps; what the
+// viewer does next; for the seller of a pending order, the shipment form;
+// the order's steps, the waybill and where it goes; the reviews once it
+// closed; on the right what the buyer hands the shipper, and the moves the
+// viewer can make now. Every move is a form post here; a refusal comes back
+// as ?error=.
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import Notice from '../../components/Notice.astro';
@@ -13,16 +14,18 @@ import ConfirmPop from '../../components/orders/ConfirmPop.astro';
 import HeroCard from '../../components/orders/HeroCard.astro';
 import IconBtn from '../../components/orders/IconBtn.astro';
 import ListRow from '../../components/orders/ListRow.astro';
+import NextCard from '../../components/orders/NextCard.astro';
 import ReviewPanel from '../../components/orders/ReviewPanel.astro';
 import SectionLabel from '../../components/orders/SectionLabel.astro';
 import ShipForm from '../../components/orders/ShipForm.astro';
+import StepList from '../../components/orders/StepList.astro';
 import SummaryAside from '../../components/orders/SummaryAside.astro';
 import Layout from '../../layouts/Layout.astro';
 import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../../lib/api/client';
 import { money } from '../../lib/format';
 import { isId } from '../../lib/listing';
 import { chatHref, personHref, personName } from '../../lib/messages';
-import { CARRIER, LINKED, SHIPMENT_STATUS, at, cancelText, orderCode, orderError, orderState, recipientLines, timeline, trackUrl } from '../../lib/orders';
+import { CARRIER, LINKED, SHIPMENT_STATUS, at, cancelText, nextStep, orderCode, orderError, orderState, orderSteps, recipientLines, trackUrl } from '../../lib/orders';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
 import { SHIP_KEYS, draft, shipInput, shipReads } from '../../lib/ship';
@@ -151,7 +154,8 @@ if (o.status === 'pending') {
 }
 const times = [deal.agreed_at, o.shipped_at, o.status === 'completed' ? o.closed_at : undefined, own.state === 'active' ? own.created_at : undefined].map((t) => (t ? at(t) : ''));
 const to = recipientLines(o.recipient);
-const steps = timeline(o, role, other);
+const steps = orderSteps(o, role, other);
+const next = current ? nextStep(o, role, other) : null;
 const track = ship ? trackUrl(ship.carrier, ship.tracking_code) : undefined;
 
 // What the buyer hands the shipper: the price, plus the fee once the carrier gave one.
@@ -193,6 +197,18 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
 
     <div class="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
       <div class="flex min-w-0 flex-col gap-4">
+        {
+          next && (
+            <NextCard next={next}>
+              {next.confirm && (
+                <button type="button" popovertarget="confirm" slot="action" class:list={[btnCls('primary', 'lg'), 'w-full md:w-auto']}>
+                  <Icon name="package-2-outline-rounded" size={18} />
+                  Đã nhận hàng
+                </button>
+              )}
+            </NextCard>
+          )
+        }
         {form && <ShipForm order={o} setup={form.setup} input={form.input} reads={form.reads} edit={editing} idem={idempotencyKey()} />}
         {reviews && <ReviewPanel own={own} their={their} other={other} role={role} action={here} editing={p.get('review') === 'edit'} />}
         <div class="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
@@ -200,26 +216,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
             <SectionLabel title="Hành trình">
               {ship && <span class="text-label-medium text-primary">{carrier} · {SHIPMENT_STATUS[ship.status]}</span>}
             </SectionLabel>
-            <ol class="mt-3">
-              {
-                steps.map((e, i) => (
-                  <li class="relative flex gap-3 pb-4 last:pb-0">
-                    {i < steps.length - 1 && <span class="absolute bottom-0 left-[7px] top-5 w-px bg-black/10" />}
-                    <span
-                      class:list={[
-                        'relative mt-1 h-[15px] w-[15px] shrink-0 rounded-full',
-                        i === 0 ? 'bg-primary ring-4 ring-primary/15' : 'border-2 border-outline-variant bg-card',
-                      ]}
-                    />
-                    <span class="min-w-0 flex-1">
-                      <span class:list={['block text-body-medium text-ink', i === 0 && 'font-medium']}>{e.title}</span>
-                      {e.sub && <span class="block text-body-small text-on-surface-variant">{e.sub}</span>}
-                    </span>
-                    <span class="shrink-0 text-body-small text-on-surface-variant tabular-nums">{e.when}</span>
-                  </li>
-                ))
-              }
-            </ol>
+            <StepList steps={steps} />
           </section>
           <div class="flex flex-col gap-4">
             <section class:list={[PANEL, 'px-5 py-3']}>
@@ -277,7 +274,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
         lines={lines}
       >
         {
-          current && (o.status === 'pending' || o.status === 'shipped' || canReport || screen.ticket) && (
+          current && (o.status === 'pending' || canReport || screen.ticket) && (
             <Fragment slot="actions">
               {screen.ticket && (
                 <a href={`${R.support}?ticket=${screen.ticket.id}`} class={btnCls('ghost')}>
@@ -294,13 +291,6 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
               {o.status === 'pending' && (
                 <button type="button" popovertarget="cancel" class={btnCls('line')}>
                   Hủy đơn
-                </button>
-              )}
-              <span class="flex-1" />
-              {buyer && o.status === 'shipped' && (
-                <button type="button" popovertarget="confirm" class:list={[btnCls('primary'), 'h-11']}>
-                  <Icon name="package-2-outline-rounded" size={18} />
-                  Đã nhận hàng
                 </button>
               )}
             </Fragment>

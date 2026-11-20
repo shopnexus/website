@@ -1,6 +1,6 @@
 import { ApiError, type Schemas } from './api/client';
 import { CHAT_ERRORS } from './chat-errors';
-import { dayLabel, money, phoneText } from './format';
+import { dayLabel, left, money, phoneText } from './format';
 import { hm } from './messages';
 
 // Đơn mua, Đơn bán, one order, Giao COD and Hỗ trợ: the server's orders,
@@ -115,34 +115,88 @@ export function trackUrl(carrier: Schemas['Carrier'], code: string) {
   }
 }
 
-/** A step of the order's timeline, newest first. */
-export interface TimelineStep {
+/** A step of the order: done, the one it is at now, or one to come. */
+export interface Step {
   title: string;
   sub?: string;
+  /** When it happened; empty for a step to come, or one with no time. */
   when: string;
+  state: 'done' | 'now' | 'next';
 }
 
-/** The order's steps from its dates, newest first. */
-export function timeline(o: Order, role: Role, other: string): TimelineStep[] {
-  const steps: TimelineStep[] = [{ title: role === 'buyer' ? 'Bạn gửi yêu cầu COD' : `${other} gửi yêu cầu COD`, sub: money(o.price), when: at(o.requested_at) }];
-  if (o.shipped_at && o.shipment) {
-    steps.push({ title: role === 'seller' ? 'Bạn tạo đơn' : 'Người bán tạo đơn', sub: `${CARRIER[o.shipment.carrier]} · ${o.shipment.tracking_code}`, when: at(o.shipped_at) });
+/** The order's steps, oldest first: the request, the waybill, the pickup, the delivery and the receipt; a failed or
+ * cancelled order ends at that instead of the steps it did not reach. */
+export function orderSteps(o: Order, role: Role, other: string): Step[] {
+  const buyer = role === 'buyer';
+  const sh = o.shipment;
+  const carrier = sh ? CARRIER[sh.carrier] : 'Hãng';
+  const t = (iso?: string) => (iso ? at(iso) : '');
+  const all = [
+    { title: buyer ? 'Bạn gửi yêu cầu COD' : `${other} gửi yêu cầu COD`, sub: money(o.price), when: t(o.requested_at) },
+    { title: buyer ? 'Người bán tạo vận đơn' : 'Bạn tạo vận đơn', sub: sh ? `${carrier} · ${sh.tracking_code}` : undefined, when: t(o.shipped_at) },
+    { title: sh?.picked_up_at ? `${carrier} đã lấy hàng` : `${carrier} lấy hàng`, when: t(sh?.picked_up_at) },
+    { title: sh?.delivered_at ? `${carrier} báo đã giao` : buyer ? `${carrier} giao tới bạn` : `Giao tới ${other}`, when: t(sh?.delivered_at) },
+    {
+      title:
+        o.status === 'completed'
+          ? o.completed_by === 'system'
+            ? 'Đơn tự hoàn tất'
+            : buyer
+              ? 'Bạn đã nhận hàng'
+              : `${other} đã nhận hàng`
+          : buyer
+            ? 'Bạn nhận hàng, trả tiền'
+            : `${other} nhận hàng, trả tiền`,
+      when: o.status === 'completed' ? t(o.closed_at) : '',
+    },
+  ];
+  // How far it got: the last step reached, by the order's and the parcel's status.
+  const parcel = { pending_pickup: 1, in_transit: 2, delivered: 3, failed: sh?.picked_up_at ? 2 : 1 };
+  const reached = o.status === 'pending' ? 0 : o.status === 'completed' ? 4 : sh ? parcel[sh.status] : 0;
+  const steps: Step[] = all.slice(0, reached + 1).map((s) => ({ ...s, state: 'done' }));
+  if (o.status === 'failed') steps.push({ title: 'Giao không thành', when: t(o.closed_at), state: 'done' });
+  else if (o.status === 'cancelled') steps.push({ title: 'Đã hủy đơn', sub: cancelText(o, role, other), when: t(o.closed_at), state: 'done' });
+  else steps.push(...all.slice(reached + 1).map((s) => ({ ...s, state: 'next' as const })));
+  steps[o.status === 'failed' || o.status === 'cancelled' ? steps.length - 1 : reached].state = 'now';
+  return steps;
+}
+
+/** What the viewer does next, or waits for: a title, a line or two, and confirm when the move is "Đã nhận hàng". */
+export interface NextStep {
+  title: string;
+  lines: { icon: string; text: string }[];
+  confirm?: boolean;
+}
+
+/** The order's next step from the viewer's side; null when it has none to show (a closed order, a parcel on its way to
+ * the seller's buyer). The deadlines are the server's timers (due_at). */
+export function nextStep(o: Order, role: Role, other: string): NextStep | null {
+  const sh = o.shipment;
+  const carrier = sh ? CARRIER[sh.carrier] : '';
+  const due = o.due_at ? at(o.due_at) : '';
+  const remaining = o.due_at ? left(o.due_at) : '';
+  const countdown = remaining ? [{ icon: 'schedule-outline-rounded', text: `Còn ${remaining}` }] : [];
+  const autoComplete = due ? [{ icon: 'schedule-outline-rounded', text: `Đơn tự hoàn tất ${due}` }] : [];
+  if (role === 'buyer') {
+    const cash = sh?.fee !== undefined ? `Chuẩn bị ${money(o.price + sh.fee)} tiền mặt` : `Chuẩn bị ${money(o.price)} + phí ship`;
+    if (o.status === 'pending') return { title: cash, lines: due ? [{ icon: 'schedule-outline-rounded', text: `${other} gửi hàng trước ${due}` }] : [] };
+    if (o.status !== 'shipped') return null;
+    if (sh?.status === 'delivered') {
+      const told = sh.delivered_at ? [{ icon: 'local-shipping-outline-rounded', text: `${carrier} báo đã giao ${at(sh.delivered_at)}` }] : [];
+      return { title: 'Xác nhận đã nhận hàng', lines: [...told, ...autoComplete], confirm: true };
+    }
+    return { title: cash, lines: [{ icon: 'visibility-outline-rounded', text: 'Mở hàng kiểm tra trước khi trả tiền' }], confirm: true };
   }
-  if (o.shipment?.delivered_at) steps.push({ title: 'Hãng báo đã giao', when: at(o.shipment.delivered_at) });
-  if (o.closed_at) {
-    const title =
-      o.status === 'completed'
-        ? o.completed_by === 'system'
-          ? 'Đơn tự hoàn tất'
-          : role === 'buyer'
-            ? 'Bạn đã nhận hàng'
-            : `${other} đã nhận hàng`
-        : o.status === 'failed'
-          ? 'Giao không thành'
-          : `Đã hủy đơn · ${cancelText(o, role, other)}`;
-    steps.push({ title, when: at(o.closed_at) });
+  if (o.status === 'pending') return { title: due ? `Tạo vận đơn trước ${due}` : 'Tạo vận đơn', lines: countdown };
+  if (o.status !== 'shipped' || !sh) return null;
+  if (sh.status === 'pending_pickup') {
+    // A copied address names its street; a carrier's pickup point, its name.
+    const from = sh.pickup?.commune_code ? sh.pickup.street : sh.pickup?.name;
+    const place = from ? [{ icon: 'location-on-outline-rounded', text: `Lấy tại ${from}` }] : [];
+    return { title: due ? `Đưa hàng cho ${carrier} trước ${due}` : `Đưa hàng cho ${carrier}`, lines: [...countdown, ...place] };
   }
-  return steps.reverse();
+  if (sh.status === 'delivered') return { title: `Chờ ${other} xác nhận đã nhận`, lines: autoComplete };
+  return null;
 }
 
 // ---------------------------------------------------------------- errors --

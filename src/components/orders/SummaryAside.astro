@@ -25,6 +25,8 @@ interface Props {
 
 const { photo, item, itemPrice, person, personPhoto, personSub, personHref, chatHref, total, lines } = Astro.props;
 const Who = personHref ? 'a' : 'div';
+// A slot given only a false condition still counts as given; the bar shows when it rendered something.
+const actions = Astro.slots.has('actions') ? (await Astro.slots.render('actions')).trim() : '';
 ---
 
 <aside class="self-start overflow-hidden rounded-card border border-line bg-card shadow-soft lg:sticky-fit lg:sticky lg:top-[84px]">
@@ -80,9 +82,9 @@ const Who = personHref ? 'a' : 'div';
     <slot name="extra" />
   </div>
   {
-    Astro.slots.has('actions') && (
+    actions && (
       <div class="flex flex-wrap items-center gap-2 border-t border-line bg-surface-container-low/60 p-3">
-        <slot name="actions" />
+        <Fragment set:html={actions} />
       </div>
     )
   }
