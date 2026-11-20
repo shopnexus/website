@@ -1,13 +1,14 @@
 ---
 // K2's bar: one sticky 64 px row across the window, the search centred (720 px
-// at most) and opening recent searches, Thông báo and the avatar's menu. From expanded
+// at most) with its dropdown (lib/search-box.ts), Thông báo and the avatar's menu. From expanded
 // up it adds Danh mục, Đã lưu, Tin nhắn and "Đăng tin"; BottomNav has them below.
 import brandMark from '@brand/brand_mark.svg';
-import { categories } from '../lib/catalog';
+import { type Category, categories } from '../lib/catalog';
 import { img } from '../lib/format';
 import { R } from '../lib/routes';
 import { loginUrl, viewer } from '../lib/session';
 import { THEMES, theme } from '../lib/theme';
+import type { CategoryOption } from '../lib/suggest';
 import { BAR } from '../lib/ui';
 import Icon from './Icon.astro';
 import MessagesLink from './MessagesLink.astro';
@@ -20,16 +21,35 @@ import Seg from './Seg.astro';
 
 export type Section = 'explore' | 'categories' | 'how';
 
+/** What the search field holds: the words, the photo searched by, the category it searches in. */
+export interface HeaderSearch {
+  q?: string;
+  photo?: string;
+  /** A chip at the field's start; × or Backspace in the empty field drops it. */
+  scope?: Pick<Category, 'code' | 'name' | 'icon'>;
+}
+
 interface Props {
   /** BottomNav marks it; the bar itself has no section links. */
   section: Section | null;
-  search?: { q: string; photo?: string };
+  search?: HeaderSearch;
 }
 
 const { search } = Astro.props;
+const scope = search?.scope;
 const me = viewer(Astro);
 // Out of reach, the menus go without categories rather than failing the page.
 const cats = await categories().catch(() => []);
+const PLACEHOLDER = 'Tìm iPhone, xe đạp, sofa…';
+// What typing can match, roots before subcategories; "Khác" names nothing.
+const specific = (c: Category) => c.code.split('.').pop() !== 'other';
+const options: CategoryOption[] = [
+  ...cats.filter(specific).map((c) => ({ code: c.code, name: c.name, root: c.code })),
+  ...cats.flatMap((r) => r.children.filter(specific).map((c) => ({ code: c.code, name: c.name, root: r.code, parent: r.name }))),
+];
+// On a phone a scoped field leads with its chip and leaves the camera to the dropdown.
+const roomy = 'group-has-[[data-scope]]/find:max-md:hidden';
+const optionCls = 'state-layer flex h-11 items-center gap-3 rounded-control px-2 text-body-large hover:bg-hover aria-selected:bg-hover';
 const iconBtn = 'state-layer relative hidden h-10 w-10 place-items-center rounded-control text-ink hover:bg-hover lg:grid';
 const item = 'state-layer flex h-10 w-full items-center gap-3 rounded-control px-3 text-body-large hover:bg-hover';
 const sell = 'state-layer hidden h-10 shrink-0 items-center gap-1.5 rounded-control bg-brand px-4 text-title-small text-white hover:bg-brand-hover lg:flex';
@@ -61,27 +81,45 @@ const account = [
       action={R.search}
       data-anchor="hdr-find"
       data-search
-      class="flex h-10 w-full min-w-0 max-w-[720px] items-center gap-2 rounded-control border border-field bg-card pl-3 pr-1 focus-within:border-brand"
+      data-signed={me ? '' : undefined}
+      class="group/find flex h-10 w-full min-w-0 max-w-[720px] items-center gap-2 rounded-control border border-field bg-card pl-3 pr-1 focus-within:border-brand has-[[data-scope]]:max-md:pl-1.5"
     >
       {
         search?.photo ? (
           <Photo src={img(search.photo, 64, 64)} width={64} height={64} alt="" class="h-7 w-7 shrink-0 rounded-md object-cover" />
         ) : (
-          <Icon name="search-rounded" size={17} class="text-faint" />
+          <Icon name="search-rounded" size={17} class:list={['text-faint', roomy]} />
+        )
+      }
+      {
+        scope && (
+          <span data-scope={scope.name} class="flex h-7 shrink-0 items-center gap-1 rounded-full bg-mint pl-2 pr-0.5 text-label-large text-on-mint">
+            <Icon name={scope.icon} size={15} />
+            <span class="max-w-40 truncate max-md:hidden">{scope.name}</span>
+            <button type="button" data-scope-clear aria-label={`Bỏ phạm vi ${scope.name}`} class="state-layer grid h-6 w-6 place-items-center rounded-full">
+              <Icon name="close-rounded" size={14} />
+            </button>
+            <input type="hidden" name="category" value={scope.code} />
+          </span>
         )
       }
       <input
         name="q"
         value={search?.q ?? ''}
-        placeholder="Tìm iPhone, xe đạp, sofa…"
+        placeholder={scope ? `Tìm trong ${scope.name}` : PLACEHOLDER}
+        data-placeholder={PLACEHOLDER}
         aria-label="Tìm trên ShopNexus"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded="false"
+        aria-controls="hdr-find-list"
         autocomplete="off"
-        class="h-full min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-faint"
+        class="h-full min-w-0 flex-1 text-ellipsis bg-transparent text-body-large text-ink outline-none placeholder:text-faint"
       />
       <kbd class="hidden rounded-xs border border-line px-1.5 text-label-small text-faint lg:block" title="Bấm / để tìm">/</kbd>
       <a
         href={R.photoSearch}
-        class="state-layer grid h-8 w-8 shrink-0 place-items-center rounded-md text-sub hover:bg-hover"
+        class:list={['state-layer grid h-8 w-8 shrink-0 place-items-center rounded-md text-sub hover:bg-hover', roomy]}
         aria-label="Tìm bằng ảnh"
       >
         <Icon name="photo-camera-outline-rounded" size={17} />
@@ -148,33 +186,57 @@ const account = [
 </Popover>
 
 <Popover id="hdr-find" match class="p-3" label="Gợi ý tìm kiếm">
-  <div data-recent hidden>
-    <div class="flex items-center justify-between px-1">
-      <p class="text-body-small text-faint">Tìm gần đây</p>
-      <button type="button" data-recent-clear class="text-body-small text-faint hover:underline">Xóa</button>
+  <div data-find-idle>
+    <div data-recent hidden>
+      <div class="flex items-center justify-between px-1">
+        <p class="text-body-small text-faint">Tìm gần đây</p>
+        <button type="button" data-recent-clear class="text-body-small text-faint hover:underline">Xóa</button>
+      </div>
+      <div class="mt-2 flex flex-wrap gap-2 px-1" data-recent-list></div>
+      <div class="my-3 h-px bg-line"></div>
     </div>
-    <div class="mt-2 flex flex-wrap gap-2 px-1" data-recent-list></div>
+    <p class="px-1 text-body-small text-faint">Danh mục</p>
+    <div class="mt-1 grid grid-cols-1 gap-x-2 md:grid-cols-2">
+      {
+        cats.slice(0, 6).map((c) => (
+          <a
+            href={R.category(c.code)}
+            data-title={c.name}
+            class="state-layer flex items-center gap-2.5 rounded-control px-2.5 py-2 text-body-large hover:bg-hover"
+          >
+            <Icon name={c.icon} size={18} class="text-sub" />
+            <span class="flex-1">{c.name}</span>
+          </a>
+        ))
+      }
+    </div>
     <div class="my-3 h-px bg-line"></div>
+    <a href={R.photoSearch} class="state-layer flex items-center gap-3 rounded-control px-2.5 py-2 hover:bg-hover">
+      <span class="grid h-8 w-8 place-items-center rounded-control bg-mint text-on-mint"><Icon name="photo-camera-outline-rounded" size={17} /></span>
+      <span class="flex-1">
+        <span class="block text-body-large">Tìm bằng ảnh</span>
+      </span>
+      <Icon name="chevron-right-rounded" size={18} class="text-faint" />
+    </a>
   </div>
-  <p class="px-1 text-body-small text-faint">Danh mục</p>
-  <div class="mt-1 grid grid-cols-1 gap-x-2 md:grid-cols-2">
-    {
-      cats.slice(0, 6).map((c) => (
-        <a href={R.category(c.code)} class="state-layer flex items-center gap-2.5 rounded-control px-2.5 py-2 text-body-large hover:bg-hover">
-          <Icon name={c.icon} size={18} class="text-sub" />
-          <span class="flex-1">{c.name}</span>
-        </a>
-      ))
-    }
-  </div>
-  <div class="my-3 h-px bg-line"></div>
-  <a href={R.photoSearch} class="state-layer flex items-center gap-3 rounded-control px-2.5 py-2 hover:bg-hover">
-    <span class="grid h-8 w-8 place-items-center rounded-control bg-mint text-on-mint"><Icon name="photo-camera-outline-rounded" size={17} /></span>
-    <span class="flex-1">
-      <span class="block text-body-large">Tìm bằng ảnh</span>
-    </span>
-    <Icon name="chevron-right-rounded" size={18} class="text-faint" />
-  </a>
+  <div id="hdr-find-list" role="listbox" aria-label="Gợi ý" class="-m-1" hidden data-find-list></div>
+  <script type="application/json" is:inline data-find-options set:html={JSON.stringify(options).replaceAll('<', '\\u003c')} />
+  <template data-option>
+    <a role="option" aria-selected="false" class={optionCls}>
+      <span class="grid h-8 w-8 shrink-0 place-items-center rounded-control bg-soft text-sub" data-option-icon></span>
+      <span class="min-w-0 truncate" data-option-text></span>
+      <span class="ml-auto shrink-0 pl-2 text-body-small text-faint" data-option-hint></span>
+    </a>
+  </template>
+  <template data-icon="find"><Icon name="search-rounded" size={17} /></template>
+  <template data-icon="recent"><Icon name="history-rounded" size={17} /></template>
+  {
+    cats.map((c) => (
+      <template data-icon={c.code}>
+        <Icon name={c.icon} size={17} />
+      </template>
+    ))
+  }
 </Popover>
 
 {
@@ -230,68 +292,8 @@ const account = [
 }
 
 <script>
+  import '../lib/search-box';
   import { setTheme } from '../lib/theme';
-
-  const KEY = 'sn_recent';
-  const form = document.querySelector<HTMLFormElement>('[data-search]')!;
-  const input = form.querySelector('input')!;
-  const find = document.getElementById('hdr-find')!;
-
-  // Recent searches stay in this browser; the server does not keep them yet.
-  const read = (): string[] => {
-    try {
-      return JSON.parse(localStorage.getItem(KEY) ?? '[]');
-    } catch {
-      return [];
-    }
-  };
-  const write = (list: string[]) => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(list));
-    } catch {}
-  };
-  const render = () => {
-    const list = read();
-    const box = find.querySelector<HTMLElement>('[data-recent]')!;
-    box.hidden = list.length === 0;
-    box.querySelector('[data-recent-list]')!.replaceChildren(
-      ...list.map((q) => {
-        const a = document.createElement('a');
-        a.href = `${form.action}?q=${encodeURIComponent(q)}`;
-        a.className = 'state-layer flex h-8 items-center rounded-full bg-soft px-3 text-body-medium text-ink hover:bg-hover';
-        a.textContent = q;
-        return a;
-      }),
-    );
-  };
-
-  const open = () => {
-    if (find.matches(':popover-open')) return;
-    render();
-    find.showPopover();
-  };
-  input.addEventListener('focus', open);
-  input.addEventListener('click', open);
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') find.hidePopover();
-  });
-  form.addEventListener('submit', () => {
-    const q = input.value.trim();
-    if (q) write([q, ...read().filter((x) => x !== q)].slice(0, 6));
-  });
-  find.querySelector('[data-recent-clear]')!.addEventListener('click', () => {
-    write([]);
-    render();
-    input.focus();
-  });
-
-  // "/" outside a field goes to the search.
-  addEventListener('keydown', (e) => {
-    const t = e.target as HTMLElement;
-    if (e.key !== '/' || t.closest('input, textarea, select, [contenteditable]')) return;
-    e.preventDefault();
-    input.focus();
-  });
 
   document
     .querySelector('#hdr-me [aria-label="Giao diện"]')

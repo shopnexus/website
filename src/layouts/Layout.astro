@@ -5,7 +5,7 @@ import favicon from '@brand/favicon.svg';
 import favicon32 from '@brand/favicon-32.png';
 import BottomNav from '../components/BottomNav.astro';
 import Footer from '../components/Footer.astro';
-import Header, { type Section } from '../components/Header.astro';
+import Header, { type HeaderSearch, type Section } from '../components/Header.astro';
 import PageSkeletons from '../components/public/PageSkeletons.astro';
 import Snackbar from '../components/Snackbar.astro';
 import { theme } from '../lib/theme';
@@ -15,8 +15,8 @@ interface Props {
   description?: string;
   /** The header's current section, or null outside the four. */
   section?: Section | null;
-  /** Tìm kiếm puts its field in the header: the query text, and the photo it came from. */
-  search?: { q: string; photo?: string };
+  /** What the header's search field holds: the words, the photo, the category it searches in. */
+  search?: HeaderSearch;
   /** Tin nhắn's panes fill the window and leave the footer out. */
   footer?: boolean;
   /** Hides the compact "Đăng tin" button on the posting pages. */

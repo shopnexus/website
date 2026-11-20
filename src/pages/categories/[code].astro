@@ -1,12 +1,11 @@
 ---
-// One category: its name and count, the search field, its subcategories as
-// pills (?category= picks one), then its listings under the same filters, sorts
-// and paging as Tìm kiếm.
+// One category: its name and count, its subcategories as pills (?category=
+// picks one), then its listings under the same filters, sorts and paging as
+// Tìm kiếm. The header's field searches in it.
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import SearchResults from '../../components/public/SearchResults.astro';
-import SearchField from '../../components/SearchField.astro';
 import Layout from '../../layouts/Layout.astro';
 import { orNull } from '../../lib/api/client';
 import { byCode } from '../../lib/catalog';
@@ -45,21 +44,23 @@ const items = view?.items.map(card) ?? [];
       <NotFound />
     </Layout>
   ) : (
-    <Layout title={`Danh mục ${cat.name} · ShopNexus`} description={`${group(total)} tin ${cat.name.toLowerCase()} đang bán trên ShopNexus.`} section="categories">
+    <Layout
+      title={`Danh mục ${cat.name} · ShopNexus`}
+      description={`${group(total)} tin ${cat.name.toLowerCase()} đang bán trên ShopNexus.`}
+      section="categories"
+      search={{ scope: sub ?? cat }}
+    >
       <main class={CONTENT}>
         <Crumbs parts={[['Khám phá', R.home], ['Danh mục', R.categories], [cat.name]]} class="pt-4" />
-        <section class="mt-4 grid grid-cols-1 items-end gap-6 lg:grid-cols-[1fr_520px] lg:gap-8">
-          <div>
-            <p class="border border-line bg-card flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-label-medium text-ink">
-              <Icon name={cat.icon} size={15} class="text-primary" />
-              Danh mục
-            </p>
-            <h1 class="mt-3 text-j-30 text-ink lg:text-j-32">{cat.name}</h1>
-            <p class="mt-2 text-body-large text-on-surface-variant">
-              <b class="font-semibold text-ink tabular-nums">{group(total)}</b> món đang bán
-            </p>
-          </div>
-          <SearchField placeholder={`Tìm trong ${cat.name}`} />
+        <section class="mt-4">
+          <p class="border border-line bg-card flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-label-medium text-ink">
+            <Icon name={cat.icon} size={15} class="text-primary" />
+            Danh mục
+          </p>
+          <h1 class="mt-3 text-j-30 text-ink lg:text-j-32">{cat.name}</h1>
+          <p class="mt-2 text-body-large text-on-surface-variant">
+            <b class="font-semibold text-ink tabular-nums">{group(total)}</b> món đang bán
+          </p>
         </section>
         <nav class="mt-4 flex gap-1.5 overflow-x-auto no-scrollbar lg:flex-wrap" aria-label="Mục con">
           {pills.map((p) => {
