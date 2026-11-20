@@ -31,7 +31,7 @@ const Tag = to ? 'a' : 'div';
 <div class="border-b border-line">
   <div class="flex h-16 items-center gap-1 px-2 lg:gap-3 lg:px-4">
     <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư"><Icon name="chevron-left-rounded" size={24} /></a>
-    <Tag href={to} class:list={['flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2', to && 'state-layer']}>
+    <Tag href={to} data-person={to && to === person ? '' : undefined} class:list={['flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2', to && 'state-layer']}>
       {
         thumb ? (
           <span class="relative h-10 w-10 shrink-0">

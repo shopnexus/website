@@ -72,6 +72,7 @@ export const RI = {
   'home-outline-rounded': 'home-5-line',
   'hourglass-empty-rounded': 'hourglass-line',
   'hourglass-top-rounded': 'hourglass-fill',
+  'how-to-reg-outline-rounded': 'user-follow-line',
   'image-outline-rounded': 'image-line',
   'info-outline-rounded': 'information-line',
   'inventory-2-outline-rounded': 'archive-2-line',

@@ -4,6 +4,7 @@
 // An unknown id is the 404.
 import AvatarZoom from '../../components/AvatarZoom.astro';
 import Crumbs from '../../components/Crumbs.astro';
+import FollowButton from '../../components/FollowButton.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
 import NotFound from '../../components/public/NotFound.astro';
@@ -97,15 +98,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
               <div class="mt-4 flex items-center gap-2">
                 {!mine && (
                   <>
-                    <button
-                      type="button"
-                      aria-pressed={following ? 'true' : 'false'}
-                      class="state-layer flex h-10 items-center gap-1.5 rounded-control bg-brand pl-3.5 pr-4 text-label-large text-white"
-                      data-follow={s.id}
-                    >
-                      <Icon name="person-add-outline-rounded" size={18} />
-                      <span>{following ? 'Đang theo dõi' : 'Theo dõi'}</span>
-                    </button>
+                    <FollowButton id={s.id} following={following} />
                     <a
                       href={`${R.messages}?seller=${s.id}`}
                       class="state-layer flex h-10 items-center gap-1.5 rounded-control border border-line bg-card pl-3.5 pr-4 text-label-large text-ink"
@@ -212,12 +205,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
 }
 
 <script>
-  import { API } from '../../lib/routes';
-  import { snack } from '../../lib/snackbar';
-  import { toggleRemote } from '../../lib/toggle';
-
-  // "Đánh giá" jumps to the reviews; Khi bán and Khi mua switch their pane. "Theo dõi" follows through /api/follows/<id>;
-  // a guest goes to Đăng nhập, and a failed call puts the button back and says so.
+  // "Đánh giá" jumps to the reviews; Khi bán and Khi mua switch their pane.
   document.querySelector('[data-tabs]')?.addEventListener('seg-change', (e) => {
     if ((e as CustomEvent).detail.index === 1) document.getElementById('danh-gia')?.scrollIntoView({ behavior: 'smooth' });
   });
@@ -225,17 +213,4 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
   document.querySelector('[data-review-tabs] [data-seg]')?.addEventListener('seg-change', (e) => {
     panes.forEach((p, i) => (p.hidden = i !== (e as CustomEvent).detail.index));
   });
-  const show = (b: HTMLButtonElement, on: boolean) => {
-    b.setAttribute('aria-pressed', String(on));
-    b.querySelector('span')!.textContent = on ? 'Đang theo dõi' : 'Theo dõi';
-  };
-  document.querySelectorAll<HTMLButtonElement>('[data-follow]').forEach((b) =>
-    b.addEventListener('click', async () => {
-      const on = b.getAttribute('aria-pressed') !== 'true';
-      show(b, on);
-      if (await toggleRemote(API.follows(b.dataset.follow!), on)) return;
-      show(b, !on);
-      snack({ text: 'Chưa đổi được. Thử lại sau.', error: true });
-    }),
-  );
 </script>

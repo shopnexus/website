@@ -87,6 +87,21 @@ may go to 40 px. A control drawn smaller still takes a 44 px target on a
 coarse pointer: a state layer does, and `tap` adds it to a small link. Hover
 styles apply only where the pointer can hover, so a tap leaves nothing lit.
 
+A link to a person's page marked `data-person` (the listing's seller card,
+a reviewer, the chat head, the order's other person, a person named in a
+message) shows their card once the pointer or keyboard focus rests on it for
+300 ms (`PersonCard.astro`, `src/lib/person-card.ts`): face, name, stars, the
+figures (sold, year joined), "Theo dõi" and "Xem trang". The figures sit in
+one row of equal cells, and another figure takes a cell of its own. The card
+opens under the link, or above it when only above has room, and loads once a
+page from `/sellers/<id>/peek`, with a skeleton while it is on its way. It
+closes 200 ms after the pointer leaves the link and the card, on Esc, on
+scroll and on a press elsewhere. Tab from the link enters the card. The
+viewer's own card has no "Theo dõi", and a touch screen gets no card.
+`FollowButton.astro` draws "Theo dõi" here and on Người bán; "Đang theo dõi"
+turns mint. Drafts: `.superdesign/mockups/hover-card-*.html`
+(`tools/build_hover_card.py`).
+
 **Pages, not screens.** Each listing, category, seller and search has its own
 URL, rendered on the server with its title, description, Open Graph tags and
 `Product` structured data. A sheet in the app becomes a dialog or a side panel

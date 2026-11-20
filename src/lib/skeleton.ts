@@ -23,13 +23,19 @@ export interface Hold {
 
 type At = 'replace' | 'append' | 'prepend';
 
-/** Skeletons in a region; kind and count default to its data-skeleton-kind and data-skeleton-count. */
-export function hold(region: HTMLElement, { kind = region.dataset.skeletonKind ?? 'card', n = Number(region.dataset.skeletonCount ?? 1), at = 'replace' as At } = {}): Hold {
+/**
+ * Skeletons in a region; kind and count default to its data-skeleton-kind and data-skeleton-count.
+ * delay 0 shows them at once, for a region that opens already waiting.
+ */
+export function hold(
+  region: HTMLElement,
+  { kind = region.dataset.skeletonKind ?? 'card', n = Number(region.dataset.skeletonCount ?? 1), at = 'replace' as At, delay = DELAY } = {},
+): Hold {
   let shownAt = 0;
   let put: HTMLElement[] = [];
   let kept: Node[] | null = null;
   region.setAttribute('aria-busy', 'true');
-  const timer = setTimeout(() => {
+  const show = () => {
     shownAt = performance.now();
     put = bones(kind, n);
     if (at === 'replace') {
@@ -37,7 +43,8 @@ export function hold(region: HTMLElement, { kind = region.dataset.skeletonKind ?
       kept = [...region.childNodes].filter((c) => !(c instanceof HTMLElement && c.hasAttribute('data-skeleton')));
       region.replaceChildren(...put);
     } else region[at](...put);
-  }, DELAY);
+  };
+  const timer = delay > 0 ? setTimeout(show, delay) : (show(), undefined);
   const clear = () => {
     clearTimeout(timer);
     put.forEach((b) => b.remove());

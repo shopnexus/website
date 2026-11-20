@@ -1,0 +1,27 @@
+---
+// "Theo dõi" for a person, teal; "Đang theo dõi" in mint once followed.
+// lib/follow, which every page loads with PersonCard, flips it.
+import { btnCls } from '../lib/ui';
+import Icon from './Icon.astro';
+
+interface Props {
+  /** The person's account ID. */
+  id: string;
+  following: boolean;
+  size?: 'sm' | 'md';
+  class?: string;
+}
+
+const { id, following, size = 'md', class: cls } = Astro.props;
+---
+
+<button
+  type="button"
+  aria-pressed={following ? 'true' : 'false'}
+  class:list={[btnCls('ink', size), 'group aria-pressed:bg-mint aria-pressed:text-on-mint', cls]}
+  data-follow={id}
+>
+  <Icon name="person-add-outline-rounded" size={18} class="group-aria-pressed:hidden" />
+  <Icon name="how-to-reg-outline-rounded" size={18} class="group-not-aria-pressed:hidden" />
+  <span data-follow-label>{following ? 'Đang theo dõi' : 'Theo dõi'}</span>
+</button>
