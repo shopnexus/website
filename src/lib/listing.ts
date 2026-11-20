@@ -8,6 +8,8 @@ export interface Card {
   slug: string;
   /** The cover's URL; absent while the photos are processed. */
   photo?: string;
+  /** The first photos' thumbnails, the cover first. */
+  photos?: string[];
   /** In đồng. */
   price: number;
   title: string;
@@ -40,6 +42,7 @@ export const card = (it: Schemas['SearchItem']): Card => ({
   id: it.id,
   slug: it.slug,
   photo: it.cover_thumb_url,
+  photos: it.photo_thumb_urls,
   price: it.price,
   title: it.title,
   condition: conditionLabel(it.condition),
@@ -54,6 +57,8 @@ const ENDED: Schemas['ListingStatus'][] = ['sold', 'hidden', 'deleted'];
 
 /** Whether a saved listing sold or was taken down. */
 export const saveEnded = (it: Schemas['SavedListing']) => ENDED.includes(it.listing.status);
+/** A result's photos for lib/photo-scrub, space-separated; absent with fewer than two. */
+export const scrubPhotos = (c: Card) => (c.photos && c.photos.length > 1 ? c.photos.join(' ') : undefined);
 
 /** The questions Hỏi nhanh sends with one tap. */
 export const QUESTIONS = ['Còn không bạn?', 'Xem ở đâu được?'];

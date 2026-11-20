@@ -49,7 +49,7 @@ const items = view?.items.map(card) ?? [];
       section="categories"
       search={{ scope: sub ?? cat }}
     >
-      <main class={CONTENT} data-quick-room>
+      <main class={CONTENT} data-quick-behind>
         <Crumbs parts={[['Khám phá', R.home], ['Danh mục', R.categories], [cat.name]]} class="pt-4" />
         <section class="mt-4">
           <h1 class="text-j-30 text-ink lg:text-j-32">{cat.name}</h1>

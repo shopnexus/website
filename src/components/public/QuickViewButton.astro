@@ -1,0 +1,47 @@
+---
+// "Xem nhanh" on a result's photo, a sibling of the result's link (lib/quick-view
+// opens it). From 840 px it shows while a mouse rests on the result or the
+// keyboard is inside it; a phone has none, a tap opens the page.
+import Icon from '../Icon.astro';
+
+interface Props {
+  slug: string;
+  title: string;
+}
+
+const { slug, title } = Astro.props;
+---
+
+<button
+  type="button"
+  class="quick-pill state-layer absolute bottom-2 left-2 z-10 h-8 items-center gap-1.5 rounded-full bg-white/90 pl-2.5 pr-3 text-label-large text-photo-ink shadow-soft"
+  aria-label={`Xem nhanh ${title}`}
+  data-quick={slug}
+>
+  <Icon name="visibility-outline-rounded" size={15} />
+  Xem nhanh
+</button>
+
+<style>
+  .quick-pill {
+    display: none;
+  }
+  @media (width >= 840px) {
+    .quick-pill {
+      display: flex;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-effects-fast) var(--ease-effects);
+    }
+    :global(article:focus-within) .quick-pill {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+  @media (width >= 840px) and (hover: hover) and (pointer: fine) {
+    :global(article:hover) .quick-pill {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+</style>
