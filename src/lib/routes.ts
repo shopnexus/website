@@ -49,6 +49,8 @@ export const cardVersion = (updatedAt: string) => Date.parse(updatedAt).toString
 /** The endpoints the page scripts call. */
 export const API = {
   saved: (id: string) => `/api/saved/${id}`,
+  /** The open of a listing page the browser prefetched (ViewedMark). */
+  viewed: (id: string) => `/api/viewed/${id}`,
   follows: (id: string) => `/api/follows/${id}`,
   area: '/api/area',
   communes: (province: string) => `/api/communes/${province}`,

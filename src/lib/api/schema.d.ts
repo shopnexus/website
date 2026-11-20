@@ -2040,8 +2040,11 @@ export interface paths {
          *     in another status through GET /v1/listings/{id}. A signed-in reader
          *     who is not the seller also gets `viewer`, and the read counts as a
          *     view of the listing, once per reader and UTC day; a signed-out read
-         *     counts none (GET /v1/screens/my-listings). With a position the view
-         *     has distance_km, measured as GET /v1/search measures it.
+         *     counts none (GET /v1/screens/my-listings). A prefetch (Sec-Purpose)
+         *     counts none either: the client counts the open with
+         *     PUT /v1/viewed/{listing_id} when the person sees the page. With a
+         *     position the view has distance_km, measured as GET /v1/search
+         *     measures it.
          */
         get: operations["getListingScreen"];
         put?: never;
@@ -2484,6 +2487,30 @@ export interface paths {
         post?: never;
         /** Show a hidden listing again; a listing not hidden is fine. */
         delete: operations["unhideFromSearch"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/viewed/{listing_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Count the caller's open of someone else's listing on sale, once per UTC day.
+         * @description For a listing view read as a prefetch (Sec-Purpose on
+         *     GET /v1/screens/listing/{id}), which counts nothing until the person
+         *     sees it. Any other read of the view counts by itself. The seller's
+         *     own listing, one not active or reserved and a second open that day
+         *     count nothing, and each answers 204.
+         */
+        put: operations["markViewed"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -8197,6 +8224,14 @@ export interface components {
         /** @description Keep the listings within this many kilometres of the position, which it needs. */
         RadiusKm: number;
         /**
+         * @description The Fetch standard's purpose of the request. A list with the token
+         *     prefetch, such as prefetch or prefetch;prerender, marks a
+         *     speculative read: a browser fetching a page the person may not open.
+         *     Such a read answers as any other and records nothing; the client
+         *     reports the open when the person sees the page.
+         */
+        SecPurpose: string;
+        /**
          * @description An upload of the caller's from POST /v1/uploads, still waiting (attached to
          *     nothing): search by this photo alone. Needs a signed-in caller; goes without
          *     q and like. The photo is never published and goes when the upload expires.
@@ -12194,7 +12229,16 @@ export interface operations {
                 /** @description A commune code, when the app has no GPS; distance is from its point. */
                 near_commune?: components["parameters"]["NearCommune"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description The Fetch standard's purpose of the request. A list with the token
+                 *     prefetch, such as prefetch or prefetch;prerender, marks a
+                 *     speculative read: a browser fetching a page the person may not open.
+                 *     Such a read answers as any other and records nothing; the client
+                 *     reports the open when the person sees the page.
+                 */
+                "Sec-Purpose"?: components["parameters"]["SecPurpose"];
+            };
             path: {
                 /** @description The listing's ID, or the slug of its web address (ListingSlug). */
                 id: string;
@@ -13263,6 +13307,28 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Shown again. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    markViewed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Counted, or nothing to count. */
             204: {
                 headers: {
                     [name: string]: unknown;

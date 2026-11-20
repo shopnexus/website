@@ -60,6 +60,12 @@ const noindex = isPrivate(Astro.url.pathname + Astro.url.search);
     {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:site_name" content="ShopNexus" />
     <slot name="head" />
+    <!-- Fetch a listing's page ahead of the tap: on a 200 ms hover or a press,
+         and on phones the links near the last tap once scrolling stops. Prefetch
+         only, so no script of that page runs until it is opened. -->
+    <script type="speculationrules" is:inline>
+      {"prefetch":[{"where":{"and":[{"href_matches":"/listings/*"},{"not":{"href_matches":"/listings/*/*"}}]},"eagerness":"moderate"}]}
+    </script>
     <!-- Hold the first paint until the page is parsed, so pagereveal below
          finds the listing photo it pairs with the one on the last page. -->
     <link rel="expect" href="#page-end" blocking="render" />

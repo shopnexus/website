@@ -14,6 +14,7 @@ import Gallery from '../../components/public/Gallery.astro';
 import NotFound from '../../components/public/NotFound.astro';
 import ReviewItem from '../../components/public/ReviewItem.astro';
 import QuickChat from '../../components/public/QuickChat.astro';
+import ViewedMark from '../../components/public/ViewedMark.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import ShareSheet from '../../components/ShareSheet.astro';
 import Layout from '../../layouts/Layout.astro';
@@ -113,6 +114,7 @@ const ld = it && {
     >
       <script type="application/ld+json" slot="head" set:html={JSON.stringify(ld)} />
       <main class={CONTENT}>
+        {Astro.locals.session.prefetch && screen!.viewer && <ViewedMark listing={it.id} />}
         <Crumbs parts={crumbs} class="pt-5">
           {!mine && (
             <button
