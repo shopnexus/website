@@ -135,8 +135,8 @@ export interface Viewer {
   identities: Schemas['Identity'][];
   /** The avatar's URL, absent without one. */
   photo?: string;
-  /** Unread messages and notices, for the header's badges. */
-  unread: { messages: number; notifications: number };
+  /** Unread messages and notices and the offers waiting, for the header's badges. */
+  unread: { messages: number; notifications: number; offers: number };
 }
 
 /** The signed-in buyer, or null. The middleware reads it before the page renders. */
@@ -148,7 +148,7 @@ export async function loadViewer(api: Api, session: Session, cookies: AstroCooki
   if (!session.token) return null;
   try {
     // The badges are extra: a failure there leaves them at 0.
-    const none = { unread: 0, notifications: 0 };
+    const none = { unread: 0, notifications: 0, offers: 0 };
     const [me, unread] = await Promise.all([
       unwrap(api.GET('/v1/accounts/me')),
       counts ? unwrap(api.GET('/v1/me/unread')).catch(() => none) : none,
@@ -159,7 +159,7 @@ export async function loadViewer(api: Api, session: Session, cookies: AstroCooki
       named: !!me.display_name,
       photo: me.avatar_url,
       identities: me.identities,
-      unread: { messages: unread.unread, notifications: unread.notifications },
+      unread: { messages: unread.unread, notifications: unread.notifications, offers: unread.offers },
     };
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) {

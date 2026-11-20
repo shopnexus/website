@@ -56,8 +56,9 @@ const item = 'state-layer flex h-10 w-full items-center gap-3 rounded-control px
 const sell = 'state-layer hidden h-10 shrink-0 items-center gap-1.5 rounded-control bg-brand px-4 text-title-small text-white hover:bg-brand-hover lg:flex';
 const account = [
   { icon: 'receipt-long-outline-rounded', title: 'Đơn mua', href: R.orders },
-  { icon: 'storefront-outline-rounded', title: 'Đơn bán', href: R.sales },
-  { icon: 'sell-outline-rounded', title: 'Tin của bạn', href: R.myListings },
+  { icon: 'inventory-2-outline-rounded', title: 'Đơn bán', href: R.sales },
+  { icon: 'sell-outline-rounded', title: 'Trả giá', href: R.offers, count: me?.unread.offers },
+  { icon: 'storefront-outline-rounded', title: 'Tin của bạn', href: R.myListings },
   { icon: 'support-agent-outline-rounded', title: 'Hỗ trợ', href: R.support },
 ];
 ---
@@ -266,7 +267,12 @@ const account = [
         account.map((a) => (
           <a href={a.href} class={item}>
             <Icon name={a.icon} size={18} class="text-sub" />
-            {a.title}
+            <span class="flex-1">{a.title}</span>
+            {!!a.count && (
+              <span class="grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1.5 text-label-small text-white tabular-nums" data-offer-count>
+                {a.count}
+              </span>
+            )}
           </a>
         ))
       }

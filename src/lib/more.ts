@@ -4,11 +4,13 @@ import { snack } from './snackbar';
 
 // In the browser: "Xem thêm" (a[data-more="<selector>"]) appends the next page's items to the
 // selector's regions and takes that page's link; without script it opens the page. Groups with
-// the same data-more-key join, and data-more-skip items stay on the first page only. The grown
-// regions and the link come back with Back (lib/keep).
+// the same data-more-key join, data-more-skip items stay on the first page only, and an item
+// whose data-more-id the region already holds is left out. The grown regions and the link come
+// back with Back (lib/keep).
 
 /** Moves a page's items into a region; a first group with the last one's key joins it. */
 function append(region: HTMLElement, items: HTMLElement[]) {
+  items = items.filter((it) => !it.dataset.moreId || !region.querySelector(`[data-more-id="${CSS.escape(it.dataset.moreId)}"]`));
   const last = region.lastElementChild as HTMLElement | null;
   const first = items[0];
   if (last?.dataset.moreKey && first?.dataset.moreKey === last.dataset.moreKey) {

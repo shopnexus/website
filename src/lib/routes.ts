@@ -34,6 +34,8 @@ export const R = {
   orders: '/orders', // orders
   order: (id: string) => `/orders/${id}`, // order
   sales: '/sales', // ship
+  /** Trả giá: the buyers' open offers on the seller's listings; ?counter=<deal> opens its amount. */
+  offers: '/offers', // offers-inbox
   saved: '/saved', // saved
   messages: '/messages', // messages
   notifications: '/notifications', // notifications
@@ -61,6 +63,8 @@ export const API = {
   watches: '/api/watches',
   searchHistory: '/api/search-history',
   watchAlert: (id: string) => `/api/watches/${id}/alert`,
+  /** Trả giá's answer to the offer on a deal (lib/offers.ts). */
+  offer: (deal: string) => `/api/offers/${deal}`,
   /** The socket's address and an access token for it, for Tin nhắn. */
   socket: '/api/socket',
   /** This browser's push token for the session (lib/push.ts). */

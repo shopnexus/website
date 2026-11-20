@@ -1,0 +1,146 @@
+---
+// Trả giá: the buyers' open offers on the seller's listings, newest first
+// (?after= pages on). Each row answers in place: the script sends Đồng ý,
+// Trả giá lại or Từ chối to /api/offers/<deal> and takes the row out.
+// Without it the form posts here, and a refusal comes back as ?error=.
+import Icon from '../components/Icon.astro';
+import Notice from '../components/Notice.astro';
+import PageTitle from '../components/PageTitle.astro';
+import Skeleton from '../components/Skeleton.astro';
+import OfferRow from '../components/account/OfferRow.astro';
+import AccountFrame from '../components/orders/AccountFrame.astro';
+import { pageOrFirst } from '../lib/api/client';
+import { isId } from '../lib/listing';
+import { errorText } from '../lib/messages';
+import { answerOffer } from '../lib/offers';
+import { R } from '../lib/routes';
+import { requireViewer } from '../lib/session';
+import { PANEL, btnCls } from '../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const api = Astro.locals.api;
+
+// Without script a row's answer posts here and comes back to the list.
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const deal = String(f.get('deal') ?? '');
+  const answer = String(f.get('do') ?? '');
+  const error = isId(deal) ? await answerOffer(api, deal, answer, f) : 'deal_not_found';
+  const back = new URLSearchParams(error ? { error, ...(answer === 'counter' ? { counter: deal } : {}) } : {});
+  return Astro.redirect(`${R.offers}${back.size ? `?${back}` : ''}`, 303);
+}
+
+const p = Astro.url.searchParams;
+const after = p.get('after') ?? undefined;
+const screen = await pageOrFirst(after, (cursor) => api.GET('/v1/screens/offers', { params: { query: { cursor, limit: 20 } } }));
+const items = screen.items;
+const counter = p.get('counter');
+const error = p.get('error');
+const waiting = Math.max(v.unread.offers, items.length);
+---
+
+<AccountFrame title="Trả giá" description="Lời trả giá của người mua trên tin của bạn." active="offers">
+  <PageTitle title="Trả giá">
+    <p slot="meta" class="mt-1.5 text-body-medium text-on-surface-variant" hidden={!waiting} data-offers-meta>
+      <span class="tabular-nums" data-offer-count>{waiting}</span> lời trả giá đang chờ bạn
+    </p>
+  </PageTitle>
+  {error && <Notice text={errorText(error)} class="mt-4" />}
+  <section class="mt-5 flex min-w-0 flex-col gap-3">
+    <div class="flex flex-col gap-2.5" data-offers data-skeleton-kind="row" data-skeleton-count="4">
+      {items.map((it, i) => <OfferRow item={it} countering={it.deal.id === counter} loading={i < 5 ? 'eager' : 'lazy'} />)}
+    </div>
+    <div class:list={[PANEL, 'flex flex-col items-center gap-3 px-6 py-12 text-center']} hidden={items.length > 0} data-offers-empty>
+      <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
+        <Icon name="sell-outline-rounded" size={24} />
+      </span>
+      <p class="text-body-large text-on-surface-variant">Chưa có lời trả giá nào chờ bạn.</p>
+      <a href={R.myListings} class={btnCls('line')}>Xem tin của bạn</a>
+    </div>
+    {
+      (after || screen.next_cursor) && (
+        <div class="mt-2 flex justify-center gap-2">
+          {after && <a href={R.offers} class={btnCls('ghost')}>Mới nhất</a>}
+          {screen.next_cursor && (
+            <a href={`${R.offers}?after=${screen.next_cursor}`} class={btnCls('line')} data-more="[data-offers]">
+              Xem thêm
+              <Icon name="keyboard-arrow-down-rounded" size={17} />
+            </a>
+          )}
+        </div>
+      )
+    }
+    <Skeleton kind="row" />
+  </section>
+</AccountFrame>
+
+<script>
+  import { whileBusy } from '../lib/busy';
+  import { errorText } from '../lib/chat-errors';
+  import { money } from '../lib/format';
+  import { moneyOf } from '../lib/money-input';
+  import '../lib/more';
+  import { API, loginHref } from '../lib/routes';
+  import { snack } from '../lib/snackbar';
+
+  const list = document.querySelector<HTMLElement>('[data-offers]');
+  // Refusals that mean the offer is no longer there to answer.
+  const GONE = new Set(['move_not_allowed', 'deal_changed', 'price_changed', 'listing_unavailable', 'deal_not_found']);
+
+  /** Takes an answered row out, with the counts and the next page's cursor. */
+  function leave(row: HTMLElement) {
+    const more = document.querySelector<HTMLAnchorElement>('a[data-more="[data-offers]"]');
+    const last = list?.lastElementChild === row ? (row.previousElementSibling as HTMLElement | null) : null;
+    row.remove();
+    // "Xem thêm" goes on from the last row still listed.
+    if (more && last?.dataset.offer) more.href = `${location.pathname}?after=${last.dataset.offer}`;
+    document.querySelectorAll<HTMLElement>('[data-offer-count]').forEach((c) => {
+      const n = Math.max(0, Number(c.textContent) - 1);
+      c.textContent = String(n);
+      if (!n) (c.closest('[data-offers-meta]') ?? c).toggleAttribute('hidden', true);
+    });
+    // An emptied page takes the next one, or says there is nothing left.
+    if (list && !list.childElementCount) {
+      if (more) more.click();
+      else document.querySelector<HTMLElement>('[data-offers-empty]')!.hidden = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = (e.target as Element).closest<HTMLAnchorElement>('[data-counter-toggle]');
+    if (!t) return;
+    e.preventDefault();
+    const row = t.closest<HTMLElement>('[data-offer]')!;
+    const form = row.querySelector<HTMLFormElement>('[data-counter]')!;
+    form.hidden = !form.hidden;
+    row.querySelector('[data-counter-toggle][aria-expanded]')?.setAttribute('aria-expanded', String(!form.hidden));
+    if (!form.hidden) form.querySelector<HTMLInputElement>('[data-money]')?.focus();
+  });
+
+  document.addEventListener('submit', (e) => {
+    const form = e.target as HTMLFormElement;
+    const row = form.closest<HTMLElement>('[data-offer]');
+    const button = e.submitter as HTMLButtonElement | null;
+    if (!row || !button) return;
+    e.preventDefault();
+    const body = new FormData(form, button);
+    const move = String(body.get('do'));
+    const amount = move === 'counter' ? moneyOf(form.querySelector<HTMLInputElement>('[data-money]')!) : Number(body.get('price'));
+    whileBusy(button, async () => {
+      row.querySelectorAll('button').forEach((b) => b !== button && (b.disabled = true));
+      const res = await fetch(API.offer(row.dataset.offer!), { method: 'POST', body }).catch(() => null);
+      const answer: { error?: string } | null = res?.ok ? await res.json().catch(() => null) : null;
+      row.querySelectorAll('button').forEach((b) => (b.disabled = false));
+      if (res?.status === 401) return void (location.href = loginHref(location.pathname));
+      const error = answer ? answer.error : 'unknown';
+      if (error && !GONE.has(error)) return void snack({ text: errorText(error), error: true });
+      const who = row.dataset.buyer!;
+      leave(row);
+      if (error) snack({ text: errorText(error), error: true });
+      else if (move === 'accept') snack({ text: `Đã chốt ${money(amount ?? 0)} với ${who}`, action: { label: 'Mở chat', href: row.dataset.chat! } });
+      else if (move === 'counter') snack({ text: `Đã trả lại ${money(amount ?? 0)} cho ${who}` });
+      else snack({ text: `Đã từ chối giá của ${who}` });
+    });
+  });
+</script>
