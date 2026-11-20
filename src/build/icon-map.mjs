@@ -90,6 +90,7 @@ export const RI = {
   'menu-book-outline-rounded': 'book-open-line',
   'military-tech-outline-rounded': 'medal-line',
   'mobile-outline-rounded': 'smartphone-line',
+  'more-horiz': 'more-line',
   'more-vert': 'more-2-fill',
   'my-location-outline-rounded': 'focus-3-line',
   'near-me-outline-rounded': 'navigation-line',
