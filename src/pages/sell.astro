@@ -87,7 +87,7 @@ if (Astro.request.method === 'POST' && !frozen) {
       else if (code === 'listing_cap_reached') error = 'Bạn đã có đủ số tin cho phép. Xóa hoặc đánh dấu đã bán một tin để đăng thêm.';
       else if (code === 'listing_state_conflict' || code === 'listing_not_found') error = 'Tin này đã bán hoặc đã xóa nên không sửa được.';
       else if (code === 'try_again') error = 'Tin vừa đổi ở nơi khác. Thử lưu lại nhé.';
-      else error = 'Chưa rõ tin đã lưu chưa. Bấm lại để thử, tin sẽ không bị đăng hai lần.';
+      else error = 'Chưa rõ tin đã lưu chưa. Bấm lại để thử.';
       // The draft keeps what was typed, and gives the photos back their previews.
       if (!editId) await keepDraft(fields);
     }

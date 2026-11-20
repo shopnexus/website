@@ -128,7 +128,7 @@ const POLICY = [
     }
     {
       blocks.items.length === 0 ? (
-        <p class="py-3 text-body-medium text-on-surface-variant">Bạn chưa chặn ai. Người bị chặn và bạn không nhắn tin hay hỏi mua tin của nhau được.</p>
+        <p class="py-3 text-body-medium text-on-surface-variant">Bạn chưa chặn ai.</p>
       ) : (
         <div class="mt-1">
           {blocks.items.map((b, i) => (
@@ -136,7 +136,7 @@ const POLICY = [
               <Avatar name={b.display_name || '?'} size={40} />
               <div class="min-w-0 flex-1">
                 <p class="truncate text-body-large text-ink">{b.display_name || 'Tài khoản đã xóa'}</p>
-                <p class="text-body-small text-on-surface-variant">Chặn {date(b.at)} · không nhắn tin với nhau được</p>
+                <p class="text-body-small text-on-surface-variant">Chặn {date(b.at)}</p>
               </div>
               <form method="post">
                 <input type="hidden" name="account_id" value={b.account_id} />

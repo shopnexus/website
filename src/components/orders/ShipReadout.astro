@@ -1,6 +1,6 @@
 ---
-// What the carrier read for the shipment form: a service's fee, the note
-// under the fees, or a manual code's preview. ShipForm and its partial
+// What the carrier read for the shipment form: a service's fee, the fee
+// error under the fees, or a manual code's preview. ShipForm and its partial
 // (/orders/<id>/ship) both draw them, so the script can swap them in.
 import { money } from '../../lib/format';
 import { CARRIER, SHIPMENT_STATUS, orderError } from '../../lib/orders';
@@ -24,7 +24,7 @@ const previewError = reads.preview && 'error' in reads.preview ? reads.preview.e
 ---
 
 {part === 'fee' && (f && 'ok' in f ? money(f.ok) : '–')}
-{part === 'fee-note' && (feeError && 'error' in feeError ? orderError(feeError.error) : 'Người mua trả phí ship cho shipper.')}
+{part === 'fee-note' && feeError && 'error' in feeError && orderError(feeError.error)}
 {
   part === 'preview' &&
     (previewError === 'shipment_not_found' ? (

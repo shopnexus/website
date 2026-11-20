@@ -166,7 +166,6 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
             <Icon name="notifications-outline-rounded" size={24} />
           </span>
           <p class="mt-3 text-title-medium text-ink">{after ? 'Không còn thông báo cũ hơn' : 'Chưa có thông báo'}</p>
-          <p class="mt-1 text-body-medium text-on-surface-variant">Lời trả giá, đơn COD và tin giảm giá sẽ hiện ở đây.</p>
         </div>
       ) : (
         groups.map(([day, items]) => (
@@ -236,8 +235,7 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
 
   <Fragment slot="side">
     <form method="post" id="settings" class:list={[PANEL, 'scroll-mt-24 p-4']}>
-      <h2 class="px-1 text-title-medium font-semibold text-ink">Cài đặt thông báo</h2>
-      <p class="px-1 pb-2 text-body-small text-on-surface-variant">Tắt một mục chỉ tắt thông báo đẩy; thông báo vẫn có ở đây.</p>
+      <h2 class="px-1 pb-2 text-title-medium font-semibold text-ink">Cài đặt thông báo</h2>
       {
         prefs.map(([group, rows], i) => (
           <>
@@ -250,7 +248,7 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
           </>
         ))
       }
-      <Row icon="search-rounded" title="Tìm kiếm đang theo dõi" sub="Bật chuông ở từng tìm kiếm trong Đã lưu" href={R.saved} class="-mx-2" />
+      <Row icon="search-rounded" title="Tìm kiếm đang theo dõi" href={R.saved} class="-mx-2" />
       <p class="mt-3 px-1 text-label-medium text-on-surface-variant">Giờ yên lặng</p>
       <Row icon="bedtime-outline-rounded" title="Tắt tiếng ban đêm" sub="Giờ Việt Nam" class="-mx-2">
         <Switch slot="trail" name="quiet" on={settings.quiet.on} label="Tắt tiếng ban đêm" />

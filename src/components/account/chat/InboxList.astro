@@ -54,7 +54,7 @@ const more = (after: string) => `${R.messages}?${new URLSearchParams({ ...(m.arc
       )
     ) : rows.length === 0 ? (
       <p class={empty}>
-        {m.archived ? 'Chưa lưu trữ cuộc trò chuyện nào.' : 'Chưa có tin nhắn. Hỏi người bán ở trang tin bạn quan tâm, tin nhắn sẽ hiện ở đây.'}
+        {m.archived ? 'Chưa lưu trữ cuộc trò chuyện nào.' : 'Chưa có tin nhắn.'}
       </p>
     ) : (
       rows.map((c, i) => <InboxRow c={c} me={me} selected={c.id === open} loading={i < 6 ? 'eager' : 'lazy'} />)

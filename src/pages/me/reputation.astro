@@ -35,7 +35,7 @@ const figure = 'text-j-26 text-ink tabular-nums';
 const unit = 'text-body-medium font-medium tracking-normal text-on-surface-variant';
 ---
 
-<SettingsFrame title="Uy tín của bạn" page="Uy tín" meta={`Tham gia ${new Date(rep.joined_at).getFullYear()} · người mua thấy các số này trên trang của bạn`}>
+<SettingsFrame title="Uy tín của bạn" page="Uy tín" meta={`Tham gia ${new Date(rep.joined_at).getFullYear()}`}>
   <a href={R.seller(v.id)} class:list={['lift block px-5 pb-5 pt-4 md:px-6', PANEL]}>
     <span class="flex items-center justify-between gap-3">
       <span class={LABEL}>Khi bán</span>
@@ -90,17 +90,4 @@ const unit = 'text-body-medium font-medium tracking-normal text-on-surface-varia
       </div>
     </div>
   </div>
-
-  <Fragment slot="side">
-    <div class:list={[PANEL, 'p-4']}>
-      <ul class="flex flex-col gap-2 text-body-small text-on-surface-variant">
-        <li class="flex gap-2">
-          <Icon name="bolt-rounded" size={16} class="mt-px" />Trả lời tính trên tin nhắn người khác mở về tin của bạn trong 90 ngày, từ 5 cuộc trò chuyện
-        </li>
-        <li class="flex gap-2">
-          <Icon name="sell-outline-rounded" size={16} class="mt-px" />Tin đang đăng gồm cả tin chờ duyệt, bị ẩn, bị từ chối và tin đang giữ cho một đơn
-        </li>
-      </ul>
-    </div>
-  </Fragment>
 </SettingsFrame>

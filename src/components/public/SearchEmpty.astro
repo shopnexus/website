@@ -48,8 +48,7 @@ const fresh = await newest(Astro, 8);
         ) : (
           <>
             <p class="mt-1.5 text-body-medium text-on-surface-variant">
-              {search.q ? `Chưa có tin nào khớp “${search.q}”.` : 'Chưa có tin nào khớp bộ lọc này.'} Thử bớt một vài chữ, hoặc gõ tên món
-              đồ ngắn hơn.
+              {search.q ? `Chưa có tin nào khớp “${search.q}”.` : 'Chưa có tin nào khớp bộ lọc này.'}
             </p>
             <div class="mt-4 flex flex-wrap gap-2">
               {tries.map((t) => (

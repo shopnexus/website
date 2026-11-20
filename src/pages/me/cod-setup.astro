@@ -71,7 +71,7 @@ const ready = !!pickup && linked.length > 0;
 const steps = [
   { name: 'Địa chỉ lấy hàng', d: pickupAt ? `${pickupAt.street}, ${pickupAt.commune}` : 'Chưa chọn', state: pickup ? 'done' : 'active' },
   { name: 'Bên vận chuyển', d: linked.length ? linked.map((a) => `${CARRIER[a.carrier]} · ${a.shop_code}`).join(', ') : 'Chưa liên kết', state: linked.length ? 'done' : pickup ? 'active' : 'next' },
-  { name: 'Sẵn sàng giao COD', d: ready ? 'Người mua chọn được COD' : 'Xong hai bước trên', state: ready ? 'done' : 'next' },
+  { name: 'Sẵn sàng giao COD', d: ready ? 'Người mua chọn được COD' : 'Chưa xong', state: ready ? 'done' : 'next' },
 ] as const;
 const label = 'mb-2 text-label-large text-ink';
 const field = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 focus-within:ring-2 focus-within:ring-primary';
@@ -80,11 +80,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 
 <AccountFrame title="Thiết lập giao COD" description="Địa chỉ lấy hàng và bên vận chuyển cho đơn COD." active="cod">
   <section class="rounded-card border border-line bg-card p-5 shadow-soft md:p-6">
-    <p class="flex items-center gap-3 text-label-medium text-on-surface-variant">
-      <span class="flex items-center gap-1"><Icon name="timer-outline-rounded" size={15} />3 phút</span>
-      <span class="flex items-center gap-1"><Icon name="event-repeat-outline-rounded" size={15} />Làm một lần</span>
-    </p>
-    <h1 class="mt-1 text-j-32 text-ink lg:text-j-28">Thiết lập giao COD</h1>
+    <h1 class="text-j-32 text-ink lg:text-j-28">Thiết lập giao COD</h1>
     <ol class="mt-5 flex flex-col gap-3 border-t border-line pt-4 md:flex-row md:items-center md:gap-4">
       {
         steps.map((s, i) => (
@@ -136,7 +132,6 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
         <p class={label}>Người gửi</p>
         <div class="rounded-tile border border-line bg-card px-4 py-3">
           <p class="text-body-medium text-ink">{setup.account.display_name || 'Chưa có tên'}</p>
-          <p class="text-body-small text-on-surface-variant">Tên đăng ký với hãng vận chuyển</p>
         </div>
         <label class="mt-4 block">
           <span class={`block ${label}`}>Số điện thoại</span>
@@ -145,7 +140,6 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
             <input name="phone" value={phone} inputmode="tel" autocomplete="tel" required maxlength="20" class={input} />
           </span>
         </label>
-        <p class="mt-1.5 text-body-small text-on-surface-variant">Shipper gọi số này khi đến lấy</p>
         <div class="mt-4 flex justify-end gap-2">
           {
             pickup && (
@@ -166,7 +160,6 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 
   <section class:list={[PANEL, 'mt-4 p-5']}>
     <StepHead n={2} title="Bên vận chuyển" state={linked.length ? 'done' : pickup ? 'active' : 'next'} />
-    <p class="mt-1 pl-12 text-body-medium text-on-surface-variant">Kết nối tài khoản bạn đã có. Hãng thu tiền COD và trả về tài khoản này.</p>
     <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
       <div>
         <p class={label}>Tài khoản đã liên kết</p>
@@ -190,7 +183,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                 <button type="button" popovertarget={`unlink-${a.carrier}`} class:list={[btnCls('line', 'sm'), 'h-8 px-3']}>
                   Gỡ liên kết
                 </button>
-                <ConfirmPop id={`unlink-${a.carrier}`} title={`Gỡ liên kết ${CARRIER[a.carrier]}?`} text="Các đơn đã gửi vẫn giữ nguyên." action={R.codSetup} value="unlink" confirm="Gỡ liên kết">
+                <ConfirmPop id={`unlink-${a.carrier}`} title={`Gỡ liên kết ${CARRIER[a.carrier]}?`} action={R.codSetup} value="unlink" confirm="Gỡ liên kết">
                   <input type="hidden" name="carrier" value={a.carrier} />
                 </ConfirmPop>
               </div>
@@ -210,7 +203,6 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                   </span>
                   <span class="min-w-0 flex-1">
                     <span class="block text-body-medium text-ink">{CARRIER[c]}</span>
-                    <span class="block text-body-small text-on-surface-variant">{c === 'ghtk' ? 'Đăng nhập tài khoản đã có' : 'Dán mã API và mã cửa hàng'}</span>
                   </span>
                   <span class:list={[btnCls('tonal', 'sm'), 'h-8 px-3 group-open:hidden']}>{c === 'ghtk' ? 'Đăng nhập GHTK' : 'Kết nối GHN'}</span>
                 </summary>
@@ -233,7 +225,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                       <div class={field}>
                         <input aria-label="Mã cửa hàng (ShopId)" name="shop_id" required inputmode="numeric" pattern="[0-9]{4,}" maxlength="50" autocomplete="off" placeholder="Mã cửa hàng (ShopId)" class={input} />
                       </div>
-                      <p class="text-body-small text-on-surface-variant">Lấy cả hai trong phần cài đặt tài khoản trên trang GHN.</p>
+                      <p class="text-body-small text-on-surface-variant">Lấy trong cài đặt tài khoản GHN.</p>
                     </>
                   )}
                   <div class="flex justify-end">
@@ -254,9 +246,6 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
   <section class="mt-4 grid grid-cols-1 items-center gap-6 rounded-panel border border-dashed border-black/15 bg-card/50 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
     <div>
       <StepHead n={3} title="Sẵn sàng giao COD" state={ready ? 'done' : 'next'} />
-      <p class="mt-2 pl-12 text-body-medium text-on-surface-variant">
-        {ready ? 'Người mua chọn được COD với tin của bạn.' : 'Xong hai bước trên thì người mua chọn được COD với tin của bạn.'}
-      </p>
     </div>
     <div class="rounded-tile border border-line bg-card px-4">
       {

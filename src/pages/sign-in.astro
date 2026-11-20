@@ -178,13 +178,13 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
                 <div class="min-w-0 flex-1">
                   <p class="text-title-small text-ink">Tài khoản đang bị khóa</p>
                   <p class="text-body-small text-on-surface-variant">
-                    Tài khoản này tạm thời không đăng nhập được. Xem lý do và cách mở lại ở <a href={R.help} class="text-primary hover:underline">Trợ giúp</a>.
+                    Xem lý do ở <a href={R.help} class="text-primary hover:underline">Trợ giúp</a>.
                   </p>
                 </div>
               ) : (
                 <div class="min-w-0 flex-1">
                   <p class="text-title-small text-ink">Bạn đã được đăng xuất</p>
-                  <p class="text-body-small text-on-surface-variant">Phiên này đã kết thúc từ một thiết bị khác. Đăng nhập lại để tiếp tục.</p>
+                  <p class="text-body-small text-on-surface-variant">Từ một thiết bị khác.</p>
                 </div>
               )}
               <button
@@ -247,7 +247,6 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
                 />
                 <button name="step" value="send-code" class={sendBtn}>Gửi mã</button>
               </div>
-              <p class="mt-2 text-body-small text-on-surface-variant">Mã 6 số có hiệu lực trong 5 phút.</p>
               <a href={here({})} class="state-layer mt-3 flex h-8 w-fit items-center gap-1 rounded-control px-2 text-label-large text-primary">
                 <Icon name="phone-iphone-outline-rounded" size={16} />Dùng số điện thoại
               </a>
@@ -282,10 +281,7 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
                 <noscript>
                   <p class="mt-2 text-body-small text-on-surface-variant">Google và số điện thoại cần bật JavaScript. Không bật được thì dùng email.</p>
                 </noscript>
-                <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
-                  <p class="flex items-center gap-1.5 text-body-small text-on-surface-variant">
-                    <Icon name="visibility-off-outline-rounded" size={16} />Người khác không thấy số của bạn.
-                  </p>
+                <div class="mt-2 flex flex-wrap items-center justify-end gap-2">
                   <a href={emailUrl} class="state-layer flex h-8 items-center gap-1 rounded-control px-2 text-label-large text-primary">
                     <Icon name="mail-outline-rounded" size={16} />Dùng email
                   </a>

@@ -81,7 +81,7 @@ const error = p.get('error') ?? '';
   next={chat?.messages.next_cursor ?? undefined}
   last={chat?.messages.items[0]?.id}
   marked={marked}
-  empty={`Hỏi ${other} về món này. Tin nhắn cũng nằm trong Tin nhắn của bạn.`}
+  empty={`Hỏi ${other} về món này.`}
 />
 <div data-part="alert" class="px-3 empty:hidden">
   {error && <Notice text={error === 'move_not_allowed' ? 'Món này đã có giá đang chờ hoặc đã chốt. Xem ở trang Tin nhắn.' : errorText(error)} />}

@@ -327,7 +327,7 @@ const boxes = 'max-w-[360px]';
         <div class="min-w-0 flex-1">
           <p class="text-body-large text-ink">Số điện thoại</p>
           <p class="text-body-small text-on-surface-variant">
-            {phone ? `${phoneText(phone)} · người khác không thấy số này` : 'Chưa thêm · đăng tin, hỏi mua và nhắn tin cần số điện thoại'}
+            {phone ? phoneText(phone) : 'Chưa thêm'}
           </p>
         </div>
         {
@@ -384,7 +384,7 @@ const boxes = 'max-w-[360px]';
         </span>
         <div class="min-w-0 flex-1">
           <p class="text-body-large text-ink">Email</p>
-          <p class="text-body-small text-on-surface-variant">{email ?? 'Chưa thêm · đăng nhập khi không có điện thoại bên cạnh'}</p>
+          <p class="text-body-small text-on-surface-variant">{email ?? 'Chưa thêm'}</p>
         </div>
         {
           !email && mode === null && (
@@ -465,23 +465,12 @@ const boxes = 'max-w-[360px]';
         ))
       }
     </div>
-    {
-      sessions.length > 1 && (
-        <p class="mt-1 flex gap-2 rounded-field bg-surface-container-low px-3 py-2.5 text-body-small text-on-surface-variant">
-          <Icon name="info-outline-rounded" size={16} class="mt-px shrink-0" />
-          Thiết bị này vẫn đăng nhập. Đăng nhập đã hơn 15 phút thì ShopNexus gửi mã tới {email ? 'email' : 'số điện thoại'} của bạn để xác nhận trước.
-        </p>
-      )
-    }
   </div>
 
   <section id="delete" class="scroll-mt-24 rounded-panel border border-error/20 bg-error/5 p-5">
     <h2 class="flex items-center gap-2 text-title-medium font-semibold text-error">
       <Icon name="delete-forever-outline-rounded" size={20} />Xóa tài khoản
     </h2>
-    <p class="mt-2 text-body-medium text-on-surface-variant">
-      Tin đăng, trang, địa chỉ và cách đăng nhập của bạn được xóa ngay, và mọi thiết bị đăng xuất. Các đơn, đánh giá và tin nhắn cũ vẫn còn, ghi là tài khoản đã xóa.
-    </p>
     {
       confirmDelete ? (
         <form method="post" class="mt-3 flex flex-wrap items-center gap-2">
@@ -511,7 +500,6 @@ const boxes = 'max-w-[360px]';
           <p class="text-body-small text-on-surface-variant">{methods.join(' và ')}</p>
         </div>
       </div>
-      {!phone && <p class="mt-3 text-body-small text-on-surface-variant">Đăng tin, hỏi mua và nhắn tin cần một số điện thoại đã xác minh.</p>}
     </div>
     <SideList title="Liên quan">
       <Row icon="lock-outline-rounded" title="Quyền riêng tư" sub="Người đã chặn, người khác thấy gì" href={R.privacy} class="-mx-2" />

@@ -62,12 +62,12 @@ const todo = tasks.filter((t) => !t.done);
 const name = posted?.name ?? account.display_name;
 const bio = posted?.bio ?? account.bio;
 
-// A step not done: where it is done, and its line.
-const todoRow: Record<TaskKey, { href?: string; sub: string }> = {
-  avatar: { href: '#avatar', sub: 'Người mua dễ nhận ra bạn' },
-  bio: { href: '#bio', sub: 'Vài dòng về bạn và món bạn hay bán' },
-  address: { href: R.addresses, sub: 'Để nhận hàng COD' },
-  phone: { href: `${R.security}?add-phone`, sub: 'Đăng tin, hỏi mua và nhắn tin cần số này' },
+// A step not done: where it is done.
+const todoHref: Record<TaskKey, string> = {
+  avatar: '#avatar',
+  bio: '#bio',
+  address: R.addresses,
+  phone: `${R.security}?add-phone`,
 };
 const doneSub: Record<TaskKey, string | undefined> = {
   avatar: 'Đã thêm',
@@ -93,7 +93,7 @@ const doneSub: Record<TaskKey, string | undefined> = {
       <div class:list={[PANEL, 'p-3']}>
         <p class:list={[LABEL, 'px-2 pb-1 pt-1']}>Cần làm · {todo.length}</p>
         {todo.map((t) => (
-          <Row icon={TASK[t.key].icon} title={TASK[t.key].title} sub={todoRow[t.key].sub} href={todoRow[t.key].href} chevron={!!todoRow[t.key].href} />
+          <Row icon={TASK[t.key].icon} title={TASK[t.key].title} href={todoHref[t.key]} />
         ))}
       </div>
     )

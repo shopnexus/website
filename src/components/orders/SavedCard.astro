@@ -115,9 +115,6 @@ const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Bool
                   class="mt-1.5 h-11 w-full rounded-field bg-surface-container-low px-3 text-body-large text-ink tabular-nums focus:bg-card focus:outline-2 focus:outline-primary"
                 />
               </label>
-              <p class="mt-1.5 text-body-small text-on-surface-variant">
-                {it.alert_below ? 'Bỏ mức này thì vẫn báo mỗi lần giá xuống thấp hơn lúc lưu.' : 'Không đặt mức thì báo mỗi lần giá xuống thấp hơn lúc lưu.'}
-              </p>
               <div class="mt-3 flex justify-end gap-2">
                 {it.alert_below && (
                   <button type="submit" name="do" value="alert-clear" formnovalidate class="state-layer h-9 rounded-control px-3 text-title-small text-ink">

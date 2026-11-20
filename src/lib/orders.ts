@@ -133,7 +133,7 @@ export function timeline(o: Order, role: Role, other: string): TimelineStep[] {
     const title =
       o.status === 'completed'
         ? o.completed_by === 'system'
-          ? 'Đơn tự hoàn tất sau 3 ngày'
+          ? 'Đơn tự hoàn tất'
           : role === 'buyer'
             ? 'Bạn đã nhận hàng'
             : `${other} đã nhận hàng`

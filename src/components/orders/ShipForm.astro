@@ -39,7 +39,6 @@ const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-
   linked.length === 0 ? (
     <section class:list={[PANEL, 'flex flex-col items-start gap-3 p-5']}>
       <h2 class="text-title-small text-ink">Chưa liên kết hãng vận chuyển</h2>
-      <p class="text-body-medium text-on-surface-variant">Liên kết GHTK hoặc GHN để tạo đơn.</p>
       <a href={R.codSetup} class={btnCls('ink')}>
         <Icon name="local-shipping-outline-rounded" size={18} />
         Liên kết hãng
@@ -54,7 +53,6 @@ const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-
             <input type="hidden" name="via" value="manual" />
             <input type="hidden" name="edit" value="1" />
             <h2 class="text-title-small text-ink">Sửa mã vận đơn</h2>
-            <p class="mt-1 text-body-small text-on-surface-variant">Sửa được tới khi hãng giao xong.</p>
           </>
         ) : (
           <>
@@ -72,11 +70,6 @@ const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-
                   </a>
                 ))}
               </nav>
-              <p class="text-body-small text-on-surface-variant">
-                {i.via === 'manual'
-                  ? 'Đã tạo đơn trong app của hãng? Nhập mã vận đơn'
-                  : `Tạo vận đơn trên tài khoản ${CARRIER[i.via]} ${account(i.via)?.shop_code ?? ''} của bạn`}
-              </p>
             </div>
           </>
         )
@@ -143,15 +136,13 @@ const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-
                   </Option>
                 ))}
               </div>
-              <p class="mt-1.5 text-body-small text-on-surface-variant" data-part="fee-note">
-                <ShipReadout part="fee-note" reads={reads} />
-              </p>
+              <p class="mt-1.5 text-body-small text-on-surface-variant empty:hidden" data-part="fee-note"><ShipReadout part="fee-note" reads={reads} /></p>
             </div>
             <div>
               <p class={label}>Cách lấy hàng</p>
               <div class="flex flex-col gap-2" role="radiogroup" aria-label="Cách lấy hàng">
-                <Option name="way" value="home" t="Lấy tại nhà" sub="Shipper tới lấy" on={i.way === 'home'} />
-                <Option name="way" value="post_office" t="Gửi tại bưu cục" sub="Bạn mang ra bưu cục gần nhất" on={i.way === 'post_office'} />
+                <Option name="way" value="home" t="Lấy tại nhà" on={i.way === 'home'} />
+                <Option name="way" value="post_office" t="Gửi tại bưu cục" on={i.way === 'post_office'} />
               </div>
             </div>
             <div>

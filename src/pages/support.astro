@@ -101,13 +101,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
 <Layout title="Hỗ trợ · ShopNexus" description="Yêu cầu hỗ trợ của bạn với ShopNexus." section={null}>
   <main class={CONTENT_WIDE}>
     <div class="flex flex-wrap items-end justify-between gap-4 pt-8">
-      <div>
-        <h1 class="text-j-28 text-ink lg:text-j-30">Hỗ trợ</h1>
-        <p class="mt-1 flex items-start gap-1.5 text-body-medium text-on-surface-variant">
-          <Icon name="balance-rounded" size={16} class="mt-0.5" />
-          <span>{NO_ARBITRATION}</span>
-        </p>
-      </div>
+      <h1 class="text-j-28 text-ink lg:text-j-30">Hỗ trợ</h1>
       <a href={`${R.support}?new`} class={btnCls('ink', 'lg')}><Icon name="edit-outline-rounded" size={18} />Yêu cầu mới</a>
     </div>
 
@@ -184,10 +178,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
               <input type="hidden" name="key" value={idempotencyKey()} />
               <div class="flex items-center gap-3">
                 <Official size={38} />
-                <div>
-                  <h2 class="text-title-medium text-ink">Yêu cầu mới</h2>
-                  <p class="text-body-small text-on-surface-variant">ShopNexus trả lời trong chat Hỗ trợ.</p>
-                </div>
+                <h2 class="text-title-medium text-ink">Yêu cầu mới</h2>
               </div>
               {error && <Notice text={orderError(error)} />}
               <fieldset class="flex flex-col gap-2">
@@ -217,7 +208,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                 <textarea name="text" rows="5" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
               </label>
               <p class="text-body-small text-on-surface-variant">
-                Chưa nhận được hàng? Báo từ trang <a href={R.orders} class="text-primary underline">đơn hàng</a> để ShopNexus xem cùng đơn.
+                Chưa nhận được hàng? Báo từ trang <a href={R.orders} class="text-primary underline">đơn hàng</a>.
               </p>
               <div class="flex justify-end">
                 <button type="submit" class={btnCls('ink')}>

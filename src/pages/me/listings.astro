@@ -27,7 +27,7 @@ const pane: Pane = (q.get('pane') ?? '') in PANES ? (q.get('pane') as Pane) : 'o
 const here = (extra = '') => `${R.myListings}?pane=${pane}${extra}`;
 
 const DONE: Record<string, string> = {
-  posted: 'Đã đăng tin. Tin hiện cho người mua sau khi xử lý xong ảnh.',
+  posted: 'Đã đăng tin.',
   saved: 'Đã lưu tin.',
   hide: 'Đã ẩn tin.',
   unhide: 'Tin đã hiện lại.',
@@ -89,7 +89,7 @@ const daysLeft = (iso: string) => Math.max(1, Math.ceil((Date.parse(iso) - Date.
 const done = DONE[q.get('done') ?? ''];
 const empty: Record<Pane, string> = {
   on_sale: 'Bạn chưa có tin nào đang bán.',
-  drafts: 'Chưa có nháp. Nháp tự lưu khi bạn điền Đăng tin.',
+  drafts: 'Chưa có nháp.',
   sold: 'Chưa có tin nào đã bán.',
 };
 const tab = 'state-layer flex h-9 items-center rounded-full bg-surface-container-low px-4 text-label-large text-on-surface-variant aria-[current]:bg-mint aria-[current]:text-on-mint';

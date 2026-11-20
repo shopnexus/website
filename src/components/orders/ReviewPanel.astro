@@ -46,7 +46,6 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
           <span class="block text-body-small text-on-surface-variant">Nhận xét (không bắt buộc)</span>
           <textarea name="text" rows="3" maxlength="500" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none">{own.text ?? ''}</textarea>
         </label>
-        <p class="mt-2 text-body-small text-on-surface-variant">Đánh giá hiện khi {other} cũng đánh giá, hoặc sau 7 ngày. Sửa được tới lúc đó.</p>
         <div class="mt-3 flex justify-end gap-2">
           {editing && <a href={action} class={btnCls('ghost')}>Thôi</a>}
           <button type="submit" name="do" value="review" class={btnCls('ink')}>
@@ -67,10 +66,7 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
             {own.reply.text}
           </p>
         )}
-        <p class="mt-2 text-body-small text-on-surface-variant">
-          {shows(own.visible_at) ? 'Đang hiện trên trang của người này.' : own.visible_at ? `Hiện từ ${date(own.visible_at)}.` : ''}
-          {!own.locked && own.change_until && ` Sửa được tới ${date(own.change_until)}.`}
-        </p>
+        {own.visible_at && !shows(own.visible_at) && <p class="mt-2 text-body-small text-on-surface-variant">Hiện từ {date(own.visible_at)}</p>}
         {!own.locked && (
           <div class="mt-3 flex gap-2">
             <a href={`${action}?review=edit`} class={btnCls('line', 'sm')}>
@@ -81,7 +77,7 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
               <Icon name="delete-outline-rounded" size={16} />
               Xóa
             </button>
-            <ConfirmPop id="unreview" title="Xóa đánh giá?" text={`${other} và mọi người sẽ không thấy đánh giá này.`} action={action} value="unreview" confirm="Xóa" />
+            <ConfirmPop id="unreview" title="Xóa đánh giá?" action={action} value="unreview" confirm="Xóa" />
           </div>
         )}
       </div>
@@ -96,7 +92,7 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
       !their ? (
         <p class="mt-1 text-body-medium text-on-surface-variant">Chưa có.</p>
       ) : their.state === 'hidden' ? (
-        <p class="mt-1 text-body-medium text-on-surface-variant">Đã có. Hiện khi bạn đánh giá, hoặc từ {date(their.visible_at!)}.</p>
+        <p class="mt-1 text-body-medium text-on-surface-variant">Đã có · hiện từ {date(their.visible_at!)}</p>
       ) : (
         <div class="mt-1">
           <p class="flex items-center gap-0.5 text-star" aria-label={`${their.stars} sao`}>

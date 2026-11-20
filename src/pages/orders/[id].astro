@@ -137,7 +137,7 @@ if (o.status === 'pending') {
   fact = `${carrier} · ${ship?.tracking_code ?? ''}`;
 } else if (o.status === 'completed') {
   heading = buyer ? 'Đã nhận hàng' : `${other} đã nhận hàng`;
-  fact = buyer ? `Đã trả ${money(o.price + (ship?.fee ?? 0))} cho shipper` : `${carrier} trả tiền COD về tài khoản của bạn`;
+  fact = buyer ? `Đã trả ${money(o.price + (ship?.fee ?? 0))} cho shipper` : `${carrier} · ${ship?.tracking_code ?? ''}`;
 } else if (o.status === 'failed') {
   fact = 'Tin đã mở bán lại';
 } else {
@@ -154,7 +154,7 @@ const fee = ship?.fee;
 const total = o.status === 'cancelled' || o.status === 'failed' ? null : { label: buyer ? 'Trả khi nhận' : 'Người mua trả shipper', vnd: o.price + (fee ?? 0), note: fee === undefined ? '+ phí ship' : undefined };
 const lines = [
   { k: buyer ? 'Tiền hàng' : 'Tiền hàng COD', v: money(o.price), deal: true },
-  { k: ship ? `Phí ship · ${carrier}` : 'Phí ship', v: fee !== undefined ? money(fee) : ship ? 'Hãng báo sau' : buyer ? 'Có khi người bán tạo đơn' : 'Có khi bạn tạo đơn' },
+  { k: ship ? `Phí ship · ${carrier}` : 'Phí ship', v: fee !== undefined ? money(fee) : ship ? 'Hãng báo sau' : 'Chưa tính' },
 ];
 
 // The buyer reports "chưa nhận" while it ships, or for 7 days after the system completed it.
@@ -224,7 +224,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
                   <ListRow
                     icon="receipt-long-outline-rounded"
                     main={ship.tracking_code}
-                    sub={buyer ? carrier : ship.mode === 'linked' ? `Tạo trên tài khoản ${carrier}` : `Tự gửi · nhập từ app ${carrier}`}
+                    sub={buyer || ship.mode === 'linked' ? carrier : `Tự gửi · ${carrier}`}
                   >
                     {track && (
                       <a href={track} class="state-layer flex h-9 items-center rounded-control px-3 text-label-large text-primary" rel="noopener" target="_blank">
@@ -234,13 +234,13 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
                     <IconBtn label="Sao chép mã vận đơn" icon="content-copy-outline-rounded" copy={ship.tracking_code} />
                   </ListRow>
                 ) : (
-                  <ListRow icon="receipt-long-outline-rounded" main="Chưa có vận đơn" sub={buyer ? 'Người bán tạo đơn thì có mã ở đây' : 'Tạo đơn để có mã vận đơn'} />
+                  <ListRow icon="receipt-long-outline-rounded" main="Chưa có vận đơn" />
                 )
               }
               {
                 editable && !editing && (
                   <p class="flex flex-wrap items-center justify-between gap-2 border-t border-line py-2 text-body-small text-on-surface-variant">
-                    Nhập nhầm mã? Sửa được tới khi hãng giao xong
+                    Nhập nhầm mã?
                     <a href={`${here}?edit=1`} class={btnCls('ghost', 'sm')}>Sửa mã</a>
                   </p>
                 )
@@ -270,22 +270,6 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
         total={total}
         lines={lines}
       >
-        {
-          !buyer && ship && o.status !== 'cancelled' && (
-            <div slot="extra" class="mt-4 flex items-center gap-3 rounded-lg bg-surface-container-low px-3.5 py-3">
-              <Icon name="account-balance-outline-rounded" size={20} class="text-primary" />
-              <span class="min-w-0 flex-1">
-                <span class="block text-body-medium text-ink">Tiền COD về tài khoản {carrier}</span>
-                <span class="block text-body-small text-on-surface-variant">Tài khoản đứng tên bạn</span>
-              </span>
-            </div>
-          )
-        }
-        {
-          buyer && o.status === 'pending' && (
-            <p slot="extra" class="mt-3 text-body-small text-on-surface-variant">Bạn xem hàng rồi mới trả tiền cho shipper.</p>
-          )
-        }
         {
           current && (o.status === 'pending' || o.status === 'shipped' || canReport || screen.ticket) && (
             <Fragment slot="actions">
@@ -322,7 +306,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
 
   {
     o.status === 'pending' && current && (
-      <ConfirmPop id="cancel" title="Hủy đơn?" text={`${other} sẽ được báo.`} action={here} value="cancel" confirm="Hủy đơn">
+      <ConfirmPop id="cancel" title="Hủy đơn?" action={here} value="cancel" confirm="Hủy đơn">
         <input type="hidden" name="key" value={isId(p.get('key') ?? '') ? p.get('key')! : idempotencyKey()} />
       </ConfirmPop>
     )
@@ -332,7 +316,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
       <ConfirmPop
         id="confirm"
         title="Đã nhận hàng?"
-        text={`Đơn hoàn tất và ${other} được báo. Không đổi lại được.`}
+        text="Không đổi lại được."
         action={here}
         value="confirm"
         confirm="Đã nhận hàng"
@@ -363,7 +347,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
           </label>
           <p class="mt-3 flex items-start gap-2 text-body-small text-on-surface-variant">
             <Icon name="balance-rounded" size={16} class="mt-0.5 shrink-0" />
-            {other} không thấy báo cáo này. Đơn giữ nguyên. Hệ thống không phân xử giữa người mua và người bán.
+            Hệ thống không phân xử giữa người mua và người bán.
           </p>
           <div class="mt-6 flex justify-end gap-2">
             <button type="button" popovertarget="report" popovertargetaction="hide" class="state-layer h-10 rounded-control px-4 text-label-large text-primary">
