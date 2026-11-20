@@ -1132,6 +1132,69 @@
           "visualDirection": "K2; tools/build_header.py"
         }
       }
+    },
+    "#notif-preview": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "activeDraftId": "ac9da31c-7278-4b93-839b-ce33e9da9553",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_header.py",
+        ".superdesign/tools/build_notif_preview.py"
+      ],
+      "drafts": {
+        "ac9da31c-7278-4b93-839b-ce33e9da9553": {
+          "title": "Header · Thông báo xem nhanh",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_notif_preview.py"
+        },
+        "e40f93c1-85c9-4a57-856d-119eed47299f": {
+          "title": "Header · Tin nhắn xem nhanh",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_notif_preview.py"
+        },
+        "79e594c3-a543-4519-b082-d433139b5edf": {
+          "title": "Header · Thông báo trên điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A, 390; tools/build_notif_preview.py"
+        }
+      },
+      "updatedAt": "2026-11-20T03:05:21.992704+00:00"
+    },
+    "/p/[slug]#chia-se": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "485164f7-77b9-410b-815a-4be6b3548dbe",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_share_sheet.py",
+        ".superdesign/tools/share_marks.json"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
+        ".superdesign/tools/build_k2.py": "712d17000dece24fc54e417d0f5457c5b342c687868aa371036c1719c5bb5654",
+        ".superdesign/tools/build_share_sheet.py": "3073148e0d950fc9e3266693b8f1de9600c407bd0353b026b1bd049b58955281",
+        ".superdesign/tools/share_marks.json": "d4d6ba6baedecc4593b1b67235d7d4c04cf2c79f42fa8f184d0c8ccd8bfb39fa"
+      },
+      "drafts": {
+        "485164f7-77b9-410b-815a-4be6b3548dbe": {
+          "title": "Chia sẻ · Popover trên Chi tiết tin",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_share_sheet.py"
+        },
+        "cadbcfd3-1f8c-431f-8c66-438733d06c5d": {
+          "title": "Chia sẻ · Bảng dưới trên điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_share_sheet.py"
+        }
+      },
+      "note": "Share button opens providers: popover from 600 px up, bottom sheet on a phone.",
+      "updatedAt": "2026-11-20T03:07:54.077449+00:00"
     }
   }
 }
