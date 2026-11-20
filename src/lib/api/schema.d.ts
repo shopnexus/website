@@ -2069,7 +2069,8 @@ export interface paths {
         /**
          * The listing view, a listing on sale with its seller and the reader's ties to it.
          * @description Only an active or reserved listing has the view; its seller reads it
-         *     in another status through GET /v1/listings/{id}. A signed-in reader
+         *     in another status through GET /v1/listings/{id}, and anyone reads a
+         *     sold one through GET /v1/screens/sold-listing/{id}. A signed-in reader
          *     who is not the seller also gets `viewer`, and the read counts as a
          *     view of the listing, once per reader and UTC day; a signed-out read
          *     counts none (GET /v1/screens/my-listings). A prefetch (Sec-Purpose)
@@ -2079,6 +2080,31 @@ export interface paths {
          *     measures it.
          */
         get: operations["getListingScreen"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/screens/sold-listing/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The sold listing view, what anyone still sees of a listing after it sold.
+         * @description A listing marked sold, by hand or through an order, keeps its title,
+         *     photos, category, condition, place and price, so an old link still
+         *     shows what it was and leads to similar listings. It has no seller,
+         *     description or actions, and a read counts no view. A listing in any
+         *     other status, hidden by ShopNexus after the sale included, has no
+         *     view.
+         */
+        get: operations["getSoldListingScreen"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2479,7 +2505,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the caller's saved listings, newest save first. */
+        /**
+         * List the caller's saved listings, those still on sale first.
+         * @description The saves of listings that are not sold, hidden or deleted come first,
+         *     then the others, each group newest save first. A listing that sells
+         *     between two pages moves to the end, so the later pages may show it
+         *     again or skip a save that moved up.
+         */
         get: operations["listSaved"];
         put?: never;
         post?: never;
@@ -6560,6 +6592,27 @@ export interface components {
             distance_km?: number;
             seller: components["schemas"]["SellerSummary"];
             viewer?: components["schemas"]["ListingViewer"];
+        };
+        /** @description A sold listing as anyone still sees it. */
+        SoldListing: {
+            /** Format: uuid */
+            id: string;
+            slug: components["schemas"]["ListingSlug"];
+            title: string;
+            /**
+             * Format: int64
+             * @description The price the listing asked when it sold; an order's agreed price stays with its two people.
+             */
+            price: number;
+            category_code: string;
+            condition: components["schemas"]["Condition"];
+            location: components["schemas"]["Location"];
+            photos: components["schemas"]["Photo"][];
+            /** Format: date-time */
+            sold_at: string;
+        };
+        SoldListingScreen: {
+            listing: components["schemas"]["SoldListing"];
         };
         /** @description The seller as the seller view shows them. */
         SellerProfile: {
@@ -12455,6 +12508,39 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             /** @description No such listing on sale (listing_not_found), for its seller too. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getSoldListingScreen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The listing's ID, or the slug of its web address (ListingSlug). */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The sold listing view. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SoldListingScreen"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description No such sold listing (listing_not_found). */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -1,6 +1,6 @@
 ---
 // Đã lưu: the saved searches with their new listings and bells, then the
-// saved listings, newest save first, a page at a time.
+// saved listings, those still on sale first, a page at a time.
 import Notice from '../components/Notice.astro';
 import Icon from '../components/Icon.astro';
 import PageTitle from '../components/PageTitle.astro';
@@ -10,7 +10,7 @@ import SavedCard from '../components/orders/SavedCard.astro';
 import { ApiError, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
 import { categoryName } from '../lib/catalog';
 import { money, parseMoney } from '../lib/format';
-import { conditionLabel, isId } from '../lib/listing';
+import { conditionLabel, isId, saveEnded } from '../lib/listing';
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { btnCls } from '../lib/ui';
@@ -50,6 +50,14 @@ const [saved, watches] = await Promise.all([
   unwrap(api.GET('/v1/search/watches')).then((r) => r.items),
 ]);
 const failed = Astro.url.searchParams.get('failed');
+// The server lists the saves on sale first; the sold and taken-down ones form a group of their own,
+// which a later page's first group joins (lib/more).
+const cut = saved.items.findIndex(saveEnded);
+// Each group starts on a row of its own; the first two rows of four are the first screen at 1280.
+const groups = [
+  { key: 'on-sale', items: cut < 0 ? saved.items : saved.items.slice(0, cut), row: 0 },
+  { key: 'ended', items: cut < 0 ? [] : saved.items.slice(cut), row: Math.ceil(Math.max(cut, 0) / 4) },
+].filter((g) => g.items.length);
 
 /** A watch's filters and place, as one line. */
 async function filtersLine(w: Schemas['SearchWatch']) {
@@ -147,9 +155,21 @@ const count = `${saved.items.length}${saved.next_cursor ? '+' : ''} tin`;
     saved.items.length ? (
       <section class="mt-6">
         {!after && watches.length > 0 && <h2 class="mb-2 pl-1 text-title-small text-ink">Tin đã lưu</h2>}
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5" data-saved data-skeleton-kind="card" data-skeleton-count="5">
-          {saved.items.map((it, i) => (
-            <SavedCard it={it} loading={i < 8 ? 'eager' : 'lazy'} />
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4" data-saved data-skeleton-kind="card" data-skeleton-count="4">
+          {groups.map(({ key, items, row }) => (
+            <div class="col-span-full grid grid-cols-subgrid gap-3" data-more-key={key}>
+              {key === 'ended' && (
+                <h2 class="col-span-full mt-3 flex items-center gap-3 pl-1 text-title-small text-sub">
+                  Không còn bán
+                  <span class="h-px flex-1 bg-line" />
+                </h2>
+              )}
+              <div class="contents" data-more-items>
+                {items.map((it, i) => (
+                  <SavedCard it={it} loading={row + Math.floor(i / 4) < 2 ? 'eager' : 'lazy'} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>

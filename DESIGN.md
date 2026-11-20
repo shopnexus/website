@@ -395,6 +395,12 @@ Drafts: `.superdesign/mockups/offers-inbox-*.html`
 Every money field is an `input[data-money]` run by `src/lib/money-input.ts`:
 it groups thousands as it is typed, keeps the caret after the same digit,
 and a Backspace or Delete beside a dot removes the digit past it.
+Đã lưu lists the saved listings on sale first, as the server orders them.
+A listing whose price changed since the save says so under its price: "↓
+40.000 ₫ từ khi bạn lưu" in teal, a rise in `faint`. The sold and
+taken-down ones follow under "Không còn bán", greyed; a sold one keeps "Đã
+bán" on its photo and "Xem đồ tương tự". Drafts:
+`.superdesign/mockups/saved-sold-saved*.html` (`tools/build_saved_sold.py`).
 
 ### Tin nhắn
 
@@ -439,9 +445,14 @@ price range and a grid of matches, then other models of the same brand.
 
 ### Not found and no results
 
-A sold or removed listing opens a 404 page: when it sold, a search field
-filled with its name, the listing greyed out with "ĐÃ BÁN" and a switch to
-follow the seller, then similar listings still for sale. A search with no
+A sold listing keeps its page, with HTTP status 410 so search engines drop
+it: the photos greyed under "Đã bán", the condition, place and sale date,
+the title and the price it sold at, then "Báo khi có món giống vậy", which
+follows the title in its category and a price band a quarter either way,
+and "Xem tin tương tự". It has no buy, offer or chat; listings like it still
+for sale follow. A hidden, deleted or unknown listing opens the 404 page
+with the search field and the newest listings nearby. Drafts:
+`.superdesign/mockups/saved-sold-listing*.html`. A search with no
 match keeps the Tìm kiếm frame, says how many conditions failed, lists ways
 to loosen the search with the number of listings each would show, offers
 "Báo khi có tin mới" and shows listings close to the query.

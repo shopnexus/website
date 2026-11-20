@@ -4,12 +4,16 @@ import { R, localPath } from '../../lib/routes';
 import { readSearch, watchInput } from '../../lib/search';
 import { loginUrl } from '../../lib/session';
 
-/** "Báo khi có tin mới": saves the search in `search` and goes back to it; ?watches=full when 20 are saved already. */
+/**
+ * "Báo khi có tin mới": saves the search in `search` and goes back to `back`, the search itself
+ * by default; ?watches=full when 20 are saved already.
+ */
 export const POST: APIRoute = async ({ request, locals, cookies, url, redirect }) => {
-  const raw = String((await request.formData()).get('search') ?? '');
-  const back = new URL(localPath(raw, R.search), url);
+  const form = await request.formData();
+  const search = new URL(localPath(String(form.get('search') ?? ''), R.search), url);
+  const back = new URL(localPath(String(form.get('back') ?? ''), search.pathname + search.search), url);
   if (!locals.session.token) return redirect(loginUrl(back), 303);
-  const s = readSearch(back);
+  const s = readSearch(search);
   if (s.q) {
     try {
       await unwrap(locals.api.POST('/v1/search/watches', { body: watchInput(s, cookies) }));

@@ -1,8 +1,8 @@
 ---
 // Chi tiết tin (detail-c): the gallery, price and actions, the seller with
 // three of their other listings, the description, condition and specs, two
-// reviews of the seller, and similar listings. A listing that is not on sale
-// (or not there) is the 404.
+// reviews of the seller, and similar listings. A sold listing answers 410
+// with what it was and listings like it; anything else not on sale is the 404.
 import Ago from '../../components/Ago.astro';
 import Avatar from '../../components/Avatar.astro';
 import Crumbs from '../../components/Crumbs.astro';
@@ -16,6 +16,7 @@ import Gallery from '../../components/public/Gallery.astro';
 import ListingActions from '../../components/public/ListingActions.astro';
 import ListingPrice from '../../components/public/ListingPrice.astro';
 import NotFound from '../../components/public/NotFound.astro';
+import SoldListing from '../../components/public/SoldListing.astro';
 import ReviewItem from '../../components/public/ReviewItem.astro';
 import QuickChat from '../../components/public/QuickChat.astro';
 import ViewedMark from '../../components/public/ViewedMark.astro';
@@ -24,7 +25,7 @@ import ShareSheet from '../../components/ShareSheet.astro';
 import Layout from '../../layouts/Layout.astro';
 import { orNull, unwrap } from '../../lib/api/client';
 import { near } from '../../lib/area';
-import { categories } from '../../lib/catalog';
+import { rootOf } from '../../lib/catalog';
 import { REPLY_TIME, decimal, group, ratingText, where } from '../../lib/format';
 import { CONDITIONS, QUESTIONS, card, conditionLabel, dealState } from '../../lib/listing';
 import { R } from '../../lib/routes';
@@ -38,12 +39,16 @@ const api = Astro.locals.api;
 // any address but the current slug moves there for good.
 const screen = await orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id: slug }, query: near(Astro.cookies) } }));
 if (screen && screen.listing.slug !== slug) return Astro.redirect(R.listing(screen.listing.slug) + Astro.url.search, 301);
-if (!screen) Astro.response.status = 404;
+// A sold listing is gone for good, so 410 drops it from search engines sooner than a 200
+// with noindex, which they would keep crawling; people following an old link still get the page.
+const sold = screen ? null : await orNull(api.GET('/v1/screens/sold-listing/{id}', { params: { path: { id: slug } } }));
+if (sold && sold.listing.slug !== slug) return Astro.redirect(R.listing(sold.listing.slug) + Astro.url.search, 301);
+if (!screen) Astro.response.status = sold ? 410 : 404;
 
 const it = screen?.listing;
 const id = it?.id ?? '';
 const seller = screen?.seller;
-const [similar, others, reviews, cats] = it
+const [similar, others, reviews, root] = it
   ? await Promise.all([
       unwrap(api.GET('/v1/search', { params: { query: { like: id, limit: 6, ...near(Astro.cookies) } } }))
         .then((r) => r.items.filter((s) => s.id !== id).slice(0, 5).map(card))
@@ -54,9 +59,9 @@ const [similar, others, reviews, cats] = it
       unwrap(api.GET('/v1/sellers/{id}/reviews', { params: { path: { id: it.seller_id }, query: { limit: 2 } } }))
         .then((r) => r.items)
         .catch(() => []),
-      categories().catch(() => []),
+      rootOf(it.category_code).catch(() => undefined),
     ])
-  : [[], [], [], []];
+  : [[], [], [], undefined];
 
 const me = viewer(Astro);
 const { mine, reserved, offers, ordered, chat } = screen ? dealState(screen, me) : { mine: false, reserved: false, offers: false, ordered: false, chat: '' };
@@ -65,7 +70,6 @@ const place = it ? where(screen!.distance_km, it.location.commune.display_name) 
 const posted = it ? (it.published_at ?? it.created_at) : '';
 const description = it?.description.split(/\n+/).filter(Boolean) ?? [];
 const photos = (it?.photos ?? []).filter((p) => p.url).map((p) => ({ big: p.url!, thumb: p.url! }));
-const root = cats.find((c) => c.code === it?.category_code || c.children.some((s) => s.code === it?.category_code));
 const crumbs: [string, string?][] = [['Khám phá', R.home], ...(root ? [[root.name, R.category(root.code)] as [string, string]] : []), [it?.title ?? '']];
 const act = 'state-layer flex h-8 items-center gap-1.5 rounded-sm px-2.5 text-body-medium text-sub hover:bg-hover hover:text-ink';
 /** What each condition on the scale means. */
@@ -96,7 +100,11 @@ const ld = it && {
 ---
 
 {
-  !it || !seller ? (
+  sold ? (
+    <Layout title={`${sold.listing.title} · Đã bán · ShopNexus`} description="Món này đã bán. Xem tin tương tự còn bán." section="explore">
+      <SoldListing listing={sold.listing} />
+    </Layout>
+  ) : !it || !seller ? (
     <Layout title="Không có tin này · ShopNexus" description="Tin có thể đã bán hoặc đã bị gỡ. Xem tin khác còn bán.">
       <NotFound />
     </Layout>

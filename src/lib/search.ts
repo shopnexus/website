@@ -57,6 +57,15 @@ export function readSearch(url: URL): Search {
   };
 }
 
+/** A search of only `fields`. */
+export const searchOf = (fields: Partial<Search>): Search => ({ q: '', conditions: [], offers: false, off: [], ...fields });
+
+/** The prices of listings like one at `price`: a quarter either way, in steps of 10.000 ₫. */
+export function priceBand(price: number) {
+  const step = 10_000;
+  return { min: Math.floor((price * 0.75) / step) * step, max: Math.ceil((price * 1.25) / step) * step };
+}
+
 /** The search's URL on `base` (Tìm kiếm by default), with `change` applied; the cursor always goes. */
 export function searchHref(s: Search, change: Partial<Search> = {}, base: string = R.search) {
   const v = { ...s, after: undefined, ...change };
