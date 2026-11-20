@@ -97,8 +97,13 @@ const { title, description, section = null, search, footer = true, fab = true, i
       // Back from the next page, or a navigation the buyer stopped.
       addEventListener('pageshow', dropSkeleton);
       addEventListener('keydown', (e) => e.key === 'Escape' && dropSkeleton());
+      // A transition draws above the top layer, so a photo paired under an open
+      // dialog or popover would cover it until the transition ends.
+      const covered = () => {
+        try { return !!document.querySelector('dialog:modal, :popover-open'); } catch { return false; }
+      };
       const pair = (img, vt) => {
-        if (!img) return;
+        if (!img || covered()) return;
         img.style.viewTransitionName = 'listing-photo';
         img.dataset.loaded = '';
         vt.finished.finally(() => (img.style.viewTransitionName = ''));
