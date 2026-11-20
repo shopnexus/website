@@ -115,6 +115,7 @@ export const RI = {
   'query-stats-rounded': 'line-chart-line',
   'receipt-long-outline-rounded': 'receipt-line',
   'remove-rounded': 'subtract-line',
+  'replay-rounded': 'restart-line',
   'reply-rounded': 'reply-line',
   'report-outline-rounded': 'spam-2-line',
   'schedule-outline-rounded': 'time-line',
@@ -153,4 +154,5 @@ export const RI = {
   'visibility-outline-rounded': 'eye-line',
   'work-outline-rounded': 'briefcase-line',
   'workspace-premium-outline-rounded': 'vip-crown-line',
+  'wrap-text-rounded': 'text-wrap',
 };

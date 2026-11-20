@@ -1,14 +1,18 @@
 ---
 // One of the seller's listings on Tin của bạn: cover, title, price, status,
-// its numbers, the order waiting on it, and the ⋮ menu of what its status
-// allows. Each action is a form post the page handles.
+// its numbers, the order waiting on it, and what its status allows. The
+// price opens Đổi giá, "Đã bán" and "Xóa tin" ask once, a sold listing has
+// "Đăng lại", and the ⋮ menu holds the rest. Each step is a form post the
+// page handles, which lib/my-listings-edit runs in place instead.
 import type { Schemas } from '../../lib/api/client';
 import { ago, date } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { btnCls } from '../../lib/ui';
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
-import Price from '../Price.astro';
+import PriceLine from '../PriceLine.astro';
+import ConfirmPop from '../orders/ConfirmPop.astro';
+import PriceEdit from './PriceEdit.astro';
 
 interface Props {
   it: Schemas['MyListingsItem'];
@@ -19,9 +23,10 @@ const { it, loading } = Astro.props;
 const l = it.listing;
 const cover = l.photos[0]?.thumb_url ?? l.photos[0]?.url;
 const pub = l.status === 'active' || l.status === 'reserved';
+// Active and hidden swap in place, so both draw what differs and data-status picks.
+const onSale = l.status === 'active' || l.status === 'hidden';
 const STATUS: Partial<Record<Schemas['ListingStatus'], [string, string]>> = {
   processing: ['hourglass-empty-rounded', 'Đang xử lý ảnh'],
-  hidden: ['visibility-off-outline-rounded', 'Đã ẩn'],
   rejected: ['error-outline-rounded', 'Bị từ chối'],
   reserved: ['local-shipping-outline-rounded', 'Đang giao'],
   sold: ['check-circle-outline-rounded', l.sold_at ? `Đã bán ${date(l.sold_at)}` : 'Đã bán'],
@@ -33,28 +38,22 @@ const stats = [
   { icon: 'chat-outline-rounded', n: it.askers, t: 'Người hỏi' },
   { icon: 'favorite-outline-rounded', n: it.saves, t: 'Lượt lưu' },
 ];
-
-type Action = { step: string; icon: string; label: string; confirm?: string };
-const del: Action = { step: 'delete', icon: 'delete-outline-rounded', label: 'Xóa tin', confirm: 'Xóa tin này? Không hoàn tác được.' };
-const sold: Action = { step: 'mark-sold', icon: 'sell-outline-rounded', label: 'Đánh dấu đã bán' };
-const actions: Action[] =
-  {
-    processing: [del],
-    active: [sold, { step: 'hide', icon: 'visibility-off-outline-rounded', label: 'Ẩn tin' }, del],
-    hidden: [{ step: 'unhide', icon: 'visibility-outline-rounded', label: 'Hiện lại' }, sold, del],
-    rejected: [del],
-    reserved: [],
-    sold: [{ step: 'unmark-sold', icon: 'undo-rounded', label: 'Bán lại' }, del],
-    deleted: [],
-  }[l.status] ?? [];
 const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
+const deletable = l.status !== 'reserved' && l.status !== 'deleted';
+const id = { sold: `sold-${l.id}`, del: `delete-${l.id}` };
+const item = 'flex h-11 w-full items-center gap-3 rounded-md px-3 text-left text-body-medium text-ink hover:bg-black/[.05]';
+const drop = l.price_drop?.previous_price;
 ---
 
-<article class="relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-card p-2 md:flex-nowrap">
+<article
+  class="group relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-line bg-card p-2 md:flex-nowrap"
+  data-row={l.id}
+  data-status={l.status}
+>
   <div class="flex min-w-0 flex-1 basis-full items-center gap-4 md:basis-auto">
     {
       cover ? (
-        <Photo src={cover} width={160} height={160} alt={l.title} loading={loading} class:list={['h-16 w-16 shrink-0 rounded-lg object-cover', l.status === 'hidden' && 'opacity-50']} />
+        <Photo src={cover} width={160} height={160} alt={l.title} loading={loading} class="h-16 w-16 shrink-0 rounded-lg object-cover group-data-[status=hidden]:opacity-50" />
       ) : (
         <span class="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-surface-container-high text-on-surface-variant">
           <Icon name="image-outline-rounded" size={22} />
@@ -66,7 +65,23 @@ const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
         {pub ? <a href={R.listing(l.slug)} class="hover:underline">{l.title}</a> : l.title}
       </h3>
       <div class="mt-0.5 flex items-center gap-3 overflow-hidden whitespace-nowrap">
-        <Price vnd={l.price} size="text-j-15" />
+        {
+          onSale ? (
+            <button
+              type="button"
+              popovertarget={`price-${l.id}`}
+              class="state-layer -mx-1.5 flex h-8 shrink-0 flex-row-reverse items-center justify-end gap-1 rounded-sm px-1.5 hover:bg-hover"
+              aria-label={`Đổi giá ${l.title}`}
+              data-price-button
+            >
+              <!-- The pencil leads, drawn last, so a busy price turns it into the ring (busy.css). -->
+              <Icon name="edit-outline-rounded" size={14} class="shrink-0 text-faint" />
+              <PriceLine vnd={l.price} was={drop} size="text-j-15" class="shrink-0" />
+            </button>
+          ) : (
+            <PriceLine vnd={l.price} was={drop} size="text-j-15" class="shrink-0" />
+          )
+        }
         <span class="h-3 border-l border-black/10"></span>
         <span class="flex items-center gap-3 text-body-small text-on-surface-variant">
           {
@@ -88,10 +103,15 @@ const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
   </div>
   <div class="ml-20 flex flex-1 flex-wrap items-center justify-end gap-2 md:ml-0 md:flex-none">
     {
-      status && (
-        <span class="flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-label-medium text-on-surface-variant">
-          <Icon name={status[0]} size={16} />
-          {status[1]}
+      (status || onSale) && (
+        <span
+          class:list={[
+            'items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-label-medium text-on-surface-variant',
+            onSale ? 'hidden group-data-[status=hidden]:flex' : 'flex',
+          ]}
+        >
+          <Icon name={status?.[0] ?? 'visibility-off-outline-rounded'} size={16} />
+          {status?.[1] ?? 'Đã ẩn'}
         </span>
       )
     }
@@ -111,6 +131,25 @@ const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
       )
     }
     {
+      onSale && (
+        <button type="button" popovertarget={id.sold} class={btnCls('line', 'sm')}>
+          <Icon name="check-rounded" size={16} />
+          Đã bán
+        </button>
+      )
+    }
+    {
+      l.status === 'sold' && (
+        <form method="post">
+          <input type="hidden" name="id" value={l.id} />
+          <button name="step" value="relist" class={btnCls('line', 'sm')}>
+            <Icon name="replay-rounded" size={16} />
+            Đăng lại
+          </button>
+        </form>
+      )
+    }
+    {
       editable && (
         <a href={`${R.post}?edit=${l.id}`} class={btnCls('line', 'sm')}>
           <Icon name="edit-outline-rounded" size={16} />
@@ -119,27 +158,53 @@ const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
       )
     }
     {
-      actions.length > 0 && (
+      deletable && (
         <details class="relative" data-row-menu>
           <summary class="state-layer grid h-9 w-9 cursor-pointer list-none place-items-center rounded-full text-on-surface-variant [&::-webkit-details-marker]:hidden" aria-label={`Tùy chọn cho ${l.title}`}>
             <Icon name="more-vert" size={20} />
           </summary>
           <form method="post" class="absolute right-0 top-10 z-20 flex w-[220px] flex-col rounded-tile bg-card/95 p-1.5 shadow-float ring-1 ring-line backdrop-blur">
             <input type="hidden" name="id" value={l.id} />
-            {actions.map((a) => (
-              <button
-                name="step"
-                value={a.step}
-                class:list={['flex h-11 w-full items-center gap-3 rounded-md px-3 text-left text-body-medium hover:bg-black/[.05]', a.step === 'delete' ? 'text-error' : 'text-ink']}
-                data-confirm={a.confirm}
-              >
-                <Icon name={a.icon} size={20} class={a.step === 'delete' ? '' : 'text-on-surface-variant'} />
-                {a.label}
+            {onSale && (
+              <>
+                <button name="step" value="hide" class:list={[item, 'group-data-[status=hidden]:hidden']}>
+                  <Icon name="visibility-off-outline-rounded" size={20} class="text-on-surface-variant" />
+                  Ẩn tin
+                </button>
+                <button name="step" value="unhide" class:list={[item, 'hidden group-data-[status=hidden]:flex']}>
+                  <Icon name="visibility-outline-rounded" size={20} class="text-on-surface-variant" />
+                  Hiện lại
+                </button>
+              </>
+            )}
+            {l.status === 'sold' && (
+              <button name="step" value="unmark-sold" class={item}>
+                <Icon name="undo-rounded" size={20} class="text-on-surface-variant" />
+                Bán lại
               </button>
-            ))}
+            )}
+            <button type="button" popovertarget={id.del} class:list={[item, '!text-error']}>
+              <Icon name="delete-outline-rounded" size={20} />
+              Xóa tin
+            </button>
           </form>
         </details>
       )
     }
   </div>
+  {onSale && <PriceEdit id={l.id} title={l.title} price={l.price} published={!!l.published_at} />}
+  {
+    onSale && (
+      <ConfirmPop id={id.sold} title="Đánh dấu đã bán?" text={l.title} name="step" value="mark-sold" confirm="Đã bán">
+        <input type="hidden" name="id" value={l.id} />
+      </ConfirmPop>
+    )
+  }
+  {
+    deletable && (
+      <ConfirmPop id={id.del} title="Xóa tin này?" text="Không hoàn tác được." name="step" value="delete" confirm="Xóa">
+        <input type="hidden" name="id" value={l.id} />
+      </ConfirmPop>
+    )
+  }
 </article>

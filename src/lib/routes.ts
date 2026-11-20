@@ -68,6 +68,8 @@ export const API = {
   /** Chat nhanh on a listing: a message or an offer (QuickChat). */
   /** Đăng tin: the autosaved draft, the read of the cover, the price guide and the category guess. */
   listingDraft: (id: string) => `/api/listing-drafts/${id}`,
+  /** Tin của bạn: a step on one listing, in place (lib/my-listings-edit). */
+  myListing: (id: string) => `/api/my-listings/${id}`,
   listingReads: '/api/listing-reads',
   listingRead: (id: string) => `/api/listing-reads/${id}`,
   priceGuides: '/api/price-guides',
