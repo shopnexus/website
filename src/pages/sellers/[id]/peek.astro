@@ -3,6 +3,7 @@
 // Theo dõi (not on the viewer's own card) and Xem trang. An unknown ID is a 404.
 import Avatar from '../../../components/Avatar.astro';
 import FollowButton from '../../../components/FollowButton.astro';
+import PhoneBadge from '../../../components/PhoneBadge.astro';
 import Stars from '../../../components/public/Stars.astro';
 import { orNull } from '../../../lib/api/client';
 import { decimal } from '../../../lib/format';
@@ -42,6 +43,7 @@ const figures: [number, string][] = [
           <p class="mt-0.5 text-body-medium text-sub">Chưa có đánh giá</p>
         )
       }
+      {s.phone_verified && <PhoneBadge class="mt-1 text-body-small" />}
     </div>
   </div>
   <div class="mt-3 grid auto-cols-fr grid-flow-col divide-x divide-line rounded-control border border-line">

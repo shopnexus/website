@@ -1,0 +1,17 @@
+---
+// A time in words that stay true while the page is open: lib/ago words every
+// <time data-ago> again in the browser. as: how it reads (format.ts TIME_TEXT).
+import { TIME_TEXT, type TimeKind, TZ } from '../lib/format';
+
+interface Props {
+  /** ISO 8601. */
+  at: string;
+  as?: TimeKind;
+  class?: string;
+}
+
+const { at, as = 'ago', class: cls } = Astro.props;
+const exact = new Date(at).toLocaleString('vi-VN', { timeZone: TZ, hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+---
+
+<time datetime={at} data-ago={as} title={exact} class={cls}>{TIME_TEXT[as](at)}</time>

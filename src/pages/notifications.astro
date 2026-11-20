@@ -11,7 +11,7 @@ import Skeleton from '../components/Skeleton.astro';
 import { ApiError, orNull, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
 import { R, localPath } from '../lib/routes';
 import { requireViewer } from '../lib/session';
-import { btnCls, PANEL } from '../lib/ui';
+import { FIELD, btnCls, PANEL } from '../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
@@ -80,7 +80,7 @@ const prefs: [string, Pref[]][] = [
   ],
   ['Đánh giá', [{ name: 'reviews', icon: 'star-outline-rounded', title: 'Đánh giá và trả lời' }]],
 ];
-const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium text-ink tabular-nums focus:bg-card focus:outline-2 focus:outline-primary';
+const time = `h-9 px-3 text-body-medium text-ink tabular-nums outline-none ${FIELD}`;
 ---
 
 <AccountShell title="Thông báo · ShopNexus" active="notifications">

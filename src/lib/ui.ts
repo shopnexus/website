@@ -4,6 +4,8 @@
 export const PANEL = 'rounded-panel border border-line bg-card';
 /** A section heading, 18 px. */
 export const H2 = 'text-j-18 text-ink';
+/** A text field, or the box around one: 10 px like the buttons, the field border, teal while focused. */
+export const FIELD = 'rounded-control border border-field bg-card focus-within:border-brand focus-within:ring-1 focus-within:ring-brand';
 /** The small label over a group. */
 export const LABEL = 'px-1 text-body-small text-faint';
 const GUTTER = 'px-4 md:px-6 lg:px-8';

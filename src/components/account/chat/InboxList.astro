@@ -1,8 +1,9 @@
 ---
 // The inbox's list: the conversations, or a search's people and messages.
 // Archived conversations have their own list. Live updates swap it whole.
-import { type Inbox, chatHref, personName, when } from '../../../lib/messages';
+import { type Inbox, chatHref, personName } from '../../../lib/messages';
 import { R } from '../../../lib/routes';
+import Ago from '../../Ago.astro';
 import Avatar from '../../Avatar.astro';
 import Icon from '../../Icon.astro';
 import InboxRow from './InboxRow.astro';
@@ -41,7 +42,7 @@ const more = (after: string) => `${R.messages}?${new URLSearchParams({ ...(m.arc
               <span class="min-w-0 flex-1">
                 <span class="flex items-baseline gap-2">
                   <span class="min-w-0 flex-1 truncate text-title-small text-ink">{personName(h.other)}</span>
-                  <span class="text-body-small text-on-surface-variant">{when(h.message.created_at)}</span>
+                  <Ago at={h.message.created_at} as="when" class="text-body-small text-on-surface-variant" />
                 </span>
                 <span class="line-clamp-2 text-body-medium text-on-surface-variant">
                   {h.message.sender_id === me ? 'Bạn: ' : ''}

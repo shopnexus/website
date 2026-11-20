@@ -13,7 +13,7 @@ import { communes, provinces } from '../../lib/regions';
 import { R } from '../../lib/routes';
 import { DESCRIPTION_MAX, PHOTOS_MAX, type SellFields, TITLE_MAX } from '../../lib/sell';
 import { PHOTO_TYPES } from '../../lib/upload';
-import { btnCls, PANEL } from '../../lib/ui';
+import { FIELD, btnCls, PANEL } from '../../lib/ui';
 
 interface Props {
   fields: SellFields;
@@ -35,7 +35,7 @@ interface Props {
 const { fields: f, urls, failures = {}, errors = {}, editId, draftId, idemKey, locked = false } = Astro.props;
 const [tree, regions, choices] = await Promise.all([categories(), provinces(), f.province ? communes(f.province).catch(() => []) : []]);
 const specs = [...f.specs, { label: '', value: '' }];
-const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant';
+const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none';
 const select = `${input} cursor-pointer appearance-none`;
 const bad = 'mt-1 block px-1 text-body-small text-error';
 const badge = 'grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand text-title-small text-white tabular-nums';
@@ -201,11 +201,11 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
             {
               specs.map((s) => (
                 <li class="flex items-center gap-2" data-spec>
-                  <label class="flex h-11 min-w-0 flex-1 items-center rounded-field bg-surface-container-low px-3 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary">
+                  <label class:list={[FIELD, 'flex h-11 min-w-0 flex-1 items-center px-3']}>
                     <span class="sr-only">Tên thông số</span>
                     <input name="spec_label" value={s.label} maxlength={50} placeholder="VD: Pin" class={input} />
                   </label>
-                  <label class="flex h-11 min-w-0 flex-1 items-center rounded-field bg-surface-container-low px-3 focus-within:bg-card focus-within:ring-2 focus-within:ring-primary">
+                  <label class:list={[FIELD, 'flex h-11 min-w-0 flex-1 items-center px-3']}>
                     <span class="sr-only">Giá trị</span>
                     <input name="spec_value" value={s.value} maxlength={50} placeholder="VD: 81%" class={input} />
                   </label>

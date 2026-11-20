@@ -2,6 +2,7 @@
 // The 56 px search field of the 404 page: a form to Tìm kiếm, the photo button, Tìm.
 import { R } from '../lib/routes';
 import Icon from './Icon.astro';
+import { FIELD, btnCls } from '../lib/ui';
 
 interface Props {
   class?: string;
@@ -10,16 +11,16 @@ interface Props {
 const { class: cls } = Astro.props;
 ---
 
-<form action={R.search} class:list={['flex h-14 items-center gap-3 rounded-full bg-card pl-4 pr-2 shadow-glow', cls]}>
+<form action={R.search} class:list={[FIELD, 'flex h-14 items-center gap-3 pl-4 pr-2', cls]}>
   <Icon name="search-rounded" size={22} class="text-primary" />
   <input
     name="q"
     placeholder="Tìm trên ShopNexus"
     aria-label="Tìm trên ShopNexus"
-    class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+    class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none"
   />
   <a href={R.photoSearch} class="state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant" aria-label="Tìm bằng ảnh">
     <Icon name="photo-camera-outline-rounded" size={20} />
   </a>
-  <button class="state-layer h-10 shrink-0 rounded-full bg-primary px-6 text-label-large text-on-primary">Tìm</button>
+  <button class={btnCls('primary')}>Tìm</button>
 </form>

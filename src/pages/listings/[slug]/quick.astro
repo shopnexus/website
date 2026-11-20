@@ -3,15 +3,17 @@
 // gallery, condition, place, title, price, the listing's buttons with the
 // heart, the seller, the description's first lines, and Chat nhanh for a
 // buyer signed in. A listing gone is a 404 with one line.
+import Ago from '../../../components/Ago.astro';
 import Avatar from '../../../components/Avatar.astro';
 import Icon from '../../../components/Icon.astro';
+import PhoneBadge from '../../../components/PhoneBadge.astro';
 import Gallery from '../../../components/public/Gallery.astro';
 import ListingActions from '../../../components/public/ListingActions.astro';
 import ListingPrice from '../../../components/public/ListingPrice.astro';
 import QuickChat from '../../../components/public/QuickChat.astro';
 import { orNull } from '../../../lib/api/client';
 import { near } from '../../../lib/area';
-import { ago, ratingText, where } from '../../../lib/format';
+import { ratingText, where } from '../../../lib/format';
 import { QUESTIONS, conditionLabel, dealState } from '../../../lib/listing';
 import { R } from '../../../lib/routes';
 import { viewer } from '../../../lib/session';
@@ -48,7 +50,7 @@ const [rating] = seller ? ratingText(seller.rating) : [''];
       <div class="px-1 pt-4">
         <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
           <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{conditionLabel(it.condition)}</span>
-          {where(screen.distance_km, it.location.commune.display_name)} · {ago(it.published_at ?? it.created_at)} trước
+          {where(screen.distance_km, it.location.commune.display_name)} · <Ago at={it.published_at ?? it.created_at} />
         </p>
         <h2 class="mt-2.5 text-j-18 text-ink">{it.title}</h2>
         <ListingPrice price={it.price} drop={it.price_drop} size="text-j-26" class="mt-2" />
@@ -78,9 +80,15 @@ const [rating] = seller ? ratingText(seller.rating) : [''];
           <Avatar name={seller.display_name} photo={seller.avatar_url} size={36} />
           <span class="min-w-0 flex-1">
             <span class="block truncate text-title-small text-ink">{seller.display_name}</span>
-            <span class="flex items-center gap-1 text-body-small text-faint">
+            <span class="flex flex-wrap items-center gap-x-1 text-body-small text-faint">
               <Icon name="star-rounded" size={12} class="text-star" />
               {rating} · {seller.sold} đã bán
+              {seller.phone_verified && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <PhoneBadge />
+                </>
+              )}
             </span>
           </span>
           <Icon name="chevron-right-rounded" size={18} class="text-faint" />

@@ -2,7 +2,8 @@
 // A listing's price in full, with the price before a drop struck out and
 // "Vừa giảm" with when, on the listing page and in Xem nhanh.
 import type { Schemas } from '../../lib/api/client';
-import { ago, group, money } from '../../lib/format';
+import { group, money } from '../../lib/format';
+import Ago from '../Ago.astro';
 import Icon from '../Icon.astro';
 
 interface Props {
@@ -27,7 +28,7 @@ const { price, drop, size, class: cls } = Astro.props;
         <span class="flex items-center gap-0.5 rounded-xs bg-mint py-0.5 pl-1 pr-1.5 font-medium text-on-mint">
           <Icon name="arrow-downward-rounded" size={13} />Vừa giảm {money(drop.previous_price - price)}
         </span>
-        {ago(drop.dropped_at)} trước
+        <Ago at={drop.dropped_at} />
       </p>
     )
   }

@@ -9,7 +9,7 @@ import type { Schemas } from '../../lib/api/client';
 import { CARRIER } from '../../lib/orders';
 import { R } from '../../lib/routes';
 import { SERVICES, type ShipInput, type ShipReads } from '../../lib/ship';
-import { btnCls, PANEL } from '../../lib/ui';
+import { FIELD, btnCls, PANEL } from '../../lib/ui';
 import Icon from '../Icon.astro';
 import Option from './Option.astro';
 import ShipReadout from './ShipReadout.astro';
@@ -32,7 +32,7 @@ const tabHref = (via: string) => `${here}?${new URLSearchParams({ via, weight: i
 const label = 'mb-2 text-label-large text-ink';
 const savedAddress = setup.settings.pickup ? setup.addresses.find((a) => a.id === setup.settings.pickup!.address_id) : undefined;
 const pickups = reads.pickups && 'ok' in reads.pickups ? reads.pickups.ok : [];
-const inputBox = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 ring-primary/30 focus-within:ring-2';
+const inputBox = `flex h-12 items-center gap-2 px-4 ${FIELD}`;
 ---
 
 {

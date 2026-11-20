@@ -19,7 +19,7 @@ import { newest } from '../lib/feed';
 import { R, localPath } from '../lib/routes';
 import { keepTokens, viewer } from '../lib/session';
 import { codeError, deviceName, dropChallenge, emailProof, readChallenge, resendSeconds, sendEmailCode, signIn, tokenKind, tokenProof } from '../lib/sign-in';
-import { btnCls, CONTENT } from '../lib/ui';
+import { FIELD, btnCls, CONTENT } from '../lib/ui';
 
 // Only paths on this site; "//host" would leave it.
 const raw = Astro.url.searchParams.get('next') ?? '';
@@ -112,8 +112,8 @@ const [home, fresh] = await Promise.all([
 ]);
 const onSale = home?.categories.reduce((n, c) => n + c.count, 0);
 const place = area(Astro.cookies);
-const field = 'mt-1.5 flex h-12 items-center gap-2 rounded-full border border-line bg-card px-1.5 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10';
-const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-label-large text-white';
+const field = `mt-1.5 flex h-12 items-center gap-2 px-1.5 ${FIELD}`;
+const sendBtn = 'state-layer h-9 shrink-0 rounded-sm bg-brand px-4 text-label-large text-white';
 ---
 
 <Layout title="Đăng nhập · ShopNexus" description="Đăng nhập bằng Google hoặc số điện thoại.">
@@ -243,7 +243,7 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
                   autocomplete="email"
                   value={email}
                   placeholder="ban@email.com"
-                  class="min-w-0 flex-1 bg-transparent pl-3 text-body-large text-ink outline-none placeholder:text-faint"
+                  class="min-w-0 flex-1 bg-transparent pl-3 text-body-large text-ink outline-none"
                 />
                 <button name="step" value="send-code" class={sendBtn}>Gửi mã</button>
               </div>
@@ -267,7 +267,7 @@ const sendBtn = 'state-layer h-9 shrink-0 rounded-control bg-brand px-4 text-lab
                 <input type="hidden" name="key" value={key} />
                 <label for="phone" class="block text-label-medium text-on-surface-variant">Số điện thoại</label>
                 <div class={field}>
-                  <span class="flex h-9 items-center rounded-full bg-surface-container-low px-3 text-label-large text-ink">+84</span>
+                  <span class="flex h-9 items-center rounded-sm bg-surface-container-low px-3 text-label-large text-ink">+84</span>
                   <input
                     id="phone"
                     name="phone"

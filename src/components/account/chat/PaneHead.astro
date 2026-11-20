@@ -2,6 +2,7 @@
 // The chat's bar: back to the list on a phone, the listing the chat is on and
 // the person, and the menu (slot "menu"). The default slot holds the deal chips.
 // The bar opens the listing; in a chat without one it opens the person's page.
+import Ago from '../../Ago.astro';
 import Avatar from '../../Avatar.astro';
 import Icon from '../../Icon.astro';
 import Photo from '../../Photo.astro';
@@ -14,15 +15,15 @@ interface Props {
   name: string;
   photo?: string;
   thumb?: string;
-  /** "Đang hoạt động", or how long ago. */
-  sub?: string;
+  /** When the person last had the app open; absent before the first time and for ShopNexus. */
+  active?: string;
   /** The listing's page while it is on sale. */
   href?: string;
   /** The person's page. */
   person?: string;
 }
 
-const { title, name, photo, thumb, sub, href, person } = Astro.props;
+const { title, name, photo, thumb, active, href, person } = Astro.props;
 const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
 const to = href ?? (thumb ? undefined : person);
 const Tag = to ? 'a' : 'div';
@@ -46,7 +47,9 @@ const Tag = to ? 'a' : 'div';
       }
       <span class="min-w-0">
         <span class="block truncate text-title-medium text-ink" data-pane-title>{title}</span>
-        <span class="block truncate text-body-small text-on-surface-variant">{[thumb ? name : '', sub].filter(Boolean).join(' · ')}</span>
+        <span class="block truncate text-body-small text-on-surface-variant">
+          {thumb && name}{thumb && active && ' · '}{active && <Ago at={active} as="active" />}
+        </span>
       </span>
     </Tag>
     {

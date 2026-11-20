@@ -19,7 +19,7 @@ const { current, compact = false } = Astro.props;
           class:list={[
             'flex items-center whitespace-nowrap rounded-full',
             compact ? 'h-8 gap-1 px-2.5 text-label-medium' : 'h-9 gap-1.5 px-3.5 text-label-large',
-            i < current ? 'text-primary' : i === current ? 'bg-card text-ink shadow-soft' : 'text-on-surface-variant/70',
+            i < current ? 'text-primary' : i === current ? 'bg-card text-ink shadow-soft' : 'text-faint',
           ]}
         >
           <Icon name={i < current ? p.icon.replace('-outline', '') : p.icon} size={compact ? 15 : 17} />

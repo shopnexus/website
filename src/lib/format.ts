@@ -5,15 +5,20 @@ const NEAR_KM = 10;
 /** 1.250.000 */
 export const group = (n: number) => Math.round(n).toLocaleString('de-DE');
 
-/** How long ago, as the app says it: "12 phút", "3 giờ", "5 ngày", "2 tháng". */
+/** How long ago, as the app says it: "vừa xong", "12 phút trước", "3 giờ trước", "5 ngày trước", "2 tháng trước". */
 export function ago(iso: string, now = Date.now()) {
-  const m = Math.max(1, Math.floor((now - Date.parse(iso)) / 60_000));
-  if (m < 60) return `${m} phút`;
-  if (m < 1440) return `${Math.floor(m / 60)} giờ`;
-  if (m < 43_200) return `${Math.floor(m / 1440)} ngày`;
-  if (m < 525_600) return `${Math.floor(m / 43_200)} tháng`;
-  return `${Math.floor(m / 525_600)} năm`;
+  const m = Math.floor((now - Date.parse(iso)) / 60_000);
+  if (m < 1) return 'vừa xong';
+  if (m < 60) return `${m} phút trước`;
+  if (m < 1440) return `${Math.floor(m / 60)} giờ trước`;
+  if (m < 43_200) return `${Math.floor(m / 1440)} ngày trước`;
+  if (m < 525_600) return `${Math.floor(m / 43_200)} tháng trước`;
+  return `${Math.floor(m / 525_600)} năm trước`;
 }
+
+/** "Đang hoạt động" under 5 minutes, then "Hoạt động 3 giờ trước". */
+export const activeAgo = (iso: string, now = Date.now()) =>
+  now - Date.parse(iso) < 300_000 ? 'Đang hoạt động' : `Hoạt động ${ago(iso, now)}`;
 
 /** A seller's rating as a figure and its line: ["4,9", "32 đánh giá"], or a dash without reviews. */
 export const ratingText = (r: { average: number | null; count: number }): [string, string] =>
@@ -33,15 +38,26 @@ export const TZ = 'Asia/Ho_Chi_Minh';
 const dayKey = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: TZ });
 
 /** A day as a list heading: Hôm nay, Hôm qua, the weekday within a week, then the date. */
-export function dayLabel(iso: string, now = new Date()) {
+export function dayLabel(iso: string, now = Date.now()) {
   const d = new Date(iso);
-  const days = Math.round((Date.parse(dayKey(now)) - Date.parse(dayKey(d))) / 86_400_000);
+  const today = dayKey(new Date(now));
+  const days = Math.round((Date.parse(today) - Date.parse(dayKey(d))) / 86_400_000);
   if (days <= 0) return 'Hôm nay';
   if (days === 1) return 'Hôm qua';
   if (days < 7) return d.toLocaleDateString('vi-VN', { timeZone: TZ, weekday: 'long' }).replace(/^./, (c) => c.toUpperCase());
   const [y, m, day] = dayKey(d).split('-');
-  return y === dayKey(now).slice(0, 4) ? `${day}/${m}` : `${day}/${m}/${y}`;
+  return y === today.slice(0, 4) ? `${day}/${m}` : `${day}/${m}/${y}`;
 }
+
+/** 14:05, in Vietnam's time. */
+export const hm = (iso: string) => new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ });
+
+/** An inbox row's time: the hour today, the day label before. */
+export const when = (iso: string, now = Date.now()) => (dayLabel(iso, now) === 'Hôm nay' ? hm(iso) : dayLabel(iso, now));
+
+/** The wordings of a time that stays true (Ago.astro); lib/ago words them again in the browser. */
+export const TIME_TEXT = { ago, active: activeAgo, when, day: dayLabel } satisfies Record<string, (iso: string, now?: number) => string>;
+export type TimeKind = keyof typeof TIME_TEXT;
 
 /** Seconds as a countdown: 0:45. */
 export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

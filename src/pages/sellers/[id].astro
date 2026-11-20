@@ -2,12 +2,14 @@
 // Người bán: the seller's name and facts, the four figures, their listings
 // a page at a time, and the reviews in two tabs, as a seller and as a buyer.
 // An unknown id is the 404.
+import Ago from '../../components/Ago.astro';
 import AvatarZoom from '../../components/AvatarZoom.astro';
 import Crumbs from '../../components/Crumbs.astro';
 import FollowButton from '../../components/FollowButton.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
 import NotFound from '../../components/public/NotFound.astro';
+import PhoneBadge from '../../components/PhoneBadge.astro';
 import ReviewItem from '../../components/public/ReviewItem.astro';
 import Stars from '../../components/public/Stars.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
@@ -17,7 +19,7 @@ import Skeleton from '../../components/Skeleton.astro';
 import Layout from '../../layouts/Layout.astro';
 import { orNull } from '../../lib/api/client';
 import { near } from '../../lib/area';
-import { REPLY_TIME, ago, decimal, ratingText } from '../../lib/format';
+import { REPLY_TIME, decimal, ratingText } from '../../lib/format';
 import { card, isId } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
@@ -44,14 +46,9 @@ const s = found?.seller;
 const me = viewer(Astro);
 const mine = !!me && me.id === s?.id;
 const following = !!found?.viewer?.following;
-const active = s?.last_active_at && Date.now() - Date.parse(s.last_active_at) < 300_000;
-const facts: [string, string][] = s
-  ? [
-      ['calendar-month-outline-rounded', `Tham gia ${new Date(s.joined_at).getFullYear()}`],
-      ...(s.last_active_at ? [['schedule-outline-rounded', active ? 'Đang hoạt động' : `Hoạt động ${ago(s.last_active_at)} trước`] as [string, string]] : []),
-      ...(s.reply_time ? [['chat-outline-rounded', REPLY_TIME[s.reply_time]] as [string, string]] : []),
-    ]
-  : [];
+/** An account may have no name yet. */
+const name = s?.display_name || 'Người dùng';
+const fact = 'flex items-center gap-1.5';
 const [rated, ratedLine] = s ? ratingText(s.rating) : ['', ''];
 const stats: [string, string, string][] = s
   ? [
@@ -78,8 +75,8 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
     </Layout>
   ) : (
     <Layout
-      title={`Người bán · ${s.display_name}`}
-      description={`${s.display_name}: ${s.rating.count ? `${decimal(s.rating.average)}/5 từ ${s.rating.count} đánh giá, ` : ''}${s.sold} món đã bán. Xem tin đang bán.`}
+      title={`Người bán · ${name}`}
+      description={`${name}: ${s.rating.count ? `${decimal(s.rating.average)}/5 từ ${s.rating.count} đánh giá, ` : ''}${s.sold} món đã bán. Xem tin đang bán.`}
       image={s.avatar_url}
       canonical={R.seller(s.id)}
     >
@@ -87,17 +84,28 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
         <Crumbs parts={[['Khám phá', R.home], ['Người bán']]} class="pt-4" />
         <section class="mt-4 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
           <div class="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
-            <AvatarZoom name={s.display_name} photo={s.avatar_url} size={112} class="ring-4 ring-white" />
+            <AvatarZoom name={name} photo={s.avatar_url} size={112} class="ring-4 ring-white" />
             <div class="min-w-0">
-              <h1 class="text-j-28 text-ink md:text-j-32">{s.display_name}</h1>
+              <h1 class="text-j-28 text-ink md:text-j-32">{name}</h1>
               {s.bio && <p class="mt-1 max-w-[560px] text-body-large text-sub">{s.bio}</p>}
               <div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-body-medium text-on-surface-variant">
-                {facts.map(([ic, t]) => (
-                  <span class="flex items-center gap-1.5">
-                    <Icon name={ic} size={16} class="text-on-surface-variant" />
-                    {t}
+                <span class={fact}>
+                  <Icon name="calendar-month-outline-rounded" size={16} />
+                  Tham gia {new Date(s.joined_at).getFullYear()}
+                </span>
+                {s.last_active_at && (
+                  <span class={fact}>
+                    <Icon name="schedule-outline-rounded" size={16} />
+                    <Ago at={s.last_active_at} as="active" />
                   </span>
-                ))}
+                )}
+                {s.reply_time && (
+                  <span class={fact}>
+                    <Icon name="chat-outline-rounded" size={16} />
+                    {REPLY_TIME[s.reply_time]}
+                  </span>
+                )}
+                {s.phone_verified && <PhoneBadge size={16} class="gap-1.5" />}
               </div>
               <div class="mt-4 flex items-center gap-2">
                 {!mine && (
@@ -120,7 +128,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
                 id="share"
                 align="start"
                 url={new URL(R.seller(s.id), Astro.url).href}
-                title={s.display_name}
+                title={name}
                 line={`${s.on_sale} tin đang bán${s.sold ? ` · ${s.sold} đã bán` : ''}`}
                 photo={s.avatar_url}
                 person
@@ -151,7 +159,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
               ))}
             </div>
           ) : (
-            <p class="mt-6 text-body-large text-sub">{s.display_name} chưa có tin nào đang bán.</p>
+            <p class="mt-6 text-body-large text-sub">{name} chưa có tin nào đang bán.</p>
           )}
           {page?.next_cursor && (
             <div class="mt-8 flex justify-center">
@@ -197,7 +205,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
               <ul class="min-w-0">
                 {t.items.map((r, i) => (
                   <li class:list={['py-4', i > 0 && 'border-t border-line', i === 0 && 'pt-0']}>
-                    <ReviewItem review={r} subject={s.display_name} onSale={onSale} />
+                    <ReviewItem review={r} subject={name} onSale={onSale} />
                   </li>
                 ))}
               </ul>

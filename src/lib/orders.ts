@@ -1,7 +1,6 @@
 import { ApiError, type Schemas } from './api/client';
 import { CHAT_ERRORS } from './chat-errors';
-import { dayLabel, money, phoneText } from './format';
-import { hm } from './messages';
+import { dayLabel, hm, money, phoneText } from './format';
 
 // Đơn mua, Đơn bán, one order, Giao COD and Hỗ trợ: the server's orders,
 // shipments, carriers and tickets as the pages word them.
@@ -87,11 +86,6 @@ export function orderState(o: Pick<Order, 'status' | 'shipment' | 'closed_at'>, 
 
 /** The day and hour an event happened: "Hôm nay 14:05", "02/10 09:12". */
 export const at = (iso: string) => `${dayLabel(iso)} ${hm(iso)}`;
-
-/** The row's short date: when it was asked for, shipped or closed. */
-export function orderWhen(o: Pick<Order, 'requested_at' | 'shipped_at' | 'closed_at'>) {
-  return dayLabel(o.closed_at ?? o.shipped_at ?? o.requested_at);
-}
 
 /** The recipient as one line, and the person with the phone. */
 export function recipientLines(r: Schemas['Recipient']) {

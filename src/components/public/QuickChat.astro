@@ -108,7 +108,7 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
         cuts.map((c) => (
           <button
             type="button"
-            class="state-layer h-8 flex-1 rounded-sm border border-field bg-card text-body-medium text-ink aria-pressed:border-brand aria-pressed:bg-mint aria-pressed:font-medium aria-pressed:text-on-mint"
+            class="state-layer h-8 flex-1 rounded-control border border-field bg-card text-body-medium text-ink aria-pressed:border-brand aria-pressed:bg-mint aria-pressed:font-medium aria-pressed:text-on-mint"
             aria-pressed={price - c === start ? 'true' : 'false'}
             data-qc-cut={price - c}
           >

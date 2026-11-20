@@ -1,6 +1,6 @@
 import type { AstroGlobal } from 'astro';
 import { type Api, ApiError, orNull, pageOrFirst, type Schemas, unwrap } from './api/client';
-import { TZ, dayLabel, decimal, money } from './format';
+import { dayLabel, decimal, hm, money } from './format';
 import { isId } from './listing';
 import { R } from './routes';
 
@@ -19,24 +19,8 @@ export const personName = (p: Person) => (p.official ? 'ShopNexus' : p.deleted ?
 /** A person's page; none for ShopNexus or a deleted account. */
 export const personHref = (p: Pick<Person, 'id' | 'official' | 'deleted'>) => (p.official || p.deleted ? undefined : R.seller(p.id));
 
-/** 14:05, in Vietnam's time. */
-export const hm = (iso: string) => new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ });
-
-/** An inbox row's time: the hour today, the day label before. */
-export const when = (iso: string) => (dayLabel(iso) === 'Hôm nay' ? hm(iso) : dayLabel(iso));
-
 /** "5,1 tr" from a million, "650.000 ₫" below. */
 export const shortPrice = (v: number) => (v >= 1_000_000 ? `${decimal(v / 1_000_000, 2)} tr` : money(v));
-
-/** "Đang hoạt động" under 5 minutes, then how long ago; nothing before the first time. */
-export function activeText(p: Person, now = Date.now()) {
-  if (!p.last_active_at || p.official || p.deleted) return '';
-  const m = Math.floor((now - Date.parse(p.last_active_at)) / 60_000);
-  if (m < 5) return 'Đang hoạt động';
-  if (m < 60) return `Hoạt động ${m} phút trước`;
-  if (m < 1440) return `Hoạt động ${Math.floor(m / 60)} giờ trước`;
-  return `Hoạt động ${Math.floor(m / 1440)} ngày trước`;
-}
 
 /** The deal's step on the four-step bar: price, order, receipt, review. */
 export function phase(d: Pick<Deal, 'status' | 'order'>) {
@@ -125,7 +109,7 @@ export const shortTitle = (t: string) => (t.length > 24 ? `${t.slice(0, 22).trim
 // ---------------------------------------------------------------- thread --
 
 export type ThreadItem =
-  | { kind: 'day'; label: string }
+  | { kind: 'day'; label: string; at: string }
   | { kind: 'group'; side: 'mine' | 'theirs'; messages: Message[]; time: string }
   | { kind: 'move'; side: 'mine' | 'theirs'; amount: string; time: string; accept: boolean }
   | { kind: 'event'; icon: string; text: string };
@@ -151,7 +135,7 @@ export function thread(items: Message[], chat: Pick<Chat, 'other' | 'deals' | 'o
   for (const m of items) {
     const label = dayLabel(m.created_at);
     if (label !== day) {
-      out.push({ kind: 'day', label });
+      out.push({ kind: 'day', label, at: m.created_at });
       day = label;
       last = undefined;
     }

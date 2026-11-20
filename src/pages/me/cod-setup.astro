@@ -15,7 +15,7 @@ import { CARRIER, LINKED, orderCode, orderError } from '../../lib/orders';
 import { identity } from '../../lib/profile';
 import { R } from '../../lib/routes';
 import { requireViewer } from '../../lib/session';
-import { btnCls, PANEL } from '../../lib/ui';
+import { FIELD, btnCls, PANEL } from '../../lib/ui';
 
 const v = requireViewer(Astro);
 if (v instanceof Response) return v;
@@ -74,7 +74,7 @@ const steps = [
   { name: 'Sẵn sàng giao COD', d: ready ? 'Người mua chọn được COD' : 'Chưa xong', state: ready ? 'done' : 'next' },
 ] as const;
 const label = 'mb-2 text-label-large text-ink';
-const field = 'flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 focus-within:ring-2 focus-within:ring-primary';
+const field = `flex h-12 items-center gap-2 px-4 ${FIELD}`;
 const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none';
 ---
 

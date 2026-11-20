@@ -7,6 +7,7 @@
 // Google account can prove it instead of the mailed code. Adding a phone
 // proves the owner first, then texts the new number and posts its token at
 // once. Firebase runs those in the browser; everything else is a form post.
+import Ago from '../../components/Ago.astro';
 import CodeBoxes from '../../components/CodeBoxes.astro';
 import Notice from '../../components/Notice.astro';
 import PhoneCode from '../../components/PhoneCode.astro';
@@ -16,7 +17,7 @@ import SettingsFrame from '../../components/account/SettingsFrame.astro';
 import SideList from '../../components/account/SideList.astro';
 import { ApiError, idempotencyKey, orNull, unwrap } from '../../lib/api/client';
 import { identity } from '../../lib/profile';
-import { ago, clock, date, phoneText } from '../../lib/format';
+import { clock, date, phoneText } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { authAge, cookie, dropTokens, renewAccess, requireViewer } from '../../lib/session';
 import { type CodeFlow, codeError, dropChallenge, emailProof, type Proof, readChallenge, resendSeconds, sendEmailCode, tokenKind, tokenProof } from '../../lib/sign-in';
@@ -358,7 +359,7 @@ const boxes = 'max-w-[360px]';
                     required
                     autocomplete="tel-national"
                     placeholder="912 345 678"
-                    class="min-w-0 flex-1 bg-transparent text-body-large text-ink tabular-nums outline-none placeholder:text-faint"
+                    class="min-w-0 flex-1 bg-transparent text-body-large text-ink tabular-nums outline-none"
                   />
                 </span>
               </label>
@@ -407,7 +408,7 @@ const boxes = 'max-w-[360px]';
                 required
                 autocomplete="email"
                 placeholder="ban@email.com"
-                class="h-12 w-full rounded-field bg-surface-container-low px-4 text-body-large text-ink outline-none placeholder:text-faint focus:bg-card focus:ring-2 focus:ring-primary"
+                class="h-12 w-full rounded-field bg-surface-container-low px-4 text-body-large text-ink outline-none focus:bg-card focus:ring-2 focus:ring-primary"
               />
             </label>
             <a href={R.security} class={btnCls('line', 'lg')}>
@@ -450,7 +451,7 @@ const boxes = 'max-w-[360px]';
                 {s.current && <span class="rounded-full bg-primary/10 px-2 py-0.5 text-label-medium text-primary">Thiết bị này</span>}
               </p>
               <p class="text-body-small text-on-surface-variant">
-                {s.current ? 'Đang dùng' : `Dùng ${ago(s.last_used_at)} trước`} · đăng nhập {date(s.created_at)}
+                {s.current ? 'Đang dùng' : <>Dùng <Ago at={s.last_used_at} /></>} · đăng nhập {date(s.created_at)}
               </p>
             </div>
             {!s.current && (

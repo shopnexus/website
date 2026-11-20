@@ -10,7 +10,7 @@ import Layout from '../layouts/Layout.astro';
 import { HELP_POPULAR, HELP_SAFETY, HELP_TOPICS, SCAM_SIGNS } from '../data/flows';
 import { R } from '../lib/routes';
 import { viewer } from '../lib/session';
-import { btnCls, CONTENT, H2, PANEL } from '../lib/ui';
+import { FIELD, btnCls, CONTENT, H2, PANEL } from '../lib/ui';
 
 const me = viewer(Astro);
 const q = Astro.url.searchParams.get('q') ?? '';
@@ -27,7 +27,7 @@ const docs = [
     <section class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_440px] xl:gap-8">
       <div class="min-w-0">
         <h1 class="text-j-28 text-ink lg:text-j-30">Trợ giúp và an toàn</h1>
-        <form action={R.help} class="mt-5 flex h-14 items-center gap-3 rounded-full bg-card pl-5 pr-2 shadow-glow" role="search" data-help-search>
+        <form action={R.help} class:list={[FIELD, 'mt-5 flex h-14 items-center gap-3 pl-4 pr-2']} role="search" data-help-search>
           <Icon name="search-rounded" size={22} class="text-primary" />
           <input
             name="q"
@@ -35,7 +35,7 @@ const docs = [
             placeholder="Gõ câu hỏi, ví dụ: hủy đơn thế nào"
             aria-label="Tìm câu hỏi"
             autocomplete="off"
-            class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+            class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none"
           />
           <button class={btnCls('primary')}>Tìm</button>
         </form>

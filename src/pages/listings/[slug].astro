@@ -3,10 +3,12 @@
 // three of their other listings, the description, condition and specs, two
 // reviews of the seller, and similar listings. A listing that is not on sale
 // (or not there) is the 404.
+import Ago from '../../components/Ago.astro';
 import Avatar from '../../components/Avatar.astro';
 import Crumbs from '../../components/Crumbs.astro';
 import Icon from '../../components/Icon.astro';
 import ListingCard from '../../components/ListingCard.astro';
+import PhoneBadge from '../../components/PhoneBadge.astro';
 import Photo from '../../components/Photo.astro';
 import Price from '../../components/Price.astro';
 import BuyDialog from '../../components/public/BuyDialog.astro';
@@ -23,7 +25,7 @@ import Layout from '../../layouts/Layout.astro';
 import { orNull, unwrap } from '../../lib/api/client';
 import { near } from '../../lib/area';
 import { categories } from '../../lib/catalog';
-import { REPLY_TIME, ago, decimal, group, ratingText, where } from '../../lib/format';
+import { REPLY_TIME, decimal, group, ratingText, where } from '../../lib/format';
 import { CONDITIONS, QUESTIONS, card, conditionLabel, dealState } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import { SHARE_IMAGE } from '../../lib/seo';
@@ -60,7 +62,7 @@ const me = viewer(Astro);
 const { mine, reserved, ordered, chat } = screen ? dealState(screen, me) : { mine: false, reserved: false, ordered: false, chat: '' };
 const condition = it ? conditionLabel(it.condition) : '';
 const place = it ? where(screen!.distance_km, it.location.commune.display_name) : '';
-const posted = it ? ago(it.published_at ?? it.created_at) : '';
+const posted = it ? (it.published_at ?? it.created_at) : '';
 const description = it?.description.split(/\n+/).filter(Boolean) ?? [];
 const photos = (it?.photos ?? []).filter((p) => p.url).map((p) => ({ big: p.url!, thumb: p.url! }));
 const root = cats.find((c) => c.code === it?.category_code || c.children.some((s) => s.code === it?.category_code));
@@ -148,7 +150,7 @@ const ld = it && {
             <div class:list={[PANEL, 'p-5 lg:p-6']}>
               <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
                 <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{condition}</span>
-                {place} · {posted} trước
+                {place} · <Ago at={posted} />
               </p>
               <h1 class="mt-3 text-j-22 text-ink">{it.title}</h1>
               <ListingPrice price={it.price} drop={it.price_drop} size="text-j-30" class="mt-3" />
@@ -178,7 +180,15 @@ const ld = it && {
                 <Avatar name={seller.display_name} photo={seller.avatar_url} size={44} />
                 <span class="min-w-0 flex-1">
                   <span class="block truncate text-title-medium text-ink">{seller.display_name}</span>
-                  <span class="block text-body-small text-faint">Tham gia {new Date(seller.joined_at).getFullYear()}</span>
+                  <span class="flex flex-wrap items-center gap-x-1.5 text-body-small text-faint">
+                    Tham gia {new Date(seller.joined_at).getFullYear()}
+                    {seller.phone_verified && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <PhoneBadge />
+                      </>
+                    )}
+                  </span>
                 </span>
                 <Icon name="chevron-right-rounded" size={20} class="text-faint" />
               </a>
@@ -222,7 +232,7 @@ const ld = it && {
                 ))}
               </div>
               <p class="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-body-small text-faint">
-                <span>Đăng {posted} trước</span>
+                <span>Đăng <Ago at={posted} /></span>
                 <span>{it.location.commune.display_name}, {it.location.province.display_name}</span>
               </p>
             </section>

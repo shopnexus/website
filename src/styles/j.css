@@ -14,7 +14,7 @@
   --j-ink: #1a1a19;
   --j-on-ink: #ffffff;
   --j-sub: #5e5e5a;
-  --j-faint: #8c8c87;
+  --j-faint: #6c6c68; /* 4.5:1 or more on page, card, soft, hover and mint */
   --j-line: #ecece9;
   --j-field: #dcdcd8;
   --j-card: #ffffff;
@@ -33,7 +33,7 @@
     --j-ink: #ececea;
     --j-on-ink: #141413;
     --j-sub: #a8a8a3;
-    --j-faint: #7d7d78;
+    --j-faint: #92928d;
     --j-line: #2a2a28;
     --j-field: #3a3a37;
     --j-card: #1c1c1b;
@@ -52,7 +52,7 @@
   --j-ink: #ececea;
   --j-on-ink: #141413;
   --j-sub: #a8a8a3;
-  --j-faint: #7d7d78;
+  --j-faint: #92928d;
   --j-line: #2a2a28;
   --j-field: #3a3a37;
   --j-card: #1c1c1b;
@@ -320,6 +320,10 @@
   body {
     background: var(--j-page);
     color: var(--j-ink);
+  }
+  /* Every field's hint in faint, which holds 4.5:1 on the field. */
+  ::placeholder {
+    color: var(--j-faint);
   }
 }
 

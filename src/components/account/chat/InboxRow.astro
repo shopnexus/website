@@ -2,7 +2,8 @@
 // A conversation with one person: the deal it is about, +N for the pair's other
 // running deals, the last message and a tag for the deal's state. A scam
 // warning is the error shield on a neutral tag.
-import { type InboxItem, chatHref, dealTag, personName, preview, when } from '../../../lib/messages';
+import { type InboxItem, chatHref, dealTag, personName, preview } from '../../../lib/messages';
+import Ago from '../../Ago.astro';
 import Avatar from '../../Avatar.astro';
 import Icon from '../../Icon.astro';
 import Photo from '../../Photo.astro';
@@ -50,7 +51,7 @@ const thumb = c.deal?.listing.cover_thumb_url;
   <span class="min-w-0 flex-1">
     <span class="flex items-baseline gap-2">
       <span class:list={['min-w-0 flex-1 truncate text-title-small text-ink', unread && 'font-bold']}>{name}</span>
-      <span class="text-body-small text-on-surface-variant">{when(c.last_message.created_at)}</span>
+      <Ago at={c.last_message.created_at} as="when" class="text-body-small text-on-surface-variant" />
     </span>
     {
       c.deal && (

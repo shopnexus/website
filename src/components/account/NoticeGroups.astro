@@ -2,9 +2,9 @@
 // Notices by day, the unread ones tinted. An unread one posts to Thông báo,
 // which marks it read and opens its page; a read one is a plain link.
 import type { Schemas } from '../../lib/api/client';
-import { ago } from '../../lib/format';
 import { TONES, byDay, look, noticeHref } from '../../lib/notices';
 import { R } from '../../lib/routes';
+import Ago from '../Ago.astro';
 import Icon from '../Icon.astro';
 
 interface Props {
@@ -18,7 +18,7 @@ const row = 'state-layer flex w-full items-start gap-3 rounded-lg px-3 py-2.5 te
 {
   groups.map(([day, items]) => (
     <section class="not-first:mt-3 not-first:border-t not-first:border-line not-first:pt-3" data-more-key={day}>
-      <h2 class="px-3 pb-1 text-label-medium text-on-surface-variant">{day}</h2>
+      <h2 class="px-3 pb-1 text-label-medium text-on-surface-variant"><Ago at={items[0].at} as="day" /></h2>
       <ul class="flex flex-col gap-0.5" data-more-items>
         {items.map((n) => {
           const [icon, tone] = look(n.type);
@@ -30,7 +30,7 @@ const row = 'state-layer flex w-full items-start gap-3 rounded-lg px-3 py-2.5 te
               </span>
               <span class="min-w-0 flex-1">
                 <span class="block text-body-medium text-ink">{n.text}</span>
-                <span class="block text-body-small text-on-surface-variant">{ago(n.at)} trước</span>
+                <Ago at={n.at} class="block text-body-small text-on-surface-variant" />
               </span>
               <span class="self-center">
                 {n.unread ? <span class="block h-2 w-2 rounded-full bg-primary" aria-label="Chưa đọc" /> : <span class="block w-2" />}

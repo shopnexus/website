@@ -3,8 +3,9 @@
 // the steps and the state. The whole card opens the order.
 import type { Schemas } from '../../lib/api/client';
 import { personName } from '../../lib/messages';
-import { type Role, CARRIER, orderState, orderWhen } from '../../lib/orders';
+import { type Role, CARRIER, orderState } from '../../lib/orders';
 import { R } from '../../lib/routes';
+import Ago from '../Ago.astro';
 import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
 import PhaseBar from '../PhaseBar.astro';
@@ -26,14 +27,14 @@ const state = orderState(o, role, who, review.state === 'active' ? review.stars 
 const ship = o.shipment ? CARRIER[o.shipment.carrier] : '';
 // A closed order still to review says so beside its state, while it can be.
 const toReview = (o.status === 'completed' || o.status === 'failed') && review.state === 'none' && !review.locked;
+// A failed or cancelled order dims its photo; its words stay readable.
+const dim = !state.open && o.status !== 'completed';
 ---
 
-<article
-  class:list={['lift relative flex items-center gap-3 rounded-card border border-line bg-card p-2 pr-3 md:gap-4 md:pr-4', !state.open && o.status !== 'completed' && 'opacity-60']}
->
+<article class="lift relative flex items-center gap-3 rounded-card border border-line bg-card p-2 pr-3 md:gap-4 md:pr-4">
   {
     o.listing.cover_thumb_url ? (
-      <Photo src={o.listing.cover_thumb_url} width={200} height={200} alt="" loading={loading} class="h-16 w-16 shrink-0 rounded-lg object-cover md:h-[84px] md:w-[84px]" />
+      <Photo src={o.listing.cover_thumb_url} width={200} height={200} alt="" loading={loading} class:list={['h-16 w-16 shrink-0 rounded-lg object-cover md:h-[84px] md:w-[84px]', dim && 'opacity-60']} />
     ) : (
       <span class="h-16 w-16 shrink-0 rounded-lg bg-soft md:h-[84px] md:w-[84px]" />
     )
@@ -46,7 +47,7 @@ const toReview = (o.status === 'completed' || o.status === 'failed') && review.s
       <Price vnd={o.price} size="text-j-16" />
     </div>
     <p class="mt-0.5 flex items-center gap-1.5 truncate text-body-small text-on-surface-variant">
-      <Avatar name={who} photo={item.counterpart.avatar_url} size={18} loading={loading} />{who}<span>·</span>{ship || 'COD'}<span>·</span>{orderWhen(o)}
+      <Avatar name={who} photo={item.counterpart.avatar_url} size={18} loading={loading} />{who}<span>·</span>{ship || 'COD'}<span>·</span><Ago at={o.closed_at ?? o.shipped_at ?? o.requested_at} as="day" />
     </p>
     <div class="mt-2 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-1">
       <PhaseBar current={state.phase} />

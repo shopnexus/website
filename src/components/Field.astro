@@ -1,8 +1,9 @@
 ---
-// A form field: label over a soft filled box, 14 px corners, no border.
+// A form field: the label over the field's box (FIELD).
 // ai: the model filled it (sparkle). The default slot is the value or an input;
 // slot "trail" sits at the right end.
 import Icon from './Icon.astro';
+import { FIELD } from '../lib/ui';
 
 interface Props {
   label: string;
@@ -22,7 +23,8 @@ const { label, ai = false, tall = false, hint, class: cls } = Astro.props;
   </span>
   <span
     class:list={[
-      'flex justify-between gap-3 rounded-field bg-surface-container-low px-4 text-body-large text-ink focus-within:bg-card focus-within:ring-2 focus-within:ring-primary',
+      'flex justify-between gap-3 px-4 text-body-large text-ink',
+      FIELD,
       tall ? 'min-h-[88px] items-start py-3' : 'h-12 items-center',
     ]}
   >

@@ -195,6 +195,12 @@ every page.
   sections stand still, figures show their value at once, the snackbar
   appears without moving, and every CSS animation lasts 1 ms.
 
+**Times.** A time in words ("vừa xong", "3 giờ trước", "Hôm qua", "Hoạt
+động 2 giờ trước") is a `<time>` from `Ago.astro`, worded by `TIME_TEXT` in
+`src/lib/format.ts`. `src/lib/ago.ts` words every one again in the browser:
+every 30 seconds while one under an hour old is on the page, every 5 minutes
+otherwise, and not while the tab is hidden.
+
 **Theme.** Light, dark from the system, and an override through `data-theme`
 on `<html>`, as "Giao diện tối" does in the app. Material You is left out: a
 browser has no wallpaper to build a scheme from.
@@ -222,13 +228,16 @@ value has a dark counterpart.
 | card | `#FFFFFF` | cards, panels, fields |
 | ink | `#1A1A19` | text |
 | sub | `#5E5E5A` | secondary text |
-| faint | `#8C8C87` | meta, placeholders, group labels |
+| faint | `#6C6C68` | meta, placeholders, group labels |
 | line | `#ECECE9` | 1 px borders on cards, panels and rows |
 | field | `#DCDCD8` | borders on inputs and outline buttons |
 | soft | `#F3F3F1` | insets and segmented tracks |
 | hover | `#EEEEEB` | hover on rows and ghost buttons |
 | brand | `#066A61` | the main action, selected tabs, checkboxes, pagination |
 | mint | `#E3F2EF` on `#05554E` | a selected row or chip, an offer |
+
+ink, sub and faint hold at least 4.5:1 on page, card, soft, hover and mint
+in both themes; faint is `#92928D` in dark.
 
 In code they are `bg-page`, `bg-card`, `text-ink`, `text-sub`, `text-faint`,
 `border-line`, `border-field`, `bg-soft`, `bg-hover`, `bg-brand` with
@@ -263,6 +272,10 @@ white with a field border. `Seg` is a segmented control on a soft track, or
 with `variant="tabs"` a row of tabs underlined in teal; both fire
 `seg-change`. Filter dropdowns (`Drop`) have a field border and turn mint
 when set. A condition read from the query (`AiChip`) is a white chip with ×.
+Every text field, the header search included, takes `FIELD` from
+`src/lib/ui.ts`: 10 px corners, the field border on the card colour, a teal
+border and ring while focused. A button inside a field takes 8 px.
+Placeholders are faint.
 
 ### Header
 
@@ -352,7 +365,11 @@ price in a dialog (`BuyDialog.astro`, the form from `/listings/<id>/buy`);
 the others open Chat nhanh. "Thêm địa chỉ" in that dialog and in Giao COD
 shows the address form from Địa chỉ (`AddressForm.astro`) in the dialog,
 with a back arrow, and the saved address comes back picked. The seller card's face and name open their page,
-and so does a reviewer's. Under the gallery: Mô tả with the listing code and counts, Tình
+and so does a reviewer's. A seller who signs in with a phone number shows
+"Đã xác minh SĐT" (`PhoneBadge.astro`, "Đã xác minh số điện thoại" as its
+tooltip) after the year they joined, and also on the person card, Người bán
+and Xem nhanh. Drafts: `.superdesign/mockups/polish-*.html`
+(`tools/build_polish.py`). Under the gallery: Mô tả with the listing code and counts, Tình
 trạng as a three-step scale, Thông số, and Đánh giá. On a phone the price
 and actions come right after the gallery. The page shows no shipping origin,
 map or COD checklist.

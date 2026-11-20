@@ -3,6 +3,7 @@
 // left, the open one's chat in the middle (?ticket=), its order and history
 // on the right. ?new opens the form for a new ticket. Every write is a form
 // post here; there is no socket, so a reload shows new replies.
+import Ago from '../components/Ago.astro';
 import Icon from '../components/Icon.astro';
 import Notice from '../components/Notice.astro';
 import Photo from '../components/Photo.astro';
@@ -12,11 +13,11 @@ import Official from '../components/orders/Official.astro';
 import Layout from '../layouts/Layout.astro';
 import { type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
 import { isId } from '../lib/listing';
-import { errorCode, thread, when } from '../lib/messages';
+import { errorCode, thread } from '../lib/messages';
 import { CARRIER, TICKET_KIND, at, isCarrier, orderError, ticketSubject } from '../lib/orders';
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
-import { btnCls, CONTENT_WIDE, PANEL } from '../lib/ui';
+import { FIELD, btnCls, CONTENT_WIDE, PANEL } from '../lib/ui';
 import Skeleton from '../components/Skeleton.astro';
 
 const v = requireViewer(Astro);
@@ -137,7 +138,7 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                           <span class="min-w-0 flex-1">
                             <span class="flex items-baseline gap-2">
                               <span class="min-w-0 flex-1 truncate text-title-small text-ink">{k.name}</span>
-                              <span class="shrink-0 text-body-small text-on-surface-variant">{when(t.last_message?.created_at ?? t.ticket.opened_at)}</span>
+                              <Ago at={t.last_message?.created_at ?? t.ticket.opened_at} as="when" class="shrink-0 text-body-small text-on-surface-variant" />
                             </span>
                             <span class="block truncate text-body-small text-on-surface-variant">{ticketSubject(t)}</span>
                             <span class="flex items-center gap-2">
@@ -199,11 +200,11 @@ const input = 'min-w-0 flex-1 bg-transparent text-body-large text-ink outline-no
                   </label>
                 ))}
               </fieldset>
-              <label class="flex h-12 items-center gap-2 rounded-lg border border-line bg-card px-4 focus-within:ring-2 focus-within:ring-primary">
+              <label class:list={[FIELD, 'flex h-12 items-center gap-2 px-4']}>
                 <span class="sr-only">Tên hãng</span>
                 <input name="carrier_name" maxlength="50" value={p.get('carrier_name') ?? ''} placeholder="Tên hãng (khi xin thêm hãng)" class={input} />
               </label>
-              <label class="block rounded-lg border border-line bg-card px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
+              <label class:list={[FIELD, 'block px-4 py-2']}>
                 <span class="block text-body-small text-on-surface-variant">Nội dung</span>
                 <textarea name="text" rows="5" maxlength="1000" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none" />
               </label>

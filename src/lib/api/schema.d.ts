@@ -6461,6 +6461,11 @@ export interface components {
             rating: components["schemas"]["Rating"];
             /** @description Listings sold, through an order or marked by hand. */
             sold: number;
+            /**
+             * @description Whether the person signs in with a phone number, which the sign-in
+             *     verified. The number itself is never sent.
+             */
+            phone_verified: boolean;
             reply_time?: components["schemas"]["ReplyTime"];
         };
         /**
@@ -6512,6 +6517,11 @@ export interface components {
             on_sale: number;
             /** @description How many accounts follow the seller. */
             followers: number;
+            /**
+             * @description Whether the person signs in with a phone number, which the sign-in
+             *     verified. The number itself is never sent.
+             */
+            phone_verified: boolean;
             reply_time?: components["schemas"]["ReplyTime"];
             /**
              * Format: date-time

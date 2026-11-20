@@ -136,7 +136,7 @@ const doneSub: Record<TaskKey, string | undefined> = {
           maxlength={NAME_MAX}
           autocomplete="nickname"
           placeholder="VD: Khánh Linh"
-          class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+          class="min-w-0 flex-1 bg-transparent text-body-large text-ink outline-none"
         />
       </Field>
       {fields.display_name && <p class="mt-1 px-1 text-body-small text-error">{fields.display_name}</p>}
@@ -149,7 +149,7 @@ const doneSub: Record<TaskKey, string | undefined> = {
             rows="3"
             maxlength={BIO_MAX}
             placeholder="VD: hay bán đồ công nghệ đã dùng kỹ, giao trong ngày ở Bình Thạnh"
-            class="min-w-0 flex-1 resize-none bg-transparent text-body-large text-ink outline-none placeholder:text-on-surface-variant"
+            class="min-w-0 flex-1 resize-none bg-transparent text-body-large text-ink outline-none"
             data-bio>{bio}</textarea
           >
         </Field>

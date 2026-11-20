@@ -1,0 +1,17 @@
+---
+// "Đã xác minh SĐT" beside a seller whose phone number the sign-in verified.
+// It takes the size of the line it sits in; the full words are its tooltip.
+import Icon from './Icon.astro';
+
+interface Props {
+  /** The glyph's size: 14 in a small line, 16 in the seller page's facts. */
+  size?: number;
+  class?: string;
+}
+
+const { size = 14, class: cls } = Astro.props;
+---
+
+<span class:list={['inline-flex items-center gap-1 text-sub', cls]} title="Đã xác minh số điện thoại">
+  <Icon name="verified-rounded" size={size} class="text-primary" />Đã xác minh SĐT
+</span>

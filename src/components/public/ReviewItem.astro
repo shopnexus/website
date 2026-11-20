@@ -4,9 +4,9 @@
 // reviewer links to their page, and the listing to its page while it is on
 // sale.
 import type { components } from '../../lib/api/schema';
-import { ago } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { viewer } from '../../lib/session';
+import Ago from '../Ago.astro';
 import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
 import ReviewPhotos from './ReviewPhotos.astro';
@@ -52,7 +52,7 @@ const marked = !!r.helpful?.marked;
     <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
       {person ? <a href={person} data-person class:list={['tap text-title-small text-ink', link]}>{name}</a> : <span class="text-title-small text-ink">{name}</span>}
       <Stars n={r.stars} size={compact ? 12 : 14} />
-      <span class="text-body-small text-on-surface-variant">{ago(r.created_at)} trước</span>
+      <Ago at={r.created_at} class="text-body-small text-on-surface-variant" />
       {
         !compact && (
           <span class="rounded-full bg-surface-container-low px-2.5 py-0.5 text-body-small text-on-surface-variant md:ml-auto">

@@ -3,9 +3,10 @@
 // its numbers, the order waiting on it, and the ⋮ menu of what its status
 // allows. Each action is a form post the page handles.
 import type { Schemas } from '../../lib/api/client';
-import { ago, date } from '../../lib/format';
+import { date } from '../../lib/format';
 import { R } from '../../lib/routes';
 import { btnCls } from '../../lib/ui';
+import Ago from '../Ago.astro';
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
 import Price from '../Price.astro';
@@ -79,7 +80,7 @@ const editable = !['reserved', 'sold', 'deleted'].includes(l.status);
             ))
           }
           <span class="flex items-center gap-1" title="Đã đăng">
-            <Icon name="schedule-outline-rounded" size={15} />{ago(l.published_at ?? l.created_at)}
+            <Icon name="schedule-outline-rounded" size={15} /><Ago at={l.published_at ?? l.created_at} />
           </span>
         </span>
       </div>

@@ -10,6 +10,7 @@ import { R } from '../../lib/routes';
 import Icon from '../Icon.astro';
 import Popover from '../Popover.astro';
 import Price from '../Price.astro';
+import { FIELD } from '../../lib/ui';
 
 interface Props {
   it: Schemas['SavedListing'];
@@ -112,7 +113,7 @@ const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Bool
                   step="1000"
                   required
                   value={it.alert_below ?? (l.price !== undefined ? Math.max(10_000, Math.floor((l.price * 0.9) / 1000) * 1000) : undefined)}
-                  class="mt-1.5 h-11 w-full rounded-field bg-surface-container-low px-3 text-body-large text-ink tabular-nums focus:bg-card focus:outline-2 focus:outline-primary"
+                  class:list={[FIELD, 'mt-1.5 h-11 w-full px-3 text-body-large text-ink tabular-nums outline-none']}
                 />
               </label>
               <div class="mt-3 flex justify-end gap-2">

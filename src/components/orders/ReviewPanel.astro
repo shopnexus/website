@@ -5,7 +5,7 @@
 // Each review hides until both are in or 7 days pass.
 import type { Schemas } from '../../lib/api/client';
 import { date } from '../../lib/format';
-import { btnCls, PANEL } from '../../lib/ui';
+import { FIELD, btnCls, PANEL } from '../../lib/ui';
 import Icon from '../Icon.astro';
 import PhotoSlots from '../PhotoSlots.astro';
 import ReviewPhotos from '../public/ReviewPhotos.astro';
@@ -45,7 +45,7 @@ const stars = 'flex flex-row-reverse justify-end [&>label:has(:checked)]:text-st
             ))}
           </div>
         </fieldset>
-        <label class="mt-3 block rounded-tile border border-line bg-card px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
+        <label class:list={[FIELD, 'mt-3 block px-4 py-2']}>
           <span class="block text-body-small text-on-surface-variant">Nhận xét (không bắt buộc)</span>
           <textarea name="text" rows="3" maxlength="500" class="mt-0.5 block w-full resize-none bg-transparent text-body-large text-ink outline-none">{own.text ?? ''}</textarea>
         </label>
