@@ -16,6 +16,7 @@ import MessagesLink from './MessagesLink.astro';
 import NotificationsLink from './NotificationsLink.astro';
 import Peek from './Peek.astro';
 import Avatar from './Avatar.astro';
+import ChatDock from './account/chat/ChatDock.astro';
 import Photo from './Photo.astro';
 import Popover from './Popover.astro';
 import Seg from './Seg.astro';
@@ -246,6 +247,7 @@ const account = [
     <>
       <Peek id="hdr-notes" title="Thông báo" href={R.notifications} src="/notifications/peek" />
       <Peek id="hdr-chats" title="Tin nhắn" href={R.messages} src="/messages/peek" />
+      <ChatDock />
       <InstallHint />
     </>
   )

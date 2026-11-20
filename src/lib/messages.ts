@@ -103,6 +103,17 @@ export function dealTag(d: Schemas['DealSummary'] | undefined): [string, string]
   return undefined;
 }
 
+/** The price that stands on a deal, its icon and what it is: the deal's console and the chat box say it alike. other is the other person's name. */
+export function standing(d: Deal, other: string): { price: number; icon: string; caption: string } {
+  const open = d.open_price;
+  const listed = { price: d.listing.price, icon: 'sell-outline-rounded' };
+  if (d.status === 'negotiating' && open) return { ...listed, price: open.amount, caption: open.by !== d.role ? `Giá ${other} đưa` : `Bạn trả · chờ ${other}` };
+  if (d.status === 'negotiating' && d.role === 'seller') return { ...listed, caption: `Giá đăng · chờ ${other} trả giá` };
+  if (d.status === 'negotiating' || !d.agreed_price) return { ...listed, caption: 'Giá đăng' };
+  const order = d.order?.status === 'pending' || d.order?.status === 'shipped' ? ORDER_STATUS[d.order.status][1] : '';
+  return { price: d.agreed_price, icon: 'handshake-outline-rounded', caption: d.status === 'sold' ? 'Đã bán' : order ? `Đã chốt · ${order}` : 'Đã chốt' };
+}
+
 /** A listing title cut for a deal chip and a move's line. */
 export const shortTitle = (t: string) => (t.length > 24 ? `${t.slice(0, 22).trimEnd()}…` : t);
 

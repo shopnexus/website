@@ -54,6 +54,8 @@ export function mountChatPane(o: PaneOptions) {
   toEnd();
   const socket = connectSocket();
   const listen = (type: string, fn: (e: Event) => void) => document.addEventListener(type, fn, { signal: o.signal });
+  // The root may outlive the pane (the chat box shows one chat after another), so its listeners end with the pane.
+  const onRoot = <K extends keyof HTMLElementEventMap>(type: K, fn: (e: HTMLElementEventMap[K]) => void) => on.addEventListener(type, fn, { signal: o.signal });
 
   // ------------------------------------------------- swap from the server --
   // A fresh render replaces each data-part; one that holds the focus waits
@@ -147,7 +149,7 @@ export function mountChatPane(o: PaneOptions) {
     else pageUrl = to;
     return code;
   }
-  on.addEventListener('submit', async (e) => {
+  onRoot('submit', async (e) => {
     const form = e.target as HTMLFormElement;
     if (!form.matches('[data-in-place]')) return;
     e.preventDefault();
@@ -208,18 +210,18 @@ export function mountChatPane(o: PaneOptions) {
       $('[data-strip-text]', strip)!.textContent = b.dataset.replyText ?? '';
       field.focus();
     };
-    on.addEventListener('click', (e) => {
+    onRoot('click', (e) => {
       const b = (e.target as Element).closest<HTMLButtonElement>('[data-reply]');
       if (b) replyTo_(b);
     });
     // On a touch screen a message swiped 56 px toward the middle is answered, as in the app: the other person's to the right, one's own to the left.
     let swipe: { el: HTMLElement; x: number; y: number; id: number; sign: number } | null = null;
-    on.addEventListener('pointerdown', (e) => {
+    onRoot('pointerdown', (e) => {
       const el = (e.target as Element).closest<HTMLElement>('[data-msg]');
       if (e.pointerType !== 'touch' || !el?.querySelector('[data-reply]')) return;
       swipe = { el, x: e.clientX, y: e.clientY, id: e.pointerId, sign: el.closest('[data-group="mine"]') ? -1 : 1 };
     });
-    on.addEventListener('pointermove', (e) => {
+    onRoot('pointermove', (e) => {
       if (!swipe || e.pointerId !== swipe.id) return;
       const dx = (e.clientX - swipe.x) * swipe.sign;
       if (Math.abs(e.clientY - swipe.y) > 24) {
@@ -238,8 +240,8 @@ export function mountChatPane(o: PaneOptions) {
       setTimeout(() => (el.style.transition = ''), 160);
       if (e.type === 'pointerup' && (e.clientX - x) * sign >= 56) replyTo_(el.querySelector<HTMLElement>('[data-reply]')!);
     };
-    on.addEventListener('pointerup', endSwipe);
-    on.addEventListener('pointercancel', endSwipe);
+    onRoot('pointerup', endSwipe);
+    onRoot('pointercancel', endSwipe);
 
     // Each photo uploads as soon as it is picked; up to 4.
     pick.addEventListener('click', () => files.click());
@@ -347,6 +349,16 @@ export function mountChatPane(o: PaneOptions) {
       b.disabled = false;
     }
   });
+  // Scrolling up to "Tin cũ hơn" loads the page; the button stays for the keyboard.
+  const older = q<HTMLButtonElement>('[data-older]');
+  if (older && scroller) {
+    const seen = new IntersectionObserver(([e]) => e.isIntersecting && older.dataset.older && !older.disabled && older.click(), {
+      root: scroller,
+      rootMargin: '160px 0px 0px',
+    });
+    seen.observe(older);
+    o.signal?.addEventListener('abort', () => seen.disconnect());
+  }
 
   // ----------------------------------------------------------- the socket --
   let typingTimer = 0;

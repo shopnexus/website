@@ -1,12 +1,10 @@
 import { whileBusy } from './busy';
-import { mountChatPane } from './chat-pane';
+import { type DockChat, dockPane, openDock, provide } from './chat-dock';
 import { moneyOf, setMoney } from './money-input';
-import { R, loginHref } from './routes';
-import { failure } from './skeleton';
 
 // In the browser: Chat nhanh (QuickChat.astro). Links marked data-quickchat
-// ("chat", "offer" or a question) open the box mounted last; without one
-// they go to Tin nhắn.
+// ("chat", "offer" or a question) open the chat box on the listing mounted
+// last, with its chips and offer tray; without one they go to Tin nhắn.
 
 let opener: ((what: string) => void) | null = null;
 
@@ -20,70 +18,30 @@ if (!(window as { snQuickChat?: boolean }).snQuickChat) {
   });
 }
 
-/** Wires a box and its folded pill; returns how to take them off the page. */
-export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement): () => void {
-  const $ = <T extends Element = HTMLElement>(s: string) => box.querySelector<T>(s)!;
-  // Without offers on the listing the box has no tray and no "Trả giá".
+/** Wires a listing's chips and offer tray (taken off the page into the box when it opens); returns how to take them away. */
+export function mountQuickChat(box: HTMLElement): () => void {
+  // Without offers on the listing there is no tray and no "Trả giá".
   const tray = box.querySelector<HTMLFormElement>('[data-qc-tray]');
   const offerBtn = box.querySelector<HTMLButtonElement>('[data-qc-offer]');
   const amount = box.querySelector<HTMLInputElement>('[data-qc-amount]');
   const price = Number(box.dataset.price);
-  const wide = matchMedia('(min-width: 64rem)');
-  const full = $<HTMLAnchorElement>('[data-qc-full]');
-  const page = new AbortController();
+  const listing = box.dataset.listing!;
+  let chatId = box.dataset.chat ?? '';
+  box.remove();
+  box.hidden = false;
 
-  // The pane's URL: the chat and deal once the first message opened them.
-  const paneUrl = () => {
-    const u = new URL(box.dataset.pane!, location.origin);
-    const meta = box.querySelector<HTMLElement>('[data-part="meta"]');
-    if (meta?.dataset.chat) u.searchParams.set('chat', meta.dataset.chat);
-    if (meta?.dataset.deal) u.searchParams.set('deal', meta.dataset.deal);
-    return u;
-  };
+  // The offer posts to the pane as it stands: the chat and deal once the first message opened them.
   const synced = () => {
-    if (tray) tray.action = paneUrl().pathname + paneUrl().search;
-    const meta = box.querySelector<HTMLElement>('[data-part="meta"]');
-    if (meta?.dataset.chat) full.href = `${R.messages}?${new URLSearchParams({ chat: meta.dataset.chat, deal: meta.dataset.deal ?? '' })}`;
+    const pane = dockPane();
+    if (tray) tray.action = pane;
+    chatId = new URL(pane, location.origin).searchParams.get('chat') ?? chatId;
   };
-
-  // The pane loads on the first open and then follows the chat by itself.
-  // Resolves to whether it is in; one that did not load offers "Thử lại".
-  const slot = $('[data-qc-pane]');
-  const waiting = [...slot.childNodes];
-  let loaded: Promise<boolean> | null = null;
-  const load = () =>
-    (loaded ??= (async () => {
-      const res = await fetch(paneUrl(), { headers: { accept: 'text/html' } }).catch(() => null);
-      if (res?.redirected || res?.status === 401) {
-        location.href = loginHref(location.pathname);
-        return false;
-      }
-      if (!res?.ok) {
-        loaded = null;
-        const retry = failure(() => {
-          slot.replaceChildren(...waiting);
-          load();
-        });
-        retry.classList.add('m-auto');
-        slot.replaceChildren(retry);
-        return false;
-      }
-      slot.innerHTML = await res.text();
-      synced();
-      mountChatPane({
-        root: box,
-        clean: paneUrl,
-        history: false,
-        shows: (u) => !!u.deal_id && u.deal_id === box.querySelector<HTMLElement>('[data-part="meta"]')?.dataset.deal,
-        afterSwap: synced,
-        signal: page.signal,
-      });
-      return true;
-    })());
+  const chat: DockChat = { pane: box.dataset.pane!, tools: box, afterSwap: synced };
+  const drop = provide({ has: (c, l) => l === listing || (!!chatId && c === chatId), chat });
 
   const say = async (text: string) => {
-    if (!(await load())) return;
-    const form = box.querySelector<HTMLFormElement>('[data-composer]');
+    if (!(await openDock(chat))) return;
+    const form = document.querySelector<HTMLFormElement>('[data-dock] [data-composer]');
     const field = form?.querySelector<HTMLTextAreaElement>('[name="text"]');
     if (!form || !field) return;
     field.value = text;
@@ -93,17 +51,9 @@ export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement):
     box.querySelectorAll<HTMLElement>('[data-qc-ask]').forEach((b) => b.dataset.qcAsk === text && b.remove());
   };
   const open = (offer = false) => {
-    pill.classList.add('hidden');
-    pill.classList.remove('flex');
-    if (!box.open) wide.matches ? box.show() : box.showModal();
-    setTray(offer);
-    load().then((ok) => ok && ((offer && amount) || box.querySelector<HTMLTextAreaElement>('[data-composer] [name="text"]'))?.focus({ preventScroll: true }));
-  };
-  const close = () => box.close();
-  const fold = () => {
-    box.close();
-    pill.classList.remove('hidden');
-    pill.classList.add('flex');
+    const toTray = offer && !!amount;
+    setTray(toTray);
+    openDock(chat, { focus: !toTray }).then((ok) => ok && toTray && amount!.focus({ preventScroll: true }));
   };
   const setTray = (on: boolean) => {
     tray?.classList.toggle('hidden', !on);
@@ -118,20 +68,6 @@ export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement):
     }
   };
   opener = take;
-  pill.addEventListener('click', () => open());
-  $('[data-qc-close]').addEventListener('click', close);
-  $('[data-qc-min]').addEventListener('click', fold);
-  // A non-modal dialog has no Esc of its own.
-  box.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !box.matches(':modal')) close();
-  });
-  // The sheet closes on a tap on its backdrop.
-  box.addEventListener('click', (e) => {
-    if (e.target === box && box.matches(':modal')) {
-      const r = box.getBoundingClientRect();
-      if (e.clientY < r.top) close();
-    }
-  });
 
   box.querySelectorAll<HTMLButtonElement>('[data-qc-ask]').forEach((b) => b.addEventListener('click', () => whileBusy(b, () => say(b.dataset.qcAsk!))));
   if (tray && offerBtn && amount) {
@@ -156,39 +92,8 @@ export function mountQuickChat(box: HTMLDialogElement, pill: HTMLButtonElement):
     tray.addEventListener('sent', () => setTray(false));
   }
 
-  // The left edge drags the docked box wider or narrower; the width is kept per browser.
-  const KEY = 'sn:qc-width';
-  const clamp = (w: number) => Math.round(Math.min(Math.max(w, 360), Math.min(760, innerWidth - 48)));
-  const setWidth = (w: number) => box.style.setProperty('--qc-width', `${clamp(w)}px`);
-  try {
-    const kept = Number(localStorage.getItem(KEY));
-    if (kept) setWidth(kept);
-  } catch {
-    // Without storage the box opens at its default width.
-  }
-  const handle = $('[data-qc-resize]');
-  handle.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    handle.setPointerCapture(e.pointerId);
-    const right = box.getBoundingClientRect().right;
-    const move = (m: PointerEvent) => setWidth(right - m.clientX);
-    const up = () => {
-      handle.removeEventListener('pointermove', move);
-      handle.removeEventListener('pointerup', up);
-      try {
-        localStorage.setItem(KEY, String(box.getBoundingClientRect().width));
-      } catch {
-        // The width lasts until the page closes.
-      }
-    };
-    handle.addEventListener('pointermove', move);
-    handle.addEventListener('pointerup', up);
-  });
-
   return () => {
     if (opener === take) opener = null;
-    page.abort();
-    box.remove();
-    pill.remove();
+    drop();
   };
 }

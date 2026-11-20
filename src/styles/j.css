@@ -352,7 +352,7 @@
   }
 }
 
-/* The chat box's pane blocks sit in its column; its composer goes last, under the chips and the offer tray. */
-[data-qc-box] [data-composer] {
+/* The chat box's pane blocks sit in its column; its composer goes last, under Chat nhanh's chips and offer tray. */
+[data-dock] :is([data-composer], [data-composer-off]) {
   order: 1;
 }

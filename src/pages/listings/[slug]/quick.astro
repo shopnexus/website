@@ -104,13 +104,9 @@ const [rating] = seller ? ratingText(seller.rating) : [''];
     <QuickChat
       listing={it.id}
       chat={screen!.viewer?.conversation_id}
-      seller={{ name: seller.display_name, photo: seller.avatar_url }}
-      title={it.title}
-      thumb={photos[0]?.thumb}
       price={it.price}
       offers={deal.offers}
       questions={QUESTIONS}
-      href={deal.chat}
     />
   )
 }

@@ -4,7 +4,7 @@
 // the amount (?offer=1 without the script).
 import { PHASES } from '../../../data/common';
 import { group, money } from '../../../lib/format';
-import { type Deal, LISTING_STATUS, ORDER_STATUS, chatHref, phase } from '../../../lib/messages';
+import { type Deal, LISTING_STATUS, chatHref, phase, standing } from '../../../lib/messages';
 import { R } from '../../../lib/routes';
 import { btnCls } from '../../../lib/ui';
 import Icon from '../../Icon.astro';
@@ -25,22 +25,8 @@ const open = d.open_price ?? undefined;
 const theirs = open && open.by !== d.role;
 const range = d.offer_range ?? undefined;
 const active = d.listing.status === 'active';
-const agreed = d.agreed_price ?? undefined;
 const openOrder = d.order?.status === 'pending' || d.order?.status === 'shipped';
-
-let price = d.listing.price;
-let lead = 'sell-outline-rounded';
-let caption = 'Giá đăng';
-if (d.status === 'negotiating' && open) {
-  price = open.amount;
-  caption = theirs ? `Giá ${other} đưa` : `Bạn trả · chờ ${other}`;
-} else if (d.status === 'negotiating' && !buyer) {
-  caption = `Giá đăng · chờ ${other} trả giá`;
-} else if (d.status !== 'negotiating' && agreed) {
-  price = agreed;
-  lead = 'handshake-outline-rounded';
-  caption = d.status === 'sold' ? 'Đã bán' : d.order && openOrder ? `Đã chốt · ${ORDER_STATUS[d.order.status][1]}` : 'Đã chốt';
-}
+const { price, icon: lead, caption } = standing(d, other);
 const note = active ? '' : LISTING_STATUS[d.listing.status];
 const canCancel = d.status === 'agreed' && (!d.order || d.order.status === 'pending');
 const canCod = d.status === 'agreed' && buyer && !openOrder && active;

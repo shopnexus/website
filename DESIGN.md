@@ -294,6 +294,21 @@ and `/messages/peek` each time the panel opens. Thông báo shows on phones too;
 Tin nhắn there stays the bottom bar's page. Drafts:
 `.superdesign/mockups/notif-preview-*.html` (`tools/build_notif_preview.py`).
 
+From 840 px a chat in the Tin nhắn panel opens in the chat box
+(`ChatDock.astro`, `src/lib/chat-dock.ts`), the same box as Chat nhanh: 440
+by 600 px at the bottom right, over the page. It shows the person (their card
+on hover), the listing with the price that stands, the thread, which loads
+older pages when scrolled to its top, and the composer, all from
+`/messages/pane` and live over the socket. Once a price is offered or agreed,
+"Mở trong Tin nhắn" on the listing line opens the full chat for the deal's
+moves. "Thu nhỏ" folds the box into a pill with the face and name, which adds
+"Tin mới" when a message arrives. The box holds one chat, and another chat
+replaces it. The chat, open or folded, is kept in sessionStorage and opens
+again on the next page of the visit; Tin nhắn and Hỗ trợ have no box, since
+they run their own chat. Below 840 px, and with a modifier or middle click, a
+row opens Tin nhắn. Drafts: `.superdesign/mockups/chat-dock-*.html`
+(`tools/build_chat_dock.py`).
+
 On a category page and on Tìm kiếm with `?category=`, the search field starts
 with a mint chip for the category (its icon only on a phone, where the camera
 moves to the dropdown) and searches inside it; × or Backspace in the empty

@@ -1,0 +1,52 @@
+---
+// The chat box: one chat docked bottom-right over the page from 840 px, a
+// bottom sheet below. A chat in the header's Tin nhắn panel and Chat nhanh on
+// a listing open it; lib/chat-dock fills it from /messages/pane. "Thu nhỏ"
+// folds it into a pill, its left edge drags it wider (kept per browser), and
+// the open chat comes back on the next page of the visit.
+import { R } from '../../../lib/routes';
+import Icon from '../../Icon.astro';
+import Skeleton from '../../Skeleton.astro';
+
+const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-full text-on-surface-variant';
+---
+
+<dialog
+  class="fixed inset-x-0 bottom-0 top-auto z-40 m-0 flex h-[min(640px,88dvh)] w-full max-w-none flex-col overflow-hidden rounded-t-xl bg-page p-0 text-ink shadow-float [view-transition-name:chat-dock] backdrop:bg-black/30 lg:inset-x-auto lg:bottom-5 lg:right-6 lg:h-[min(600px,calc(100dvh-120px))] lg:w-[var(--dock-width,440px)] lg:rounded-card lg:bg-card lg:shadow-pop [&:not([open])]:hidden"
+  aria-label="Chat"
+  data-dock
+>
+  <div class="absolute inset-y-0 left-0 z-10 w-1.5 cursor-ew-resize hover:bg-primary/20 max-lg:hidden" role="separator" aria-orientation="vertical" aria-label="Kéo để đổi độ rộng" data-dock-resize></div>
+  <span class="mx-auto mt-2 h-1 w-8 shrink-0 rounded-full bg-on-surface-variant/40 lg:hidden"></span>
+  <div class="flex items-center gap-1 px-3 pt-3">
+    <div class="flex min-w-0 flex-1 items-center gap-2.5 py-0.5" aria-hidden="true" data-part="head">
+      <span class="skeleton h-9 w-9 shrink-0 rounded-full"></span>
+      <span class="skeleton h-3.5 w-28 rounded-full"></span>
+    </div>
+    <a href={R.messages} class={iconBtn} aria-label="Mở trong Tin nhắn" title="Mở trong Tin nhắn" data-dock-full data-dock-leave><Icon name="open-in-new-rounded" size={18} /></a>
+    <button type="button" class:list={[iconBtn, 'max-lg:hidden']} aria-label="Thu nhỏ" title="Thu nhỏ" data-dock-fold><Icon name="remove-rounded" size={18} /></button>
+    <button type="button" class={iconBtn} aria-label="Đóng" title="Đóng" data-dock-close><Icon name="close-rounded" size={18} /></button>
+  </div>
+  <div hidden data-part="ref"></div>
+  <div class="contents" data-dock-pane>
+    <div class="flex min-h-0 flex-1 flex-col px-5"><Skeleton kind="bubbles" inline /></div>
+  </div>
+  <div class="contents" data-dock-tools></div>
+</dialog>
+
+<button
+  type="button"
+  class="group state-layer fixed bottom-5 right-6 z-40 hidden h-12 items-center gap-2 rounded-control bg-card pl-1.5 pr-4 text-title-small text-ink shadow-pop [view-transition-name:chat-dock-pill] max-lg:!hidden"
+  data-dock-pill
+>
+  <span class="relative">
+    <span class="contents" data-dock-pill-face></span>
+    <span class="absolute -right-0.5 -top-0.5 hidden h-3 w-3 rounded-full border-2 border-card bg-brand group-data-[new]:block"></span>
+  </span>
+  <span class="max-w-40 truncate" data-dock-pill-name></span>
+  <span class="hidden text-body-small text-faint group-data-[new]:inline">Tin mới</span>
+</button>
+
+<script>
+  import '../../../lib/chat-dock';
+</script>

@@ -1,74 +1,33 @@
 ---
 // Chat nhanh on a listing: "Nhắn tin", "Trả giá" and the question chips open
-// this box over the page instead of going to Tin nhắn. On a wide window it
-// docks bottom-right, its left edge drags it wider (kept per browser), and
-// the page stays usable; "Thu nhỏ" folds it into a pill. On a phone it is a
-// bottom sheet. The page marks its openers with data-quickchat ("chat",
-// "offer", or the question to send); they stay links to Tin nhắn, so without
-// the script they still work. The chat inside is /messages/pane, the same
-// thread and composer as Tin nhắn, run by lib/chat-pane.
+// the chat box (ChatDock) on the buyer's chat about it, with the question
+// chips and the offer tray under the thread. The page marks its openers with
+// data-quickchat ("chat", "offer", or the question to send); they stay links
+// to Tin nhắn, so without the script they still work.
 import Icon from '../Icon.astro';
-import Avatar from '../Avatar.astro';
-import Photo from '../Photo.astro';
-import Skeleton from '../Skeleton.astro';
 import { group } from '../../lib/format';
 
 interface Props {
   listing: string;
   /** The buyer's chat with the seller, once there is one. */
   chat?: string;
-  /** photo: the avatar's URL, absent without one. */
-  seller: { name: string; photo?: string };
-  title: string;
-  /** The listing's photo URL. */
-  thumb?: string;
   price: number;
   /** The listing takes offers now: "Trả giá" and its tray show. */
   offers: boolean;
   questions: string[];
-  /** The full chat on Tin nhắn. */
-  href: string;
 }
 
-const { listing, chat, seller, title, thumb, price, offers, questions, href } = Astro.props;
+const { listing, chat, price, offers, questions } = Astro.props;
 
 // Three quick cuts, about 4, 6 and 10 % off, on round steps.
 const unit = price >= 1_000_000 ? 100_000 : 10_000;
 const cuts = [...new Set([0.04, 0.06, 0.1].map((f) => Math.max(unit, Math.round((price * f) / unit) * unit)))];
 const cutLabel = (v: number) => (v >= 1_000_000 ? `−${(v / 1_000_000).toLocaleString('vi-VN')} tr` : `−${v / 1000}k`);
 const start = price - cuts[Math.min(1, cuts.length - 1)];
-const iconBtn = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-full text-on-surface-variant';
-const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name, ...(chat ? { chat } : {}) })}`;
+const pane = `/messages/pane?${new URLSearchParams({ listing, ...(chat ? { chat } : {}) })}`;
 ---
 
-<dialog
-  class="quickchat fixed inset-x-0 bottom-0 top-auto z-40 m-0 flex h-[min(640px,88dvh)] w-full max-w-none flex-col overflow-hidden rounded-t-xl bg-page p-0 text-ink shadow-float backdrop:bg-black/30 lg:inset-x-auto lg:bottom-5 lg:right-6 lg:h-[min(600px,calc(100dvh-120px))] lg:w-[var(--qc-width,440px)] lg:rounded-card lg:bg-card lg:shadow-lift [&:not([open])]:hidden"
-  aria-label={`Chat với ${seller.name}`}
-  data-qc
-  data-qc-box
-  data-price={price}
-  data-pane={pane}
->
-  <div class="absolute inset-y-0 left-0 z-10 w-1.5 cursor-ew-resize hover:bg-primary/20 max-lg:hidden" role="separator" aria-orientation="vertical" aria-label="Kéo để đổi độ rộng" data-qc-resize></div>
-  <span class="mx-auto mt-2 h-1 w-8 shrink-0 rounded-full bg-on-surface-variant/40 lg:hidden"></span>
-  <div class="flex items-center gap-2.5 px-3 pt-3">
-    <Avatar name={seller.name} photo={seller.photo} size={36} loading="lazy" />
-    <p class="min-w-0 flex-1 truncate text-title-small">{seller.name}</p>
-    <a href={href} data-qc-full class={iconBtn} aria-label="Mở ở trang Tin nhắn" title="Mở ở trang Tin nhắn"><Icon name="open-in-new-rounded" size={19} /></a>
-    <button type="button" class:list={[iconBtn, 'max-lg:hidden']} aria-label="Thu nhỏ" title="Thu nhỏ" data-qc-min><Icon name="remove-rounded" size={19} /></button>
-    <button type="button" class={iconBtn} aria-label="Đóng" title="Đóng" data-qc-close><Icon name="close-rounded" size={19} /></button>
-  </div>
-
-  <div class="mx-3 mt-2.5 flex items-center gap-2.5 rounded-lg bg-surface-container-low p-1.5 pr-3">
-    {thumb && <Photo src={thumb} width={80} height={80} alt="" loading="lazy" class="h-10 w-10 rounded-md object-cover" />}
-    <p class="min-w-0 flex-1 truncate text-body-medium">{title}</p>
-    <p class="text-j-15 tabular-nums">{group(price)}<span class="ml-0.5 text-body-small font-medium text-sub">₫</span></p>
-  </div>
-
-  <div class="contents" data-qc-pane>
-    <div class="flex min-h-0 flex-1 flex-col px-5"><Skeleton kind="bubbles" inline /></div>
-  </div>
-
+<div class="contents" hidden data-qc data-pane={pane} data-listing={listing} data-chat={chat} data-price={price}>
   <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto px-3 pb-1" data-qc-chips>
     {
       offers && (
@@ -133,20 +92,11 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
       </form>
     )
   }
-</dialog>
-
-<button
-  type="button"
-  class="state-layer fixed bottom-5 right-6 z-40 hidden h-12 items-center gap-2 rounded-control bg-card pl-1.5 pr-4 text-label-large text-ink shadow-lift max-lg:!hidden"
-  data-qc-pill
->
-  <Avatar name={seller.name} photo={seller.photo} size={36} loading="lazy" />
-  {seller.name}
-</button>
+</div>
 
 <script>
   import { mountQuickChat } from '../../lib/quick-chat';
 
-  const box = document.querySelector<HTMLDialogElement>('[data-qc]');
-  if (box) mountQuickChat(box, document.querySelector<HTMLButtonElement>('[data-qc-pill]')!);
+  const tools = document.querySelector<HTMLElement>('[data-qc]');
+  if (tools) mountQuickChat(tools);
 </script>
