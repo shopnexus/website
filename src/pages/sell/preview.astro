@@ -1,0 +1,64 @@
+---
+// Xem trước on Đăng tin (SellPreview): POST the form as it stands, with each
+// photo's preview URL in order (photo_url, a blob: for a photo this browser
+// just added). Answers the listing card and the top of the listing page as a
+// buyer will see them, drawn by the same components, and what a buyer would
+// miss with a "Sửa" to that field.
+import Icon from '../../components/Icon.astro';
+import ListingCard from '../../components/ListingCard.astro';
+import Gallery from '../../components/public/Gallery.astro';
+import ListingHead from '../../components/public/ListingHead.astro';
+import { conditionLabel } from '../../lib/listing';
+import { communes } from '../../lib/regions';
+import { readSellForm } from '../../lib/sell';
+import { LABEL, PANEL } from '../../lib/ui';
+
+export const partial = true;
+
+if (Astro.request.method !== 'POST' || !Astro.locals.session.token) return new Response(null, { status: 405 });
+const form = await Astro.request.formData();
+const f = readSellForm(form);
+const urls = form.getAll('photo_url').map(String).filter((u) => /^(blob:|https?:|\/)/.test(u));
+const place = f.province ? ((await communes(f.province).catch(() => [])).find((c) => c.code === f.commune)?.name ?? '') : '';
+const condition = conditionLabel(f.condition);
+const now = new Date().toISOString();
+
+/** What a buyer would miss, each with the field that fixes it. The title cut on the card is measured in the browser. */
+const notes: { key: string; icon: string; text: string; field: string; fix: string; hidden?: boolean }[] = [
+  { key: 'title-cut', icon: 'wrap-text-rounded', text: 'Tiêu đề bị cắt trên thẻ', field: 'title', fix: 'Sửa tiêu đề', hidden: true },
+  ...(f.title ? [] : [{ key: 'title', icon: 'edit-outline-rounded', text: 'Chưa có tiêu đề', field: 'title', fix: 'Thêm' }]),
+  ...(urls.length ? [] : [{ key: 'photo', icon: 'image-outline-rounded', text: 'Chưa có ảnh bìa', field: 'photos', fix: 'Thêm ảnh' }]),
+  ...(f.price ? [] : [{ key: 'price', icon: 'sell-outline-rounded', text: 'Chưa có giá', field: 'price', fix: 'Nhập giá' }]),
+  ...(f.condition ? [] : [{ key: 'condition', icon: 'check-circle-outline-rounded', text: 'Chưa chọn tình trạng', field: 'condition', fix: 'Chọn' }]),
+  ...(place ? [] : [{ key: 'place', icon: 'location-on-outline-rounded', text: 'Chưa chọn phường, xã', field: 'commune', fix: 'Chọn' }]),
+];
+---
+
+<div data-preview-body>
+  <p class={LABEL}>Thẻ tin</p>
+  <!-- As wide as a card in the grid at this window size. -->
+  <div class="mt-2 w-[calc((100vw-44px)/2)] md:w-[calc((100vw-72px)/3)] lg:w-[228px]" inert>
+    <ListingCard item={{ id: '', slug: '', photo: urls[0], price: f.price ?? 0, title: f.title, condition, area: place, saved: false }} />
+  </div>
+  <ul class="mt-3 flex flex-col gap-1 rounded-tile bg-soft px-3 py-1.5 [&:not(:has(>li:not([hidden])))]:hidden" data-preview-notes>
+    {
+      notes.map((n) => (
+        <li class="flex min-h-9 items-center gap-2 text-body-medium text-ink" hidden={n.hidden} data-note={n.key}>
+          <Icon name={n.icon} size={16} class="text-sub" />
+          <span class="min-w-0 flex-1">{n.text}</span>
+          <button type="button" class="state-layer -mr-1.5 h-8 shrink-0 rounded-sm px-2 text-label-large text-primary hover:bg-hover" data-edit-field={n.field}>
+            {n.fix}
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class:list={[LABEL, 'mt-6']}>Trang tin</p>
+  <div class="mt-2">
+    <Gallery photos={urls.map((u) => ({ big: u, thumb: u }))} title={f.title} />
+  </div>
+  <div class:list={[PANEL, 'mt-3 p-5']}>
+    <ListingHead condition={condition} place={place} posted={now} title={f.title} price={f.price ?? 0} />
+  </div>
+</div>

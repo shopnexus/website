@@ -1,0 +1,36 @@
+---
+// Đăng tin's Xem trước: before the post, the listing card and the top of the
+// listing page from the form as it stands (/sell/preview), with "Sửa" back to
+// the form and "Đăng tin". From 840 px a panel on the right, below a full
+// sheet (styles/side-sheet.css). Drafts: .superdesign/mockups/seller-tools-preview*.html.
+import { btnCls } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import Skeleton from '../Skeleton.astro';
+---
+
+<dialog
+  class="side-sheet flex-col overflow-hidden border-0 bg-card p-0 text-ink outline-none open:flex"
+  style="--sheet-height: 100dvh; --sheet-radius: 0px; --panel-inset: 12px 12px 12px auto; --panel-width: 460px"
+  aria-labelledby="sell-preview-title"
+  tabindex="-1"
+  data-sell-preview
+>
+  <div class="flex h-14 shrink-0 items-center gap-2 pl-5 pr-3">
+    <h2 id="sell-preview-title" class="flex-1 text-j-18 text-ink">Xem trước</h2>
+    <button type="button" class="state-layer grid h-9 w-9 place-items-center rounded-control text-ink hover:bg-hover" aria-label="Đóng" data-preview-close>
+      <Icon name="close-rounded" size={20} />
+    </button>
+  </div>
+  <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5" data-preview-slot data-skeleton-kind="listing"></div>
+  <div class="flex shrink-0 gap-2 border-t border-line p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+    <button type="button" class:list={[btnCls('line', 'lg'), 'flex-1']} data-preview-edit>
+      <Icon name="edit-outline-rounded" size={17} />
+      Sửa
+    </button>
+    <button type="button" class:list={[btnCls('ink', 'lg'), 'flex-[2]']} data-preview-post>
+      <Icon name="send-rounded" size={17} />
+      Đăng tin
+    </button>
+  </div>
+</dialog>
+<Skeleton kind="listing" />

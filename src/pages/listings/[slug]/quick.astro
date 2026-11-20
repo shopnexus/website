@@ -7,11 +7,11 @@ import Avatar from '../../../components/Avatar.astro';
 import Icon from '../../../components/Icon.astro';
 import Gallery from '../../../components/public/Gallery.astro';
 import ListingActions from '../../../components/public/ListingActions.astro';
-import ListingPrice from '../../../components/public/ListingPrice.astro';
+import ListingHead from '../../../components/public/ListingHead.astro';
 import QuickChat from '../../../components/public/QuickChat.astro';
 import { orNull } from '../../../lib/api/client';
 import { near } from '../../../lib/area';
-import { ago, ratingText, where } from '../../../lib/format';
+import { ratingText, where } from '../../../lib/format';
 import { QUESTIONS, conditionLabel, dealState } from '../../../lib/listing';
 import { R } from '../../../lib/routes';
 import { viewer } from '../../../lib/session';
@@ -38,20 +38,17 @@ const [rating] = seller ? ratingText(seller.rating) : [''];
     </article>
   ) : (
     <article class="flex flex-col p-4" aria-label={it.title} data-quick-body data-slug={it.slug}>
-      {photos.length > 0 ? (
-        <Gallery photos={photos} title={it.title} compact />
-      ) : (
-        <div class="grid place-items-center rounded-card bg-soft text-faint" style="aspect-ratio: 16 / 10.5">
-          <Icon name="photo-camera-outline-rounded" size={32} />
-        </div>
-      )}
+      <Gallery photos={photos} title={it.title} compact />
       <div class="px-1 pt-4">
-        <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-small text-faint">
-          <span class="rounded-xs bg-mint px-1.5 py-0.5 font-medium text-on-mint">{conditionLabel(it.condition)}</span>
-          {where(screen.distance_km, it.location.commune.display_name)} · {ago(it.published_at ?? it.created_at)} trước
-        </p>
-        <h2 class="mt-2.5 text-j-18 text-ink">{it.title}</h2>
-        <ListingPrice price={it.price} drop={it.price_drop} size="text-j-26" class="mt-2" />
+        <ListingHead
+          compact
+          condition={conditionLabel(it.condition)}
+          place={where(screen.distance_km, it.location.commune.display_name)}
+          posted={it.published_at ?? it.created_at}
+          title={it.title}
+          price={it.price}
+          drop={it.price_drop}
+        />
         {deal.reserved && <p class="mt-1 text-body-small text-faint">Món này đang được giao cho một người mua.</p>}
       </div>
       <!-- On a phone the buttons stay at the sheet's foot. -->
