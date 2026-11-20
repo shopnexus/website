@@ -1,0 +1,52 @@
+---
+// "Giao đến": the buyer's addresses as radios named address_id, the picked one
+// checked. Without an address, "Thêm địa chỉ" opens the book's form, which
+// comes back to `back` once saved.
+import type { Schemas } from '../../lib/api/client';
+import { ADDRESS_KIND } from '../../lib/profile';
+import { R } from '../../lib/routes';
+import Icon from '../Icon.astro';
+
+interface Props {
+  addresses: Schemas['Address'][];
+  picked?: string;
+  /** The page to come back to from the address book. */
+  back: string;
+  class?: string;
+}
+
+const { addresses, picked, back, class: cls } = Astro.props;
+const next = `next=${encodeURIComponent(back)}`;
+---
+
+<fieldset class={cls}>
+  <legend class="text-title-small text-ink">Giao đến</legend>
+  {
+    addresses.length ? (
+      <div class="mt-2 flex flex-col gap-2">
+        {addresses.map((a) => (
+          <label class="group flex cursor-pointer items-center gap-3 rounded-tile bg-surface-container-low p-3 has-[:checked]:bg-card has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary">
+            <input type="radio" name="address_id" value={a.id} checked={a.id === picked} required class="sr-only" />
+            <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 border-outline-variant group-has-[:checked]:border-primary">
+              <span class="hidden h-2.5 w-2.5 rounded-full bg-primary group-has-[:checked]:block" />
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-label-medium text-on-surface-variant">
+                {ADDRESS_KIND[a.kind].label} · {a.name}
+              </span>
+              <span class="block truncate text-body-medium text-ink">
+                {a.street}, {a.commune}, {a.province}
+              </span>
+            </span>
+          </label>
+        ))}
+        <a href={`${R.addresses}?${next}`} class="tap self-start px-1 text-label-large text-primary hover:underline">Sửa sổ địa chỉ</a>
+      </div>
+    ) : (
+      <a href={`${R.addresses}?new&${next}`} class="state-layer mt-2 flex items-center gap-3 rounded-tile bg-surface-container-low p-3 text-body-medium text-primary">
+        <Icon name="add-rounded" size={20} />
+        Thêm địa chỉ
+      </a>
+    )
+  }
+</fieldset>

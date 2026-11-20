@@ -23,7 +23,7 @@ import Layout from '../layouts/Layout.astro';
 import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
 import { group } from '../lib/format';
 import { isId } from '../lib/listing';
-import { activeText, chatHref, errorCode, errorText, loadMessages, openDeal, personName, shortTitle, thread } from '../lib/messages';
+import { activeText, chatHref, errorCode, errorText, loadMessages, openDeal, personHref, personName, shortTitle, thread } from '../lib/messages';
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { CONTENT_WIDE, btnCls } from '../lib/ui';
@@ -265,9 +265,16 @@ const detail = !!(chat || start || confirm);
               thumb={deal?.listing.cover_thumb_url}
               sub={activeText(chat.other)}
               href={deal && (deal.listing.status === 'active' || deal.listing.status === 'reserved') ? R.listing(deal.listing.slug) : undefined}
+              person={personHref(chat.other)}
             >
               {!official && (
                 <Fragment slot="menu">
+                  {deal && personHref(chat.other) && (
+                    <a href={personHref(chat.other)} class={item}>
+                      <Icon name="person-outline-rounded" size={18} class="text-sub" />
+                      Trang của {other}
+                    </a>
+                  )}
                   <form method="post" action={R.messages}>
                     <input type="hidden" name="chat" value={chat.id} />
                     <button type="submit" name="do" value="unread" class={item}>
@@ -407,8 +414,10 @@ const detail = !!(chat || start || confirm);
               <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư">
                 <Icon name="chevron-left-rounded" size={24} />
               </a>
-              <Avatar name={start.seller.display_name} photo={start.seller.avatar_url} size={40} />
-              <p class="min-w-0 flex-1 truncate text-title-medium text-ink">{start.seller.display_name}</p>
+              <a href={R.seller(start.seller.id)} class="state-layer flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2">
+                <Avatar name={start.seller.display_name} photo={start.seller.avatar_url} size={40} />
+                <span class="min-w-0 flex-1 truncate text-title-medium text-ink">{start.seller.display_name}</span>
+              </a>
             </div>
             <div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
               <p class="px-2 pb-2 text-body-medium text-on-surface-variant">

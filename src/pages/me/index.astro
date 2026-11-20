@@ -1,7 +1,7 @@
 ---
 // Tôi: the profile and its figures, the address book and the theme; on the
 // side the profile steps left and the account links.
-import Avatar from '../../components/Avatar.astro';
+import AvatarZoom from '../../components/AvatarZoom.astro';
 import Icon from '../../components/Icon.astro';
 import Seg from '../../components/Seg.astro';
 import AccountShell from '../../components/account/AccountShell.astro';
@@ -47,7 +47,7 @@ const settings = [
 <AccountShell title="Tôi · ShopNexus" active="me">
   <div class:list={[PANEL, 'p-5 md:p-6']}>
     <div class="flex flex-wrap items-center gap-5">
-      <Avatar name={v.name} photo={v.photo} size={88} class="ring-4 ring-card" />
+      <AvatarZoom name={v.name} photo={v.photo} size={88} class="ring-4 ring-card" />
       <div class="min-w-[200px] flex-1">
         <h1 class="text-j-32 text-ink">{v.name}</h1>
         <p class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-body-medium text-on-surface-variant">

@@ -1,0 +1,133 @@
+---
+// Mua ngay: a COD order at the listed price, without waiting on the seller.
+// GET shows the form (?part=1 the form alone, for the listing page's dialog).
+// POST opens the buyer's deal, agrees the listed price, requests COD and goes
+// to the order. A deal already agreed at another price, or with an open
+// order, sends the buyer to it.
+import Layout from '../../../layouts/Layout.astro';
+import BuyForm from '../../../components/public/BuyForm.astro';
+import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../../../lib/api/client';
+import { money } from '../../../lib/format';
+import { isId } from '../../../lib/listing';
+import { chatHref, errorCode, errorText, openDeal } from '../../../lib/messages';
+import { identity } from '../../../lib/profile';
+import { R } from '../../../lib/routes';
+import { requireViewer } from '../../../lib/session';
+import { CONTENT, PANEL } from '../../../lib/ui';
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const api = Astro.locals.api;
+const p = Astro.url.searchParams;
+const part = p.get('part') === '1';
+const here = (extra: Record<string, string> = {}) => {
+  const q = new URLSearchParams({ ...(part ? { part: '1' } : {}), ...extra }).toString();
+  return q ? `${Astro.url.pathname}?${q}` : Astro.url.pathname;
+};
+/** Leaves for another page: a redirect, or for the dialog a header its script follows. */
+const go = (to: string) => (part ? new Response(null, { status: 204, headers: { 'x-go': to } }) : Astro.redirect(to, 303));
+const open = (s?: Schemas['OrderStatus']) => s === 'pending' || s === 'shipped';
+
+const screen = await orNull(api.GET('/v1/screens/listing/{id}', { params: { path: { id: Astro.params.slug ?? '' } } }));
+const it = screen?.listing;
+if (it && it.seller_id === v.id) return go(R.listing(it.slug));
+
+if (Astro.request.method === 'POST' && it) {
+  const f = await Astro.request.formData();
+  const s = (k: string) => String(f.get(k) ?? '').trim();
+  const price = Number(s('price'));
+  const address = s('address_id');
+  const key = s('key') || idempotencyKey();
+  const back = (error: string, more: Record<string, string> = {}) => Astro.redirect(here({ error, ...(isId(address) ? { address } : {}), ...more }), 303);
+  if (!isId(address)) return back('address_not_found');
+  try {
+    const d = await openDeal(api, it.id);
+    if (d.order && open(d.order.status)) return go(R.order(d.order.id));
+    if (d.status === 'agreed' && d.agreed_price !== price) return go(chatHref(d.conversation_id, d.id, { cod: '1' }));
+    if (d.status === 'sold') return back('listing_unavailable');
+    // The address and the cap first, so nothing is agreed that cannot be ordered.
+    const c = await unwrap(api.GET('/v1/screens/cod-checkout/{deal_id}', { params: { path: { deal_id: d.id }, query: { address_id: address } } }));
+    if (c.cod_orders.used >= c.cod_orders.max) return back('cod_limit_reached');
+    const path = { params: { path: { id: d.id } } };
+    const agreedHere = d.status === 'negotiating';
+    if (agreedHere) await unwrap(api.POST('/v1/deals/{id}/accept', { ...path, body: { price } }));
+    const done = await unwrap(
+      api.POST('/v1/deals/{id}/cod', { params: { path: { id: d.id }, header: { 'Idempotency-Key': key } }, body: { address_id: address } }),
+    ).catch(async (e) => {
+      // A repeat that finds the order open goes to it.
+      const now = e instanceof ApiError && (e.code === 'move_not_allowed' || e.code === 'deal_changed') ? await orNull(api.GET('/v1/deals/{id}', path)) : null;
+      if (now?.order?.status === 'pending') return now;
+      // A refusal undoes the price this post agreed; an unclear failure keeps it for the retry.
+      if (agreedHere && errorCode(e) !== 'unknown') await unwrap(api.POST('/v1/deals/{id}/cancel', path)).catch(() => null);
+      throw e;
+    });
+    if (done.order) return go(`${R.order(done.order.id)}?done=sent`);
+    return back('unknown', { key });
+  } catch (e) {
+    const code = errorCode(e);
+    return back(code, code === 'unknown' ? { key } : {});
+  }
+}
+
+// The buyer's deal on the listing may already be past this form.
+const mine = screen?.viewer?.deal;
+if (it && mine) {
+  if (open(mine.order_status)) {
+    const d = await orNull(api.GET('/v1/deals/{id}', { params: { path: { id: mine.id } } }));
+    if (d?.order) return go(R.order(d.order.id));
+  } else if (mine.status === 'agreed' && mine.agreed_price !== it.price) {
+    return go(chatHref(mine.conversation_id, mine.id, { cod: '1' }));
+  }
+}
+
+const [addresses, cap] = await Promise.all([
+  unwrap(api.GET('/v1/addresses')).then((b) => b.items),
+  unwrap(api.GET('/v1/screens/orders', { params: { query: { role: 'buying', limit: 1 } } }))
+    .then((o) => o.cod_orders)
+    .catch(() => undefined),
+]);
+const wanted = p.get('address') ?? '';
+const picked = (addresses.find((a) => a.id === wanted) ?? addresses.find((a) => a.is_default) ?? addresses[0])?.id;
+const off = !it || it.status !== 'active';
+const full = !!cap && cap.used >= cap.max;
+const phone = !!identity(v.identities, 'phone');
+const code = p.get('error') || (off ? 'listing_unavailable' : !phone ? 'phone_required' : full ? 'cod_limit_reached' : '');
+const error =
+  it && code === 'price_changed'
+    ? `Giá vừa đổi thành ${money(it.price)}. Xem lại rồi đặt nhé.`
+    : code === 'phone_required'
+      ? 'Đặt mua cần số điện thoại trong tài khoản.'
+      : code
+        ? errorText(code)
+        : undefined;
+const listingHref = it ? R.listing(it.slug) : R.home;
+const form = {
+  listing: { title: it?.title ?? 'Tin không còn', price: it?.price ?? 0, thumb: it?.photos.find((x) => x.url)?.url },
+  seller: screen?.seller.display_name ?? '',
+  addresses,
+  picked,
+  error,
+  fix: code === 'phone_required' ? { href: R.security, label: 'Xem Bảo mật' } : undefined,
+  blocked: off || full || !phone,
+  idem: p.get('key') ?? idempotencyKey(),
+  action: here(),
+  back: listingHref,
+  // The address book comes back to the dialog on the listing, or to this page.
+  book: part ? `${listingHref}?buy=1` : Astro.url.pathname,
+};
+
+---
+
+{
+  part ? (
+    <BuyForm {...form} />
+  ) : (
+    <Layout title="Mua ngay · ShopNexus" description="Đặt mua COD." section={null}>
+      <main class:list={[CONTENT, 'flex justify-center py-8']}>
+        <div class:list={[PANEL, 'w-full max-w-[520px]']}>
+          <BuyForm {...form} />
+        </div>
+      </main>
+    </Layout>
+  )
+}

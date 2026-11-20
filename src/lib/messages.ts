@@ -16,6 +16,9 @@ export type Person = Schemas['Person'];
 /** A person as the chat names them. */
 export const personName = (p: Person) => (p.official ? 'ShopNexus' : p.deleted ? 'Tài khoản đã xóa' : p.display_name || 'Người dùng');
 
+/** A person's page; none for ShopNexus or a deleted account. */
+export const personHref = (p: Pick<Person, 'id' | 'official' | 'deleted'>) => (p.official || p.deleted ? undefined : R.seller(p.id));
+
 /** 14:05, in Vietnam's time. */
 export const hm = (iso: string) => new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ });
 

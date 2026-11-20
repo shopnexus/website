@@ -9,6 +9,8 @@ export const R = {
   category: (code: string) => `/categories/${code}`, // category
   /** A slug, or an ID the page redirects to the slug. */
   listing: (slug: string) => `/listings/${slug}`, // detail-c, not-found
+  /** Mua ngay on a listing, by its ID: the COD form at the listed price. */
+  buy: (listing: string) => `/listings/${listing}/buy`,
   seller: (id: string) => `/sellers/${id}`, // seller
   how: '/how-to-buy', // how
   sell: '/how-to-sell', // sell

@@ -1,0 +1,49 @@
+---
+// A profile's big avatar. With a photo it is a button that opens the photo
+// large over the page; Esc, a tap outside or "Đóng" closes it. Without one
+// it is the plain initial.
+import Avatar from './Avatar.astro';
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+
+interface Props {
+  name: string;
+  photo?: string;
+  size: number;
+  class?: string;
+}
+
+const { name, photo, size, class: cls } = Astro.props;
+---
+
+{
+  photo ? (
+    <>
+      <button type="button" class="shrink-0 rounded-full transition-opacity hover:opacity-90" aria-label={`Xem ảnh của ${name}`} aria-haspopup="dialog" data-avatar-zoom>
+        <Avatar name={name} photo={photo} size={size} class={cls} />
+      </button>
+      <dialog class="m-auto overflow-visible outline-none border-0 bg-transparent p-0 backdrop:bg-black/80" aria-label={`Ảnh của ${name}`} data-avatar-viewer>
+        <div class="flex flex-col items-end gap-2">
+          <button type="button" class="state-layer grid h-10 w-10 place-items-center rounded-full text-white" aria-label="Đóng" data-close>
+            <Icon name="close-rounded" size={24} />
+          </button>
+          <Photo src={photo} width={400} height={400} alt={name} loading="lazy" class="w-[min(400px,calc(100vw-32px))] rounded-card object-cover" />
+        </div>
+      </dialog>
+    </>
+  ) : (
+    <Avatar name={name} size={size} class={cls} />
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-avatar-zoom]').forEach((b) => {
+    const dlg = b.nextElementSibling as HTMLDialogElement;
+    b.addEventListener('click', () => dlg.showModal());
+    // A click on the dialog itself is its backdrop.
+    dlg.addEventListener('click', (e) => {
+      const t = e.target as Element;
+      if (t === dlg || t.closest('[data-close]')) dlg.close();
+    });
+  });
+</script>

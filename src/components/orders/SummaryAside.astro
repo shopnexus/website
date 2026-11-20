@@ -14,6 +14,8 @@ interface Props {
   person: string;
   personPhoto?: string;
   personSub: string;
+  /** The person's page, absent for a deleted account. */
+  personHref?: string;
   chatHref: string;
   /** The sum and its label; null hides the money (a cancelled order). */
   total: { label: string; vnd: number; note?: string } | null;
@@ -21,7 +23,8 @@ interface Props {
   lines: { k: string; v: string; deal?: boolean }[];
 }
 
-const { photo, item, itemPrice, person, personPhoto, personSub, chatHref, total, lines } = Astro.props;
+const { photo, item, itemPrice, person, personPhoto, personSub, personHref, chatHref, total, lines } = Astro.props;
+const Who = personHref ? 'a' : 'div';
 ---
 
 <aside class="self-start overflow-hidden rounded-card border border-line bg-card shadow-soft lg:sticky-fit lg:sticky lg:top-[84px]">
@@ -39,11 +42,13 @@ const { photo, item, itemPrice, person, personPhoto, personSub, chatHref, total,
     </div>
   </div>
   <div class="mx-4 flex items-center gap-3 rounded-tile bg-surface-container-low p-2.5">
-    <Avatar name={person} photo={personPhoto} size={36} />
-    <div class="min-w-0 flex-1">
-      <p class="truncate text-title-small text-ink">{person}</p>
-      <p class="text-body-small text-on-surface-variant">{personSub}</p>
-    </div>
+    <Who href={personHref} class:list={['-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-control p-1', personHref && 'state-layer hover:bg-hover']}>
+      <Avatar name={person} photo={personPhoto} size={36} />
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-title-small text-ink">{person}</span>
+        <span class="block text-body-small text-on-surface-variant">{personSub}</span>
+      </span>
+    </Who>
     <a href={chatHref} class="state-layer flex h-9 items-center gap-1.5 rounded-control bg-card px-3 text-label-large text-primary">
       <Icon name="chat-outline-rounded" size={17} />Nhắn
     </a>

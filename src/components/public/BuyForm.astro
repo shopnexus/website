@@ -1,0 +1,80 @@
+---
+// "Mua ngay" at the listed price: the listing, where to deliver and what the
+// buyer pays at the door, sent as one form post to the buy page. The listing
+// page shows it in a dialog; without script it is the buy page's body.
+import type { Schemas } from '../../lib/api/client';
+import { btnCls } from '../../lib/ui';
+import Icon from '../Icon.astro';
+import Notice from '../Notice.astro';
+import Photo from '../Photo.astro';
+import Price from '../Price.astro';
+import AddressPick from '../orders/AddressPick.astro';
+
+interface Props {
+  listing: { title: string; price: number; thumb?: string };
+  seller: string;
+  addresses: Schemas['Address'][];
+  picked?: string;
+  /** A refusal, as a sentence. */
+  error?: string;
+  /** A link after the refusal that fixes it. */
+  fix?: { href: string; label: string };
+  /** Nothing can be sent: the listing is off sale, the account has no phone or the COD cap is full. */
+  blocked?: boolean;
+  /** The Idempotency-Key of this render's form. */
+  idem: string;
+  action: string;
+  /** Where "Đóng" goes without script, and where the address book comes back to. */
+  back: string;
+  /** The address book comes back here once an address is saved. */
+  book: string;
+}
+
+const { listing, seller, addresses, picked, error, fix, blocked = false, idem, action, back, book } = Astro.props;
+const close = 'state-layer -mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
+---
+
+<form method="post" action={action} class="p-6" data-buy-form>
+  <input type="hidden" name="key" value={idem} />
+  <input type="hidden" name="price" value={listing.price} />
+  <div class="flex items-center justify-between">
+    <h2 id="buy-title" class="text-j-20 text-ink">Mua ngay</h2>
+    <a href={back} data-close class={close} aria-label="Đóng"><Icon name="close-rounded" size={22} /></a>
+  </div>
+
+  <div class="mt-3 flex items-center gap-3">
+    {
+      listing.thumb ? (
+        <Photo src={listing.thumb} width={112} height={112} alt="" class="h-14 w-14 shrink-0 rounded-tile object-cover" />
+      ) : (
+        <span class="h-14 w-14 shrink-0 rounded-tile bg-soft" />
+      )
+    }
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-body-large text-ink">{listing.title}</p>
+      <p class="truncate text-body-small text-faint">{seller}</p>
+    </div>
+    <Price vnd={listing.price} size="text-j-18" short={false} />
+  </div>
+
+  {
+    error && (
+      <Notice text={error} class="mt-4">
+        {fix && <a href={fix.href} class="ml-1 text-primary underline">{fix.label}</a>}
+      </Notice>
+    )
+  }
+
+  <AddressPick addresses={addresses} picked={picked} back={book} class="mt-6" />
+
+  <div class="mt-6 flex items-end justify-between gap-3 rounded-tile bg-soft p-4">
+    <p class="text-body-medium text-sub">Trả khi nhận</p>
+    <p class="flex items-baseline gap-1.5">
+      <Price vnd={listing.price} size="text-j-22" short={false} /><span class="text-body-small text-sub">+ phí ship</span>
+    </p>
+  </div>
+
+  <button type="submit" disabled={blocked || !addresses.length} class:list={[btnCls('ink', 'lg'), 'mt-4 w-full disabled:opacity-40']}>
+    Đặt mua
+  </button>
+</form>

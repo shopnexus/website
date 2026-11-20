@@ -1,0 +1,114 @@
+---
+// "Mua ngay" on a listing: the buy page's form in a dialog over the page, a
+// sheet on a phone. The page marks its opener with data-buy; it stays a link
+// to the buy page, so without the script it still works. The form posts in
+// place and the dialog follows the server to the order (or the deal it found).
+// ?buy=1 opens it, as the address book does on its way back.
+
+interface Props {
+  /** The buy page, R.buy. */
+  src: string;
+}
+
+const { src } = Astro.props;
+const bar = 'skeleton rounded-full';
+---
+
+<dialog
+  class="m-auto outline-none max-h-[min(88dvh,calc(100dvh-32px))] w-[min(520px,calc(100vw-32px))] overflow-y-auto rounded-card border-0 bg-card p-0 text-ink shadow-pop backdrop:bg-black/30 max-md:mx-0 max-md:mb-0 max-md:w-full max-md:max-w-none max-md:rounded-t-xl max-md:rounded-b-[0px]"
+  aria-label="Mua ngay"
+  data-buy-dialog
+  data-src={src}
+>
+  <div data-buy-slot>
+    <div class="p-6" aria-hidden="true" data-skeleton>
+      <div class:list={[bar, 'h-5 w-28']}></div>
+      <div class="mt-5 flex items-center gap-3">
+        <div class="skeleton h-14 w-14 shrink-0 rounded-tile"></div>
+        <div class="min-w-0 flex-1">
+          <div class:list={[bar, 'h-3.5 w-2/3']}></div>
+          <div class:list={[bar, 'mt-2 h-3 w-1/3']}></div>
+        </div>
+      </div>
+      <div class="skeleton mt-6 h-16 rounded-tile"></div>
+      <div class="skeleton mt-2 h-16 rounded-tile"></div>
+      <div class="skeleton mt-6 h-11 rounded-control"></div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import { busy } from '../../lib/busy';
+  import { failure } from '../../lib/skeleton';
+  import { snack } from '../../lib/snackbar';
+
+  const dlg = document.querySelector<HTMLDialogElement>('[data-buy-dialog]');
+  if (dlg) {
+    const slot = dlg.querySelector<HTMLElement>('[data-buy-slot]')!;
+    const waiting = [...slot.childNodes];
+    const src = dlg.dataset.src!;
+
+    // An x-go header (or a redirect away, as to Đăng nhập) leaves for that page;
+    // any other answer holds the form. Resolves to whether it was taken.
+    const take = async (res: Response | null) => {
+      if (!res) return false;
+      const to = res.headers.get('x-go') ?? (res.redirected && new URL(res.url).pathname !== src ? res.url : null);
+      if (to) {
+        location.href = to;
+        return true;
+      }
+      if (!res.ok) return false;
+      const form = new DOMParser().parseFromString(await res.text(), 'text/html').querySelector('[data-buy-form]');
+      if (!form) return false;
+      slot.replaceChildren(document.adoptNode(form));
+      return true;
+    };
+    const load = async () => {
+      slot.replaceChildren(...waiting);
+      const res = await fetch(`${src}?part=1`, { headers: { accept: 'text/html' } }).catch(() => null);
+      if (!(await take(res))) {
+        const retry = failure(load);
+        retry.classList.add('px-6');
+        slot.replaceChildren(retry);
+      }
+    };
+    const open = () => {
+      if (dlg.open) return;
+      dlg.showModal();
+      load();
+    };
+
+    document.addEventListener('click', (e) => {
+      if (!(e.target as Element).closest('[data-buy]')) return;
+      e.preventDefault();
+      open();
+    });
+    // A click on the dialog itself is its backdrop.
+    dlg.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t === dlg || t.closest('[data-close]')) {
+        e.preventDefault();
+        dlg.close();
+      }
+    });
+    // The form posts in place; its button stays busy until the next page.
+    dlg.addEventListener('submit', async (e) => {
+      const form = e.target as HTMLFormElement;
+      const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      e.preventDefault();
+      if (btn?.getAttribute('aria-busy') === 'true') return;
+      busy(btn);
+      const res = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { accept: 'text/html' } }).catch(() => null);
+      const left = res?.headers.has('x-go') || (res?.redirected && new URL(res.url).pathname !== src);
+      if (!(await take(res))) snack({ text: 'Chưa gửi được. Thử lại nhé.', error: true });
+      if (!left) busy(btn, false);
+    });
+
+    const u = new URL(location.href);
+    if (u.searchParams.get('buy') === '1') {
+      u.searchParams.delete('buy');
+      history.replaceState(history.state, '', u);
+      open();
+    }
+  }
+</script>

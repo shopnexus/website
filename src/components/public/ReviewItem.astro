@@ -1,8 +1,10 @@
 ---
 // One review of a person: the reviewer, the stars, the order's listing and
-// the text, with the reviewed person's one reply under it.
+// the text, with the reviewed person's one reply under it. The reviewer links
+// to their page, and the listing to its page while it is on sale.
 import type { components } from '../../lib/api/schema';
 import { ago } from '../../lib/format';
+import { R } from '../../lib/routes';
 import Avatar from '../Avatar.astro';
 import Stars from './Stars.astro';
 
@@ -12,30 +14,52 @@ interface Props {
   subject: string;
   /** Smaller, for the listing page's aside. */
   compact?: boolean;
+  /** Listings on sale that the page knows, ID to slug. */
+  onSale?: Record<string, string>;
   class?: string;
 }
 
-const { review: r, subject, compact = false, class: cls } = Astro.props;
+const { review: r, subject, compact = false, onSale = {}, class: cls } = Astro.props;
+const person = r.reviewer.deleted ? undefined : R.seller(r.reviewer.id);
+const slug = onSale[r.listing.id];
 const who = r.role === 'seller' ? 'Người mua' : 'Người bán';
 // The reviewer bought from the subject, or sold to them.
-const deal = `${r.role === 'seller' ? 'Đã mua' : 'Đã bán'} ${r.listing.title}`;
+const done = r.role === 'seller' ? 'Đã mua' : 'Đã bán';
+const name = r.reviewer.deleted ? 'Tài khoản đã xóa' : r.reviewer.display_name;
+const link = 'hover:text-primary hover:underline';
 ---
 
 <div class:list={['flex gap-3', cls]}>
-  <Avatar name={r.reviewer.display_name || who} photo={r.reviewer.avatar_url} size={compact ? 36 : 40} loading="lazy" />
+  {
+    person ? (
+      <a href={person} tabindex="-1" aria-hidden="true" class="flex shrink-0 self-start rounded-full">
+        <Avatar name={r.reviewer.display_name || who} photo={r.reviewer.avatar_url} size={compact ? 36 : 40} loading="lazy" />
+      </a>
+    ) : (
+      <Avatar name={r.reviewer.display_name || who} photo={r.reviewer.avatar_url} size={compact ? 36 : 40} loading="lazy" />
+    )
+  }
   <div class="min-w-0 flex-1">
     <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <span class="text-title-small text-ink">{r.reviewer.deleted ? 'Tài khoản đã xóa' : r.reviewer.display_name}</span>
+      {person ? <a href={person} class:list={['tap text-title-small text-ink', link]}>{name}</a> : <span class="text-title-small text-ink">{name}</span>}
       <Stars n={r.stars} size={compact ? 12 : 14} />
       <span class="text-body-small text-on-surface-variant">{ago(r.created_at)} trước</span>
       {
         !compact && (
-          <span class="rounded-full bg-surface-container-low px-2.5 py-0.5 text-body-small text-on-surface-variant md:ml-auto">{deal}</span>
+          <span class="rounded-full bg-surface-container-low px-2.5 py-0.5 text-body-small text-on-surface-variant md:ml-auto">
+            {done} {slug ? <a href={R.listing(slug)} class:list={['tap', link]}>{r.listing.title}</a> : r.listing.title}
+          </span>
         )
       }
     </div>
     {r.text && <p class="mt-1 text-body-medium text-ink">{r.text}</p>}
-    {compact && <p class="mt-1 text-body-small text-faint">{deal}</p>}
+    {
+      compact && (
+        <p class="mt-1 text-body-small text-faint">
+          {done} {slug ? <a href={R.listing(slug)} class:list={['tap', link]}>{r.listing.title}</a> : r.listing.title}
+        </p>
+      )
+    }
     {
       r.reply && (
         <div class="mt-2 rounded-control bg-surface-container-low px-3 py-2">
