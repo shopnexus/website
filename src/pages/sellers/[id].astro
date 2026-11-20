@@ -77,6 +77,7 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
       title={`Người bán · ${s.display_name}`}
       description={`${s.display_name}: ${s.rating.count ? `${decimal(s.rating.average)}/5 từ ${s.rating.count} đánh giá, ` : ''}${s.sold} món đã bán. Xem tin đang bán.`}
       image={s.avatar_url}
+      canonical={R.seller(s.id)}
     >
       <main class={CONTENT}>
         <Crumbs parts={[['Khám phá', R.home], ['Người bán']]} class="pt-4" />
