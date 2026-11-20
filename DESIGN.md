@@ -166,6 +166,10 @@ every page.
   turns current at once, and skeletons fill the region that page will
   replace. "Xem thêm" appends the next page under the current one
   (`data-more`).
+- A listing tap or a search from the header that is still on the page after
+  100 ms covers it, under the header, with a skeleton of the next page
+  (`PageSkeletons.astro`, `src/lib/page-skeleton.ts`): the listing's gallery
+  frame takes the card's photo, the search's title reads as the results will.
 - A carousel row snaps its items to the start and fades the edge that hides
   more items. On a mouse two arrows beside the heading page it by 85 % of its
   width on the spatial spring; on touch the row scrolls directly.
@@ -259,6 +263,20 @@ and `/messages/peek` each time the panel opens. Thông báo shows on phones too;
 Tin nhắn there stays the bottom bar's page. Drafts:
 `.superdesign/mockups/notif-preview-*.html` (`tools/build_notif_preview.py`).
 
+On a category page and on Tìm kiếm with `?category=`, the search field starts
+with a mint chip for the category (its icon only on a phone, where the camera
+moves to the dropdown) and searches inside it; × or Backspace in the empty
+field drops the chip. A category page has no search field of its own. The
+empty field's dropdown shows the recent searches (the server's history when
+signed in, this browser's when signed out), six categories and Tìm bằng ảnh.
+With words typed it is a listbox: "Tìm “…”" in the scope, again for every
+category when scoped, the past searches holding the words and the categories
+whose name matches without accents (`src/lib/suggest.ts`). ↑ and ↓ move, Enter
+picks, Esc closes. Picking closes the dropdown at once, and after 100 ms the
+search page's skeleton covers the page until the results arrive. Drafts:
+`.superdesign/mockups/category-search-*.html`
+(`tools/build_category_search.py`).
+
 ### Footer
 
 A white band under a hairline: the brand line, then Khám phá, Mua và bán and
@@ -336,7 +354,7 @@ buying and selling chats.
 
 ### Danh mục index
 
-The header's "Danh mục" opens a page of every category: a search field,
+The header's "Danh mục" opens a page of every category: the title and count,
 popular searches near the buyer with counts, then 11 tiles in four columns.
 A tile has a photo, the item count, the listings added today and up to four
 subcategories with counts that add up to the category count. The twelfth
