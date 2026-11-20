@@ -20,7 +20,7 @@ const { item, loading } = Astro.props;
     {item.photo && <Photo src={item.photo} width={120} height={120} alt="" loading={loading} class="h-full w-full object-cover" />}
   </span>
   <span class="min-w-0 flex-1">
-    <Price vnd={item.price} size="text-j-15" />
+    <Price vnd={item.price} size="text-j-15" was={item.previousPrice} />
     <span class="block truncate text-body-small text-ink">{item.title}</span>
     <span class="block truncate text-body-small text-on-surface-variant">{where(item.km, item.area)}</span>
   </span>

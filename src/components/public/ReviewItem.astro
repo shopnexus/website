@@ -41,7 +41,7 @@ const marked = !!r.helpful?.marked;
 <div class:list={['flex gap-3', cls]}>
   {
     person ? (
-      <a href={person} tabindex="-1" aria-label={name} class="flex shrink-0 self-start rounded-full">
+      <a href={person} data-person tabindex="-1" aria-label={name} class="flex shrink-0 self-start rounded-full">
         <Avatar name={r.reviewer.display_name || who} photo={r.reviewer.avatar_url} size={compact ? 36 : 40} loading="lazy" />
       </a>
     ) : (
@@ -50,7 +50,7 @@ const marked = !!r.helpful?.marked;
   }
   <div class="min-w-0 flex-1">
     <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-      {person ? <a href={person} class:list={['tap text-title-small text-ink', link]}>{name}</a> : <span class="text-title-small text-ink">{name}</span>}
+      {person ? <a href={person} data-person class:list={['tap text-title-small text-ink', link]}>{name}</a> : <span class="text-title-small text-ink">{name}</span>}
       <Stars n={r.stars} size={compact ? 12 : 14} />
       <span class="text-body-small text-on-surface-variant">{ago(r.created_at)} trước</span>
       {

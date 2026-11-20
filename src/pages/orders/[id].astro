@@ -370,6 +370,7 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
 </Layout>
 
 <script>
+  import { offerPush } from '../../lib/push';
   import { snack } from '../../lib/snackbar';
 
   // Copy buttons need the clipboard, so they show with the script.
@@ -384,6 +385,8 @@ const doneText = doneKind === 'ship' ? `Đã tạo đơn ${doneName}.` : doneKin
   }
   // ?done= and ?error= are for this render only.
   const u = new URL(location.href);
+  // The order just placed: a moment to offer pushes.
+  if (u.searchParams.get('done') === 'sent') offerPush('order');
   if (u.searchParams.has('done') || u.searchParams.has('error')) {
     ['done', 'error', 'key'].forEach((k) => u.searchParams.delete(k));
     history.replaceState(history.state, '', u);

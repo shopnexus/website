@@ -1,0 +1,80 @@
+---
+// The push offer (lib/push.ts): a card where the snackbar sits, after the
+// buyer sends a chat message or places an order. "Bật" asks the browser,
+// "Để sau" puts it off for good; the switch in Thông báo's settings stays.
+// Only for a signed-in page when the site has a Web Push key, which it carries.
+import { PUBLIC_FCM_VAPID_KEY } from 'astro:env/server';
+import { viewer } from '../lib/session';
+import { btnCls } from '../lib/ui';
+import Icon from './Icon.astro';
+
+const key = viewer(Astro) ? PUBLIC_FCM_VAPID_KEY : undefined;
+---
+
+{
+  key && (
+    <div data-push-key={key} class="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-4 lg:bottom-6 lg:justify-end lg:px-6">
+      <section
+        aria-label="Bật thông báo"
+        aria-live="polite"
+        hidden
+        data-push-offer
+        class="pointer-events-auto flex w-full max-w-[420px] flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-card p-3 text-ink shadow-pop"
+      >
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-on-mint">
+          <Icon name="notifications-outline-rounded" size={20} />
+        </span>
+        <p class="min-w-[200px] flex-1 text-body-large" data-push-text="chat">
+          Bật thông báo để biết khi có tin nhắn mới
+        </p>
+        <p class="min-w-[200px] flex-1 text-body-large" data-push-text="order">
+          Bật thông báo để biết khi đơn đang giao
+        </p>
+        <span class="ml-auto flex gap-1">
+          <button type="button" class={btnCls('ghost', 'sm')} data-push-later>
+            Để sau
+          </button>
+          <button type="button" class={btnCls('ink', 'sm')} data-push-yes>
+            Bật
+          </button>
+        </span>
+      </section>
+    </div>
+  )
+}
+
+<script>
+  import { animate } from 'motion';
+  import { busy } from '../lib/busy';
+  import { SPRING, reducedMotion } from '../lib/motion';
+  import { enablePush, putOffOffer, syncPush } from '../lib/push';
+  import { snack } from '../lib/snackbar';
+
+  syncPush();
+
+  // lib/push.ts's offerPush shows the card.
+  const card = document.querySelector<HTMLElement>('[data-push-offer]');
+  if (card) {
+    const yes = card.querySelector<HTMLButtonElement>('[data-push-yes]')!;
+    const close = () =>
+      animate(card, { opacity: 0, y: 12 }, reducedMotion() ? { duration: 0 } : SPRING.effects).then(() => (card.hidden = true));
+
+    card.querySelector('[data-push-later]')!.addEventListener('click', () => {
+      putOffOffer();
+      close();
+    });
+    yes.addEventListener('click', async () => {
+      busy(yes);
+      try {
+        if (await enablePush()) snack({ text: 'Đã bật thông báo' });
+        // A prompt closed without an answer counts as later.
+        else putOffOffer();
+      } catch {
+        snack({ text: 'Chưa bật được thông báo. Thử lại sau.', error: true });
+      } finally {
+        busy(yes, false);
+        close();
+      }
+    });
+  }
+</script>

@@ -39,6 +39,9 @@ export default defineConfig({
       // The API's address as a browser reaches it, for the socket. Unset, it is
       // api.<the site's host>; a dev server on localhost sets it.
       PUBLIC_API_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // The Firebase project's Web Push certificate (public key). Unset, the
+      // site offers no browser notifications.
+      PUBLIC_FCM_VAPID_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
 });

@@ -63,12 +63,15 @@ export async function byCode(code: string) {
   return (await categories()).find((c) => c.code === code);
 }
 
-/** The display name of any category code, root or sub. */
-export async function categoryName(code: string) {
+/** Any category by its code, root or sub. */
+export async function findCategory(code: string) {
   for (const r of await categories()) {
-    if (r.code === code) return r.name;
+    if (r.code === code) return r;
     const sub = r.children.find((c) => c.code === code);
-    if (sub) return sub.name;
+    if (sub) return sub;
   }
   return undefined;
 }
+
+/** The display name of any category code, root or sub. */
+export const categoryName = async (code: string) => (await findCategory(code))?.name;

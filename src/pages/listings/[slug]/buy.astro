@@ -112,8 +112,6 @@ const form = {
   idem: p.get('key') ?? idempotencyKey(),
   action: here(),
   back: listingHref,
-  // The address book comes back to the dialog on the listing, or to this page.
-  book: part ? `${listingHref}?buy=1` : Astro.url.pathname,
 };
 
 ---

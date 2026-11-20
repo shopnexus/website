@@ -87,6 +87,21 @@ may go to 40 px. A control drawn smaller still takes a 44 px target on a
 coarse pointer: a state layer does, and `tap` adds it to a small link. Hover
 styles apply only where the pointer can hover, so a tap leaves nothing lit.
 
+A link to a person's page marked `data-person` (the listing's seller card,
+a reviewer, the chat head, the order's other person, a person named in a
+message) shows their card once the pointer or keyboard focus rests on it for
+300 ms (`PersonCard.astro`, `src/lib/person-card.ts`): face, name, stars, the
+figures (sold, year joined), "Theo dõi" and "Xem trang". The figures sit in
+one row of equal cells, and another figure takes a cell of its own. The card
+opens under the link, or above it when only above has room, and loads once a
+page from `/sellers/<id>/peek`, with a skeleton while it is on its way. It
+closes 200 ms after the pointer leaves the link and the card, on Esc, on
+scroll and on a press elsewhere. Tab from the link enters the card. The
+viewer's own card has no "Theo dõi", and a touch screen gets no card.
+`FollowButton.astro` draws "Theo dõi" here and on Người bán; "Đang theo dõi"
+turns mint. Drafts: `.superdesign/mockups/hover-card-*.html`
+(`tools/build_hover_card.py`).
+
 **Pages, not screens.** Each listing, category, seller and search has its own
 URL, rendered on the server with its title, description, Open Graph tags and
 `Product` structured data. A sheet in the app becomes a dialog or a side panel
@@ -165,7 +180,14 @@ every page.
 - A sort, filter, tab or chat row that opens another page (`data-pending`)
   turns current at once, and skeletons fill the region that page will
   replace. "Xem thêm" appends the next page under the current one
-  (`data-more`).
+  (`data-more`). Back to that page shows the same pages at the same scroll
+  position: the browser's page cache keeps them, and when it has dropped the
+  page, `src/lib/keep.ts` puts back the grown regions, Home's feed tab and the
+  scroll from sessionStorage.
+- A listing tap or a search from the header that is still on the page after
+  100 ms covers it, under the header, with a skeleton of the next page
+  (`PageSkeletons.astro`, `src/lib/page-skeleton.ts`): the listing's gallery
+  frame takes the card's photo, the search's title reads as the results will.
 - A carousel row snaps its items to the start and fades the edge that hides
   more items. On a mouse two arrows beside the heading page it by 85 % of its
   width on the spatial spring; on touch the row scrolls directly.
@@ -259,6 +281,20 @@ and `/messages/peek` each time the panel opens. Thông báo shows on phones too;
 Tin nhắn there stays the bottom bar's page. Drafts:
 `.superdesign/mockups/notif-preview-*.html` (`tools/build_notif_preview.py`).
 
+On a category page and on Tìm kiếm with `?category=`, the search field starts
+with a mint chip for the category (its icon only on a phone, where the camera
+moves to the dropdown) and searches inside it; × or Backspace in the empty
+field drops the chip. A category page has no search field of its own. The
+empty field's dropdown shows the recent searches (the server's history when
+signed in, this browser's when signed out), six categories and Tìm bằng ảnh.
+With words typed it is a listbox: "Tìm “…”" in the scope, again for every
+category when scoped, the past searches holding the words and the categories
+whose name matches without accents (`src/lib/suggest.ts`). ↑ and ↓ move, Enter
+picks, Esc closes. Picking closes the dropdown at once, and after 100 ms the
+search page's skeleton covers the page until the results arrive. Drafts:
+`.superdesign/mockups/category-search-*.html`
+(`tools/build_category_search.py`).
+
 ### Footer
 
 A white band under a hairline: the brand line, then Khám phá, Mua và bán and
@@ -292,6 +328,20 @@ buyer's area. On the right: the query's conditions as removable chips, the
 sort tabs with the grid and list switch, four cards a row, and the alert
 strip after the eighth.
 
+A tap on a result opens Xem nhanh (`QuickView.astro`) in place of the
+listing page. From 840 px it is a 400 px panel on the right under the header,
+and the results make room beside it: three columns at 1280, with the filters
+hidden under 1200 px. Below 840 px it is a sheet from the bottom with the
+buttons at its foot. It shows the gallery, condition, place, title, price, the
+listing's buttons with the heart (`ListingActions.astro`, shared with the
+listing page), the seller and four lines of the description, loaded from
+`/listings/<slug>/quick`. The arrows step to the previous and next result;
+"Mở trang" opens the listing page and the photo flies into its gallery. The
+address takes `?view=<slug>` as a new history entry, so Back or Esc closes the
+panel and a reload or a shared link opens it again. A modifier or middle click
+opens the page. Category pages and Tìm bằng ảnh show the same results. Drafts:
+`.superdesign/mockups/quick-view-*.html` (`tools/build_quick_view.py`).
+
 ### Listing detail
 
 The gallery, then a sticky right column with the condition, title, price,
@@ -299,7 +349,9 @@ The gallery, then a sticky right column with the condition, title, price,
 listing takes no offers), Hỏi nhanh, then the seller card with three numbers
 and three of their listings. "Mua ngay" opens the COD order at the listed
 price in a dialog (`BuyDialog.astro`, the form from `/listings/<id>/buy`);
-the others open Chat nhanh. The seller card's face and name open their page,
+the others open Chat nhanh. "Thêm địa chỉ" in that dialog and in Giao COD
+shows the address form from Địa chỉ (`AddressForm.astro`) in the dialog,
+with a back arrow, and the saved address comes back picked. The seller card's face and name open their page,
 and so does a reviewer's. Under the gallery: Mô tả with the listing code and counts, Tình
 trạng as a three-step scale, Thông số, and Đánh giá. On a phone the price
 and actions come right after the gallery. The page shows no shipping origin,
@@ -336,7 +388,7 @@ buying and selling chats.
 
 ### Danh mục index
 
-The header's "Danh mục" opens a page of every category: a search field,
+The header's "Danh mục" opens a page of every category: the title and count,
 popular searches near the buyer with counts, then 11 tiles in four columns.
 A tile has a photo, the item count, the listings added today and up to four
 subcategories with counts that add up to the category count. The twelfth

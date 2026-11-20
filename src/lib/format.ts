@@ -57,6 +57,10 @@ export function priceParts(vnd: number, short = true): [string, string] {
   return [group(vnd), '₫'];
 }
 
+/** A struck-through old price beside a short price, narrow enough for a phone card:
+ * "5,45 tr" from 1 triệu, "850.000" below. */
+export const struckPrice = (vnd: number) => (vnd >= 1_000_000 ? `${decimal(vnd / 1_000_000, 2)} tr` : group(vnd));
+
 /** "1.250.000 ₫", or "12,5 tr ₫" from 10 triệu when short. */
 export const money = (vnd: number, short = false) => priceParts(vnd, short).join(' ');
 

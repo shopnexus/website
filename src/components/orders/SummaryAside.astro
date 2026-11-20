@@ -42,7 +42,7 @@ const Who = personHref ? 'a' : 'div';
     </div>
   </div>
   <div class="mx-4 flex items-center gap-3 rounded-tile bg-surface-container-low p-2.5">
-    <Who href={personHref} class:list={['-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-control p-1', personHref && 'state-layer hover:bg-hover']}>
+    <Who href={personHref} data-person={personHref ? '' : undefined} class:list={['-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-control p-1', personHref && 'state-layer hover:bg-hover']}>
       <Avatar name={person} photo={personPhoto} size={36} />
       <span class="min-w-0 flex-1">
         <span class="block truncate text-title-small text-ink">{person}</span>

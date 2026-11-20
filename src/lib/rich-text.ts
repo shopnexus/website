@@ -43,7 +43,7 @@ export const carded = (r: Ref) => !!(r.listing || r.order);
 function chip(r: Ref, label?: string) {
   const i = icons[ICON[r.kind]];
   const svg = i ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${i.width} ${i.height}" width="15" height="15" aria-hidden="true">${i.body}</svg>` : '';
-  return `<a href="${esc(refHref(r))}" class="msg-ref" data-ref="${r.kind}">${svg}<span>${esc(label ?? refLabel(r))}</span></a>`;
+  return `<a href="${esc(refHref(r))}" class="msg-ref" data-ref="${r.kind}"${r.seller ? ' data-person' : ''}>${svg}<span>${esc(label ?? refLabel(r))}</span></a>`;
 }
 
 const HOLD = /(\d+)/g;

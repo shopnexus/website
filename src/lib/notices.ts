@@ -39,23 +39,24 @@ const LOOK: Record<Notice['type'], [string, Tone]> = {
 
 export const look = (k: string): readonly [string, Tone] => LOOK[k as keyof typeof LOOK] ?? (['notifications-outline-rounded', 'neutral'] as const);
 
+/**
+ * The page each target kind opens, `{id}` standing for its ID. A push carries
+ * the same kinds, chats included, and the service worker reads this table
+ * (pages/sw.js.ts); a kind without a page opens Tôi.
+ */
+export const TARGETS: Record<string, string> = {
+  deal: `${R.messages}?deal={id}`,
+  order: R.order('{id}'),
+  listing: R.listing('{id}'),
+  seller_reviews: `${R.seller('{id}')}#danh-gia`,
+  search_watch: `${R.search}?watch={id}`,
+  conversation: `${R.messages}?chat={id}`,
+  ticket: `${R.support}?ticket={id}`,
+};
+export const OTHER_TARGET = R.me;
+
 /** The page a notice opens. */
-export function noticeHref({ kind, id }: Schemas['Target']) {
-  switch (kind) {
-    case 'deal':
-      return `${R.messages}?deal=${id}`;
-    case 'order':
-      return R.order(id);
-    case 'listing':
-      return R.listing(id);
-    case 'seller_reviews':
-      return `${R.seller(id)}#danh-gia`;
-    case 'search_watch':
-      return `${R.search}?watch=${id}`;
-    default:
-      return R.me;
-  }
-}
+export const noticeHref = ({ kind, id }: Schemas['Target']) => TARGETS[kind]?.replace('{id}', id) ?? OTHER_TARGET;
 
 /** The notices by day, newest first, as the server sends them. */
 export function byDay(items: Notice[]): [string, Notice[]][] {

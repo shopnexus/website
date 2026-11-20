@@ -1,0 +1,15 @@
+---
+// On a listing page rendered for a prefetch, which the server read without
+// counting a view: counts the open once the page is shown.
+interface Props {
+  listing: string;
+}
+---
+
+<span hidden data-viewed={Astro.props.listing}></span>
+<script>
+  import { API } from '../../lib/routes';
+
+  const id = document.querySelector<HTMLElement>('[data-viewed]')?.dataset.viewed;
+  if (id) fetch(API.viewed(id), { method: 'PUT', keepalive: true }).catch(() => {});
+</script>

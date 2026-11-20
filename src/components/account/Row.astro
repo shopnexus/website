@@ -1,28 +1,35 @@
 ---
-// An icon in a circle, a title and a line; a link when href is given. The
-// "trail" slot replaces the chevron; chevron={false} drops it. The "title" slot
-// replaces the title text when it needs markup.
+// An icon in a circle, a title and a line; a link when href is given, a
+// button with `button`. The "trail" slot replaces the chevron; chevron={false}
+// drops it. The "title" and "sub" slots replace the title and the line when
+// they need markup. Other attributes (data-*, hidden) go on the row.
+import type { HTMLAttributes } from 'astro/types';
 import Icon from '../Icon.astro';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'div'>, 'title'> {
   icon: string;
   title?: string;
   sub?: string;
   href?: string;
+  button?: boolean;
   tone?: string;
   chevron?: boolean;
-  class?: string;
 }
 
-const { icon, title, sub, href, tone = 'bg-surface-container-low text-on-surface-variant', chevron = true, class: cls } = Astro.props;
-const Tag = href ? 'a' : 'div';
+const { icon, title, sub, href, button, tone = 'bg-surface-container-low text-on-surface-variant', chevron = true, class: cls, ...rest } = Astro.props;
+const Tag = href ? 'a' : button ? 'button' : 'div';
 ---
 
-<Tag href={href} class:list={['state-layer flex items-center gap-3 rounded-field px-2 py-2', cls]}>
+<Tag
+  href={href}
+  type={button ? 'button' : undefined}
+  class:list={['state-layer flex items-center gap-3 rounded-field px-2 py-2', button && 'text-left', cls]}
+  {...rest}
+>
   <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full', tone]}><Icon name={icon} size={20} /></span>
   <span class="min-w-0 flex-1">
     <span class="block truncate text-body-large text-ink"><slot name="title">{title}</slot></span>
-    {sub && <span class="block truncate text-body-small text-on-surface-variant">{sub}</span>}
+    {(sub || Astro.slots.has('sub')) && <span class="block truncate text-body-small text-on-surface-variant"><slot name="sub">{sub}</slot></span>}
   </span>
   {
     Astro.slots.has('trail') ? (

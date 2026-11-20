@@ -24,16 +24,28 @@ export interface Caller {
   token?: string;
   /** The browser's address chain, so the server's per-address limits see the buyer, not this server. */
   forwardedFor?: string;
+  /** The page is a browser's prefetch: the server reads it without counting a view (prefetchRequest). */
+  prefetch?: boolean;
+}
+
+/**
+ * Whether the browser fetched this page ahead of a tap: `Sec-Purpose` lists the token
+ * prefetch (speculation rules, prerender too), or the older `Purpose: prefetch`.
+ */
+export function prefetchRequest(headers: Headers) {
+  const tokens = (headers.get('sec-purpose') ?? headers.get('purpose') ?? '').split(',').map((item) => item.split(';')[0].trim());
+  return tokens.includes('prefetch');
 }
 
 export type Api = ReturnType<typeof apiClient>;
 
-export function apiClient({ token, forwardedFor }: Caller = {}) {
+export function apiClient({ token, forwardedFor, prefetch }: Caller = {}) {
   const client = createClient<paths>({ baseUrl: API_URL });
   client.use({
     onRequest({ request }) {
       if (token) request.headers.set('authorization', `Bearer ${token}`);
       if (forwardedFor) request.headers.set('x-forwarded-for', forwardedFor);
+      if (prefetch) request.headers.set('sec-purpose', 'prefetch');
       return request;
     },
   });

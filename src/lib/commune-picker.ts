@@ -1,7 +1,7 @@
 import { API } from './routes';
 
 // In the browser: a province select that refills its commune select from the
-// server when it changes (Địa chỉ, Đăng tin).
+// server when it changes (the address form, Đăng tin).
 
 export function wireCommunes(province: HTMLSelectElement | null, commune: HTMLSelectElement | null, onFill?: () => void) {
   province?.addEventListener('change', async () => {
@@ -18,3 +18,6 @@ export function wireCommunes(province: HTMLSelectElement | null, commune: HTMLSe
     onFill?.();
   });
 }
+
+/** The address form's two selects (AddressForm.astro). */
+export const wireAddressCommunes = (form: ParentNode) => wireCommunes(form.querySelector('[data-province]'), form.querySelector('[data-commune]'));

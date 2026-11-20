@@ -1,0 +1,38 @@
+---
+// "Cài ShopNexus" on iPhone and iPad Safari, which have no install prompt:
+// the two taps that add the site to the home screen (lib/install.ts opens it).
+// A bottom sheet on a phone, a dialog on a wider window.
+import icon from '@brand/icon-192.png';
+import { btnCls } from '../lib/ui';
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+
+const step = 'grid h-6 w-6 shrink-0 place-items-center rounded-full bg-mint text-label-medium text-on-mint tabular-nums';
+---
+
+<dialog
+  id="install-hint"
+  aria-labelledby="install-hint-title"
+  class="m-auto w-[min(400px,calc(100vw-32px))] rounded-lg-plus border-0 bg-card p-5 text-ink backdrop:bg-black/30 max-md:mb-0 max-md:w-full max-md:max-w-none max-md:rounded-b-none max-md:pb-[calc(env(safe-area-inset-bottom)+20px)]"
+>
+  <div class="flex items-center gap-3">
+    <Photo src={icon} alt="" class="h-12 w-12 rounded-md" />
+    <div>
+      <h2 id="install-hint-title" class="text-title-large">Cài ShopNexus</h2>
+      <p class="text-body-medium text-on-surface-variant">Mở nhanh từ màn hình chính</p>
+    </div>
+  </div>
+  <ol class="mt-5 flex flex-col gap-3 text-body-large">
+    <li class="flex items-start gap-3">
+      <span class={step}>1</span>
+      <span>Chạm <Icon name="ios-share-rounded" size={18} class="inline-block align-[-3px]" /> <b class="font-medium">Chia sẻ</b> trên thanh của Safari</span>
+    </li>
+    <li class="flex items-start gap-3">
+      <span class={step}>2</span>
+      <span>Chọn <Icon name="add-box-outline-rounded" size={18} class="inline-block align-[-3px]" /> <b class="font-medium">Thêm vào MH chính</b></span>
+    </li>
+  </ol>
+  <form method="dialog" class="mt-6">
+    <button class:list={[btnCls('ink', 'lg'), 'w-full']}>Đã hiểu</button>
+  </form>
+</dialog>

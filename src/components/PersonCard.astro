@@ -1,0 +1,36 @@
+---
+// The card a person's link (data-person) shows on hover or keyboard focus.
+// One per page; lib/person-card fills it from the person's /peek partial.
+import Popover from './Popover.astro';
+import Skeleton from './Skeleton.astro';
+---
+
+<Popover id="person-card" type="hint" class="person-card w-[320px] whitespace-normal text-left text-body-medium">
+  <div class="p-2" data-person-body></div>
+</Popover>
+<Skeleton kind="person" />
+
+<script>
+  import '../lib/person-card';
+</script>
+
+<style>
+  /* Fades and grows in from 96 % on the fast effects spring. */
+  .person-card {
+    transition:
+      opacity var(--duration-effects-fast) var(--ease-effects),
+      scale var(--duration-effects-fast) var(--ease-effects),
+      overlay var(--duration-effects-fast) allow-discrete,
+      display var(--duration-effects-fast) allow-discrete;
+    &:not(:popover-open) {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+  @starting-style {
+    .person-card:popover-open {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+</style>

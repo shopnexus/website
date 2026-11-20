@@ -4,6 +4,7 @@
 // and thumbnails from medium up follow it. "Xem N ảnh" opens a full-window
 // viewer on the same photo, with arrow keys. The first photo carries
 // data-main, which the page transition pairs with the card the buyer clicked.
+// `compact` (Xem nhanh) leaves out the frame, the thumbnails and the in-app badge.
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
 import PhotoViewer from '../PhotoViewer.astro';
@@ -11,16 +12,17 @@ import PhotoViewer from '../PhotoViewer.astro';
 interface Props {
   photos: { big: string; thumb: string }[];
   title: string;
+  compact?: boolean;
 }
 
-const { photos, title } = Astro.props;
+const { photos, title, compact = false } = Astro.props;
 const n = photos.length;
 const alt = (i: number) => (i === 0 ? title : `${title}, ảnh ${i + 1}/${n}`);
 const side =
   'state-layer absolute top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full disabled:pointer-events-none disabled:opacity-0';
 ---
 
-<div class="rounded-card border border-line bg-card p-2" data-gallery>
+<div class:list={[!compact && 'rounded-card border border-line bg-card p-2']} data-gallery>
   <div class="group relative overflow-hidden rounded-card bg-surface-container-high" style="aspect-ratio: 16 / 10.5">
     <div
       class="gallery-track no-scrollbar flex h-full overflow-x-auto"
@@ -44,10 +46,14 @@ const side =
         ))
       }
     </div>
-    <span class="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
-      <Icon name="photo-camera-outline-rounded" size={15} />
-      Cả {n} ảnh chụp trong app
-    </span>
+    {
+      !compact && (
+        <span class="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
+          <Icon name="photo-camera-outline-rounded" size={15} />
+          Cả {n} ảnh chụp trong app
+        </span>
+      )
+    }
     <button type="button" class:list={[side, 'gallery-arrow left-3 bg-white/85 text-photo-ink backdrop-blur']} aria-label="Ảnh trước" data-prev disabled>
       <Icon name="chevron-left-rounded" size={22} />
     </button>
@@ -72,61 +78,29 @@ const side =
       <span class="max-md:sr-only">Xem {n} ảnh</span>
     </button>
   </div>
-  <div class="mt-2 hidden grid-cols-5 gap-2 md:grid">
-    {
-      photos.map((p, i) => (
-        <button
-          type="button"
-          data-thumb={i}
-          aria-pressed={i === 0 ? 'true' : 'false'}
-          aria-label={`Ảnh ${i + 1}`}
-          class="overflow-hidden rounded-lg opacity-80 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
-        >
-          <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
-        </button>
-      ))
-    }
-  </div>
+  {
+    !compact && (
+      <div class="mt-2 hidden grid-cols-5 gap-2 md:grid">
+        {photos.map((p, i) => (
+          <button
+            type="button"
+            data-thumb={i}
+            aria-pressed={i === 0 ? 'true' : 'false'}
+            aria-label={`Ảnh ${i + 1}`}
+            class="overflow-hidden rounded-lg opacity-80 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
+          >
+            <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
+          </button>
+        ))}
+      </div>
+    )
+  }
 
   <PhotoViewer photos={photos.map((p) => p.big)} label={`Ảnh của tin: ${title}`} alt={title} />
 </div>
 
 <script>
-  import { arrowKeys, openViewer, slideAt, slideTo, viewerAt } from '../../lib/photo-viewer';
+  import { mountGallery } from '../../lib/gallery';
 
-  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
-    const track = g.querySelector<HTMLElement>('[data-slides]')!;
-    const n = track.children.length;
-    const prev = g.querySelector<HTMLButtonElement>('[data-prev]')!;
-    const next = g.querySelector<HTMLButtonElement>('[data-next]')!;
-    const label = g.querySelector<HTMLElement>('[data-at]')!;
-    const thumbs = [...g.querySelectorAll<HTMLButtonElement>('[data-thumb]')];
-    const dots = [...g.querySelectorAll<HTMLElement>('[data-dot-i]')];
-    const viewer = g.querySelector<HTMLDialogElement>('[data-viewer]')!;
-
-    let shown = -1;
-    const sync = () => {
-      const i = slideAt(track);
-      if (i === shown) return;
-      shown = i;
-      prev.disabled = i === 0;
-      next.disabled = i === n - 1;
-      label.textContent = `${i + 1}/${n}`;
-      thumbs.forEach((t, k) => t.setAttribute('aria-pressed', String(k === i)));
-      dots.forEach((d, k) => d.toggleAttribute('data-on', k === i));
-    };
-    track.addEventListener('scroll', sync, { passive: true });
-    new ResizeObserver(() => {
-      slideTo(track, shown, true);
-    }).observe(track);
-    prev.addEventListener('click', () => slideTo(track, slideAt(track) - 1));
-    next.addEventListener('click', () => slideTo(track, slideAt(track) + 1));
-    thumbs.forEach((t, k) => t.addEventListener('click', () => slideTo(track, k)));
-    arrowKeys(track, track);
-    sync();
-
-    // The viewer opens on the photo in the frame and hands its photo back on close.
-    g.querySelector('[data-open-viewer]')!.addEventListener('click', () => openViewer(viewer, slideAt(track)));
-    viewer.addEventListener('close', () => slideTo(track, viewerAt(viewer), true));
-  });
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach(mountGallery);
 </script>
