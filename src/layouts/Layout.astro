@@ -6,7 +6,7 @@ import favicon32 from '@brand/favicon-32.png';
 import BottomNav from '../components/BottomNav.astro';
 import Footer from '../components/Footer.astro';
 import Header, { type Section } from '../components/Header.astro';
-import ListingPageSkeleton from '../components/public/ListingPageSkeleton.astro';
+import PageSkeletons from '../components/public/PageSkeletons.astro';
 import Snackbar from '../components/Snackbar.astro';
 import { theme } from '../lib/theme';
 
@@ -59,44 +59,6 @@ const { title, description, section = null, search, footer = true, fab = true, i
       addEventListener('click', (e) => (tapped = e.target.closest?.('a[href]') ?? null), true);
       const photoOf = (a) => a.querySelector('img') ?? a.closest('article, li')?.querySelector('img');
 
-      // A listing tap still on this page after 100 ms grows the card's photo into
-      // a skeleton of the listing page; the real page then replaces it.
-      let skeleton = null;
-      let wait = 0;
-      const dropSkeleton = () => {
-        clearTimeout(wait);
-        skeleton?.remove();
-        skeleton = null;
-      };
-      const showSkeleton = (img) => {
-        const tpl = document.getElementById('listing-skeleton');
-        if (!tpl || skeleton) return;
-        const el = tpl.content.firstElementChild.cloneNode(true);
-        el.style.top = (document.querySelector('header.glass')?.offsetHeight ?? 0) + 'px';
-        const photo = el.querySelector('[data-skeleton-photo]');
-        if (img?.currentSrc) photo.src = img.currentSrc;
-        else photo.classList.add('skeleton');
-        const swap = () => {
-          if (img) img.style.viewTransitionName = '';
-          if (img?.currentSrc) photo.style.viewTransitionName = 'listing-photo';
-          document.body.append(el);
-          skeleton = el;
-        };
-        if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return swap();
-        if (img?.currentSrc) img.style.viewTransitionName = 'listing-photo';
-        document.startViewTransition(swap);
-      };
-      addEventListener('click', (e) => {
-        const a = tapped;
-        if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.origin !== location.origin) return;
-        if (!a.pathname.startsWith('/listings/') || a.pathname === location.pathname) return;
-        clearTimeout(wait);
-        wait = setTimeout(() => showSkeleton(photoOf(a)), 100);
-      });
-      // Back from the next page, or a navigation the buyer stopped.
-      addEventListener('pageshow', dropSkeleton);
-      addEventListener('keydown', (e) => e.key === 'Escape' && dropSkeleton());
       // A transition draws above the top layer, so a photo paired under an open
       // dialog or popover would cover it until the transition ends.
       const covered = () => {
@@ -114,15 +76,15 @@ const { title, description, section = null, search, footer = true, fab = true, i
         return t ? (t.children[Math.round(t.scrollLeft / Math.max(1, t.clientWidth))] ?? t.children[0]) : null;
       };
       addEventListener('pageswap', (e) => {
-        clearTimeout(wait);
         if (!e.viewTransition || !e.activation?.entry?.url) return;
         const to = new URL(e.activation.entry.url);
-        if (skeleton) pair(skeleton.querySelector('[data-skeleton-photo][src]'), e.viewTransition);
+        // A page skeleton (lib/page-skeleton.ts) covers the cards: only its photo can pair.
+        const cover = document.querySelector('[data-page-cover]');
+        if (cover) pair(cover.querySelector('[data-skeleton-photo][src]'), e.viewTransition);
         else if (to.pathname.startsWith('/listings/') && tapped?.pathname === to.pathname) pair(photoOf(tapped), e.viewTransition);
         else pair(gallery(), e.viewTransition);
       });
       addEventListener('pagereveal', (e) => {
-        dropSkeleton();
         if (!e.viewTransition) return;
         if (gallery()) return pair(gallery(), e.viewTransition);
         const from = window.navigation?.activation?.from?.url;
@@ -146,7 +108,7 @@ const { title, description, section = null, search, footer = true, fab = true, i
     </div>
     <BottomNav section={section} fab={fab} />
     <Snackbar />
-    <template id="listing-skeleton"><ListingPageSkeleton /></template>
+    <PageSkeletons />
     <span id="page-end" hidden></span>
     <script>
       import '../scripts/page-motion';
