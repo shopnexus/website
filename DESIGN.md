@@ -380,6 +380,22 @@ Tôi, Tin của bạn, Đơn hàng, Đơn bán, Đã lưu, Tin nhắn, Thông b�
 giao COD and Hỗ trợ share one side nav (`AccountNav.astro`): the buyer's
 card, then the items with counts, the current one mint.
 
+### Trả giá
+
+The seller's open offers from every listing, newest first, on their own page
+under Đơn bán in the account nav and the avatar menu, with the count. A row
+(`OfferRow.astro`) shows the listing, the buyer (with `data-person`), the
+offer and how far it is under the listed price, then "Mở chat", "Từ chối",
+"Trả giá lại" and "Đồng ý". "Trả giá lại" opens the amount under the row.
+Each answer posts in place to `/api/offers/<deal>` and the row leaves the
+list with a snackbar; a listing held for an order keeps only "Từ chối".
+Drafts: `.superdesign/mockups/offers-inbox-*.html`
+(`tools/build_offers_inbox.py`).
+
+Every money field is an `input[data-money]` run by `src/lib/money-input.ts`:
+it groups thousands as it is typed, keeps the caret after the same digit,
+and a Backspace or Delete beside a dot removes the digit past it.
+
 ### Tin nhắn
 
 Three full-height white panes. The rules for

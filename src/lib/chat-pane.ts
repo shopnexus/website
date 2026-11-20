@@ -1,5 +1,6 @@
 import { busy, leaveWith } from './busy';
 import { idempotencyKey } from './key';
+import './money-input';
 import { offerPush } from './push';
 import { connectSocket } from './socket';
 import { hold } from './skeleton';

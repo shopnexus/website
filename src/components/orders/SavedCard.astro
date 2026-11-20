@@ -4,7 +4,7 @@ import Photo from '../Photo.astro';
 // the photo, and the price alert under it. Sold ones go grey with a link to
 // similar listings; a hidden or deleted one shows only that it is gone.
 import type { Schemas } from '../../lib/api/client';
-import { money } from '../../lib/format';
+import { group, money } from '../../lib/format';
 import { conditionLabel } from '../../lib/listing';
 import { R } from '../../lib/routes';
 import Icon from '../Icon.astro';
@@ -25,6 +25,8 @@ const sold = l.status === 'sold';
 const onSale = l.status === 'active';
 const cut = onSale && l.price !== undefined && l.price < it.saved_price ? it.saved_price - l.price : 0;
 const pop = `alert-${it.listing_id}`;
+/** The alert's level, or 10 % under the price to start from. */
+const below = it.alert_below ?? (l.price !== undefined ? Math.max(10_000, Math.floor((l.price * 0.9) / 1000) * 1000) : undefined);
 const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Boolean).join(' · ');
 ---
 
@@ -106,13 +108,12 @@ const meta = [l.condition && conditionLabel(l.condition), l.commune].filter(Bool
               <label class="block text-label-large text-on-surface-variant">
                 Báo khi giá dưới (₫)
                 <input
-                  type="number"
                   name="below"
-                  min="10000"
-                  max="1000000000"
-                  step="1000"
+                  inputmode="numeric"
+                  autocomplete="off"
                   required
-                  value={it.alert_below ?? (l.price !== undefined ? Math.max(10_000, Math.floor((l.price * 0.9) / 1000) * 1000) : undefined)}
+                  value={below ? group(below) : undefined}
+                  data-money
                   class:list={[FIELD, 'mt-1.5 h-11 w-full px-3 text-body-large text-ink tabular-nums outline-none']}
                 />
               </label>

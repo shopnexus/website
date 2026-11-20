@@ -24,12 +24,18 @@ const [rep, support] = await Promise.all([
   reputation(Astro.locals).catch(() => null),
   unwrap(Astro.locals.api.GET('/v1/support/summary')).catch(() => null),
 ]);
-const count: Partial<Record<AccountKey, number>> = { messages: me.unread.messages, notifications: me.unread.notifications, support: support?.unread };
+const count: Partial<Record<AccountKey, number>> = {
+  offers: me.unread.offers,
+  messages: me.unread.messages,
+  notifications: me.unread.notifications,
+  support: support?.unread,
+};
 const HREF: Record<string, string> = {
   me: R.me,
   listings: R.myListings,
   orders: R.orders,
   sales: R.sales,
+  offers: R.offers,
   saved: R.saved,
   messages: R.messages,
   notifications: R.notifications,
@@ -69,7 +75,7 @@ const HREF: Record<string, string> = {
             <Icon name={on ? it.icon.replace('-outline', '') : it.icon} size={17} class={on ? 'text-brand' : 'text-sub'} />
             <span class="flex-1">{it.label}</span>
             {!!count[it.key] && (
-              <span class:list={['text-body-small tabular-nums', on ? 'text-on-mint' : 'text-faint']}>{count[it.key]}</span>
+              <span class:list={['text-body-small tabular-nums', on ? 'text-on-mint' : 'text-faint']} data-offer-count={it.key === 'offers' ? '' : undefined}>{count[it.key]}</span>
             )}
           </a>
         );

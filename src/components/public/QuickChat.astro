@@ -23,12 +23,14 @@ interface Props {
   /** The listing's photo URL. */
   thumb?: string;
   price: number;
+  /** The listing takes offers now: "Trả giá" and its tray show. */
+  offers: boolean;
   questions: string[];
   /** The full chat on Tin nhắn. */
   href: string;
 }
 
-const { listing, chat, seller, title, thumb, price, questions, href } = Astro.props;
+const { listing, chat, seller, title, thumb, price, offers, questions, href } = Astro.props;
 
 // Three quick cuts, about 4, 6 and 10 % off, on round steps.
 const unit = price >= 1_000_000 ? 100_000 : 10_000;
@@ -68,14 +70,19 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
   </div>
 
   <div class="no-scrollbar flex shrink-0 gap-1.5 overflow-x-auto px-3 pb-1" data-qc-chips>
-    <button
-      type="button"
-      class="state-layer flex h-8 shrink-0 items-center gap-1 rounded-control border border-field bg-card pl-2 pr-3 text-label-medium text-ink aria-expanded:border-brand aria-expanded:bg-mint aria-expanded:text-on-mint"
-      aria-expanded="false"
-      data-qc-offer
-    >
-      <Icon name="sell-outline-rounded" size={16} />Trả giá
-    </button>
+    {
+      offers && (
+        <button
+          type="button"
+          class="state-layer flex h-8 shrink-0 items-center gap-1 rounded-control border border-field bg-card pl-2 pr-3 text-label-medium text-ink aria-expanded:border-brand aria-expanded:bg-mint aria-expanded:text-on-mint"
+          aria-expanded="false"
+          data-qc-offer
+        >
+          <Icon name="sell-outline-rounded" size={16} />
+          Trả giá
+        </button>
+      )
+    }
     {
       questions.map((q) => (
         <button type="button" class="state-layer h-8 shrink-0 rounded-control border border-line bg-card px-3 text-label-medium" data-qc-ask={q}>
@@ -85,42 +92,47 @@ const pane = `/messages/pane?${new URLSearchParams({ listing, name: seller.name,
     }
   </div>
 
-  <form method="post" action={pane} class="mx-3 mb-2 hidden shrink-0 rounded-card border border-line bg-soft p-3" data-in-place data-qc-tray>
-    <input type="hidden" name="do" value="offer" />
-    <div class="flex items-center justify-between">
-      <label for="qc-amount" class="text-title-small text-ink">Giá bạn trả</label>
-      <p class="text-body-small text-faint">Giá đăng {group(price)} ₫</p>
-    </div>
-    <p class="mt-1 flex items-baseline">
-      <input
-        id="qc-amount"
-        name="amount"
-        inputmode="numeric"
-        autocomplete="off"
-        value={group(start)}
-        class="min-w-[4ch] max-w-full bg-transparent text-j-28 tabular-nums outline-none [field-sizing:content]"
-        data-qc-amount
-      />
-      <span class="ml-1 text-title-medium text-sub">₫</span>
-    </p>
-    <div class="mt-2 flex gap-1.5">
-      {
-        cuts.map((c) => (
-          <button
-            type="button"
-            class="state-layer h-8 flex-1 rounded-control border border-field bg-card text-body-medium text-ink aria-pressed:border-brand aria-pressed:bg-mint aria-pressed:font-medium aria-pressed:text-on-mint"
-            aria-pressed={price - c === start ? 'true' : 'false'}
-            data-qc-cut={price - c}
-          >
-            {cutLabel(c)}
-          </button>
-        ))
-      }
-    </div>
-    <button type="submit" class="state-layer mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-control bg-brand text-title-small text-white hover:bg-brand-hover">
-      <Icon name="sell-outline-rounded" size={18} />Gửi giá
-    </button>
-  </form>
+  {
+    offers && (
+      <form method="post" action={pane} class="mx-3 mb-2 hidden shrink-0 rounded-card border border-line bg-soft p-3" data-in-place data-qc-tray>
+        <input type="hidden" name="do" value="offer" />
+        <div class="flex items-center justify-between">
+          <label for="qc-amount" class="text-title-small text-ink">Giá bạn trả</label>
+          <p class="text-body-small text-faint">Giá đăng {group(price)} ₫</p>
+        </div>
+        <p class="mt-1 flex items-baseline">
+          <input
+            id="qc-amount"
+            name="amount"
+            inputmode="numeric"
+            autocomplete="off"
+            value={group(start)}
+            class="min-w-[4ch] max-w-full bg-transparent text-j-28 tabular-nums outline-none [field-sizing:content]"
+            data-qc-amount
+            data-money
+          />
+          <span class="ml-1 text-title-medium text-sub">₫</span>
+        </p>
+        <div class="mt-2 flex gap-1.5">
+          {
+            cuts.map((c) => (
+              <button
+                type="button"
+                class="state-layer h-8 flex-1 rounded-control border border-field bg-card text-body-medium text-ink aria-pressed:border-brand aria-pressed:bg-mint aria-pressed:font-medium aria-pressed:text-on-mint"
+                aria-pressed={price - c === start ? 'true' : 'false'}
+                data-qc-cut={price - c}
+              >
+                {cutLabel(c)}
+              </button>
+            ))
+          }
+        </div>
+        <button type="submit" class="state-layer mt-2.5 flex h-10 w-full items-center justify-center gap-2 rounded-control bg-brand text-title-small text-white hover:bg-brand-hover">
+          <Icon name="sell-outline-rounded" size={18} />Gửi giá
+        </button>
+      </form>
+    )
+  }
 </dialog>
 
 <button

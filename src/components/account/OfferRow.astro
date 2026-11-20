@@ -1,0 +1,145 @@
+---
+// One buyer's open offer on Trả giá: the listing, the buyer, the offer and
+// its gap to the listed price, and the seller's answers. Each answer is a
+// form post to Trả giá; "Trả giá lại" opens the amount under the row
+// (?counter=<deal> without script). A listing held for an order takes only
+// "Từ chối".
+import type { Schemas } from '../../lib/api/client';
+import { group, money } from '../../lib/format';
+import { chatHref, personHref, personName } from '../../lib/messages';
+import { R } from '../../lib/routes';
+import { FIELD, btnCls } from '../../lib/ui';
+import Ago from '../Ago.astro';
+import Avatar from '../Avatar.astro';
+import Icon from '../Icon.astro';
+import Photo from '../Photo.astro';
+import Price from '../Price.astro';
+
+interface Props {
+  item: Schemas['OffersScreenItem'];
+  /** The counter's amount shows open. */
+  countering?: boolean;
+  /** "lazy" when it sits below the first screen. */
+  loading?: 'eager' | 'lazy';
+}
+
+const { item, countering = false, loading } = Astro.props;
+const d = item.deal;
+const l = d.listing;
+const offer = d.open_price!;
+const buyer = personName(item.buyer);
+const person = personHref(item.buyer);
+const range = d.offer_range;
+const held = l.status !== 'active';
+const gap = l.price - offer.amount;
+---
+
+<article class="rounded-card border border-line bg-card p-3" data-offer={d.id} data-more-id={d.id} data-buyer={buyer} data-chat={chatHref(d.conversation_id, d.id)}>
+  <form method="post" action={R.offers} class="flex flex-wrap items-center gap-x-4 gap-y-3">
+    <input type="hidden" name="deal" value={d.id} />
+    <input type="hidden" name="price" value={offer.amount} />
+    <div class="flex min-w-0 flex-1 basis-[260px] items-start gap-3 md:items-center md:gap-4">
+      {
+        l.cover_thumb_url ? (
+          <Photo src={l.cover_thumb_url} width={160} height={160} alt="" loading={loading} class="h-14 w-14 shrink-0 rounded-tile object-cover md:h-16 md:w-16" />
+        ) : (
+          <span class="h-14 w-14 shrink-0 rounded-tile bg-soft md:h-16 md:w-16" />
+        )
+      }
+      <div class="min-w-0 flex-1">
+        <a href={R.listing(l.slug)} class="block truncate text-title-small text-ink hover:underline">{l.title}</a>
+        {
+          held ? (
+            <p class="mt-0.5 flex items-center gap-1 text-body-small text-faint">
+              <Icon name="lock-outline-rounded" size={13} />
+              Đang giữ cho một đơn khác
+            </p>
+          ) : (
+            <p class="mt-0.5 text-body-small text-faint">Giá đăng {money(l.price)}</p>
+          )
+        }
+        <p class="mt-1 flex items-center gap-2">
+          {
+            person ? (
+              <a href={person} data-person class="state-layer -mx-1 inline-flex h-7 min-w-0 items-center gap-1.5 rounded-full pl-1 pr-2 text-label-large text-ink hover:bg-hover">
+                <Avatar name={buyer} photo={item.buyer.avatar_url} size={20} loading={loading} />
+                <span class="truncate">{buyer}</span>
+              </a>
+            ) : (
+              <span class="inline-flex items-center gap-1.5 text-label-large text-sub">
+                <Avatar name={buyer} photo={item.buyer.avatar_url} size={20} loading={loading} />
+                {buyer}
+              </span>
+            )
+          }
+          <Ago at={offer.at} class="shrink-0 text-body-small text-faint" />
+        </p>
+      </div>
+    </div>
+    <div class="flex w-full items-baseline justify-between border-t border-line pt-2.5 md:w-[150px] md:flex-col md:items-end md:border-0 md:pt-0">
+      <Price vnd={offer.amount} size="text-j-18" short={false} />
+      {gap > 0 && <p class="text-body-small text-faint tabular-nums">−{money(gap)} · {Math.round((gap / l.price) * 100)}%</p>}
+    </div>
+    <div class="flex w-full items-center gap-2 md:ml-2 md:w-auto md:min-w-[344px] md:justify-end">
+      <a href={chatHref(d.conversation_id, d.id)} class="state-layer grid h-9 w-9 shrink-0 place-items-center rounded-control text-sub hover:bg-hover" aria-label="Mở chat" title="Mở chat">
+        <Icon name="chat-outline-rounded" size={18} />
+      </a>
+      <button type="submit" name="do" value="decline" class:list={[btnCls('line', 'sm'), 'max-md:flex-1']}>Từ chối</button>
+      {
+        !held && range && (
+          <a
+            href={`${R.offers}?counter=${d.id}`}
+            class:list={[btnCls('line', 'sm'), 'aria-expanded:border-brand aria-expanded:bg-mint aria-expanded:text-on-mint max-md:flex-1']}
+            aria-expanded={countering ? 'true' : 'false'}
+            data-counter-toggle
+          >
+            <Icon name="sell-outline-rounded" size={16} class="max-md:hidden" />
+            Trả giá lại
+          </a>
+        )
+      }
+      {
+        !held && (
+          <button type="submit" name="do" value="accept" class:list={[btnCls('ink', 'sm'), 'max-md:flex-1']}>
+            <Icon name="handshake-outline-rounded" size={16} class="max-md:hidden" />
+            Đồng ý
+          </button>
+        )
+      }
+    </div>
+  </form>
+  {
+    !held && range && (
+      <form
+        method="post"
+        action={R.offers}
+        class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile bg-soft p-2.5 md:pl-3"
+        hidden={!countering}
+        data-counter
+      >
+        <input type="hidden" name="deal" value={d.id} />
+        <label class:list={[FIELD, 'flex h-11 w-full items-center gap-2 px-3 md:w-[220px]']}>
+          <span class="sr-only">Giá bạn trả lại</span>
+          <input
+            name="amount"
+            inputmode="numeric"
+            autocomplete="off"
+            required
+            placeholder={group(range.max)}
+            class="min-w-0 flex-1 bg-transparent text-j-18 tabular-nums text-ink outline-none"
+            data-money
+          />
+          <span class="text-body-medium text-sub">₫</span>
+        </label>
+        <p class="text-body-small text-faint tabular-nums">{range.min === range.max ? money(range.min) : `${group(range.min)} – ${money(range.max)}`}</p>
+        <div class="ml-auto flex gap-2">
+          <a href={R.offers} class={btnCls('ghost', 'sm')} data-counter-toggle>Hủy</a>
+          <button type="submit" name="do" value="counter" class={btnCls('ink', 'sm')}>
+            <Icon name="send-rounded" size={16} />
+            Gửi giá
+          </button>
+        </div>
+      </form>
+    )
+  }
+</article>

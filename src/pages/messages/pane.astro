@@ -8,6 +8,7 @@ import Notice from '../../components/Notice.astro';
 import ChatThread from '../../components/account/chat/ChatThread.astro';
 import Composer from '../../components/account/chat/Composer.astro';
 import { idempotencyKey, orNull, unwrap } from '../../lib/api/client';
+import { parseMoney } from '../../lib/format';
 import { isId } from '../../lib/listing';
 import { errorCode, errorText, openDeal, personName, thread } from '../../lib/messages';
 import { requireViewer } from '../../lib/session';
@@ -37,8 +38,7 @@ if (Astro.request.method === 'POST') {
       deal = d.id;
     }
     if (s('do') === 'offer') {
-      const amount = Number(s('amount').replace(/\D/g, ''));
-      await unwrap(api.POST('/v1/deals/{id}/offer', { params: { path: { id: deal } }, body: { amount } }));
+      await unwrap(api.POST('/v1/deals/{id}/offer', { params: { path: { id: deal } }, body: { amount: parseMoney(s('amount')) ?? 0 } }));
     } else {
       const photos = f.getAll('photos').map(String).filter(isId).slice(0, 4);
       const reply = s('reply_to');

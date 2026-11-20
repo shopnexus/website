@@ -9,7 +9,7 @@ import AccountFrame from '../components/orders/AccountFrame.astro';
 import SavedCard from '../components/orders/SavedCard.astro';
 import { ApiError, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
 import { categoryName } from '../lib/catalog';
-import { money } from '../lib/format';
+import { money, parseMoney } from '../lib/format';
 import { conditionLabel, isId } from '../lib/listing';
 import { R } from '../lib/routes';
 import { requireViewer } from '../lib/session';
@@ -28,7 +28,7 @@ if (Astro.request.method === 'POST') {
   const path = { params: { path: { listing_id: listing } } };
   try {
     if (act === 'alert' && isId(listing)) {
-      const below = Number(String(f.get('below') ?? '').replace(/\D/g, ''));
+      const below = parseMoney(String(f.get('below') ?? '')) ?? 0;
       await unwrap(api.PUT('/v1/saved/{listing_id}/alert', { ...path, body: { below } }));
     } else if (act === 'alert-clear' && isId(listing)) {
       await unwrap(api.DELETE('/v1/saved/{listing_id}/alert', path));
@@ -184,6 +184,7 @@ const count = `${saved.items.length}${saved.next_cursor ? '+' : ''} tin`;
 </AccountFrame>
 
 <script>
+  import '../lib/money-input';
   import '../lib/more';
   import { API } from '../lib/routes';
   import { snack } from '../lib/snackbar';

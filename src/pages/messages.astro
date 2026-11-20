@@ -21,7 +21,7 @@ import ReportDialog from '../components/account/chat/ReportDialog.astro';
 import ChatThread from '../components/account/chat/ChatThread.astro';
 import Layout from '../layouts/Layout.astro';
 import { ApiError, type Schemas, idempotencyKey, orNull, unwrap } from '../lib/api/client';
-import { group } from '../lib/format';
+import { group, parseMoney } from '../lib/format';
 import { isId } from '../lib/listing';
 import { chatHref, errorCode, errorText, loadMessages, openDeal, personHref, personName, shortTitle, thread } from '../lib/messages';
 import { R } from '../lib/routes';
@@ -74,7 +74,7 @@ if (Astro.request.method === 'POST') {
       }
       case 'offer':
         extra.offer = '1';
-        await unwrap(api.POST('/v1/deals/{id}/offer', { ...path, body: { amount: Number(s('amount').replace(/\D/g, '')) } }));
+        await unwrap(api.POST('/v1/deals/{id}/offer', { ...path, body: { amount: parseMoney(s('amount')) ?? 0 } }));
         delete extra.offer;
         break;
       case 'accept':
@@ -502,7 +502,6 @@ const detail = !!(chat || start || confirm);
 </Layout>
 
 <script>
-  import { group } from '../lib/format';
   import { mountChatPane } from '../lib/chat-pane';
   import '../lib/pending';
 
@@ -573,14 +572,6 @@ const detail = !!(chat || start || confirm);
       fold.classList.toggle('rotate-180', body.hidden);
     }
   });
-  // The amount groups its thousands as it is typed.
-  document.addEventListener('input', (e) => {
-    const t = e.target as HTMLInputElement;
-    if (!t.matches('[data-amount]')) return;
-    const n = Number(t.value.replace(/\D/g, ''));
-    t.value = n ? group(n) : '';
-  });
-
   // ------------------------------------------------------------ the inbox --
   let shown = 0;
   function filter() {

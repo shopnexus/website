@@ -238,7 +238,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
           <label class="block">
             <span class="mb-1.5 block text-label-large text-on-surface-variant">Giá bán</span>
             <span class="flex h-12 items-center justify-between gap-3 rounded-field bg-card px-4 ring-2 ring-primary">
-              <input name="price" value={f.price === null ? '' : group(f.price)} inputmode="numeric" placeholder="0" class="min-w-0 flex-1 bg-transparent text-j-22 text-ink tabular-nums outline-none" data-price />
+              <input name="price" value={f.price === null ? '' : group(f.price)} inputmode="numeric" autocomplete="off" placeholder="0" class="min-w-0 flex-1 bg-transparent text-j-22 text-ink tabular-nums outline-none" data-price data-money />
               <span class="text-on-surface-variant">₫</span>
             </span>
           </label>
@@ -361,10 +361,11 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
 <script>
   import { busy } from '../../lib/busy';
   import { wireCommunes } from '../../lib/commune-picker';
-  import { group, money } from '../../lib/format';
+  import { money } from '../../lib/format';
   import { idempotencyKey, uuidv7 } from '../../lib/key';
+  import { moneyOf, setMoney } from '../../lib/money-input';
   import { API, R, loginHref } from '../../lib/routes';
-  import { DESCRIPTION_MAX, PHOTOS_MAX, SPECS_MAX, TITLE_MAX, parsePrice } from '../../lib/sell';
+  import { DESCRIPTION_MAX, PHOTOS_MAX, SPECS_MAX, TITLE_MAX } from '../../lib/sell';
   import { UploadError, uploadPhoto } from '../../lib/upload';
 
   type Spec = { label: string; value: string };
@@ -465,7 +466,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       changed();
     });
 
-    // ---- Title counter, price grouping, specs.
+    // ---- Title counter, price, specs.
     const title = $<HTMLInputElement>('[data-title]')!;
     const description = $<HTMLTextAreaElement>('[data-description]')!;
     const category = $<HTMLSelectElement>('[data-category]')!;
@@ -474,9 +475,8 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
     const commune = $<HTMLSelectElement>('[data-commune]')!;
     const countTitle = () => ($('[data-title-count]')!.textContent = `${[...title.value].length}/${title.maxLength}`);
     title.addEventListener('input', countTitle);
-    const priceValue = () => parsePrice(price.value);
-    const setPrice = (v: number | null) => (price.value = v === null ? '' : group(v));
-    price.addEventListener('blur', () => setPrice(priceValue()));
+    const priceValue = () => moneyOf(price);
+    const setPrice = (v: number | null) => setMoney(price, v);
     price.addEventListener('input', () => showWatchers());
 
     const specList = $('[data-specs]')!;

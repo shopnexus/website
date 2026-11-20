@@ -49,6 +49,11 @@ export const ACCOUNT_NAV = [
     "label": "Đơn bán"
   },
   {
+    "key": "offers",
+    "icon": "sell-outline-rounded",
+    "label": "Trả giá"
+  },
+  {
     "key": "saved",
     "icon": "favorite-outline-rounded",
     "label": "Đã lưu"

@@ -1305,6 +1305,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/screens/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of the buyers' open offers on the caller's listings, each with its buyer.
+         * @description The offers waiting on the caller as seller: deals negotiating whose
+         *     open price is the buyer's and still stands for the listing. An offer
+         *     a change of the listing voided (a new price, offers turned off, the
+         *     listing hidden or gone) is left out; an offer on a reserved listing
+         *     stays, without offer_range, since the seller may only decline it.
+         *     Newest offer first, paged by deal ID: the next page lists the offers
+         *     made before the cursor deal's. When the cursor deal no longer holds
+         *     an open offer of its buyer's, the page starts again from the newest,
+         *     and the client drops the rows it already shows. Accept, counter and
+         *     decline are the deal's moves.
+         */
+        get: operations["getOffersScreen"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/screens/cod-setup": {
         parameters: {
             query?: never;
@@ -1917,11 +1946,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Count the caller's unread messages and unread notices.
+         * Count the caller's unread messages, unread notices and the offers waiting on them.
          * @description unread counts the messages over unarchived pair conversations, as the
          *     inbox does; notifications counts the unread notices, as Home's
-         *     notifications_unread does. Module screen serves it, since it reads
-         *     chat and notification; the chat tag keeps it in the app's chat client.
+         *     notifications_unread does; offers counts the buyers' open offers on
+         *     the caller's listings as the deals hold them, so an offer a change of
+         *     the listing voided counts until the deal records that change. Module
+         *     screen serves it, since it reads chat, notification and deal; the
+         *     chat tag keeps it in the app's chat client.
          */
         get: operations["getUnread"];
         put?: never;
@@ -5789,6 +5821,19 @@ export interface components {
              */
             next_cursor?: string;
         };
+        /** @description A buyer's open offer, as its deal, with the buyer. */
+        OffersScreenItem: {
+            deal: components["schemas"]["Deal"];
+            buyer: components["schemas"]["Person"];
+        };
+        OffersScreen: {
+            items: components["schemas"]["OffersScreenItem"][];
+            /**
+             * Format: uuid
+             * @description Present when more offers follow; pass it as cursor.
+             */
+            next_cursor?: string;
+        };
         SavedPickup: {
             /** Format: uuid */
             address_id: string;
@@ -6210,6 +6255,8 @@ export interface components {
             unread: number;
             /** @description The caller's unread notices. */
             notifications: number;
+            /** @description The buyers' open offers waiting on the caller as seller, as GET /v1/screens/offers lists them. */
+            offers: number;
         };
         /** @description A deal at a glance, as the caller sees it. */
         DealSummary: {
@@ -11027,6 +11074,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyListingsScreen"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getOffersScreen: {
+        parameters: {
+            query?: {
+                /** @description The next_cursor of the previous page; absent for the first page. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The view. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OffersScreen"];
                 };
             };
             400: components["responses"]["BadRequest"];

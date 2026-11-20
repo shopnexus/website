@@ -52,16 +52,18 @@ export const card = (it: Schemas['SearchItem']): Card => ({
 /** The questions Hỏi nhanh sends with one tap. */
 export const QUESTIONS = ['Còn không bạn?', 'Xem ở đâu được?'];
 
-/** What the viewer can do with a listing: theirs, held for an order, open to offers, already ordered by them. */
+/** What the viewer can do with a listing: theirs, held for an order, open to their offer, already ordered by them. */
 export function dealState(screen: Schemas['ListingScreen'], me: { id: string } | null) {
   const it = screen.listing;
+  const deal = screen.viewer?.deal;
   const reserved = it.status === 'reserved';
   return {
     mine: !!me && me.id === it.seller_id,
     reserved,
-    offers: it.allow_offers && !reserved,
+    /** The listing takes offers and the viewer's deal waits on none of theirs: not agreed, no offer of theirs open. */
+    offers: it.allow_offers && !reserved && (!deal || (deal.status === 'negotiating' && deal.open_price?.by !== 'buyer')),
     /** Their order is open, so "Mua ngay" becomes "Xem đơn". */
-    ordered: ['pending', 'shipped'].includes(screen.viewer?.deal?.order_status ?? ''),
+    ordered: ['pending', 'shipped'].includes(deal?.order_status ?? ''),
     /** The chat about it on Tin nhắn, where Chat nhanh's links fall back to. */
     chat: `${R.messages}?listing=${it.id}`,
   };
