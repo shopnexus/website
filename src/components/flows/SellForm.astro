@@ -377,6 +377,8 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
     id: string;
     status: 'reading' | 'done' | 'failed';
     failure?: string;
+    /** Why it failed, in the AI's words or its error's. */
+    failure_reason?: string;
     draft?: { title: string; category_code: string; condition: string; specs: Spec[]; description: string; price: number | null; allow_offers: boolean };
   };
   type Guide = {
@@ -666,7 +668,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       form.requestSubmit((e as SubmitEvent).submitter as HTMLButtonElement | null);
     });
 
-    // ---- AI điền giúp: read the cover, then fill what the read has.
+    // ---- AI điền giúp: read the cover, write its text in as it comes, then fill what the read has.
     let reading = false;
     const readStatus = $('[data-read-status]');
     const failures: Record<string, string> = {
@@ -674,6 +676,46 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       no_item: 'AI không thấy một món đồ rõ ràng trong ảnh bìa.',
       unavailable: 'AI đang bận. Thử lại sau ít phút.',
     };
+    const failText = (r: Read) => r.failure_reason || failures[r.failure ?? ''] || failures.unavailable;
+    // The title and description the AI's text last wrote in; a field still holding it counts as untouched.
+    const live = { title: '', description: '' };
+    function writeLive(t: { title: string; description: string }, was: ReturnType<typeof snapshot>) {
+      if (t.title && [was.title, live.title].includes(title.value)) title.value = live.title = t.title.slice(0, TITLE_MAX);
+      if (t.description && [was.description, live.description].includes(description.value))
+        description.value = live.description = t.description.slice(0, DESCRIPTION_MAX);
+      countTitle();
+    }
+    /** Puts back what the AI's text wrote in, for a read that failed after all. */
+    function undoLive(was: ReturnType<typeof snapshot>) {
+      if (live.title && title.value === live.title) title.value = was.title;
+      if (live.description && description.value === live.description) description.value = was.description;
+      countTitle();
+    }
+    /** The read once it ends: its events while they come, then a poll every 2 s up to 90 s. */
+    async function watch(r: Read, was: ReturnType<typeof snapshot>): Promise<Read> {
+      r = await new Promise<Read>((done) => {
+        const es = new EventSource(API.listingReadEvents(r.id));
+        let last = r;
+        const finish = () => {
+          clearTimeout(stop);
+          es.close();
+          done(last);
+        };
+        const stop = window.setTimeout(finish, 150_000);
+        es.addEventListener('text', (e) => writeLive(JSON.parse((e as MessageEvent).data), was));
+        es.addEventListener('read', (e) => {
+          last = JSON.parse((e as MessageEvent).data);
+          if (last.status !== 'reading') finish();
+        });
+        es.onerror = finish;
+      });
+      for (let i = 0; r.status === 'reading' && i < 45; i++) {
+        await new Promise((ok) => setTimeout(ok, 2000));
+        const next = await fetch(API.listingRead(r.id)).catch(() => null);
+        if (next?.ok) r = await next.json();
+      }
+      return r;
+    }
     readBtn?.addEventListener('click', async () => {
       const photo = ids()[0];
       if (!photo || !readStatus) return;
@@ -695,16 +737,14 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
       if (res?.status === 403) return say('Cần thêm số điện thoại vào tài khoản trước.');
       if (res?.status === 429) return say('Hôm nay bạn đã dùng hết lượt AI đọc ảnh. Mai thử lại nhé.');
       if (!res?.ok) return say('Chưa đọc được ảnh lúc này. Thử lại sau.');
-      let r: Read = await res.json();
-      for (let i = 0; r.status === 'reading' && i < 45; i++) {
-        await new Promise((ok) => setTimeout(ok, 2000));
-        const next = await fetch(API.listingRead(r.id)).catch(() => null);
-        if (next?.ok) r = await next.json();
-      }
+      live.title = live.description = '';
+      const r = await watch(await res.json(), before);
+      const ok = r.status === 'done' && r.draft && ids()[0] === photo;
+      if (!ok) undoLive(before);
       if (r.status === 'reading') return say('AI đọc lâu hơn thường lệ. Thử lại sau nhé.');
-      if (r.status === 'failed' || !r.draft) return say(failures[r.failure ?? ''] ?? failures.unavailable);
-      if (ids()[0] !== photo) return say('Ảnh bìa đã đổi. Bấm AI điền giúp lại nhé.');
-      fill(r.draft, before);
+      if (r.status === 'failed' || !r.draft) return say(failText(r));
+      if (!ok) return say('Ảnh bìa đã đổi. Bấm AI điền giúp lại nhé.');
+      fill(r.draft!, before);
       say('AI đã điền xong.');
     });
     // The fields as the read began; the read fills only those still the same when it ends.
@@ -719,7 +759,7 @@ const coverTag = 'absolute left-2 top-2 hidden rounded-full bg-white/85 px-2 py-
     });
     function fill(d: NonNullable<Read['draft']>, was: ReturnType<typeof snapshot>) {
       const now = snapshot();
-      const same = (k: keyof typeof now) => now[k] === was[k];
+      const same = (k: keyof typeof now) => now[k] === was[k] || (k in live && now[k] === live[k as keyof typeof live]);
       if (d.title && same('title')) title.value = d.title.slice(0, TITLE_MAX);
       if (d.description && same('description')) description.value = d.description.slice(0, DESCRIPTION_MAX);
       if (d.category_code && same('category') && [...category.options].some((o) => o.value === d.category_code)) category.value = d.category_code;

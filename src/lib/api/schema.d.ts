@@ -5005,6 +5005,13 @@ export interface components {
              * @enum {string}
              */
             failure?: "unreadable" | "video_too_short" | "video_too_long" | "listing_not_found" | "no_item" | "unavailable";
+            /**
+             * @description Only when status is failed, and only when there is one: why, in a
+             *     Vietnamese sentence for the seller. For no_item it is the model's
+             *     own reason; for unavailable, the error the model gave or what went
+             *     wrong asking it. Show it under the failure's own words.
+             */
+            failure_reason?: string;
             link?: components["schemas"]["LinkSource"];
             /**
              * @description A video's clearest frames in time order (at most 8), a link's

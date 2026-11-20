@@ -76,6 +76,7 @@ export const API = {
   myListing: (id: string) => `/api/my-listings/${id}`,
   listingReads: '/api/listing-reads',
   listingRead: (id: string) => `/api/listing-reads/${id}`,
+  listingReadEvents: (id: string) => `/api/listing-reads/${id}/events`,
   priceGuides: '/api/price-guides',
   categoryGuesses: '/api/category-guesses',
 } as const;
