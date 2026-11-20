@@ -3,7 +3,8 @@
 // same thread, typing line and composer as Tin nhắn, for lib/chat-pane to
 // drive in the box. ?listing= is the listing, ?chat= and ?deal= the buyer's
 // chat and deal once there is one. A post sends a message (do=send) or an
-// offer (do=offer); the first one opens the deal, then answers with the pane.
+// offer (do=offer), the first one opening the deal, or hides the scam
+// warning (do=dismiss); then it answers with the pane.
 import Notice from '../../components/Notice.astro';
 import ChatThread from '../../components/account/chat/ChatThread.astro';
 import Composer from '../../components/account/chat/Composer.astro';
@@ -31,6 +32,10 @@ if (Astro.request.method === 'POST') {
   let chat = s('chat') || (p.get('chat') ?? '');
   let deal = s('deal') || (p.get('deal') ?? '');
   try {
+    if (s('do') === 'dismiss') {
+      await unwrap(api.POST('/v1/conversations/{id}/scam-warning/dismiss', { params: { path: { id: chat } } }));
+      return Astro.redirect(here(chat, deal), 303);
+    }
     // The first message or offer opens the buyer's deal, which opens the chat.
     if (!isId(chat) || !isId(deal)) {
       const d = await openDeal(api, listing);
@@ -68,7 +73,7 @@ if (chat && newest && newest.sender_id !== v.id) {
 }
 const other = chat ? personName(chat.other) : name;
 const deal = chat?.deals.find((d) => d.listing.id === listing) ?? null;
-const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id) : [];
+const items = chat ? thread([...chat.messages.items].reverse(), chat, v.id, chat.scam_warning) : [];
 const error = p.get('error') ?? '';
 ---
 
@@ -82,6 +87,8 @@ const error = p.get('error') ?? '';
   last={chat?.messages.items[0]?.id}
   marked={marked}
   empty={`Hỏi ${other} về món này.`}
+  chat={chat?.id}
+  pane={here(chat?.id ?? '', deal?.id ?? '')}
 />
 <div data-part="alert" class="px-3 empty:hidden">
   {error && <Notice text={error === 'move_not_allowed' ? 'Món này đã có giá đang chờ hoặc đã chốt. Xem ở trang Tin nhắn.' : errorText(error)} />}

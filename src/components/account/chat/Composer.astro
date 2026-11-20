@@ -3,10 +3,13 @@
 // message being answered and the photos on their way; the script uploads each
 // photo and adds its upload id. Photos need the script, so the button shows with it.
 // The field grows with its lines; Enter sends, Shift+Enter breaks a line.
+// A seller also gets their quick replies, from a button or "/" in the empty field.
 import { idempotencyKey } from '../../../lib/api/client';
 import { R } from '../../../lib/routes';
-import Icon from '../../Icon.astro';
 import { FIELD } from '../../../lib/ui';
+import Icon from '../../Icon.astro';
+import Popover from '../../Popover.astro';
+import QuickReplies from './QuickReplies.astro';
 
 interface Props {
   peer: string;
@@ -16,9 +19,11 @@ interface Props {
   text?: string;
   /** Where the form posts; Tin nhắn by default, Hỗ trợ for a ticket's chat. */
   action?: string;
+  /** The seller's quick replies; none for a buyer. */
+  replies?: string[];
 }
 
-const { peer, chat, deal, text, action = R.messages } = Astro.props;
+const { peer, chat, deal, text, action = R.messages, replies } = Astro.props;
 const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-full text-on-surface-variant';
 ---
 
@@ -42,6 +47,21 @@ const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-
       <Icon name="add-photo-alternate-outline-rounded" size={24} />
     </button>
     <input type="file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only" tabindex="-1" aria-hidden="true" data-files />
+    {
+      replies && (
+        <button
+          type="button"
+          popovertarget="quick-replies"
+          class="state-layer grid h-12 w-12 shrink-0 place-items-center rounded-full text-on-surface-variant aria-expanded:bg-hover aria-expanded:text-ink"
+          aria-label="Câu trả lời mẫu"
+          aria-expanded="false"
+          hidden
+          data-replies-toggle
+        >
+          <Icon name="quick-phrases-outline-rounded" size={22} />
+        </button>
+      )
+    }
     <textarea
       name="text"
       rows="1"
@@ -60,6 +80,16 @@ const iconBtn = 'state-layer grid h-10 w-10 shrink-0 place-items-center rounded-
     </button>
   </div>
 </form>
+
+{
+  replies && (
+    <Popover id="quick-replies" above sheet class="w-[380px] max-md:px-3" label="Câu trả lời mẫu">
+      <div data-part="replies">
+        <QuickReplies items={replies} action={action} chat={chat} deal={deal} />
+      </div>
+    </Popover>
+  )
+}
 
 <template data-tray-item>
   <span class="relative h-16 w-16 overflow-hidden rounded-md bg-surface-container-high">

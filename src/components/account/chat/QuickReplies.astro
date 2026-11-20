@@ -1,0 +1,95 @@
+---
+// A seller's saved answers, in the composer's popover: the list, where a pick
+// goes into the field, and "Sửa", the same panel as a form of one field per
+// answer that saves the whole list. lib/quick-replies drives it.
+import Icon from '../../Icon.astro';
+import { FIELD, btnCls } from '../../../lib/ui';
+
+interface Props {
+  items: string[];
+  /** Where the form posts, and the chat it comes back to. */
+  action: string;
+  chat: string;
+  deal?: string;
+}
+
+/** The server's caps on the list and on each answer. */
+const MAX = 20;
+const LENGTH = 200;
+
+const { items, action, chat, deal } = Astro.props;
+const head = 'flex h-10 items-center gap-1';
+const round = 'state-layer grid h-8 w-8 shrink-0 place-items-center rounded-full text-sub';
+---
+
+<div data-replies-pick>
+  <div class:list={[head, 'pl-2']}>
+    <h2 class="text-title-small text-ink">Câu trả lời mẫu</h2>
+    <kbd class="ml-1 rounded-xs border border-line px-1.5 font-sans text-label-medium text-sub max-md:hidden">/</kbd>
+    <span class="flex-1"></span>
+    <button type="button" class="state-layer flex h-8 items-center gap-1 rounded-sm px-2 text-label-large text-primary" data-replies-edit>
+      <Icon name="edit-outline-rounded" size={15} />
+      Sửa
+    </button>
+  </div>
+  {
+    items.length ? (
+      <div role="listbox" aria-label="Câu trả lời mẫu" class="mt-1 flex flex-col gap-0.5">
+        {items.map((t) => (
+          <button
+            type="button"
+            role="option"
+            aria-selected="false"
+            class="state-layer min-h-11 rounded-control px-3 py-2 text-left text-body-large text-ink hover:bg-hover focus-visible:bg-hover"
+            data-quick-reply={t}
+          >
+            <span class="line-clamp-2">{t}</span>
+          </button>
+        ))}
+      </div>
+    ) : (
+      <p class="px-2 pb-2 pt-1 text-body-medium text-sub">Chưa có câu nào.</p>
+    )
+  }
+</div>
+
+<form method="post" action={action} hidden data-in-place data-replies-form data-max={MAX}>
+  <input type="hidden" name="do" value="replies" />
+  <input type="hidden" name="chat" value={chat} />
+  <input type="hidden" name="deal" value={deal ?? ''} />
+  <div class:list={[head, 'pr-2']}>
+    <button type="button" class={round} aria-label="Quay lại" data-replies-back>
+      <Icon name="chevron-left-rounded" size={20} />
+    </button>
+    <h2 class="text-title-small text-ink">Sửa câu trả lời mẫu</h2>
+    <span class="flex-1"></span>
+    <span class="text-body-small text-faint" data-replies-count></span>
+  </div>
+  <div class="mt-1 flex flex-col gap-2" data-replies-rows></div>
+  <div class="mt-2 flex items-center gap-2">
+    <button type="button" class="state-layer flex h-10 items-center gap-1.5 rounded-control px-2 text-title-small text-primary disabled:text-faint" data-replies-add>
+      <Icon name="add-rounded" size={18} />
+      Thêm câu
+    </button>
+    <span class="flex-1"></span>
+    <button type="button" class={btnCls('ghost')} data-replies-back>Hủy</button>
+    <button type="submit" class={btnCls()}>Lưu</button>
+  </div>
+  <template data-replies-row>
+    <div class="flex items-start gap-1">
+      <label class="min-w-0 flex-1">
+        <span class="sr-only">Câu trả lời</span>
+        <textarea
+          name="reply"
+          rows="1"
+          maxlength={LENGTH}
+          required
+          class:list={[FIELD, 'block w-full resize-none px-3 py-2 text-body-large text-ink outline-none [field-sizing:content]']}
+        ></textarea>
+      </label>
+      <button type="button" class:list={[round, 'mt-1']} aria-label="Xóa câu này" data-replies-drop>
+        <Icon name="close-rounded" size={16} />
+      </button>
+    </div>
+  </template>
+</form>

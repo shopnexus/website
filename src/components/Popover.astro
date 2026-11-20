@@ -1,6 +1,7 @@
 ---
-// A top-layer panel under its control (popovertarget, or data-anchor on a field).
-// align: the edge it shares with the control; match: the control's width.
+// A top-layer panel under its control (popovertarget, or data-anchor on a field),
+// or over it with above. align: the edge it shares with the control; match: the
+// control's width.
 // Below 600 px it spans the window, or with `sheet` rises as a bottom sheet.
 // type hint: a hover card, which leaves open menus and panels alone.
 interface Props {
@@ -11,9 +12,10 @@ interface Props {
   label?: string;
   sheet?: boolean;
   type?: 'auto' | 'hint';
+  above?: boolean;
 }
 
-const { id, align = 'start', match = false, class: cls, label, sheet = false, type = 'auto' } = Astro.props;
+const { id, align = 'start', match = false, class: cls, label, sheet = false, type = 'auto', above = false } = Astro.props;
 ---
 
 <div
@@ -22,6 +24,7 @@ const { id, align = 'start', match = false, class: cls, label, sheet = false, ty
   data-align={align}
   data-match={match ? '' : undefined}
   data-sheet={sheet ? '' : undefined}
+  data-above={above ? '' : undefined}
   aria-label={label}
   class:list={['pop fixed inset-auto m-0 overflow-y-auto rounded-lg-plus border-0 bg-card p-2 text-ink shadow-pop', cls]}
 >
@@ -45,9 +48,12 @@ const { id, align = 'start', match = false, class: cls, label, sheet = false, ty
         return;
       }
       const r = anchor.getBoundingClientRect();
-      pop.style.top = `${r.bottom + 8}px`;
       // A long panel scrolls inside the window.
-      pop.style.maxHeight = `${innerHeight - r.bottom - 24}px`;
+      if ('above' in pop.dataset) {
+        Object.assign(pop.style, { top: 'auto', bottom: `${innerHeight - r.top + 8}px`, maxHeight: `${r.top - 24}px` });
+      } else {
+        Object.assign(pop.style, { top: `${r.bottom + 8}px`, bottom: 'auto', maxHeight: `${innerHeight - r.bottom - 24}px` });
+      }
       // On a phone it spans the window, 16 px from each side.
       if (innerWidth < 600) {
         Object.assign(pop.style, { left: '16px', right: '16px', width: 'auto' });

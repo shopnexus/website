@@ -36,7 +36,7 @@ breakpoints are switched off, so a value outside the system does not compile.
   trust, `tertiary` for bargaining and the agreed price only (on the web
   `tertiary` is the brand teal; see Expanded layout),
   `secondaryContainer` for selected chips and the nav indicator, `error` for
-  errors, the scam warning and "Đăng xuất". Depth is tonal; only floating
+  errors, the inbox's scam tag and "Đăng xuất". Depth is tonal; only floating
   elements get a shadow.
 - One family at the listed weights and never below the listed line heights:
   Be Vietnam Pro in the app, Inter on the web. The scale is the app's, a step under the M3 baseline
@@ -52,7 +52,7 @@ breakpoints are switched off, so a value outside the system does not compile.
 - The listing card, the sparkle for AI judgments only, and Vietnamese copy
   with correct diacritics.
 - COD and money facts appear only as answers in Cách mua's FAQ, Trợ giúp and
-  Điều khoản. Screens carry no money notes, no door checklists and no rules
+  Điều khoản, and in the chat's scam warning. Screens carry no other money notes, no door checklists and no rules
   panel, because buyers and sellers already know how COD works.
 - The minimal look: few elements per block, wide spacing, icons and layout in
   place of explanatory copy.
@@ -409,7 +409,18 @@ rows, deal chips, replies, the scam warning and "Chặn và báo cáo" are as
 before: a row is a conversation with one person showing the deal the chat
 opens on, with `+N` for more deals; chips under the bar switch the deal; a
 message replies from a hover action; the scam warning is the `error` shield
-on a neutral tag and a banner in the chat; "Chặn và báo cáo" is a dialog.
+on a neutral tag in the inbox; "Chặn và báo cáo" is a dialog.
+
+In the chat, a scam warning is a grey line under the other person's message
+it was found at (`ScamLine.astro`): the signs in the server's words,
+"ShopNexus chỉ có COD: xem hàng rồi mới trả", "Báo cáo" and × to hide it.
+Chat nhanh shows it too, and its "Báo cáo" opens Tin nhắn with the dialog.
+A seller's composer has Câu trả lời mẫu (`QuickReplies.astro`,
+`src/lib/quick-replies.ts`): a button, or "/" in the empty field, opens the
+saved answers above the field, a bottom sheet on a phone, and a pick goes in
+at the caret. "Sửa" turns the panel into a field per answer with "Thêm câu",
+the count of 20 and Lưu. Drafts: `.superdesign/mockups/chat-safety-*.html`
+(`tools/build_chat_safety.py`).
 
 ### Orders
 

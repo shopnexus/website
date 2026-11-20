@@ -1,10 +1,12 @@
 ---
-// The thread's items in order: day lines, bubble groups, price pills and events.
+// The thread's items in order: day lines, bubble groups, price pills, events
+// and scam warnings.
 import type { ThreadItem } from '../../../lib/messages';
 import Ago from '../../Ago.astro';
 import Bubbles from './Bubbles.astro';
 import ChatEvent from './ChatEvent.astro';
 import PriceMove from './PriceMove.astro';
+import ScamLine from './ScamLine.astro';
 
 interface Props {
   items: ThreadItem[];
@@ -13,9 +15,12 @@ interface Props {
   replies?: boolean;
   /** The other person's photo, beside their messages. */
   photo?: string;
+  /** The chat, and Chat nhanh's pane URL, for a scam warning's actions. */
+  chat?: string;
+  pane?: string;
 }
 
-const { items, me, other, replies, photo } = Astro.props;
+const { items, me, other, replies, photo, chat = '', pane } = Astro.props;
 ---
 
 {
@@ -26,6 +31,8 @@ const { items, me, other, replies, photo } = Astro.props;
       </p>
     ) : it.kind === 'group' ? (
       <Bubbles side={it.side} messages={it.messages} time={it.time} me={me} other={other} replies={replies} photo={photo} />
+    ) : it.kind === 'scam' ? (
+      <ScamLine signals={it.signals} chat={chat} pane={pane} />
     ) : it.kind === 'move' ? (
       <PriceMove side={it.side} amount={it.amount} time={it.time} kind={it.accept ? 'accept' : 'offer'} />
     ) : (

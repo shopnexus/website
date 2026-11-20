@@ -113,6 +113,7 @@ export const RI = {
   'print-outline-rounded': 'printer-line',
   'priority-high-rounded': 'alert-line',
   'query-stats-rounded': 'line-chart-line',
+  'quick-phrases-outline-rounded': 'chat-quote-line',
   'receipt-long-outline-rounded': 'receipt-line',
   'remove-rounded': 'subtract-line',
   'replay-rounded': 'restart-line',
