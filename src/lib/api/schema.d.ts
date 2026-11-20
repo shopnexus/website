@@ -4999,6 +4999,20 @@ export interface components {
          * @enum {string}
          */
         ListingStatus: "processing" | "active" | "hidden" | "rejected" | "reserved" | "sold" | "deleted";
+        /**
+         * @description The listing's last price change, sent while it is a drop of 5 % or more
+         *     made in the last 7 days. A later raise ends it, and a drop that follows
+         *     a raise in that week counts from the price before the raise.
+         */
+        PriceDrop: {
+            /**
+             * Format: int64
+             * @description The price the drop replaced.
+             */
+            previous_price: number;
+            /** Format: date-time */
+            dropped_at: string;
+        };
         Listing: {
             /** Format: uuid */
             id: string;
@@ -5027,6 +5041,7 @@ export interface components {
             published_at?: string;
             /** Format: date-time */
             sold_at?: string;
+            price_drop?: components["schemas"]["PriceDrop"];
         };
         ListingDraftPhoto: {
             /** Format: uuid */
@@ -6170,6 +6185,7 @@ export interface components {
             allow_offers: boolean;
             /** @description The name of the listing's commune. */
             commune: string;
+            price_drop?: components["schemas"]["PriceDrop"];
             /** @description Whole kilometres from the caller's position, 0 under 1 km; absent without a position. */
             distance_km?: number;
             /** @description False when signed out. */

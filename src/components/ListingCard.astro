@@ -8,6 +8,7 @@ import { where } from '../lib/format';
 import { R } from '../lib/routes';
 import Icon from './Icon.astro';
 import Price from './Price.astro';
+import PriceDropBadge from './PriceDropBadge.astro';
 
 interface Props {
   item: Card;
@@ -24,6 +25,7 @@ const meta = [item.condition, where(item.km, item.area)].join(' · ');
 <article class="lift relative flex min-w-0 flex-col rounded-card border border-line bg-card p-2">
   <div class="relative overflow-hidden rounded-tile bg-soft" style={`aspect-ratio: ${ratio}`}>
     {item.photo && <Photo src={item.photo} width={480} height={480} alt={item.title} loading={loading} fade class="h-full w-full object-cover" />}
+    {item.previousPrice !== undefined && <PriceDropBadge />}
     <button
       type="button"
       class="state-layer absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/90 text-photo-ink shadow-soft"
@@ -36,7 +38,7 @@ const meta = [item.condition, where(item.km, item.area)].join(' · ');
     </button>
   </div>
   <div class="flex flex-1 flex-col px-1.5 pb-1 pt-2.5">
-    <Price vnd={item.price} />
+    <Price vnd={item.price} was={item.previousPrice} />
     <h3 class="mt-0.5 line-clamp-2 min-h-10 text-body-large text-ink">
       <a href={R.listing(item.slug)} class="after:absolute after:inset-0 after:rounded-card">{item.title}</a>
     </h3>

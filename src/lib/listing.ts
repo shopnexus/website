@@ -16,6 +16,8 @@ export interface Card {
   /** The listing's commune. */
   area: string;
   saved: boolean;
+  /** The price before a drop in the last week; absent without one. */
+  previousPrice?: number;
 }
 
 export type Condition = Schemas['Condition'];
@@ -43,4 +45,5 @@ export const card = (it: Schemas['SearchItem']): Card => ({
   km: it.distance_km,
   area: it.commune,
   saved: it.saved,
+  previousPrice: it.price_drop?.previous_price,
 });
