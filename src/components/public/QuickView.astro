@@ -1,10 +1,7 @@
 ---
-// Xem nhanh on Tìm kiếm and a category page: a tap on a result in the region
-// marked data-quick-view opens the listing here instead of leaving the
-// results. From 840 px a panel on the right, with the regions marked
-// data-quick-room making room beside it; below, a sheet from the bottom. The
-// listing comes from /listings/<slug>/quick (lib/quick-view); "Mở trang"
-// opens its page. Drafts: .superdesign/mockups/quick-view-*.html.
+// Xem nhanh on Tìm kiếm and a category page, opened by a result's "Xem nhanh"
+// (lib/quick-view): from 840 px a drawer over the results behind a scrim, with
+// data-quick-behind inert; below, a sheet. Drafts: mockups/quick-view-2-*.html.
 import { R } from '../../lib/routes';
 import Icon from '../Icon.astro';
 import Skeleton from '../Skeleton.astro';
@@ -33,6 +30,7 @@ const icon = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-contr
   </div>
   <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain" data-quick-slot></div>
 </dialog>
+<div class="quick-scrim" aria-hidden="true" data-quick-scrim></div>
 <Skeleton kind="listing" />
 <BuyDialog />
 
@@ -42,7 +40,7 @@ const icon = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-contr
 
 <style is:global>
   /* Below 840 px a sheet at the window's foot over a dim backdrop, rising on
-     the spatial spring; from 840 px a panel under the header on the right. */
+     the spatial spring; from 840 px a drawer under the header on the right. */
   .quick-view {
     position: fixed;
     inset: auto 0 0;
@@ -81,6 +79,10 @@ const icon = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-contr
       opacity: 0;
     }
   }
+  /* The drawer's scrim: under the header, which stays in use. */
+  .quick-scrim {
+    display: none;
+  }
   @media (width >= 840px) {
     .quick-view {
       inset: 76px 12px 12px auto;
@@ -102,24 +104,24 @@ const icon = 'state-layer grid h-9 w-9 shrink-0 place-items-center rounded-contr
         opacity: 0;
       }
     }
-    /* The page makes room for the panel; cards fit as many columns as the room takes. */
-    html[data-quick-open] [data-quick-room] {
-      padding-right: max(2rem, calc(436px - max(0px, (100vw - 1280px) / 2)));
+    .quick-scrim {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 24;
+      background: light-dark(rgb(0 0 0 / 0.2), rgb(0 0 0 / 0.45));
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity var(--duration-effects-default) var(--ease-effects),
+        visibility var(--duration-effects-default) allow-discrete;
     }
-    html[data-quick-open] [data-quick-view] [data-grid] {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    html[data-quick-open] .quick-scrim {
+      opacity: 1;
+      visibility: visible;
     }
   }
-  /* Under 1200 px the filters step aside while it is open; they keep their state. */
-  @media (840px <= width < 1200px) {
-    html[data-quick-open] [data-quick-room] > [data-filters] {
-      display: none;
-    }
-    html[data-quick-open] main[data-quick-room] {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-  /* Chat nhanh docks beside the panel instead of over it. */
+  /* Chat nhanh docks beside the drawer instead of over it. */
   @media (width >= 1024px) {
     html[data-quick-open] dialog.quickchat {
       right: 436px;

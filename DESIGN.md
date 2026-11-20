@@ -328,19 +328,27 @@ buyer's area. On the right: the query's conditions as removable chips, the
 sort tabs with the grid and list switch, four cards a row, and the alert
 strip after the eighth.
 
-A tap on a result opens Xem nhanh (`QuickView.astro`) in place of the
-listing page. From 840 px it is a 400 px panel on the right under the header,
-and the results make room beside it: three columns at 1280, with the filters
-hidden under 1200 px. Below 840 px it is a sheet from the bottom with the
-buttons at its foot. It shows the gallery, condition, place, title, price, the
-listing's buttons with the heart (`ListingActions.astro`, shared with the
-listing page), the seller and four lines of the description, loaded from
-`/listings/<slug>/quick`. The arrows step to the previous and next result;
-"Mở trang" opens the listing page and the photo flies into its gallery. The
-address takes `?view=<slug>` as a new history entry, so Back or Esc closes the
-panel and a reload or a shared link opens it again. A modifier or middle click
-opens the page. Category pages and Tìm bằng ảnh show the same results. Drafts:
-`.superdesign/mockups/quick-view-*.html` (`tools/build_quick_view.py`).
+A click on a result opens the listing page. From 840 px, a mouse resting on
+a result or the keyboard inside it shows "Xem nhanh" on the photo's bottom-left
+corner (`QuickViewButton.astro`), a button beside the result's link with its
+own tab stop. It opens Xem nhanh (`QuickView.astro`): a 400 px drawer on the
+right under the header, over the results behind a light scrim. The grid keeps
+its columns, the filters stay, and the results behind the drawer are inert.
+Below 840 px there is no button, and only a `?view=` address opens Xem nhanh,
+as a sheet from the bottom with the buttons at its foot. It shows the gallery,
+condition, place, title, price, the listing's buttons with the heart
+(`ListingActions.astro`, shared with the listing page), the seller and four
+lines of the description, loaded from `/listings/<slug>/quick`. The arrows
+step to the previous and next result; "Mở trang" opens the listing page and
+the photo flies into its gallery. The address takes `?view=<slug>` as a new
+history entry, so Back, Esc, the scrim or Đóng closes the drawer and puts the
+focus back on the result's "Xem nhanh", and a reload or a shared link opens
+it again. Category pages and Tìm bằng ảnh show the same results. The search
+API sends one cover per result, so the card has no photo scrubbing on hover.
+Drafts: `.superdesign/mockups/quick-view-2-*.html`
+(`tools/build_quick_view_2.py`); A, a popup beside the hovered card, and C,
+the earlier panel that pushed the grid to three columns, are on the canvas
+for comparison.
 
 ### Listing detail
 

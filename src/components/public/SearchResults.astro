@@ -2,8 +2,8 @@
 // The results of Tìm kiếm and a category page (K2): the headline and what
 // the model read, "Báo khi có tin mới", the filter panel on the left, then
 // the query's chips (the slot), the sort tabs with the grid/list switch, the
-// cards with the alert strip after the eighth, and "Xem thêm tin". A tap on a
-// result opens it in Xem nhanh beside them.
+// cards with the alert strip after the eighth, and "Xem thêm tin". A result
+// opens its page; its "Xem nhanh" opens it in a drawer over them.
 import { area } from '../../lib/area';
 import type { Card } from '../../lib/listing';
 import { type Search, type Sort, searchHref } from '../../lib/search';
@@ -57,7 +57,7 @@ const current = (!ranked && search.sort === 'newest') || (search.sort === 'neare
 
 {
   title && (
-    <div class={CONTENT} data-quick-room>
+    <div class={CONTENT} data-quick-behind>
       <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-6">
         <div class="min-w-0">
           <Heading class="text-j-24 text-ink lg:text-j-28">{title}</Heading>
@@ -69,10 +69,10 @@ const current = (!ranked && search.sort === 'newest') || (search.sort === 'neare
   )
 }
 
-<main class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8', filters && 'lg:grid-cols-[256px_minmax(0,1fr)]']} data-quick-room>
+<main class:list={[CONTENT, 'mt-6 grid grid-cols-1 gap-8', filters && 'lg:grid-cols-[256px_minmax(0,1fr)]']} data-quick-behind>
   {
     filters && (
-      <div class="flex flex-col gap-3" data-filters>
+      <div class="flex flex-col gap-3">
         <a href="#bo-loc" class={`${btnCls('line', 'sm')} w-fit lg:hidden`}>
           <Icon name="tune-rounded" size={16} />
           Bộ lọc
@@ -117,7 +117,7 @@ const current = (!ranked && search.sort === 'newest') || (search.sort === 'neare
       {
         items.slice(0, 8).map((it) => (
           <div class="grid min-w-0">
-            <ListingCard item={it} loading="eager" />
+            <ListingCard item={it} loading="eager" quick />
           </div>
         ))
       }
@@ -137,7 +137,7 @@ const current = (!ranked && search.sort === 'newest') || (search.sort === 'neare
       {
         items.slice(8).map((it) => (
           <div class="grid min-w-0">
-            <ListingCard item={it} loading="lazy" />
+            <ListingCard item={it} loading="lazy" quick />
           </div>
         ))
       }

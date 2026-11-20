@@ -3,11 +3,9 @@ import { mountQuickChat } from './quick-chat';
 import { R } from './routes';
 import { failure, hold } from './skeleton';
 
-// In the browser: Xem nhanh (QuickView.astro). A plain click on a result's
-// link in [data-quick-view] opens the listing in the panel; a modifier or a
-// middle click, or no script, still opens its page. The address takes
-// ?view=<slug> as a new history entry, so Back closes the panel, a reload or
-// a shared link opens it, and the arrows step through the results in place.
+// In the browser: Xem nhanh (QuickView.astro), opened by a result's "Xem nhanh"
+// button. ?view=<slug> is a new history entry: Back closes the drawer, a reload
+// or a shared link opens it, and the arrows step through the results in place.
 
 const PARAM = 'view';
 /** This document's mark on the entries it pushed: Back from one stays on the page. */
@@ -20,6 +18,7 @@ if (panel && region) {
   const slot = panel.querySelector<HTMLElement>('[data-quick-slot]')!;
   const openLink = panel.querySelector<HTMLAnchorElement>('[data-quick-page]')!;
   const steps = [...panel.querySelectorAll<HTMLButtonElement>('[data-quick-step]')];
+  const behind = [...document.querySelectorAll<HTMLElement>('[data-quick-behind]')];
   const wide = matchMedia('(min-width: 840px)');
   const root = document.documentElement;
 
@@ -38,11 +37,16 @@ if (panel && region) {
     return u;
   };
 
-  /** Runs a change that moves the page, keeping `el` where it was in the window. */
-  const steady = (el: Element | undefined, change: () => void) => {
-    const top = el?.getBoundingClientRect().top;
-    change();
-    if (el && top !== undefined) scrollBy({ top: el.getBoundingClientRect().top - top, behavior: 'instant' });
+  /** The result's "Xem nhanh", or its link where the button is not shown (a phone). */
+  const opener = (slug: string | null) => {
+    const a = linkOf(slug);
+    const b = a?.closest('article')?.querySelector<HTMLButtonElement>('[data-quick]');
+    return b?.offsetParent ? b : a;
+  };
+  /** The drawer is up: the results behind it take no pointer or keyboard. */
+  const cover = (on: boolean) => {
+    root.toggleAttribute('data-quick-open', on);
+    behind.forEach((el) => (el.inert = on));
   };
 
   const mark = (slug: string | null) => {
@@ -89,14 +93,12 @@ if (panel && region) {
     }
   }
 
-  /** Puts the panel up as it stands: beside the results, or the sheet on a phone. The panel takes the focus, not its first button. */
+  /** Puts the panel up as it stands: the drawer, or the sheet on a phone. The panel takes the focus, not its first button. */
   function reveal() {
-    steady(linkOf(current), () => {
-      if (wide.matches) {
-        panel!.show();
-        root.setAttribute('data-quick-open', '');
-      } else panel!.showModal();
-    });
+    if (wide.matches) {
+      panel!.show();
+      cover(true);
+    } else panel!.showModal();
     panel!.focus({ preventScroll: true });
   }
 
@@ -113,19 +115,17 @@ if (panel && region) {
     }
   }
 
-  /** Puts the panel away; the card it showed gets the focus back. */
+  /** Puts the panel away; the result it showed gets the focus back. */
   function hide() {
-    const card = linkOf(current);
+    const back = opener(current);
     current = null;
     run++;
     dropChat?.();
     dropChat = null;
     mark(null);
-    steady(card, () => {
-      panel!.close();
-      root.removeAttribute('data-quick-open');
-    });
-    card?.focus({ preventScroll: true });
+    panel!.close();
+    cover(false);
+    back?.focus({ preventScroll: true });
   }
 
   /** Close from the panel: Back when this page pushed the entry, else the address loses ?view. */
@@ -144,12 +144,10 @@ if (panel && region) {
     show(slug);
   }
 
+  // On the document: "Xem thêm tin" adds results after load.
   document.addEventListener('click', (e) => {
-    const a = (e.target as Element).closest<HTMLAnchorElement>('a[href^="/listings/"]');
-    if (!a || !region.contains(a) || !a.closest('article')) return;
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    open(slugOf(a));
+    const b = (e.target as Element).closest<HTMLButtonElement>('[data-quick]');
+    if (b && region.contains(b)) open(b.dataset.quick!);
   });
   steps.forEach((b) =>
     b.addEventListener('click', () => {
@@ -161,6 +159,7 @@ if (panel && region) {
     }),
   );
   panel.querySelector('[data-quick-close]')!.addEventListener('click', close);
+  document.querySelector('[data-quick-scrim]')!.addEventListener('click', close);
   // The sheet: Esc and a tap on the backdrop.
   panel.addEventListener('cancel', (e) => {
     e.preventDefault();
@@ -169,7 +168,7 @@ if (panel && region) {
   panel.addEventListener('click', (e) => {
     if (e.target === panel && panel.matches(':modal') && e.clientY < panel.getBoundingClientRect().top) close();
   });
-  // The panel: Esc from anywhere but another dialog or popover.
+  // The drawer: Esc from anywhere but another dialog or popover.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || !current || panel.matches(':modal') || e.defaultPrevented) return;
     const over = (e.target as Element).closest?.('dialog, [popover]');
@@ -185,16 +184,16 @@ if (panel && region) {
   // Closed by the page, as when a listing's skeleton takes over; Back from
   // the next page (the page cache) opens it again.
   panel.addEventListener('close', () => {
-    if (current && !panel.open) root.removeAttribute('data-quick-open');
+    if (current && !panel.open) cover(false);
   });
   addEventListener('pageshow', (e) => {
     if (e.persisted && current && !panel.open) reveal();
   });
-  // Across 840 px the panel turns into the sheet or back.
+  // Across 840 px the drawer turns into the sheet or back.
   wide.addEventListener('change', () => {
     if (!current || !panel.open) return;
     panel.close();
-    root.removeAttribute('data-quick-open');
+    cover(false);
     reveal();
   });
 
