@@ -13,9 +13,11 @@ interface Props {
   selected?: boolean;
   /** "lazy" when it sits below the first screen. */
   loading?: 'eager' | 'lazy';
+  /** What it sits on: the inbox's tinted pane, or a white card such as the header's panel. */
+  on?: 'pane' | 'card';
 }
 
-const { c, me, selected = false, loading } = Astro.props;
+const { c, me, selected = false, loading, on = 'pane' } = Astro.props;
 const name = personName(c.other);
 const unread = c.unread > 0;
 const tag = 'mt-1.5 inline-flex h-6 items-center gap-1 rounded-full bg-surface-container-low px-2 text-label-medium text-on-surface-variant';
@@ -26,7 +28,7 @@ const thumb = c.deal?.listing.cover_thumb_url;
 
 <a
   href={chatHref(c.id, c.deal?.id)}
-  class="flex gap-3 rounded-tile p-3 hover:bg-card/70 aria-[current]:bg-card aria-[current]:shadow-soft"
+  class:list={['flex gap-3 rounded-tile p-3', on === 'card' ? 'state-layer hover:bg-hover' : 'hover:bg-card/70 aria-[current]:bg-card aria-[current]:shadow-soft']}
   data-pending="[data-chat-slot]"
   data-open={c.id}
   data-role={role}

@@ -5,10 +5,10 @@ import Icon from '../components/Icon.astro';
 import PageTitle from '../components/PageTitle.astro';
 import Switch from '../components/Switch.astro';
 import AccountShell from '../components/account/AccountShell.astro';
+import NoticeGroups from '../components/account/NoticeGroups.astro';
 import Row from '../components/account/Row.astro';
 import Skeleton from '../components/Skeleton.astro';
 import { ApiError, orNull, pageOrFirst, type Schemas, unwrap } from '../lib/api/client';
-import { ago, dayLabel } from '../lib/format';
 import { R, localPath } from '../lib/routes';
 import { requireViewer } from '../lib/session';
 import { btnCls, PANEL } from '../lib/ui';
@@ -61,63 +61,6 @@ const [listed, settings] = await Promise.all([
 ]);
 const saved = Astro.url.searchParams.get('settings');
 
-type Tone = 'offer' | 'deal' | 'neutral';
-const TONES: Record<Tone, string> = {
-  offer: 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
-  deal: 'bg-primary/10 text-primary',
-  neutral: 'bg-surface-container-low text-on-surface-variant',
-};
-// By type; the compiler names a type the server adds, and an unknown one at run time gets the bell.
-const LOOK: Record<Schemas['Notification']['type'], [string, Tone]> = {
-  offer: ['sell-outline-rounded', 'offer'],
-  counter: ['sell-outline-rounded', 'offer'],
-  agreed: ['handshake-outline-rounded', 'deal'],
-  declined: ['cancel-outline-rounded', 'neutral'],
-  agreement_cancelled: ['cancel-outline-rounded', 'neutral'],
-  offer_voided: ['cancel-outline-rounded', 'neutral'],
-  cod_requested: ['receipt-long-outline-rounded', 'deal'],
-  shipped: ['local-shipping-outline-rounded', 'deal'],
-  completed: ['check-circle-outline-rounded', 'deal'],
-  failed: ['error-outline-rounded', 'neutral'],
-  order_cancelled: ['cancel-outline-rounded', 'neutral'],
-  listing_live: ['storefront-outline-rounded', 'deal'],
-  listing_rejected: ['report-outline-rounded', 'neutral'],
-  followed_listing: ['person-add-outline-rounded', 'neutral'],
-  review: ['star-outline-rounded', 'neutral'],
-  review_reply: ['reply-rounded', 'neutral'],
-  suspended: ['block-rounded', 'neutral'],
-  unsuspended: ['verified-user-outline-rounded', 'deal'],
-  watch_matched: ['search-rounded', 'deal'],
-  price_dropped: ['trending-down-rounded', 'deal'],
-};
-const look = (k: string) => LOOK[k as keyof typeof LOOK] ?? (['notifications-outline-rounded', 'neutral'] as const);
-
-/** The page a notice opens. */
-function href({ kind, id }: Schemas['Target']) {
-  switch (kind) {
-    case 'deal':
-      return `${R.messages}?deal=${id}`;
-    case 'order':
-      return R.order(id);
-    case 'listing':
-      return R.listing(id);
-    case 'seller_reviews':
-      return `${R.seller(id)}#danh-gia`;
-    case 'search_watch':
-      return `${R.search}?watch=${id}`;
-    default:
-      return R.me;
-  }
-}
-
-const groups: [string, Schemas['Notification'][]][] = [];
-for (const n of listed.items) {
-  const label = dayLabel(n.at);
-  const last = groups.at(-1);
-  if (last?.[0] === label) last[1].push(n);
-  else groups.push([label, [n]]);
-}
-
 type Pref = { name: keyof Omit<Schemas['NotificationSettings'], 'quiet'>; icon: string; title: string };
 const prefs: [string, Pref[]][] = [
   [
@@ -137,7 +80,6 @@ const prefs: [string, Pref[]][] = [
   ],
   ['Đánh giá', [{ name: 'reviews', icon: 'star-outline-rounded', title: 'Đánh giá và trả lời' }]],
 ];
-const row = 'state-layer flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left';
 const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium text-ink tabular-nums focus:bg-card focus:outline-2 focus:outline-primary';
 ---
 
@@ -160,7 +102,7 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
   </PageTitle>
   <div class:list={[PANEL, 'p-3']} data-notes data-skeleton-kind="line" data-skeleton-count="4">
     {
-      groups.length === 0 ? (
+      listed.items.length === 0 ? (
         <div class="flex flex-col items-center px-6 py-12 text-center">
           <span class="grid h-12 w-12 place-items-center rounded-full bg-surface-container-low text-on-surface-variant">
             <Icon name="notifications-outline-rounded" size={24} />
@@ -168,48 +110,7 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
           <p class="mt-3 text-title-medium text-ink">{after ? 'Không còn thông báo cũ hơn' : 'Chưa có thông báo'}</p>
         </div>
       ) : (
-        groups.map(([day, items]) => (
-          <section class="not-first:mt-3 not-first:border-t not-first:border-line not-first:pt-3" data-more-key={day}>
-            <h2 class="px-3 pb-1 text-label-medium text-on-surface-variant">{day}</h2>
-            <ul class="flex flex-col gap-0.5" data-more-items>
-              {items.map((n) => {
-                const [icon, tone] = look(n.type);
-                const to = href(n.target);
-                const body = (
-                  <>
-                    <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full', TONES[tone]]}>
-                      <Icon name={icon} size={18} />
-                    </span>
-                    <span class="min-w-0 flex-1">
-                      <span class="block text-body-medium text-ink">{n.text}</span>
-                      <span class="block text-body-small text-on-surface-variant">{ago(n.at)} trước</span>
-                    </span>
-                    <span class="self-center">
-                      {n.unread ? <span class="block h-2 w-2 rounded-full bg-primary" aria-label="Chưa đọc" /> : <span class="block w-2" />}
-                    </span>
-                  </>
-                );
-                return (
-                  <li>
-                    {n.unread ? (
-                      <form method="post">
-                        <input type="hidden" name="id" value={n.id} />
-                        <input type="hidden" name="to" value={to} />
-                        <button type="submit" name="do" value="open" class:list={[row, 'bg-primary/5']}>
-                          {body}
-                        </button>
-                      </form>
-                    ) : (
-                      <a href={to} class={row}>
-                        {body}
-                      </a>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))
+        <NoticeGroups items={listed.items} />
       )
     }
   </div>

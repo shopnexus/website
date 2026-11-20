@@ -1,0 +1,27 @@
+---
+// The header's Thông báo button with its unread dot. A tap opens the latest
+// notices under it (Peek); the link still opens Thông báo.
+import { R } from '../lib/routes';
+import Icon from './Icon.astro';
+
+interface Props {
+  unread: number;
+}
+
+const { unread } = Astro.props;
+---
+
+<a
+  href={R.notifications}
+  class="state-layer relative grid h-10 w-10 shrink-0 place-items-center rounded-control text-ink hover:bg-hover aria-expanded:bg-hover"
+  aria-label={unread ? 'Thông báo, có tin mới' : 'Thông báo'}
+  title="Thông báo"
+  data-part="notes-badge"
+  data-peek="hdr-notes"
+  data-anchor="hdr-notes"
+  aria-controls="hdr-notes"
+  aria-expanded="false"
+>
+  <Icon name="notifications-outline-rounded" size={19} />
+  {unread > 0 && <span class="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-page bg-error" />}
+</a>

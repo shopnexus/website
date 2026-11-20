@@ -1,0 +1,31 @@
+---
+// The header's Tin nhắn panel (Peek): the latest chats as the inbox draws
+// them, the unread count, and the Tin nhắn button with its badge.
+import MessagesLink from '../../components/MessagesLink.astro';
+import InboxRow from '../../components/account/chat/InboxRow.astro';
+import { unwrap } from '../../lib/api/client';
+import { requireViewer } from '../../lib/session';
+
+export const partial = true;
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const inbox = await unwrap(Astro.locals.api.GET('/v1/screens/inbox', { params: { query: { limit: 6 } } }));
+const id = 'hdr-chats';
+---
+
+<span data-part={`${id}-meta`}>{inbox.unread > 0 ? `${inbox.unread} chưa đọc` : ''}</span>
+<div data-part={`${id}-body`}>
+  {
+    inbox.items.length ? (
+      <div class="flex flex-col gap-0.5">
+        {inbox.items.map((c) => (
+          <InboxRow c={c} me={v.id} on="card" />
+        ))}
+      </div>
+    ) : (
+      <p class="px-4 py-10 text-center text-body-medium text-on-surface-variant">Chưa có tin nhắn</p>
+    )
+  }
+</div>
+<MessagesLink unread={inbox.unread} />

@@ -1,0 +1,46 @@
+---
+// The header's Thông báo panel (Peek): the latest notices, the unread count,
+// "Đánh dấu đã đọc", and the bell with its dot. A post with do=read-all
+// reads them all first.
+import Icon from '../../components/Icon.astro';
+import NotificationsLink from '../../components/NotificationsLink.astro';
+import NoticeGroups from '../../components/account/NoticeGroups.astro';
+import { unwrap } from '../../lib/api/client';
+import { requireViewer } from '../../lib/session';
+
+export const partial = true;
+
+const v = requireViewer(Astro);
+if (v instanceof Response) return v;
+const api = Astro.locals.api;
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  if (f.get('do') === 'read-all') await unwrap(api.POST('/v1/notifications/read-all'));
+}
+const listed = await unwrap(api.GET('/v1/notifications', { params: { query: { limit: 8 } } }));
+const id = 'hdr-notes';
+---
+
+<span data-part={`${id}-meta`}>{listed.unread > 0 ? `${listed.unread} chưa đọc` : ''}</span>
+<span data-part={`${id}-action`}>
+  {
+    listed.unread > 0 && (
+      <form method="post" action="/notifications/peek" data-peek-form>
+        <button type="submit" name="do" value="read-all" class="state-layer -mr-2 flex h-9 items-center gap-1.5 whitespace-nowrap rounded-control px-2 text-title-small text-ink hover:bg-hover">
+          <Icon name="done-all-rounded" size={17} />
+          Đánh dấu đã đọc
+        </button>
+      </form>
+    )
+  }
+</span>
+<div data-part={`${id}-body`}>
+  {
+    listed.items.length ? (
+      <NoticeGroups items={listed.items} />
+    ) : (
+      <p class="px-4 py-10 text-center text-body-medium text-on-surface-variant">Chưa có thông báo</p>
+    )
+  }
+</div>
+<NotificationsLink unread={listed.unread} />

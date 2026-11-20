@@ -1,0 +1,40 @@
+---
+// A header button's preview: a panel under it that loads `src` (a partial
+// answering with data-part pieces) each time it opens. lib/peek opens it
+// from the link that names it in data-peek; "Xem tất cả" opens `href`.
+import Icon from './Icon.astro';
+import Popover from './Popover.astro';
+import Skeleton from './Skeleton.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  href: string;
+  src: string;
+}
+
+const { id, title, href, src } = Astro.props;
+---
+
+<Popover id={id} align="end" class="w-[380px]" label={title}>
+  <div data-peek-src={src} class="contents">
+    <div class="sticky -top-2 z-10 -mx-2 -mt-2 flex h-14 items-center gap-2 border-b border-line bg-card px-4">
+      <p class="whitespace-nowrap text-j-16 text-ink outline-none" tabindex="-1" data-peek-title>{title}</p>
+      <span class="whitespace-nowrap text-body-small text-faint" data-part={`${id}-meta`}></span>
+      <span class="flex-1"></span>
+      <span data-part={`${id}-action`}></span>
+    </div>
+    <div class="py-1" data-part={`${id}-body`}></div>
+    <div class="sticky -bottom-2 z-10 -mx-2 -mb-2 border-t border-line bg-card p-2">
+      <a href={href} class="state-layer flex h-10 items-center justify-center gap-1 rounded-control text-title-small text-primary hover:bg-hover">
+        Xem tất cả
+        <Icon name="chevron-right-rounded" size={16} />
+      </a>
+    </div>
+  </div>
+</Popover>
+<Skeleton kind="line" />
+
+<script>
+  import '../lib/peek';
+</script>
