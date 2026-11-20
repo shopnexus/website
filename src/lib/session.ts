@@ -171,6 +171,19 @@ export async function loadViewer(api: Api, session: Session, cookies: AstroCooki
   }
 }
 
+/**
+ * A page's session and viewer. A dead access token is dropped and refreshed at
+ * once, so the page renders signed in or as a guest, never with a token the
+ * server refuses.
+ */
+export async function openPage(cookies: AstroCookies, url: URL, caller: Omit<Caller, 'token'>, counts: boolean) {
+  const session = await openSession(cookies, url, caller);
+  const viewer = await loadViewer(apiClient(session), session, cookies, counts);
+  if (viewer || !session.token || cookies.get(ACCESS)?.value) return { session, viewer };
+  const again = await openSession(cookies, url, caller);
+  return { session: again, viewer: await loadViewer(apiClient(again), again, cookies, counts) };
+}
+
 /** For pages behind sign-in: the viewer, or a redirect to Đăng nhập that comes back here. */
 export function requireViewer(ctx: Pick<AstroGlobal, 'locals' | 'url' | 'redirect'>): Viewer | Response {
   const v = viewer(ctx);
