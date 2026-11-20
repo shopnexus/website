@@ -1195,6 +1195,282 @@
       },
       "note": "Share button opens providers: popover from 600 px up, bottom sheet on a phone.",
       "updatedAt": "2026-11-20T03:07:54.077449+00:00"
+    },
+    "/sellers/[id]#the-hover": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "b243f08c-3b4c-4b10-b63a-57be4f3d53ee",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_hover_card.py"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
+        ".superdesign/tools/build_k2.py": "712d17000dece24fc54e417d0f5457c5b342c687868aa371036c1719c5bb5654",
+        ".superdesign/tools/build_hover_card.py": "419c16d4e039f0638d3a824f65bb5366d4f4b5abe570756f1f588859f17ab353"
+      },
+      "drafts": {
+        "b243f08c-3b4c-4b10-b63a-57be4f3d53ee": {
+          "title": "Thẻ người bán khi rê chuột: trên thẻ người bán",
+          "currentVersion": 1,
+          "visualDirection": "K2 detail page with a 320 px white popover card (20 px corners, shadow-pop): face, name, stars, figures strip (đã bán, tham gia; room for a third), Theo dõi / Xem trang"
+        },
+        "d5e8bb16-f35a-493c-b036-ab5174e5cd1e": {
+          "title": "Thẻ người bán khi rê chuột: trên đánh giá",
+          "currentVersion": 1,
+          "visualDirection": "K2 detail page with a 320 px white popover card (20 px corners, shadow-pop): face, name, stars, figures strip (đã bán, tham gia; room for a third), Theo dõi / Xem trang; followed state in mint"
+        },
+        "2d9bfedf-9567-4133-b245-442b36e8101f": {
+          "title": "Thẻ người bán khi rê chuột: đang tải",
+          "currentVersion": 1,
+          "visualDirection": "K2 detail page with a 320 px white popover card (20 px corners, shadow-pop): face, name, stars, figures strip (đã bán, tham gia; room for a third), Theo dõi / Xem trang; skeleton"
+        }
+      }
+    },
+    "#price-drop": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "ab65228e-70e7-4701-8843-f356c90d58d9",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_price_drop.py"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
+        ".superdesign/tools/build_k2.py": "712d17000dece24fc54e417d0f5457c5b342c687868aa371036c1719c5bb5654",
+        ".superdesign/tools/build_price_drop.py": "cd4fcd35c957c02127d41b9a338c417643e13a1e260da44c551d39b1ccc683b8"
+      },
+      "drafts": {
+        "ab65228e-70e7-4701-8843-f356c90d58d9": {
+          "title": "Vừa giảm giá · thẻ tin",
+          "currentVersion": 1,
+          "visualDirection": "Teal chip 'Vừa giảm' (white/90, arrow-down) on the card photo's top-left beside the heart; old price struck in faint 12 px after the new one, in triệu from 1 tr up"
+        },
+        "097367f6-c781-4cc8-a42a-c7595e1dcdd6": {
+          "title": "Vừa giảm giá · chi tiết tin",
+          "currentVersion": 1,
+          "visualDirection": "Price block: new price, the old one struck in faint 16 px, then a mint chip 'Vừa giảm 500.000 ₫' with how long ago"
+        },
+        "e911b824-50c1-4cb5-a7be-ffdaa9dffa21": {
+          "title": "Vừa giảm giá · thẻ tin, điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Teal chip 'Vừa giảm' (white/90, arrow-down) on the card photo's top-left beside the heart; old price struck in faint 12 px after the new one, in triệu from 1 tr up"
+        },
+        "5219f4f7-3b6a-4a8b-9165-76e7519faefa": {
+          "title": "Vừa giảm giá · chi tiết tin, điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Price block: new price, the old one struck in faint 16 px, then a mint chip 'Vừa giảm 500.000 ₫' with how long ago"
+        }
+      }
+    },
+    "/p/[slug]#anh-chia-se": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "ed8dd37f-d108-448b-92a4-3b468777d7c3",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_seo_og.py"
+      ],
+      "drafts": {
+        "ed8dd37f-d108-448b-92a4-3b468777d7c3": {
+          "title": "Ảnh chia sẻ tin · A ảnh trái",
+          "currentVersion": 2,
+          "visualDirection": "OG 1200x630: photo square left, chip, title, big tabular price, place, logo on a light panel (chosen)"
+        },
+        "909b16c6-3720-4e70-b320-3d6c4feec76c": {
+          "title": "Ảnh chia sẻ tin · B ảnh tràn",
+          "currentVersion": 2,
+          "visualDirection": "OG 1200x630: full-bleed photo with dark fade, white price and title"
+        },
+        "cd498e33-3d27-48ea-96e4-7bf2a5c70922": {
+          "title": "Ảnh chia sẻ tin · trong tin nhắn",
+          "currentVersion": 2,
+          "visualDirection": "A as a link preview in a chat, 390 px"
+        }
+      },
+      "updatedAt": "2026-11-20T03:46:09.696322+00:00"
+    },
+    "#web-push": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "ea923474-a47d-473c-bbd0-ee7f6177746a",
+      "drafts": {
+        "ea923474-a47d-473c-bbd0-ee7f6177746a": {
+          "title": "Thông báo đẩy · Lời mời bật sau khi nhắn",
+          "currentVersion": 2,
+          "visualDirection": "K2; tools/build_web_push.py"
+        },
+        "67a8d26f-2de0-402a-8ca5-b67cf917d536": {
+          "title": "Thông báo đẩy · Lời mời bật trên điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_web_push.py"
+        },
+        "7ed5dffa-d567-427e-8231-5ac5456c87d7": {
+          "title": "Thông báo đẩy · Công tắc trình duyệt trong Cài đặt",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_web_push.py"
+        },
+        "8d6ce8cd-fc86-4f67-b259-dc30a908d022": {
+          "title": "Thông báo đẩy · Trình duyệt đang chặn",
+          "currentVersion": 2,
+          "visualDirection": "K2; tools/build_web_push.py"
+        },
+        "39c4a776-ffd0-451b-9217-d970d42f4f8f": {
+          "title": "Cài ShopNexus · Trong menu tài khoản",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_web_push.py"
+        },
+        "e4da3940-dfc3-4bcc-9568-a0fe6d418f9e": {
+          "title": "Cài ShopNexus · Hướng dẫn trên iPhone",
+          "currentVersion": 2,
+          "visualDirection": "K2; tools/build_web_push.py"
+        }
+      },
+      "note": "Web push offer card after a chat message or an order, browser switch in Cài đặt thông báo, Cài ShopNexus in the account menu and on Tôi with the iPhone hint.",
+      "updatedAt": "2026-11-20"
+    },
+    "/search#quick-view": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "activeDraftId": "47f832ce-4a49-46f2-baae-74cf46a14e7a",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_quick_view.py"
+      ],
+      "drafts": {
+        "47f832ce-4a49-46f2-baae-74cf46a14e7a": {
+          "title": "Tìm kiếm · Xem nhanh tin",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_quick_view.py: panel beside the results from 840 px, sheet below"
+        },
+        "a989eb36-2b73-4626-93e3-8ebabe342d23": {
+          "title": "Tìm kiếm · Xem nhanh đang tải",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_quick_view.py: panel beside the results from 840 px, sheet below"
+        },
+        "ef670cbd-c1b2-448f-92db-09e716ad7985": {
+          "title": "Tìm kiếm · Xem nhanh trên điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "K2; tools/build_quick_view.py: panel beside the results from 840 px, sheet below"
+        }
+      }
+    },
+    "/c/[slug]#pham-vi-tim": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "activeDraftId": "8a3a6d6c-1c56-4e70-81d8-939cb6651ece",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_header.py",
+        ".superdesign/tools/build_category_search.py"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "2db1c1397fd2e229e3cd65a741beda1ec853ece772c33b559223ae8b4ed5a0c5",
+        ".superdesign/tools/build_k2.py": "712d17000dece24fc54e417d0f5457c5b342c687868aa371036c1719c5bb5654",
+        ".superdesign/tools/build_header.py": "12ea0ff4acd3ca474250eafbd2031f2455060e3f20db6c6800c71f169c1e7419",
+        ".superdesign/tools/build_category_search.py": "2902a26c34eb238207fee3fd78743c7e665391b86dfb6c740f224e075618a6df"
+      },
+      "drafts": {
+        "8a3a6d6c-1c56-4e70-81d8-939cb6651ece": {
+          "title": "Danh mục · A. Phạm vi trong ô tìm",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        },
+        "7df15362-0ba1-43f4-bf3c-86630932c898": {
+          "title": "Danh mục · A. Phạm vi trong ô tìm (điện thoại)",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        },
+        "5d0a6e4a-e158-479e-b7a5-a8a3fae3dd02": {
+          "title": "Danh mục · B. Ẩn ô header",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        },
+        "c44c1e36-1261-4dd3-9cee-0e9ec98f8afc": {
+          "title": "Danh mục · C. Lọc trong kết quả",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        },
+        "f9ef5c12-c400-4afd-93ec-f2c17966c1af": {
+          "title": "Ô tìm · Gợi ý khi gõ",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        },
+        "90124f49-ffc1-48c6-b496-d5e70347a1c2": {
+          "title": "Ô tìm · Gợi ý khi gõ (điện thoại)",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        },
+        "1108958b-6033-4363-acde-933857b41ca6": {
+          "title": "Tìm kiếm · Đang mở kết quả",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        },
+        "1ba110d4-ec38-44b3-b925-3c052efb19cc": {
+          "title": "Tìm kiếm · Đang mở kết quả (điện thoại)",
+          "currentVersion": 1,
+          "visualDirection": "K2 header A; tools/build_category_search.py"
+        }
+      },
+      "updatedAt": "2026-11-20"
+    },
+    "trust-signals": {
+      "targetKind": "existing-ui",
+      "authoringMode": "direct-import",
+      "projectId": "af33e77d-fa0e-408b-a30c-0ae8731c173e",
+      "designSystemPath": ".superdesign/design-system.md",
+      "activeDraftId": "8a989098-721c-480b-ad4a-7516044e3e37",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/tools/build_k2.py",
+        ".superdesign/tools/build_trust_signals.py"
+      ],
+      "drafts": {
+        "8a989098-721c-480b-ad4a-7516044e3e37": {
+          "title": "Chi tiết tin · trả lời nhanh, ảnh đánh giá",
+          "currentVersion": 1,
+          "visualDirection": "Seller card: one line under the two figures, time-line icon 15 px in primary + 'Thường trả lời trong vài phút' in body-small text-sub; Review: up to 4 photos as 64 px squares (rounded-control) under the text, opening the Gallery viewer; 'Hữu ích · n' pill h-8 (border-field, text-sub; pressed bg-mint text-on-mint, filled thumb)"
+        },
+        "86b9a505-fb64-41cc-84ab-c24706f45b26": {
+          "title": "Chi tiết tin · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Seller card: one line under the two figures, time-line icon 15 px in primary + 'Thường trả lời trong vài phút' in body-small text-sub; Review: up to 4 photos as 64 px squares (rounded-control) under the text, opening the Gallery viewer; 'Hữu ích · n' pill h-8 (border-field, text-sub; pressed bg-mint text-on-mint, filled thumb)"
+        },
+        "7cfbb4ad-1ace-46ae-a1cc-417f02106a5d": {
+          "title": "Đánh giá đơn · thêm ảnh",
+          "currentVersion": 1,
+          "visualDirection": "Review form: 'Ảnh (không bắt buộc)' + 3/4 chip, grid-cols-4 max-w-[400px] Đăng tin tiles (× chip, spinner on bg-black/40, dashed Thêm ảnh tile)"
+        },
+        "5430de51-a432-4b10-99d8-6c56e6a6af78": {
+          "title": "Đánh giá đơn · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "Review form: 'Ảnh (không bắt buộc)' + 3/4 chip, grid-cols-4 max-w-[400px] Đăng tin tiles (× chip, spinner on bg-black/40, dashed Thêm ảnh tile)"
+        },
+        "cdfb8d41-8dc0-4656-ac32-3dd66101aa4c": {
+          "title": "Ảnh đánh giá · điện thoại",
+          "currentVersion": 1,
+          "visualDirection": "A review photo in the listing Gallery's dark viewer: 1/3 top-left, close top-right, side arrows (prev hidden on the first)"
+        }
+      },
+      "note": "Reply time on the seller card; photos and Hữu ích on reviews; photos in the order review form.",
+      "updatedAt": "2026-11-20T03:51:27.037293+00:00"
     }
   }
 }

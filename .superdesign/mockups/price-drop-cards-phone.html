@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vừa giảm giá · thẻ tin, điện thoại</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: {'primary':'#005049','on-primary':'#FFFFFF','primary-container':'#066A61','on-primary-container':'#97E7DB','secondary':'#47645F','on-secondary':'#FFFFFF','secondary-container':'#C7E6E0','on-secondary-container':'#4B6863','tertiary':'#773115','on-tertiary':'#FFFFFF','tertiary-container':'#95482A','on-tertiary-container':'#FFCDBC','tertiary-fixed':'#FFDBCF','on-tertiary-fixed-variant':'#773215','error':'#BA1A1A','on-error':'#FFFFFF','error-container':'#FFDAD6','surface':'#F7FAF8','surface-container-lowest':'#FFFFFF','surface-container-low':'#F1F4F2','surface-container':'#EBEFED','surface-container-high':'#E6E9E7','surface-container-highest':'#E0E3E1','on-surface':'#181C1C','on-surface-variant':'#3E4947','outline':'#6E7977','outline-variant':'#BEC9C6','inverse-surface':'#2D3130','inverse-on-surface':'#EEF1EF','inverse-primary':'#85D5C9'},
+  fontSize: {'display-l':['57px',{lineHeight:'64px',fontWeight:'400',letterSpacing:'-0.25px'}],'display-m':['45px',{lineHeight:'52px',fontWeight:'400',letterSpacing:'0'}],'display-s':['32px',{lineHeight:'40px',fontWeight:'400',letterSpacing:'0'}],'headline-m':['24px',{lineHeight:'32px',fontWeight:'400',letterSpacing:'0'}],'headline-s':['20px',{lineHeight:'28px',fontWeight:'400',letterSpacing:'0'}],'title-l':['20px',{lineHeight:'26px',fontWeight:'400',letterSpacing:'0'}],'title-m':['15px',{lineHeight:'22px',fontWeight:'500',letterSpacing:'0.1px'}],'title-s':['14px',{lineHeight:'20px',fontWeight:'500',letterSpacing:'0.1px'}],'body-l':['14px',{lineHeight:'20px',fontWeight:'400',letterSpacing:'0.25px'}],'body-m':['13px',{lineHeight:'18px',fontWeight:'400',letterSpacing:'0.2px'}],'body-s':['12px',{lineHeight:'16px',fontWeight:'400',letterSpacing:'0.3px'}],'label-l':['13px',{lineHeight:'18px',fontWeight:'500',letterSpacing:'0.1px'}],'label-m':['12px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.4px'}],'label-s':['11px',{lineHeight:'16px',fontWeight:'500',letterSpacing:'0.4px'}]},
+  borderRadius: {'xs':'4px','sm':'8px','md':'12px','lg':'16px','lg-plus':'20px','xl':'28px','xl-plus':'32px'},
+  fontFamily: { sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'] },
+  boxShadow: { float: '0 1px 3px 0 rgba(0,0,0,.30), 0 4px 8px 3px rgba(0,0,0,.15)' },
+} } };
+</script>
+<script src="https://code.iconify.design/iconify-icon/3.0.2/iconify-icon.min.js"></script>
+<style>
+  :root { --md-primary: #005049; --md-on-primary: #FFFFFF; --md-primary-container: #066A61; --md-on-primary-container: #97E7DB; --md-secondary: #47645F; --md-on-secondary: #FFFFFF; --md-secondary-container: #C7E6E0; --md-on-secondary-container: #4B6863; --md-tertiary: #773115; --md-on-tertiary: #FFFFFF; --md-tertiary-container: #95482A; --md-on-tertiary-container: #FFCDBC; --md-tertiary-fixed: #FFDBCF; --md-on-tertiary-fixed-variant: #773215; --md-error: #BA1A1A; --md-on-error: #FFFFFF; --md-error-container: #FFDAD6; --md-surface: #F7FAF8; --md-surface-container-lowest: #FFFFFF; --md-surface-container-low: #F1F4F2; --md-surface-container: #EBEFED; --md-surface-container-high: #E6E9E7; --md-surface-container-highest: #E0E3E1; --md-on-surface: #181C1C; --md-on-surface-variant: #3E4947; --md-outline: #6E7977; --md-outline-variant: #BEC9C6; --md-inverse-surface: #2D3130; --md-inverse-on-surface: #EEF1EF; --md-inverse-primary: #85D5C9;
+    --spatial: linear(0, 0.107, 0.321, 0.539, 0.719, 0.848, 0.931, 0.979, 1.004, 1.014, 1.015, 1.011, 1.006, 1.003, 1);
+    --effects: linear(0, 0.286, 0.625, 0.826, 0.924, 0.968, 0.987, 0.995, 1); }
+  html, body { background: var(--md-surface); }
+  .state { position: relative; isolation: isolate; }
+  .state::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0;
+    pointer-events: none; transition: opacity 140ms var(--effects); }
+  .state:hover::after { opacity: .08; }
+  .state:active::after { opacity: .1; }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  :root { --bg: #F7F7F5; --ink: #1A1A19; --mute: #5E5E5A; --line: #ECECE9; --soft: #F3F3F1; --teal: #066A61; --r: 10px; --rp: 12px; }
+  html, body { background: var(--bg); color: var(--ink); }
+  .ink { color: var(--ink); } .mute { color: var(--mute); } .bd { border-color: var(--line); }
+  .bg-soft { background: var(--soft); } .bg-ink { background: var(--ink); } .bg-teal { background: var(--teal); } .text-teal { color: var(--teal); }
+  .r { border-radius: var(--r); } .rp { border-radius: var(--rp); }
+  .num { font-variant-numeric: tabular-nums; }
+  .tile img { transition: opacity 200ms; } .tile:hover img { opacity: .92; }
+  .tile:hover .t { text-decoration: underline; text-underline-offset: 2px; }
+  input::placeholder { color: var(--mute); }
+
+  #app { font-family: Inter, system-ui, sans-serif; letter-spacing: -0.005em; }
+  .tile .rp { box-shadow: inset 0 0 0 1px rgb(20 20 19 / .04); }
+
+  .bg-brand { background: #066A61; } .bg-brand:hover { background: #05554E; } .text-brand { color: #066A61; }
+  .bg-mint { background: #E3F2EF; } .text-on-mint { color: #05554E; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; transition: box-shadow 160ms cubic-bezier(.2,.7,.2,1), border-color 160ms; }
+  .card:hover { box-shadow: 0 2px 10px rgb(20 20 19 / .06); border-color: #DCDCD8; }
+  .row:hover { background: #EEEEEB; } .row.on { background: #E3F2EF; color: #05554E; font-weight: 500; } .row.on iconify-icon { color: #066A61; }
+  .tab { height: 36px; display: inline-flex; align-items: center; border-bottom: 2px solid transparent; color: var(--mute); }
+  .tab.on { color: var(--ink); border-color: #066A61; font-weight: 500; }
+  .meta { font-size: 12.5px; line-height: 16px; color: #8C8C87; }
+  .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .btn-o { background: #fff; box-shadow: inset 0 0 0 1px #DCDCD8; } .btn-o:hover { background: #F7F7F5; }
+</style>
+</head>
+<body>
+<div id="app" class="min-h-screen font-sans ink">
+<div class="relative mx-auto h-[844px] w-[390px] overflow-hidden bg-[var(--bg)]">
+  <header class="sticky top-0 z-30 border-b bd bg-[var(--bg)]">
+  <div class="flex h-16 items-center gap-2 px-4">
+    <img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/af33e77d-fa0e-408b-a30c-0ae8731c173e/brand-assets/website-public-favicon.svg/favicon.svg" alt="" class="h-8 w-8">
+    <form class="ml-1 flex h-10 min-w-0 flex-1 items-center gap-2 rounded-[10px] bg-white pl-3 pr-1 shadow-[inset_0_0_0_1px_#DCDCD8]"><iconify-icon icon="ri:search-line" width="17" height="17" class="block shrink-0 mute"></iconify-icon><input class="h-full min-w-0 flex-1 bg-transparent text-[14px] outline-none" placeholder="Tìm iPhone, xe đạp…"></form>
+    <span class="grid h-10 w-10 place-items-center"><iconify-icon icon="ri:notification-3-line" width="20" height="20" class="block shrink-0 "></iconify-icon></span>
+  </div>
+</header>
+  <main class="px-4 pt-4">
+    <p class="meta">Sáng thứ Sáu, 20/11</p><h1 class="mt-0.5 text-[22px] font-semibold tracking-[-0.02em]">Chào Khánh Linh</h1>
+    <div class="mt-4 flex gap-6 border-b bd text-[14px]"><span class="tab on">Gợi ý</span><span class="tab">Gần bạn</span><span class="tab">Mới nhất</span></div>
+    <div class="mt-4 grid grid-cols-2 gap-3"><article class="card min-w-0 p-2">
+  <div class="relative overflow-hidden rounded-[11px] bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=480&h=480&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 shadow-[0_1px_2px_rgb(20_20_19/.08)]" aria-label="Lưu tin"><iconify-icon icon="ri:heart-line" width="16" height="16" class="block shrink-0 "></iconify-icon></button></div>
+  <div class="px-1.5 pb-1 pt-2.5">
+    <p class="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap"><span class="num text-[15px] font-semibold tracking-tight">3.900.000<span class="ml-0.5 text-[12px] font-medium tracking-normal text-[#5E5E5A]">₫</span></span></p>
+    <p class="clamp2 mt-0.5 min-h-[40px] text-[14px] leading-5">iPhone X 64GB, pin 86%, máy zin chưa sửa</p>
+    <p class="meta mt-1.5 truncate">Như mới · 1,2 km</p>
+  </div>
+</article><article class="card min-w-0 p-2">
+  <div class="relative overflow-hidden rounded-[11px] bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=480&h=480&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><span class="absolute left-2 top-2 flex h-6 items-center gap-0.5 rounded-full bg-white/90 pl-1.5 pr-2 text-[11px] font-medium leading-4 text-[#066A61] shadow-[0_1px_2px_rgb(20_20_19/.08)]"><iconify-icon icon="ri:arrow-down-line" width="13" height="13" class="block shrink-0 "></iconify-icon>Vừa giảm</span><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 shadow-[0_1px_2px_rgb(20_20_19/.08)]" aria-label="Lưu tin"><iconify-icon icon="ri:heart-line" width="16" height="16" class="block shrink-0 "></iconify-icon></button></div>
+  <div class="px-1.5 pb-1 pt-2.5">
+    <p class="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap"><span class="num text-[15px] font-semibold tracking-tight">4.800.000<span class="ml-0.5 text-[12px] font-medium tracking-normal text-[#5E5E5A]">₫</span></span><s class="num min-w-0 truncate text-[12px] font-normal leading-4 text-[#8C8C87]">5,5 tr</s></p>
+    <p class="clamp2 mt-0.5 min-h-[40px] text-[14px] leading-5">Sofa nhung xanh 3 chỗ, chuyển nhà cần bán gấp</p>
+    <p class="meta mt-1.5 truncate">Đã dùng · 5,6 km</p>
+  </div>
+</article><article class="card min-w-0 p-2">
+  <div class="relative overflow-hidden rounded-[11px] bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1507035895480-2b3156c31fc8?w=480&h=480&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 shadow-[0_1px_2px_rgb(20_20_19/.08)]" aria-label="Lưu tin"><iconify-icon icon="ri:heart-line" width="16" height="16" class="block shrink-0 "></iconify-icon></button></div>
+  <div class="px-1.5 pb-1 pt-2.5">
+    <p class="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap"><span class="num text-[15px] font-semibold tracking-tight">2.300.000<span class="ml-0.5 text-[12px] font-medium tracking-normal text-[#5E5E5A]">₫</span></span></p>
+    <p class="clamp2 mt-0.5 min-h-[40px] text-[14px] leading-5">Xe đạp fixed gear khung thép, vừa thay lốp</p>
+    <p class="meta mt-1.5 truncate">Đã dùng · 0,8 km</p>
+  </div>
+</article><article class="card min-w-0 p-2">
+  <div class="relative overflow-hidden rounded-[11px] bg-soft" style="aspect-ratio:1/1"><img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=480&h=480&q=80&auto=format&fit=crop" alt="" class="h-full w-full object-cover"><button type="button" class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 shadow-[0_1px_2px_rgb(20_20_19/.08)]" aria-label="Lưu tin"><iconify-icon icon="ri:heart-line" width="16" height="16" class="block shrink-0 "></iconify-icon></button></div>
+  <div class="px-1.5 pb-1 pt-2.5">
+    <p class="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap"><span class="num text-[15px] font-semibold tracking-tight">11,5<span class="ml-0.5 text-[12px] font-medium tracking-normal text-[#5E5E5A]">tr ₫</span></span></p>
+    <p class="clamp2 mt-0.5 min-h-[40px] text-[14px] leading-5">MacBook Air M1 13 inch 8/256GB, sạc 92 lần</p>
+    <p class="meta mt-1.5 truncate">Như mới · 2,4 km</p>
+  </div>
+</article></div>
+  </main>
+  <nav class="absolute inset-x-0 bottom-0 grid h-20 grid-cols-4 border-t bd bg-[var(--bg)]"><span class="flex flex-col items-center justify-center gap-1 text-[12px] "><span class="grid h-8 w-16 place-items-center rounded-full bg-mint text-on-mint"><iconify-icon icon="ri:compass-3-fill" width="22" height="22" class="block shrink-0 "></iconify-icon></span>Khám phá</span><span class="flex flex-col items-center justify-center gap-1 text-[12px] mute"><span class="grid h-8 w-16 place-items-center rounded-full "><iconify-icon icon="ri:apps-2-line" width="22" height="22" class="block shrink-0 "></iconify-icon></span>Danh mục</span><span class="flex flex-col items-center justify-center gap-1 text-[12px] mute"><span class="grid h-8 w-16 place-items-center rounded-full "><iconify-icon icon="ri:chat-3-line" width="22" height="22" class="block shrink-0 "></iconify-icon></span>Tin nhắn</span><span class="flex flex-col items-center justify-center gap-1 text-[12px] mute"><span class="grid h-8 w-16 place-items-center rounded-full "><iconify-icon icon="ri:user-line" width="22" height="22" class="block shrink-0 "></iconify-icon></span>Tôi</span></nav>
+</div>
+</div>
+</body>
+</html>
