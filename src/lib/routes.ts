@@ -12,6 +12,8 @@ export const R = {
   /** Mua ngay on a listing, by its ID: the COD form at the listed price. */
   buy: (listing: string) => `/listings/${listing}/buy`,
   seller: (id: string) => `/sellers/${id}`, // seller
+  /** A listing's share picture (og:image), versioned by its last change. */
+  listingCard: (id: string, updatedAt: string) => `/og/listings/${id}.png?v=${cardVersion(updatedAt)}`,
   how: '/how-to-buy', // how
   sell: '/how-to-sell', // sell
   cod: (deal: string) => `/cod?deal=${deal}`, // cod; redirects to the dialog in Tin nhắn
@@ -40,6 +42,9 @@ export const R = {
   /** Home's feed as HTML cards, a page at a time: ?tab=&after= (feedPage in lib/feed.ts). */
   feed: '/feed',
 } as const;
+
+/** The version a listing's share picture is addressed by: its last change. */
+export const cardVersion = (updatedAt: string) => Date.parse(updatedAt).toString(36);
 
 /** The endpoints the page scripts call. */
 export const API = {

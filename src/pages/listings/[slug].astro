@@ -23,6 +23,7 @@ import { categories } from '../../lib/catalog';
 import { ago, decimal, group, ratingText, where } from '../../lib/format';
 import { CONDITIONS, card, conditionLabel } from '../../lib/listing';
 import { R, loginHref } from '../../lib/routes';
+import { SHARE_IMAGE } from '../../lib/seo';
 import { viewer } from '../../lib/session';
 import { CONTENT, PANEL, btnCls } from '../../lib/ui';
 
@@ -105,7 +106,9 @@ const ld = it && {
       title={`${it.title} · ShopNexus`}
       description={`${group(it.price)} ₫ · ${condition} · ${place}. Xem hàng rồi mới trả.`}
       section="explore"
-      image={photos[0]?.big}
+      image={R.listingCard(it.id, it.updated_at)}
+      imageSize={SHARE_IMAGE}
+      canonical={R.listing(it.slug)}
     >
       <script type="application/ld+json" slot="head" set:html={JSON.stringify(ld)} />
       <main class={CONTENT}>
