@@ -1,0 +1,153 @@
+---
+// Chia sẻ: the apps people here share through, for a button with
+// popovertarget={id}. A popover from 600 px up, a bottom sheet below. The
+// links work without the script; it adds app links, the system sheet and copy.
+import { group } from '../lib/format';
+import { targets } from '../lib/share';
+import { MARKS, TONE } from '../lib/share-marks';
+import Avatar from './Avatar.astro';
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import Popover from './Popover.astro';
+import Price from './Price.astro';
+
+interface Props {
+  id: string;
+  /** The page's canonical address, with no query. */
+  url: string;
+  title: string;
+  price?: number;
+  /** Under the title when there is no price. */
+  line?: string;
+  photo?: string;
+  /** A person: their face, round, in place of a photo. */
+  person?: boolean;
+  /** The button's edge the popover lines up with. */
+  align?: 'start' | 'end';
+}
+
+const { id, url, title, price, line, photo, person = false, align = 'end' } = Astro.props;
+const text = price != null ? `${title} · ${group(price)} ₫` : title;
+const item = 'state-layer flex min-w-0 flex-col items-center gap-1.5 rounded-control px-1 py-2 text-body-small text-sub hover:text-ink';
+const dot = 'grid h-12 w-12 shrink-0 place-items-center rounded-full md:h-10 md:w-10';
+---
+
+<Popover id={id} align={align} sheet class="w-[352px] max-md:px-3" label="Chia sẻ">
+  <div data-share-sheet data-url={url} data-title={title} data-text={text}>
+    <span class="mx-auto mb-3 mt-1 block h-1 w-8 rounded-full bg-faint/50 md:hidden" aria-hidden="true"></span>
+    <div class="flex items-center gap-3 rounded-tile bg-soft p-2 pr-3">
+      {
+        person ? (
+          <Avatar name={title} photo={photo} size={48} />
+        ) : photo ? (
+          <Photo src={photo} width={96} height={96} alt="" class="h-12 w-12 shrink-0 rounded-sm object-cover" />
+        ) : (
+          <span class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-hover text-faint">
+            <Icon name="photo-camera-outline-rounded" size={20} />
+          </span>
+        )
+      }
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-title-small text-ink">{title}</p>
+        {price != null ? <Price vnd={price} size="text-j-15" short={false} /> : line && <p class="truncate text-body-small text-sub">{line}</p>}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-0.5 px-1 pb-1 pt-3 md:grid-cols-5">
+      {
+        targets(url, text).map((t) => (
+          <a
+            href={t.href}
+            target={t.key === 'email' ? undefined : '_blank'}
+            rel="noopener noreferrer"
+            class={item}
+            hidden={t.phone}
+            data-share-to={t.key}
+            data-phone={t.phone ? '' : undefined}
+          >
+            {t.key === 'email' ? (
+              <span class:list={[dot, 'bg-soft text-ink']}>
+                <Icon name="mail-outline-rounded" size={20} />
+              </span>
+            ) : (
+              <span class={dot} style={`background:${TONE[t.key][0]};color:${TONE[t.key][1]}`}>
+                <svg viewBox="0 0 24 24" class={t.key === 'zalo' ? 'h-8 w-8 md:h-7 md:w-7' : 'h-6 w-6 md:h-5 md:w-5'} aria-hidden="true">
+                  <path fill="currentColor" d={MARKS[t.key]} />
+                </svg>
+              </span>
+            )}
+            <span class="max-w-full truncate">{t.label}</span>
+          </a>
+        ))
+      }
+      <button type="button" class={item} hidden data-share-native>
+        <span class:list={[dot, 'bg-soft text-ink']}><Icon name="more-horiz" size={20} /></span>
+        Khác
+      </button>
+    </div>
+
+    <div class="mx-1 border-t border-line"></div>
+    <div class="px-1 pt-1">
+      <button type="button" class="group state-layer flex h-12 w-full items-center gap-3 rounded-control px-2 text-left text-body-medium text-ink" data-share-copy>
+        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-soft group-data-[done]:bg-mint group-data-[done]:text-on-mint">
+          <Icon name="link-rounded" size={18} class="group-data-[done]:hidden" />
+          <Icon name="check-rounded" size={18} class="hidden group-data-[done]:block" />
+        </span>
+        <span class="shrink-0 group-data-[done]:text-on-mint" data-share-copy-label>Sao chép liên kết</span>
+        <span class="ml-auto min-w-0 truncate text-body-small text-faint">{url.replace(/^https?:\/\//, '')}</span>
+      </button>
+    </div>
+  </div>
+</Popover>
+
+<script>
+  import { platform, zaloApp } from '../lib/share';
+  import { snack } from '../lib/snackbar';
+
+  const on = platform();
+  for (const root of document.querySelectorAll<HTMLElement>('[data-share-sheet]')) {
+    const pop = root.closest<HTMLElement>('[popover]')!;
+    const { url = '', title = '', text = '' } = root.dataset;
+    const to = (key: string) => root.querySelector<HTMLAnchorElement>(`[data-share-to="${key}"]`)!;
+
+    // On a phone Zalo and Messenger open their apps, in this tab so the app link holds.
+    if (on) {
+      to('zalo').href = zaloApp(url, on);
+      for (const a of [to('zalo'), to('messenger')]) a.removeAttribute('target');
+      root.querySelectorAll<HTMLElement>('[data-phone]').forEach((el) => (el.hidden = false));
+    }
+    root.querySelectorAll('[data-share-to]').forEach((a) => a.addEventListener('click', () => pop.hidePopover()));
+
+    const native = root.querySelector<HTMLButtonElement>('[data-share-native]')!;
+    if ('share' in navigator) {
+      native.hidden = false;
+      native.addEventListener('click', () => {
+        pop.hidePopover();
+        navigator.share({ title, text, url }).catch(() => {});
+      });
+    }
+
+    const copy = root.querySelector<HTMLButtonElement>('[data-share-copy]')!;
+    const label = copy.querySelector('[data-share-copy-label]')!;
+    let shut = 0;
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        snack({ text: 'Không sao chép được liên kết', error: true });
+        return;
+      }
+      copy.dataset.done = '';
+      label.textContent = 'Đã sao chép';
+      snack({ text: 'Đã sao chép liên kết', icon: 'link-rounded' });
+      shut = window.setTimeout(() => pop.hidePopover(), 700);
+    });
+    // Each opening starts fresh.
+    pop.addEventListener('toggle', (e) => {
+      if ((e as ToggleEvent).newState !== 'open') return;
+      clearTimeout(shut);
+      delete copy.dataset.done;
+      label.textContent = 'Sao chép liên kết';
+    });
+  }
+</script>

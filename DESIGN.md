@@ -124,8 +124,15 @@ every page.
   wired.
 - `snack()` in `src/lib/snackbar.ts` shows the app's snackbar. It rises on
   the spatial spring, the ring round its icon empties over its four seconds,
-  and hovering or focusing it stops the time. Share on a listing copies the
-  link through it; on a touch screen it opens the system share sheet.
+  and hovering or focusing it stops the time.
+- "Chia sẻ" on a listing or a seller page opens `ShareSheet.astro`: a popover
+  under the button from 600 px up, a bottom sheet below. It shows the photo,
+  title and price (a seller: face, name and listing count), then Zalo,
+  Facebook, Telegram, X and Email, plus Messenger on a phone and "Khác" where
+  the browser has a system share sheet. "Sao chép liên kết" copies the
+  canonical address, turns to a check and says so in the snackbar. The share
+  addresses are in `src/lib/share.ts`, the brand glyphs in
+  `src/lib/share-marks.ts`.
 - Listing photos (`<Photo fade>`) fade in over the `surfaceContainerHigh`
   placeholder once loaded. Every photo from the server holds that tone in
   its box until it arrives.

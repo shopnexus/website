@@ -14,6 +14,7 @@ import NotFound from '../../components/public/NotFound.astro';
 import ReviewItem from '../../components/public/ReviewItem.astro';
 import QuickChat from '../../components/public/QuickChat.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
+import ShareSheet from '../../components/ShareSheet.astro';
 import Layout from '../../layouts/Layout.astro';
 import { orNull, unwrap } from '../../lib/api/client';
 import { near } from '../../lib/area';
@@ -117,10 +118,11 @@ const ld = it && {
               <span class="max-md:sr-only">Lưu</span>
             </button>
           )}
-          <button type="button" class={act} data-share>
+          <button type="button" class={act} popovertarget="share">
             <Icon name="share-outline-rounded" size={16} /><span class="max-md:sr-only">Chia sẻ</span>
           </button>
         </Crumbs>
+        <ShareSheet id="share" url={new URL(R.listing(it.slug), Astro.url).href} title={it.title} price={it.price} photo={photos[0]?.thumb} />
 
         <!-- On a phone the order is gallery, price and actions, then the rest; from
              expanded up the actions stick in the right column beside both. -->

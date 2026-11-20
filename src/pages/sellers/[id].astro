@@ -11,6 +11,7 @@ import ReviewItem from '../../components/public/ReviewItem.astro';
 import Stars from '../../components/public/Stars.astro';
 import SectionTitle from '../../components/SectionTitle.astro';
 import Seg from '../../components/Seg.astro';
+import ShareSheet from '../../components/ShareSheet.astro';
 import Layout from '../../layouts/Layout.astro';
 import { orNull } from '../../lib/api/client';
 import { near } from '../../lib/area';
@@ -91,29 +92,40 @@ const line = 'state-layer grid h-10 w-10 place-items-center rounded-full border 
                   </span>
                 ))}
               </div>
-              {!mine && (
-                <div class="mt-4 flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-pressed={following ? 'true' : 'false'}
-                    class="state-layer flex h-10 items-center gap-1.5 rounded-control bg-brand pl-3.5 pr-4 text-label-large text-white"
-                    data-follow={s.id}
-                  >
-                    <Icon name="person-add-outline-rounded" size={18} />
-                    <span>{following ? 'Đang theo dõi' : 'Theo dõi'}</span>
-                  </button>
-                  <a
-                    href={`${R.messages}?seller=${s.id}`}
-                    class="state-layer flex h-10 items-center gap-1.5 rounded-control border border-line bg-card pl-3.5 pr-4 text-label-large text-ink"
-                  >
-                    <Icon name="chat-outline-rounded" size={18} />
-                    Nhắn tin
-                  </a>
-                  <button type="button" class={line} aria-label="Chia sẻ" data-share>
-                    <Icon name="share-outline-rounded" size={18} />
-                  </button>
-                </div>
-              )}
+              <div class="mt-4 flex items-center gap-2">
+                {!mine && (
+                  <>
+                    <button
+                      type="button"
+                      aria-pressed={following ? 'true' : 'false'}
+                      class="state-layer flex h-10 items-center gap-1.5 rounded-control bg-brand pl-3.5 pr-4 text-label-large text-white"
+                      data-follow={s.id}
+                    >
+                      <Icon name="person-add-outline-rounded" size={18} />
+                      <span>{following ? 'Đang theo dõi' : 'Theo dõi'}</span>
+                    </button>
+                    <a
+                      href={`${R.messages}?seller=${s.id}`}
+                      class="state-layer flex h-10 items-center gap-1.5 rounded-control border border-line bg-card pl-3.5 pr-4 text-label-large text-ink"
+                    >
+                      <Icon name="chat-outline-rounded" size={18} />
+                      Nhắn tin
+                    </a>
+                  </>
+                )}
+                <button type="button" class={line} aria-label="Chia sẻ" popovertarget="share">
+                  <Icon name="share-outline-rounded" size={18} />
+                </button>
+              </div>
+              <ShareSheet
+                id="share"
+                align="start"
+                url={new URL(R.seller(s.id), Astro.url).href}
+                title={s.display_name}
+                line={`${s.on_sale} tin đang bán${s.sold ? ` · ${s.sold} đã bán` : ''}`}
+                photo={s.avatar_url}
+                person
+              />
             </div>
           </div>
           <div class="border border-line bg-card grid shrink-0 grid-cols-2 gap-y-4 rounded-card py-5 shadow-soft md:grid-cols-4">

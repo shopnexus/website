@@ -1,5 +1,5 @@
 // The scripted micro-interactions, imported by Layout.astro on every page:
-// the save heart, figures counting up, share on a listing and the pending
+// the save heart, figures counting up and the pending
 // state of forms (lib/busy).
 // src/styles/motion.css holds the rest, the parts CSS does without a script.
 import { animate, inView } from 'motion';
@@ -73,21 +73,4 @@ document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
     },
     { amount: 0.6 },
   );
-});
-
-// Share on a listing: the system sheet on a phone, a copied link elsewhere.
-document.addEventListener('click', async (e) => {
-  const b = (e.target as Element).closest<HTMLElement>('[data-share]');
-  if (!b) return;
-  const url = location.href.split('#')[0];
-  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-    navigator.share({ title: document.title, url }).catch(() => {});
-    return;
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    snack({ text: 'Đã sao chép link', icon: 'link-rounded' });
-  } catch {
-    snack({ text: 'Không sao chép được link', icon: 'error-outline-rounded', error: true });
-  }
 });
