@@ -3,11 +3,15 @@ import '../styles/global.css';
 import appleTouchIcon from '@brand/apple-touch-icon.png';
 import favicon from '@brand/favicon.svg';
 import favicon32 from '@brand/favicon-32.png';
+import AppHead from '../components/AppHead.astro';
 import BottomNav from '../components/BottomNav.astro';
 import Footer from '../components/Footer.astro';
-import Header, { type Section } from '../components/Header.astro';
-import ListingPageSkeleton from '../components/public/ListingPageSkeleton.astro';
+import Header, { type HeaderSearch, type Section } from '../components/Header.astro';
+import PersonCard from '../components/PersonCard.astro';
+import PageSkeletons from '../components/public/PageSkeletons.astro';
+import PushOffer from '../components/PushOffer.astro';
 import Snackbar from '../components/Snackbar.astro';
+import { isPrivate } from '../lib/seo';
 import { theme } from '../lib/theme';
 
 interface Props {
@@ -15,17 +19,24 @@ interface Props {
   description?: string;
   /** The header's current section, or null outside the four. */
   section?: Section | null;
-  /** Tìm kiếm puts its field in the header: the query text, and the photo it came from. */
-  search?: { q: string; photo?: string };
+  /** What the header's search field holds: the words, the photo, the category it searches in. */
+  search?: HeaderSearch;
   /** Tin nhắn's panes fill the window and leave the footer out. */
   footer?: boolean;
   /** Hides the compact "Đăng tin" button on the posting pages. */
   fab?: boolean;
-  /** Open Graph image. */
+  /** Open Graph image, absolute or a path here. */
   image?: string;
+  /** The image's pixel size; a wide one gets the large card in link previews. */
+  imageSize?: { width: number; height: number };
+  /** The page's one address, a path, when others show the same content. */
+  canonical?: string;
 }
 
-const { title, description, section = null, search, footer = true, fab = true, image } = Astro.props;
+const { title, description, section = null, search, footer = true, fab = true, image, imageSize, canonical } = Astro.props;
+// Search engines: absolute addresses, and private pages kept out (lib/seo.ts).
+const abs = (path?: string) => path && new URL(path, Astro.url).href;
+const noindex = isPrivate(Astro.url.pathname + Astro.url.search);
 ---
 
 <html lang="vi" data-theme={theme(Astro)}>
@@ -35,13 +46,26 @@ const { title, description, section = null, search, footer = true, fab = true, i
     <link rel="icon" type="image/svg+xml" href={favicon.src} />
     <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
     <link rel="apple-touch-icon" href={appleTouchIcon.src} />
+    <AppHead />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
-    {image && <meta property="og:image" content={image} />}
+    {image && <meta property="og:image" content={abs(image)} />}
+    {imageSize && <meta property="og:image:width" content={String(imageSize.width)} />}
+    {imageSize && <meta property="og:image:height" content={String(imageSize.height)} />}
+    {image && <meta name="twitter:card" content={imageSize && imageSize.width > imageSize.height ? 'summary_large_image' : 'summary'} />}
+    {canonical && <link rel="canonical" href={abs(canonical)} />}
+    {canonical && <meta property="og:url" content={abs(canonical)} />}
+    {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:site_name" content="ShopNexus" />
     <slot name="head" />
+    <!-- Fetch a listing's page ahead of the tap: on a 200 ms hover or a press,
+         and on phones the links near the last tap once scrolling stops. Prefetch
+         only, so no script of that page runs until it is opened. -->
+    <script type="speculationrules" is:inline>
+      {"prefetch":[{"where":{"and":[{"href_matches":"/listings/*"},{"not":{"href_matches":"/listings/*/*"}}]},"eagerness":"moderate"}]}
+    </script>
     <!-- Hold the first paint until the page is parsed, so pagereveal below
          finds the listing photo it pairs with the one on the last page. -->
     <link rel="expect" href="#page-end" blocking="render" />
@@ -68,52 +92,10 @@ const { title, description, section = null, search, footer = true, fab = true, i
         return a.querySelector('img') ?? slideOf(box) ?? box?.querySelector('img');
       };
 
-      // A listing tap still on this page after 100 ms grows the card's photo into
-      // a skeleton of the listing page; the real page then replaces it.
-      let skeleton = null;
-      let wait = 0;
-      const dropSkeleton = () => {
-        clearTimeout(wait);
-        skeleton?.remove();
-        skeleton = null;
-      };
-      const showSkeleton = (a) => {
-        const img = photoOf(a);
-        const tpl = document.getElementById('listing-skeleton');
-        if (!tpl || skeleton) return;
-        const el = tpl.content.firstElementChild.cloneNode(true);
-        el.style.top = (document.querySelector('header.glass')?.offsetHeight ?? 0) + 'px';
-        const photo = el.querySelector('[data-skeleton-photo]');
-        if (img?.currentSrc) photo.src = img.currentSrc;
-        else photo.classList.add('skeleton');
-        const swap = () => {
-          if (img) img.style.viewTransitionName = '';
-          if (img?.currentSrc) photo.style.viewTransitionName = 'listing-photo';
-          // The skeleton takes the place of the dialog or popover the tap came from.
-          a.closest('dialog[open]')?.close();
-          a.closest(':popover-open')?.hidePopover();
-          document.body.append(el);
-          skeleton = el;
-        };
-        if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return swap();
-        if (img?.currentSrc) img.style.viewTransitionName = 'listing-photo';
-        document.startViewTransition(swap);
-      };
-      addEventListener('click', (e) => {
-        const a = tapped;
-        if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-        if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.origin !== location.origin) return;
-        if (!a.pathname.startsWith('/listings/') || a.pathname === location.pathname) return;
-        clearTimeout(wait);
-        wait = setTimeout(() => showSkeleton(a), 100);
-      });
-      // Back from the next page, or a navigation the buyer stopped.
-      addEventListener('pageshow', dropSkeleton);
-      addEventListener('keydown', (e) => e.key === 'Escape' && dropSkeleton());
       // A transition draws above the top layer, so a photo paired under an open
       // dialog or popover would cover it until the transition ends.
       const covered = (img) => {
-        try { return [...document.querySelectorAll('dialog:modal, :popover-open')].some((d) => !d.contains(img)); } catch { return false; }
+        try { return [...document.querySelectorAll('dialog[open], :popover-open')].some((d) => !d.contains(img)); } catch { return false; }
       };
       const pair = (img, vt) => {
         if (!img || covered(img)) return;
@@ -124,17 +106,24 @@ const { title, description, section = null, search, footer = true, fab = true, i
       // The page's gallery photo in view: the first one on arrival.
       const gallery = () => slideOf(document);
       addEventListener('pageswap', (e) => {
-        clearTimeout(wait);
         if (!e.viewTransition || !e.activation?.entry?.url) return;
         const to = new URL(e.activation.entry.url);
-        if (skeleton) pair(skeleton.querySelector('[data-skeleton-photo][src]'), e.viewTransition);
+        // A page skeleton (lib/page-skeleton.ts) covers the cards: only its photo can pair.
+        const cover = document.querySelector('[data-page-cover]');
+        if (cover) pair(cover.querySelector('[data-skeleton-photo][src]'), e.viewTransition);
         else if (to.pathname.startsWith('/listings/') && tapped?.pathname === to.pathname) pair(photoOf(tapped), e.viewTransition);
         else pair(gallery(), e.viewTransition);
       });
       addEventListener('pagereveal', (e) => {
-        dropSkeleton();
         if (!e.viewTransition) return;
-        if (gallery()) return pair(gallery(), e.viewTransition);
+        // A page that arrives with a dialog open (Giao COD) shows it at once,
+        // unless the gallery is in it (Xem nhanh back from the listing).
+        const g = gallery();
+        if (covered(g)) {
+          e.viewTransition.ready.catch(() => {});
+          return e.viewTransition.skipTransition();
+        }
+        if (g) return pair(g, e.viewTransition);
         const from = window.navigation?.activation?.from?.url;
         if (!from) return;
         const path = new URL(from).pathname;
@@ -156,7 +145,9 @@ const { title, description, section = null, search, footer = true, fab = true, i
     </div>
     <BottomNav section={section} fab={fab} />
     <Snackbar />
-    <template id="listing-skeleton"><ListingPageSkeleton /></template>
+    <PersonCard />
+    <PushOffer />
+    <PageSkeletons />
     <span id="page-end" hidden></span>
     <script>
       import '../scripts/page-motion';

@@ -414,7 +414,7 @@ const detail = !!(chat || start || confirm);
               <a href={R.messages} class:list={[iconBtn, 'lg:hidden']} aria-label="Về hộp thư">
                 <Icon name="chevron-left-rounded" size={24} />
               </a>
-              <a href={R.seller(start.seller.id)} class="state-layer flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2">
+              <a href={R.seller(start.seller.id)} data-person class="state-layer flex min-w-0 flex-1 items-center gap-3 rounded-lg py-1 pr-2">
                 <Avatar name={start.seller.display_name} photo={start.seller.avatar_url} size={40} />
                 <span class="min-w-0 flex-1 truncate text-title-medium text-ink">{start.seller.display_name}</span>
               </a>

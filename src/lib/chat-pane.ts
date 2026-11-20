@@ -1,5 +1,6 @@
 import { busy, leaveWith } from './busy';
 import { idempotencyKey } from './key';
+import { offerPush } from './push';
 import { connectSocket } from './socket';
 import { hold } from './skeleton';
 import { snack } from './snackbar';
@@ -285,6 +286,7 @@ export function mountChatPane(o: PaneOptions) {
           tray.replaceChildren();
           tray.hidden = true;
           unreply();
+          offerPush('chat');
         }
         // A sent message or a clear refusal makes the next one a new write;
         // after an unclear outcome the retry keeps the key, so it cannot go twice.

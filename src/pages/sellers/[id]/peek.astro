@@ -1,0 +1,61 @@
+---
+// A person's card for lib/person-card: face, name, stars, the figures, then
+// Theo dõi (not on the viewer's own card) and Xem trang. An unknown ID is a 404.
+import Avatar from '../../../components/Avatar.astro';
+import FollowButton from '../../../components/FollowButton.astro';
+import Stars from '../../../components/public/Stars.astro';
+import { orNull } from '../../../lib/api/client';
+import { decimal } from '../../../lib/format';
+import { isId } from '../../../lib/listing';
+import { R } from '../../../lib/routes';
+import { viewer } from '../../../lib/session';
+import { btnCls } from '../../../lib/ui';
+
+export const partial = true;
+
+const id = Astro.params.id ?? '';
+const found = isId(id) ? await orNull(Astro.locals.api.GET('/v1/screens/seller/{id}', { params: { path: { id } } })) : null;
+if (!found) return new Response(null, { status: 404 });
+const s = found.seller;
+const mine = viewer(Astro)?.id === s.id;
+const rated = s.rating.count > 0 && s.rating.average !== null;
+// One cell each; another figure takes its own cell in the same row.
+const figures: [number, string][] = [
+  [s.sold, 'đã bán'],
+  [new Date(s.joined_at).getFullYear(), 'tham gia'],
+];
+---
+
+<div data-person-card>
+  <div class="flex items-center gap-3">
+    <Avatar name={s.display_name} photo={s.avatar_url} size={56} />
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-j-16 text-ink" data-person-name>{s.display_name}</p>
+      {
+        rated ? (
+          <p class="mt-0.5 flex items-center gap-1.5 text-body-medium">
+            <Stars n={Math.round(s.rating.average!)} size={13} />
+            <b class="font-semibold text-ink tabular-nums">{decimal(s.rating.average!)}</b>
+            <span class="text-sub">· {s.rating.count} đánh giá</span>
+          </p>
+        ) : (
+          <p class="mt-0.5 text-body-medium text-sub">Chưa có đánh giá</p>
+        )
+      }
+    </div>
+  </div>
+  <div class="mt-3 grid auto-cols-fr grid-flow-col divide-x divide-line rounded-control border border-line">
+    {
+      figures.map(([v, l]) => (
+        <div class="px-3 py-2">
+          <p class="text-j-15 text-ink tabular-nums">{v}</p>
+          <p class="text-body-small text-faint">{l}</p>
+        </div>
+      ))
+    }
+  </div>
+  <div class="mt-3 flex gap-2">
+    {!mine && <FollowButton id={s.id} following={!!found.viewer?.following} size="sm" class="flex-1" />}
+    <a href={R.seller(s.id)} class:list={[btnCls('line', 'sm'), 'flex-1']}>Xem trang</a>
+  </div>
+</div>

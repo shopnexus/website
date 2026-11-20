@@ -885,6 +885,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sitemap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The parts of the website's sitemap.
+         * @description Splits the public listings (active and reserved), and the sellers who
+         *     have one, into parts of at most 10,000, newest first. The website
+         *     writes one sitemap file per part and reads its entries with the
+         *     part's cursor. Public, and cacheable for an hour.
+         */
+        get: operations["getSitemap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sitemap/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One part of the website's sitemap of listings.
+         * @description The public listings below the part's cursor, newest first, at most 10,000.
+         */
+        get: operations["listSitemapListings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sitemap/sellers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One part of the website's sitemap of sellers.
+         * @description The sellers with a public listing whose IDs are below the part's cursor, newest first, at most 10,000.
+         */
+        get: operations["listSitemapSellers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/deals": {
         parameters: {
             query?: never;
@@ -1977,8 +2040,11 @@ export interface paths {
          *     in another status through GET /v1/listings/{id}. A signed-in reader
          *     who is not the seller also gets `viewer`, and the read counts as a
          *     view of the listing, once per reader and UTC day; a signed-out read
-         *     counts none (GET /v1/screens/my-listings). With a position the view
-         *     has distance_km, measured as GET /v1/search measures it.
+         *     counts none (GET /v1/screens/my-listings). A prefetch (Sec-Purpose)
+         *     counts none either: the client counts the open with
+         *     PUT /v1/viewed/{listing_id} when the person sees the page. With a
+         *     position the view has distance_km, measured as GET /v1/search
+         *     measures it.
          */
         get: operations["getListingScreen"];
         put?: never;
@@ -2421,6 +2487,30 @@ export interface paths {
         post?: never;
         /** Show a hidden listing again; a listing not hidden is fine. */
         delete: operations["unhideFromSearch"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/viewed/{listing_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Count the caller's open of someone else's listing on sale, once per UTC day.
+         * @description For a listing view read as a prefetch (Sec-Purpose on
+         *     GET /v1/screens/listing/{id}), which counts nothing until the person
+         *     sees it. Any other read of the view counts by itself. The seller's
+         *     own listing, one not active or reserved and a second open that day
+         *     count nothing, and each answers 204.
+         */
+        put: operations["markViewed"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3330,8 +3420,10 @@ export interface paths {
          * The agent conversation of a record, those about records of a kind, or the caller's own.
          * @description With subject_kind and subject_id, the conversation of that ticket or
          *     account, which every member shares (at most one). With subject_kind
-         *     alone, the conversations about records of that kind. With neither,
-         *     the caller's conversations without a record. Newest activity first.
+         *     alone, the conversations about records of that kind. With
+         *     mention_kind and mention_id, the caller's conversations without a
+         *     record in which a question mentioned that record. With none, the
+         *     caller's conversations without a record. Newest activity first.
          */
         get: operations["listConsoleAgentConversations"];
         put?: never;
@@ -3409,7 +3501,10 @@ export interface paths {
          *     service with the picked agent's configuration (the Console assistant
          *     when agent_id is left out), then answers 202 with the turn's id; the
          *     console opens GET /v1/console/agent/turns/{id}/events to watch the
-         *     run step by step. Closing the stream does not stop the run.
+         *     run step by step. Closing the stream does not stop the run. The
+         *     attachments are kept on the turn, each record once; the run is told
+         *     the kind and id of every record the conversation's questions
+         *     mention, without the labels.
          */
         post: operations["askConsoleAgent"];
         delete?: never;
@@ -4999,6 +5094,20 @@ export interface components {
          * @enum {string}
          */
         ListingStatus: "processing" | "active" | "hidden" | "rejected" | "reserved" | "sold" | "deleted";
+        /**
+         * @description The listing's last price change, sent while it is a drop of 5 % or more
+         *     made in the last 7 days. A later raise ends it, and a drop that follows
+         *     a raise in that week counts from the price before the raise.
+         */
+        PriceDrop: {
+            /**
+             * Format: int64
+             * @description The price the drop replaced.
+             */
+            previous_price: number;
+            /** Format: date-time */
+            dropped_at: string;
+        };
         Listing: {
             /** Format: uuid */
             id: string;
@@ -5027,6 +5136,7 @@ export interface components {
             published_at?: string;
             /** Format: date-time */
             sold_at?: string;
+            price_drop?: components["schemas"]["PriceDrop"];
         };
         ListingDraftPhoto: {
             /** Format: uuid */
@@ -5120,6 +5230,45 @@ export interface components {
         CommuneList: {
             /** @description By display name; empty for an unknown province. */
             items: components["schemas"]["Commune"][];
+        };
+        SitemapPart: {
+            /**
+             * Format: uuid
+             * @description What GET /v1/sitemap/listings or /v1/sitemap/sellers takes for this part; absent on the first part.
+             */
+            cursor?: string;
+            /**
+             * Format: date-time
+             * @description The latest change to an entry of the part.
+             */
+            updated_at: string;
+        };
+        Sitemap: {
+            /** @description The parts of the public listings, newest first; none when no listing is public. */
+            listings: components["schemas"]["SitemapPart"][];
+            /** @description The parts of the sellers with a public listing, newest account first. */
+            sellers: components["schemas"]["SitemapPart"][];
+        };
+        SitemapListing: {
+            /** @description The listing's web address name, /listings/{slug} on the website. */
+            slug: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        SitemapListingList: {
+            items: components["schemas"]["SitemapListing"][];
+        };
+        SitemapSeller: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: date-time
+             * @description The latest change to one of the seller's public listings.
+             */
+            updated_at: string;
+        };
+        SitemapSellerList: {
+            items: components["schemas"]["SitemapSeller"][];
         };
         DealOpen: {
             /** Format: uuid */
@@ -6170,6 +6319,7 @@ export interface components {
             allow_offers: boolean;
             /** @description The name of the listing's commune. */
             commune: string;
+            price_drop?: components["schemas"]["PriceDrop"];
             /** @description Whole kilometres from the caller's position, 0 under 1 km; absent without a position. */
             distance_km?: number;
             /** @description False when signed out. */
@@ -7140,6 +7290,11 @@ export interface components {
          * @enum {string}
          */
         AgentSubjectKind: "ticket" | "account";
+        /**
+         * @description A record a question may mention.
+         * @enum {string}
+         */
+        AgentAttachmentKind: "ticket" | "account" | "order" | "listing" | "report_case" | "document";
         AgentConversation: {
             /** Format: uuid */
             id: string;
@@ -7158,6 +7313,14 @@ export interface components {
             subject_kind?: components["schemas"]["AgentSubjectKind"];
             /** Format: uuid */
             subject_id?: string;
+        };
+        /** @description A record or a document the question is about, once per question. */
+        AgentAttachment: {
+            kind: components["schemas"]["AgentAttachmentKind"];
+            /** Format: uuid */
+            id: string;
+            /** @description What the console showed for the record, trimmed. The console's alone; the agent never gets it. */
+            label?: string;
         };
         /**
          * @description A turn's status. paused and awaiting_input wait on the member; the ones after them are final.
@@ -7221,6 +7384,8 @@ export interface components {
             member_id: string;
             /** @description The question. */
             text: string;
+            /** @description The records the question mentioned; absent when it mentioned none. */
+            attachments?: components["schemas"]["AgentAttachment"][];
             /** @description The agent's answer as text, once it has one. */
             answer?: string;
             status: components["schemas"]["AgentTurnStatus"];
@@ -7276,14 +7441,6 @@ export interface components {
         };
         AgentConversationRename: {
             title: string;
-        };
-        /** @description A record or a document the question is about. */
-        AgentAttachment: {
-            /** @enum {string} */
-            kind: "ticket" | "account" | "order" | "listing" | "report_case" | "document";
-            /** Format: uuid */
-            id: string;
-            label?: string;
         };
         AgentQuestion: {
             text: string;
@@ -8054,6 +8211,8 @@ export interface components {
         Cursor: string;
         /** @description Page size. */
         Limit: number;
+        /** @description The part's cursor from GET /v1/sitemap; absent for the first part. */
+        SitemapCursor: string;
         /** @description A new UUID per user action, reused when the client retries that action. A repeated key returns the first result. Without one, every request runs; the key is optional because earlier app versions send none. */
         IdempotencyKeyOptional: string;
         /** @description The caller's latitude, with near_lng. Used for this request only; never stored or logged. */
@@ -8064,6 +8223,14 @@ export interface components {
         NearCommune: string;
         /** @description Keep the listings within this many kilometres of the position, which it needs. */
         RadiusKm: number;
+        /**
+         * @description The Fetch standard's purpose of the request. A list with the token
+         *     prefetch, such as prefetch or prefetch;prerender, marks a
+         *     speculative read: a browser fetching a page the person may not open.
+         *     Such a read answers as any other and records nothing; the client
+         *     reports the open when the person sees the page.
+         */
+        SecPurpose: string;
         /**
          * @description An upload of the caller's from POST /v1/uploads, still waiting (attached to
          *     nothing): search by this photo alone. Needs a signed-in caller; goes without
@@ -9958,6 +10125,80 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    getSitemap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The parts, the first of each list without a cursor. */
+            200: {
+                headers: {
+                    /** @description public, max-age=3600 */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Sitemap"];
+                };
+            };
+        };
+    };
+    listSitemapListings: {
+        parameters: {
+            query?: {
+                /** @description The part's cursor from GET /v1/sitemap; absent for the first part. */
+                cursor?: components["parameters"]["SitemapCursor"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The part's listings. */
+            200: {
+                headers: {
+                    /** @description public, max-age=3600 */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SitemapListingList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    listSitemapSellers: {
+        parameters: {
+            query?: {
+                /** @description The part's cursor from GET /v1/sitemap; absent for the first part. */
+                cursor?: components["parameters"]["SitemapCursor"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The part's sellers. */
+            200: {
+                headers: {
+                    /** @description public, max-age=3600 */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SitemapSellerList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
         };
     };
     openDeal: {
@@ -11988,7 +12229,16 @@ export interface operations {
                 /** @description A commune code, when the app has no GPS; distance is from its point. */
                 near_commune?: components["parameters"]["NearCommune"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description The Fetch standard's purpose of the request. A list with the token
+                 *     prefetch, such as prefetch or prefetch;prerender, marks a
+                 *     speculative read: a browser fetching a page the person may not open.
+                 *     Such a read answers as any other and records nothing; the client
+                 *     reports the open when the person sees the page.
+                 */
+                "Sec-Purpose"?: components["parameters"]["SecPurpose"];
+            };
             path: {
                 /** @description The listing's ID, or the slug of its web address (ListingSlug). */
                 id: string;
@@ -13057,6 +13307,28 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Shown again. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    markViewed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Counted, or nothing to count. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -14461,6 +14733,10 @@ export interface operations {
             query?: {
                 subject_kind?: components["schemas"]["AgentSubjectKind"];
                 subject_id?: string;
+                /** @description Taken with mention_id and without a subject. */
+                mention_kind?: components["schemas"]["AgentAttachmentKind"];
+                /** @description Taken with mention_kind. */
+                mention_id?: string;
             };
             header: {
                 /**
@@ -14482,6 +14758,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentConversationList"];
+                };
+            };
+            /** @description The request does not match the API description, or mention_kind and mention_id come apart or with a subject (invalid_request). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             401: components["responses"]["Unauthorized"];

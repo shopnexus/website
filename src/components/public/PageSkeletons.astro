@@ -1,0 +1,15 @@
+---
+// The pages lib/page-skeleton.ts shows while a tap opens them, one template
+// each: a cover under the header with the page's frame in shimmering lines.
+import ListingPageSkeleton from './ListingPageSkeleton.astro';
+import SearchPageSkeleton from './SearchPageSkeleton.astro';
+
+const cover = 'fixed inset-x-0 bottom-0 z-20 overflow-hidden bg-page';
+---
+
+<template data-page-skeleton="listing"><div class={cover} aria-hidden="true" data-page-cover><ListingPageSkeleton /></div></template>
+<template data-page-skeleton="search"><div class={cover} aria-hidden="true" data-page-cover><SearchPageSkeleton /></div></template>
+
+<script>
+  import '../../lib/page-skeleton';
+</script>

@@ -5,8 +5,8 @@
 import ListingSkeleton from './ListingSkeleton.astro';
 
 interface Props {
-  /** card: a listing card. row: a list row with a photo. line: an icon and two lines. bubbles: chat messages. chat: a chat pane. listing: Xem nhanh's photo, title, price and buttons. */
-  kind: 'card' | 'row' | 'line' | 'bubbles' | 'chat' | 'listing';
+  /** card: a listing card. row: a list row with a photo. line: an icon and two lines. bubbles: chat messages. chat: a chat pane. person: a person card. listing: Xem nhanh's photo, title, price and buttons. */
+  kind: 'card' | 'row' | 'line' | 'bubbles' | 'chat' | 'person' | 'listing';
   inline?: boolean;
 }
 
@@ -69,6 +69,24 @@ const bubbles: [string, boolean][] = [
         <div class="min-w-0 flex-1">
           <div class:list={[bar, 'h-3.5 w-1/2']} />
           <div class:list={[bar, 'mt-2 h-3 w-3/4']} />
+        </div>
+      </div>
+    )
+  }
+  {
+    kind === 'person' && (
+      <div aria-hidden="true" data-skeleton>
+        <div class="flex items-center gap-3">
+          <div class="skeleton h-14 w-14 shrink-0 rounded-full" />
+          <div class="min-w-0 flex-1">
+            <div class:list={[bar, 'h-3.5 w-1/2']} />
+            <div class:list={[bar, 'mt-2.5 h-3 w-3/4']} />
+          </div>
+        </div>
+        <div class="skeleton mt-3 h-[54px] rounded-control" />
+        <div class="mt-3 flex gap-2">
+          <div class="skeleton h-9 flex-1 rounded-control" />
+          <div class="skeleton h-9 flex-1 rounded-control" />
         </div>
       </div>
     )

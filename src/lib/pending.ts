@@ -1,3 +1,4 @@
+import { leaves } from './leaves';
 import { type Hold, hold } from './skeleton';
 
 // In the browser: a link or GET form with data-pending="<selector>" opens another page; until it
@@ -34,16 +35,6 @@ export function pending(selector: string, link?: HTMLElement): Undo {
   undos.push(undo);
   return undo;
 }
-
-// A click on another page, in this tab, that no other handler took.
-const leaves = (a: HTMLAnchorElement, e: MouseEvent) =>
-  !e.defaultPrevented &&
-  e.button === 0 &&
-  !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) &&
-  (!a.target || a.target === '_self') &&
-  !a.hasAttribute('download') &&
-  a.origin === location.origin &&
-  !(a.hash && a.pathname + a.search === location.pathname + location.search);
 
 if (!(window as { snPending?: boolean }).snPending) {
   (window as { snPending?: boolean }).snPending = true;

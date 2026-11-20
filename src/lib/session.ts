@@ -1,5 +1,6 @@
 import type { AstroCookies, AstroGlobal } from 'astro';
 import { type Api, ApiError, type Caller, type Schemas, apiClient, unwrap } from './api/client';
+import { PUSH_COOKIE } from './push';
 import { loginHref } from './routes';
 
 // The buyer's session with the server. The access and refresh tokens live in
@@ -44,6 +45,8 @@ const dropAccess = (cookies: AstroCookies) => cookies.delete(ACCESS, { path: '/'
 export function dropTokens(cookies: AstroCookies) {
   dropAccess(cookies);
   cookies.delete(REFRESH, { path: '/' });
+  // The next session gives the browser's push token again.
+  cookies.delete(PUSH_COOKIE, { path: '/' });
 }
 
 // A refresh token works once, and two refreshes with one token sign the
@@ -70,23 +73,23 @@ export interface Session extends Caller {
 }
 
 /** The middleware's step: a live access token for this request, refreshed when needed. */
-export async function openSession(cookies: AstroCookies, url: URL, forwardedFor: string): Promise<Session> {
+export async function openSession(cookies: AstroCookies, url: URL, caller: Omit<Caller, 'token'>): Promise<Session> {
   const token = cookies.get(ACCESS)?.value;
   const refreshToken = cookies.get(REFRESH)?.value;
-  if (token || !refreshToken) return { token, forwardedFor };
-  const t = await refresh(refreshToken, forwardedFor);
+  if (token || !refreshToken) return { ...caller, token };
+  const t = await refresh(refreshToken, caller.forwardedFor ?? '');
   if (t instanceof ApiError) {
     // 401 and 403 end the session (revoked, expired, suspended). Any other
     // answer is the server's trouble: a guest for this request, the cookies kept.
     if (t.status === 401 || t.status === 403) {
       dropTokens(cookies);
-      return { forwardedFor, ended: t.code };
+      return { ...caller, ended: t.code };
     }
   } else if (t) {
     keepTokens(cookies, url, t);
-    return { token: t.access_token, forwardedFor };
+    return { ...caller, token: t.access_token };
   }
-  return { forwardedFor };
+  return caller;
 }
 
 /**

@@ -1,0 +1,34 @@
+---
+// A listing's price in full, with the price before a drop struck out and
+// "Vừa giảm" with when, on the listing page and in Xem nhanh.
+import type { Schemas } from '../../lib/api/client';
+import { ago, group, money } from '../../lib/format';
+import Icon from '../Icon.astro';
+
+interface Props {
+  price: number;
+  drop?: Schemas['PriceDrop'];
+  /** The price's text-j-* step. */
+  size: string;
+  class?: string;
+}
+
+const { price, drop, size, class: cls } = Astro.props;
+---
+
+<div class={cls}>
+  <p class:list={['flex flex-wrap items-baseline gap-x-2.5 text-ink tabular-nums', size]}>
+    <span>{group(price)}<span class="ml-1 text-title-medium font-medium tracking-normal text-sub">₫</span></span>
+    {drop && <s class="text-j-16 font-normal tracking-normal text-faint"><span class="sr-only">Giá cũ </span>{money(drop.previous_price)}</s>}
+  </p>
+  {
+    drop && (
+      <p class="mt-1.5 flex items-center gap-1.5 text-body-small text-faint">
+        <span class="flex items-center gap-0.5 rounded-xs bg-mint py-0.5 pl-1 pr-1.5 font-medium text-on-mint">
+          <Icon name="arrow-downward-rounded" size={13} />Vừa giảm {money(drop.previous_price - price)}
+        </span>
+        {ago(drop.dropped_at)} trước
+      </p>
+    )
+  }
+</div>

@@ -137,6 +137,13 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
   <Fragment slot="side">
     <form method="post" id="settings" class:list={[PANEL, 'scroll-mt-24 p-4']}>
       <h2 class="px-1 pb-2 text-title-medium font-semibold text-ink">Cài đặt thông báo</h2>
+      <div hidden data-push-row>
+        <Row icon="notifications-outline-rounded" title="Trên trình duyệt này" class="-mx-2">
+          <span slot="sub" hidden data-push-blocked>Trình duyệt đang chặn</span>
+          <Switch slot="trail" on={false} label="Thông báo trên trình duyệt này" />
+        </Row>
+        <div class="mx-1 my-2 border-t border-line"></div>
+      </div>
       {
         prefs.map(([group, rows], i) => (
           <>
@@ -173,4 +180,33 @@ const time = 'h-9 rounded-field bg-surface-container-low px-3 text-body-medium t
 
 <script>
   import '../lib/more';
+  import { disablePush, enablePush, pushable, pushState } from '../lib/push';
+  import { snack } from '../lib/snackbar';
+
+  // "Trên trình duyệt này" acts at once, outside the form: the browser's own
+  // permission and this browser's token, shown where the browser takes pushes.
+  const row = document.querySelector<HTMLElement>('[data-push-row]');
+  if (row && pushable()) {
+    const sw = row.querySelector<HTMLButtonElement>('[data-switch]')!;
+    const blocked = row.querySelector<HTMLElement>('[data-push-blocked]')!;
+    const show = () => {
+      const state = pushState();
+      sw.setAttribute('aria-checked', String(state === 'on'));
+      sw.disabled = state === 'blocked';
+      blocked.hidden = state !== 'blocked';
+    };
+    show();
+    row.hidden = false;
+    sw.addEventListener('click', async () => {
+      const on = pushState() !== 'on';
+      sw.disabled = true;
+      try {
+        if (on) await enablePush();
+        else await disablePush();
+      } catch {
+        snack({ text: on ? 'Chưa bật được thông báo. Thử lại sau.' : 'Chưa tắt được thông báo. Thử lại sau.', error: true });
+      }
+      show();
+    });
+  }
 </script>

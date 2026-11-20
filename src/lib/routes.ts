@@ -12,6 +12,8 @@ export const R = {
   /** Mua ngay on a listing, by its ID: the COD form at the listed price. */
   buy: (listing: string) => `/listings/${listing}/buy`,
   seller: (id: string) => `/sellers/${id}`, // seller
+  /** A listing's share picture (og:image), versioned by its last change. */
+  listingCard: (id: string, updatedAt: string) => `/og/listings/${id}.png?v=${cardVersion(updatedAt)}`,
   how: '/how-to-buy', // how
   sell: '/how-to-sell', // sell
   cod: (deal: string) => `/cod?deal=${deal}`, // cod; redirects to the dialog in Tin nhắn
@@ -41,17 +43,27 @@ export const R = {
   feed: '/feed',
 } as const;
 
+/** The version a listing's share picture is addressed by: its last change. */
+export const cardVersion = (updatedAt: string) => Date.parse(updatedAt).toString(36);
+
 /** The endpoints the page scripts call. */
 export const API = {
   saved: (id: string) => `/api/saved/${id}`,
+  /** The open of a listing page the browser prefetched (ViewedMark). */
+  viewed: (id: string) => `/api/viewed/${id}`,
   follows: (id: string) => `/api/follows/${id}`,
   area: '/api/area',
   communes: (province: string) => `/api/communes/${province}`,
+  /** A new address from a dialog's address form. */
+  addresses: '/api/addresses',
   uploads: '/api/uploads',
   watches: '/api/watches',
+  searchHistory: '/api/search-history',
   watchAlert: (id: string) => `/api/watches/${id}/alert`,
   /** The socket's address and an access token for it, for Tin nhắn. */
   socket: '/api/socket',
+  /** This browser's push token for the session (lib/push.ts). */
+  pushToken: '/api/push-token',
   /** Chat nhanh on a listing: a message or an offer (QuickChat). */
   /** Đăng tin: the autosaved draft, the read of the cover, the price guide and the category guess. */
   listingDraft: (id: string) => `/api/listing-drafts/${id}`,

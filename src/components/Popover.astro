@@ -2,6 +2,7 @@
 // A top-layer panel under its control (popovertarget, or data-anchor on a field).
 // align: the edge it shares with the control; match: the control's width.
 // Below 600 px it spans the window, or with `sheet` rises as a bottom sheet.
+// type hint: a hover card, which leaves open menus and panels alone.
 interface Props {
   id: string;
   align?: 'start' | 'end';
@@ -9,14 +10,15 @@ interface Props {
   class?: string;
   label?: string;
   sheet?: boolean;
+  type?: 'auto' | 'hint';
 }
 
-const { id, align = 'start', match = false, class: cls, label, sheet = false } = Astro.props;
+const { id, align = 'start', match = false, class: cls, label, sheet = false, type = 'auto' } = Astro.props;
 ---
 
 <div
   id={id}
-  popover="auto"
+  popover={type}
   data-align={align}
   data-match={match ? '' : undefined}
   data-sheet={sheet ? '' : undefined}

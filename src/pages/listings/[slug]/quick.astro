@@ -7,10 +7,11 @@ import Avatar from '../../../components/Avatar.astro';
 import Icon from '../../../components/Icon.astro';
 import Gallery from '../../../components/public/Gallery.astro';
 import ListingActions from '../../../components/public/ListingActions.astro';
+import ListingPrice from '../../../components/public/ListingPrice.astro';
 import QuickChat from '../../../components/public/QuickChat.astro';
 import { orNull } from '../../../lib/api/client';
 import { near } from '../../../lib/area';
-import { ago, group, ratingText, where } from '../../../lib/format';
+import { ago, ratingText, where } from '../../../lib/format';
 import { QUESTIONS, conditionLabel, dealState } from '../../../lib/listing';
 import { R } from '../../../lib/routes';
 import { viewer } from '../../../lib/session';
@@ -50,9 +51,7 @@ const [rating] = seller ? ratingText(seller.rating) : [''];
           {where(screen.distance_km, it.location.commune.display_name)} · {ago(it.published_at ?? it.created_at)} trước
         </p>
         <h2 class="mt-2.5 text-j-18 text-ink">{it.title}</h2>
-        <p class="mt-2 text-j-26 text-ink tabular-nums">
-          {group(it.price)}<span class="ml-1 text-title-medium font-medium tracking-normal text-sub">₫</span>
-        </p>
+        <ListingPrice price={it.price} drop={it.price_drop} size="text-j-26" class="mt-2" />
         {deal.reserved && <p class="mt-1 text-body-small text-faint">Món này đang được giao cho một người mua.</p>}
       </div>
       <!-- On a phone the buttons stay at the sheet's foot. -->
@@ -75,7 +74,7 @@ const [rating] = seller ? ratingText(seller.rating) : [''];
         )}
       </ListingActions>
       <div class="mt-4 border-t border-line px-1 pt-3">
-        <a href={R.seller(seller.id)} class="state-layer -mx-2 flex items-center gap-3 rounded-control p-2 hover:bg-hover">
+        <a href={R.seller(seller.id)} data-person class="state-layer -mx-2 flex items-center gap-3 rounded-control p-2 hover:bg-hover">
           <Avatar name={seller.display_name} photo={seller.avatar_url} size={36} />
           <span class="min-w-0 flex-1">
             <span class="block truncate text-title-small text-ink">{seller.display_name}</span>
