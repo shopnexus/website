@@ -4,22 +4,24 @@
 // and thumbnails from medium up follow it. "Xem N ảnh" opens a full-window
 // viewer on the same photo, with arrow keys. The first photo carries
 // data-main, which the page transition pairs with the card the buyer clicked.
+// `compact` (Xem nhanh) leaves out the frame, the thumbnails and the in-app badge.
 import Icon from '../Icon.astro';
 import Photo from '../Photo.astro';
 
 interface Props {
   photos: { big: string; thumb: string }[];
   title: string;
+  compact?: boolean;
 }
 
-const { photos, title } = Astro.props;
+const { photos, title, compact = false } = Astro.props;
 const n = photos.length;
 const alt = (i: number) => (i === 0 ? title : `${title}, ảnh ${i + 1}/${n}`);
 const side =
   'state-layer absolute top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full disabled:pointer-events-none disabled:opacity-0';
 ---
 
-<div class="rounded-card border border-line bg-card p-2" data-gallery>
+<div class:list={[!compact && 'rounded-card border border-line bg-card p-2']} data-gallery>
   <div class="group relative overflow-hidden rounded-card bg-surface-container-high" style="aspect-ratio: 16 / 10.5">
     <div
       class="gallery-track no-scrollbar flex h-full overflow-x-auto"
@@ -43,10 +45,14 @@ const side =
         ))
       }
     </div>
-    <span class="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
-      <Icon name="photo-camera-outline-rounded" size={15} />
-      Cả {n} ảnh chụp trong app
-    </span>
+    {
+      !compact && (
+        <span class="pointer-events-none absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-label-medium text-white backdrop-blur">
+          <Icon name="photo-camera-outline-rounded" size={15} />
+          Cả {n} ảnh chụp trong app
+        </span>
+      )
+    }
     <button type="button" class:list={[side, 'gallery-arrow left-3 bg-white/85 text-photo-ink backdrop-blur']} aria-label="Ảnh trước" data-prev disabled>
       <Icon name="chevron-left-rounded" size={22} />
     </button>
@@ -71,21 +77,23 @@ const side =
       <span class="max-md:sr-only">Xem {n} ảnh</span>
     </button>
   </div>
-  <div class="mt-2 hidden grid-cols-5 gap-2 md:grid">
-    {
-      photos.map((p, i) => (
-        <button
-          type="button"
-          data-thumb={i}
-          aria-pressed={i === 0 ? 'true' : 'false'}
-          aria-label={`Ảnh ${i + 1}`}
-          class="overflow-hidden rounded-lg opacity-80 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
-        >
-          <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
-        </button>
-      ))
-    }
-  </div>
+  {
+    !compact && (
+      <div class="mt-2 hidden grid-cols-5 gap-2 md:grid">
+        {photos.map((p, i) => (
+          <button
+            type="button"
+            data-thumb={i}
+            aria-pressed={i === 0 ? 'true' : 'false'}
+            aria-label={`Ảnh ${i + 1}`}
+            class="overflow-hidden rounded-lg opacity-80 ring-primary ring-offset-2 ring-offset-card hover:opacity-100 aria-pressed:opacity-100 aria-pressed:ring-2"
+          >
+            <Photo src={p.thumb} width={600} height={600} alt="" class="aspect-square w-full object-cover" />
+          </button>
+        ))}
+      </div>
+    )
+  }
 
   <dialog
     class="m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-black/95 p-0 text-white backdrop:bg-black/70 backdrop:backdrop-blur-sm"
@@ -118,81 +126,7 @@ const side =
 </div>
 
 <script>
-  import { glide } from '../../lib/motion';
+  import { mountGallery } from '../../lib/gallery';
 
-  // One row of slides, the width of its frame each. `at` is the slide in view.
-  const at = (track: HTMLElement) => Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-  const go = (track: HTMLElement, i: number, instant = false) => {
-    const left = Math.max(0, Math.min(track.children.length - 1, i)) * track.clientWidth;
-    if (instant) track.scrollLeft = left;
-    else glide(track, left);
-  };
-
-  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((g) => {
-    const track = g.querySelector<HTMLElement>('[data-slides]')!;
-    const n = track.children.length;
-    const prev = g.querySelector<HTMLButtonElement>('[data-prev]')!;
-    const next = g.querySelector<HTMLButtonElement>('[data-next]')!;
-    const label = g.querySelector<HTMLElement>('[data-at]')!;
-    const thumbs = [...g.querySelectorAll<HTMLButtonElement>('[data-thumb]')];
-    const dots = [...g.querySelectorAll<HTMLElement>('[data-dot-i]')];
-    const viewer = g.querySelector<HTMLDialogElement>('[data-viewer]')!;
-    const vtrack = viewer.querySelector<HTMLElement>('[data-viewer-slides]')!;
-    const vlabel = viewer.querySelector<HTMLElement>('[data-viewer-at]')!;
-
-    let shown = -1;
-    const sync = () => {
-      const i = at(track);
-      if (i === shown) return;
-      shown = i;
-      prev.disabled = i === 0;
-      next.disabled = i === n - 1;
-      label.textContent = `${i + 1}/${n}`;
-      thumbs.forEach((t, k) => t.setAttribute('aria-pressed', String(k === i)));
-      dots.forEach((d, k) => d.toggleAttribute('data-on', k === i));
-    };
-    track.addEventListener('scroll', sync, { passive: true });
-    new ResizeObserver(() => {
-      go(track, shown, true);
-    }).observe(track);
-    prev.addEventListener('click', () => go(track, at(track) - 1));
-    next.addEventListener('click', () => go(track, at(track) + 1));
-    thumbs.forEach((t, k) => t.addEventListener('click', () => go(track, k)));
-    track.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        go(track, at(track) + (e.key === 'ArrowRight' ? 1 : -1));
-      }
-    });
-    sync();
-
-    // The viewer opens on the photo in the frame and hands its photo back on close.
-    const vprev = viewer.querySelector<HTMLButtonElement>('[data-viewer-prev]')!;
-    const vnext = viewer.querySelector<HTMLButtonElement>('[data-viewer-next]')!;
-    const vsync = () => {
-      const i = at(vtrack);
-      vlabel.textContent = `${i + 1}/${n}`;
-      vprev.disabled = i === 0;
-      vnext.disabled = i === n - 1;
-    };
-    vtrack.addEventListener('scroll', vsync, { passive: true });
-    g.querySelector('[data-open-viewer]')!.addEventListener('click', () => {
-      viewer.showModal();
-      vtrack.querySelectorAll('img').forEach((img) => (img.loading = 'eager'));
-      go(vtrack, at(track), true);
-      vsync();
-    });
-    vprev.addEventListener('click', () => go(vtrack, at(vtrack) - 1));
-    vnext.addEventListener('click', () => go(vtrack, at(vtrack) + 1));
-    viewer.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        go(vtrack, at(vtrack) + (e.key === 'ArrowRight' ? 1 : -1));
-      }
-    });
-    viewer.addEventListener('click', (e) => {
-      if ((e.target as Element).closest('[data-close]')) viewer.close();
-    });
-    viewer.addEventListener('close', () => go(track, at(vtrack), true));
-  });
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach(mountGallery);
 </script>

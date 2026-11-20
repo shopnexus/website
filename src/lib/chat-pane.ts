@@ -28,6 +28,8 @@ export interface PaneOptions {
   shows?: (u: Update) => boolean;
   /** After each swap. */
   afterSwap?: () => void;
+  /** Ends the pane's page-wide listeners, for a pane that leaves the page. */
+  signal?: AbortSignal;
 }
 
 const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s);
@@ -48,6 +50,7 @@ export function mountChatPane(o: PaneOptions) {
   const toEnd = () => scroller && (scroller.scrollTop = scroller.scrollHeight);
   toEnd();
   const socket = connectSocket();
+  const listen = (type: string, fn: (e: Event) => void) => document.addEventListener(type, fn, { signal: o.signal });
 
   // ------------------------------------------------- swap from the server --
   // A fresh render replaces each data-part; one that holds the focus waits
@@ -125,7 +128,7 @@ export function mountChatPane(o: PaneOptions) {
       if (want) timer = window.setTimeout(run, 250);
     }
   }
-  document.addEventListener('visibilitychange', () => !document.hidden && want && run());
+  listen('visibilitychange', () => !document.hidden && want && run());
 
   // A form sent in place: the page answers with itself after the redirect.
   // Resolves to the error code, '' when it went through.
@@ -345,7 +348,7 @@ export function mountChatPane(o: PaneOptions) {
     const line = q('[data-typing]');
     if (line) line.hidden = !shown;
   };
-  document.addEventListener('sn:update', (e) => {
+  listen('sn:update', (e) => {
     const f = (e as CustomEvent<Update>).detail;
     const chatId = chat();
     const here = !!chatId && (f.conversation_id === chatId || !!o.shows?.(f));
@@ -359,8 +362,8 @@ export function mountChatPane(o: PaneOptions) {
     const kind = here ? 'page' : (o.elsewhere?.(f) ?? null);
     if (kind) schedule(kind);
   });
-  document.addEventListener('sn:reset', () => schedule('page'));
-  document.addEventListener('sn:typing', (e) => {
+  listen('sn:reset', () => schedule('page'));
+  listen('sn:typing', (e) => {
     if ((e as CustomEvent<{ conversation_id: string }>).detail.conversation_id !== chat()) return;
     typing(true);
     clearTimeout(typingTimer);

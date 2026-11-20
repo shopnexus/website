@@ -1,4 +1,5 @@
 import type { Schemas } from './api/client';
+import { R } from './routes';
 
 /** A listing as cards and rows show it: the app's ListingSummary. */
 export interface Card {
@@ -44,3 +45,21 @@ export const card = (it: Schemas['SearchItem']): Card => ({
   area: it.commune,
   saved: it.saved,
 });
+
+/** The questions Hỏi nhanh sends with one tap. */
+export const QUESTIONS = ['Còn không bạn?', 'Xem ở đâu được?'];
+
+/** What the viewer can do with a listing: theirs, held for an order, open to offers, already ordered by them. */
+export function dealState(screen: Schemas['ListingScreen'], me: { id: string } | null) {
+  const it = screen.listing;
+  const reserved = it.status === 'reserved';
+  return {
+    mine: !!me && me.id === it.seller_id,
+    reserved,
+    offers: it.allow_offers && !reserved,
+    /** Their order is open, so "Mua ngay" becomes "Xem đơn". */
+    ordered: ['pending', 'shipped'].includes(screen.viewer?.deal?.order_status ?? ''),
+    /** The chat about it on Tin nhắn, where Chat nhanh's links fall back to. */
+    chat: `${R.messages}?listing=${it.id}`,
+  };
+}

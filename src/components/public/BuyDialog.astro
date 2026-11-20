@@ -1,16 +1,11 @@
 ---
-// "Mua ngay" on a listing: the buy page's form in a dialog over the page, a
-// sheet on a phone. The page marks its opener with data-buy; it stays a link
-// to the buy page, so without the script it still works. The form posts in
-// place and the dialog follows the server to the order (or the deal it found).
-// ?buy=1 opens it, as the address book does on its way back.
+// "Mua ngay": the buy page's form in a dialog over the page, a sheet on a
+// phone. Its openers are links to a buy page (R.buy) marked data-buy, so
+// without the script they still work; one dialog serves every opener on the
+// page. The form posts in place and the dialog follows the server to the
+// order (or the deal it found). ?buy=1 opens the page's first opener, as the
+// address book does on its way back.
 
-interface Props {
-  /** The buy page, R.buy. */
-  src: string;
-}
-
-const { src } = Astro.props;
 const bar = 'skeleton rounded-full';
 ---
 
@@ -18,7 +13,6 @@ const bar = 'skeleton rounded-full';
   class="m-auto outline-none max-h-[min(88dvh,calc(100dvh-32px))] w-[min(520px,calc(100vw-32px))] overflow-y-auto rounded-card border-0 bg-card p-0 text-ink shadow-pop backdrop:bg-black/30 max-md:mx-0 max-md:mb-0 max-md:w-full max-md:max-w-none max-md:rounded-t-xl max-md:rounded-b-[0px]"
   aria-label="Mua ngay"
   data-buy-dialog
-  data-src={src}
 >
   <div data-buy-slot>
     <div class="p-6" aria-hidden="true" data-skeleton>
@@ -46,7 +40,8 @@ const bar = 'skeleton rounded-full';
   if (dlg) {
     const slot = dlg.querySelector<HTMLElement>('[data-buy-slot]')!;
     const waiting = [...slot.childNodes];
-    const src = dlg.dataset.src!;
+    // The buy page of the opener in use.
+    let src = '';
 
     // An x-go header (or a redirect away, as to Đăng nhập) leaves for that page;
     // any other answer holds the form. Resolves to whether it was taken.
@@ -72,16 +67,18 @@ const bar = 'skeleton rounded-full';
         slot.replaceChildren(retry);
       }
     };
-    const open = () => {
+    const open = (a: HTMLAnchorElement) => {
       if (dlg.open) return;
+      src = a.pathname;
       dlg.showModal();
       load();
     };
 
     document.addEventListener('click', (e) => {
-      if (!(e.target as Element).closest('[data-buy]')) return;
+      const a = (e.target as Element).closest<HTMLAnchorElement>('a[data-buy]');
+      if (!a) return;
       e.preventDefault();
-      open();
+      open(a);
     });
     // A click on the dialog itself is its backdrop.
     dlg.addEventListener('click', (e) => {
@@ -105,10 +102,11 @@ const bar = 'skeleton rounded-full';
     });
 
     const u = new URL(location.href);
-    if (u.searchParams.get('buy') === '1') {
+    const first = document.querySelector<HTMLAnchorElement>('a[data-buy]');
+    if (u.searchParams.get('buy') === '1' && first) {
       u.searchParams.delete('buy');
       history.replaceState(history.state, '', u);
-      open();
+      open(first);
     }
   }
 </script>

@@ -1,0 +1,60 @@
+---
+// A listing's main buttons: "Mua ngay" (BuyDialog) or "Xem đơn" once the
+// viewer ordered it, then "Trả giá" or "Nhắn tin" (QuickChat). The seller
+// gets Tin của bạn instead. The slot adds buttons after them, as Xem nhanh's
+// heart.
+import type { Schemas } from '../../lib/api/client';
+import { dealState } from '../../lib/listing';
+import { R, loginHref } from '../../lib/routes';
+import { btnCls } from '../../lib/ui';
+import Icon from '../Icon.astro';
+
+interface Props {
+  screen: Schemas['ListingScreen'];
+  me: { id: string } | null;
+  class?: string;
+}
+
+const { screen, me, class: cls } = Astro.props;
+const it = screen.listing;
+const { mine, reserved, offers, ordered, chat } = dealState(screen, me);
+---
+
+<div class={cls}>
+  {
+    mine ? (
+      <a href={R.myListings} class={btnCls('line', 'lg')}>
+        <Icon name="storefront-outline-rounded" size={18} />
+        Xem trong Tin của bạn
+      </a>
+    ) : (
+      <>
+        {ordered ? (
+          <a href={R.buy(it.id)} class={btnCls('ink', 'lg')}>
+            <Icon name="receipt-long-outline-rounded" size={18} />
+            Xem đơn
+          </a>
+        ) : (
+          !reserved && (
+            <a href={me ? R.buy(it.id) : loginHref(R.listing(it.slug))} data-buy={me ? '' : undefined} class={btnCls('ink', 'lg')}>
+              <Icon name="shopping-bag-outline-rounded" size={18} />
+              Mua ngay
+            </a>
+          )
+        )}
+        {offers && !ordered ? (
+          <a href={`${chat}&offer=1`} data-quickchat="offer" class={btnCls('line', 'lg')}>
+            <Icon name="sell-outline-rounded" size={18} />
+            Trả giá
+          </a>
+        ) : (
+          <a href={chat} data-quickchat="chat" class={btnCls(reserved && !ordered ? 'ink' : 'line', 'lg')}>
+            <Icon name="chat-outline-rounded" size={18} />
+            Nhắn tin
+          </a>
+        )}
+      </>
+    )
+  }
+  <slot />
+</div>

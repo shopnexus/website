@@ -20,8 +20,11 @@ document.addEventListener('touchstart', () => {}, { passive: true });
 // and the snackbar offers the list or the undo. A guest goes to Đăng nhập;
 // a failed call puts the heart back.
 function setSave(b: HTMLButtonElement, on: boolean, pop = true) {
-  b.setAttribute('aria-pressed', String(on));
-  b.setAttribute('aria-label', on ? 'Bỏ lưu tin' : 'Lưu tin');
+  // A listing on the page twice (its card and Xem nhanh) shows one state.
+  for (const same of document.querySelectorAll<HTMLButtonElement>(`[data-save="${CSS.escape(b.dataset.save ?? '')}"]`)) {
+    same.setAttribute('aria-pressed', String(on));
+    same.setAttribute('aria-label', on ? 'Bỏ lưu tin' : 'Lưu tin');
+  }
   if (on && pop && !reducedMotion()) {
     b.classList.remove('is-popping');
     void b.offsetWidth;
