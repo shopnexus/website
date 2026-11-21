@@ -35,7 +35,7 @@ const pick = 'flex-1 cursor-pointer';
 <Layout title="Tìm bằng ảnh · ShopNexus" description="Tìm tin giống ảnh của bạn trên ShopNexus." section="explore">
   {
     view && items.length > 0 ? (
-      <SearchResults items={items} search={s} base={R.photoSearch} title="Tin giống ảnh" understood={view.understood} next={view.next_cursor} watchable={false}>
+      <SearchResults items={items} search={s} base={R.photoSearch} title="Tin giống ảnh" next={view.next_cursor} watchable={false}>
         <div class="flex items-center gap-3 rounded-card border border-line bg-card p-2" data-photo-bar>
           <span class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-md bg-soft text-faint">
             <img alt="Ảnh của bạn" class="hidden h-full w-full object-cover" data-preview={s.photo} data-photo-shown />

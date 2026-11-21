@@ -55,7 +55,7 @@ const full = Astro.url.searchParams.get('watches') === 'full';
         search={s}
         base={R.search}
         title={title}
-        understood={full ? 'Bạn đã lưu 20 tìm kiếm. Xóa bớt trong Đã lưu để lưu thêm.' : view?.understood}
+        note={full ? 'Bạn đã lưu 20 tìm kiếm. Xóa bớt trong Đã lưu để lưu thêm.' : undefined}
         next={view?.next_cursor}
         watchable={watchable}
         filters={!s.watch}

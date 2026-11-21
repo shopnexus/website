@@ -2398,12 +2398,11 @@ export interface paths {
          *     any, the call browses, newest first by default, and category alone is the
          *     category page. sort=nearby is the "Gần bạn" feed, which Home's first page
          *     comes from. A model that fails leaves the lists it feeds out; q then
-         *     searches its raw words, with no understood and no chips. A signed-in
-         *     caller's first page with q is kept in the search history, and a
-         *     signed-in caller never sees the listings they hid nor those of an
-         *     account on either side of their blocks. With watch, a watch of the
-         *     caller's runs its query and filters. photo and watch need a signed-in
-         *     caller.
+         *     searches its raw words, with no chips. A signed-in caller's first page
+         *     with q is kept in the search history, and a signed-in caller never sees
+         *     the listings they hid nor those of an account on either side of their
+         *     blocks. With watch, a watch of the caller's runs its query and filters.
+         *     photo and watch need a signed-in caller.
          */
         get: operations["search"];
         put?: never;
@@ -6541,8 +6540,6 @@ export interface components {
             items: components["schemas"]["SearchItem"][];
             /** @description Present when more listings follow, up to the 500th. */
             next_cursor?: string;
-            /** @description The model's sentence of what was searched. */
-            understood?: string;
             chips?: components["schemas"]["Chip"][];
             /**
              * Format: uuid

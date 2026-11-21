@@ -24,8 +24,8 @@ interface Props {
   base: string;
   /** Left out where the page's own h1 already names the results. */
   title?: string;
-  /** The model's sentence of what was searched. */
-  understood?: string;
+  /** A line under the title, such as the saved-search limit. */
+  note?: string;
   /** The next page's cursor. */
   next?: string;
   /** Whether "Báo khi có tin mới" shows: a query the buyer does not watch yet. */
@@ -36,7 +36,7 @@ interface Props {
   level?: 1 | 2;
 }
 
-const { items, search, base, title, understood, next, watchable, filters = true, level = 1 } = Astro.props;
+const { items, search, base, title, note, next, watchable, filters = true, level = 1 } = Astro.props;
 const Heading = level === 1 ? 'h1' : 'h2';
 // "Gần nhất" needs the buyer's place and a search that takes one. Without
 // words or a photo the server's own order is the newest first.
@@ -61,7 +61,7 @@ const current = (!ranked && search.sort === 'newest') || (search.sort === 'neare
       <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-6">
         <div class="min-w-0">
           <Heading class="text-j-24 text-ink lg:text-j-28">{title}</Heading>
-          {understood && <p class="mt-1 text-body-large text-sub">{understood}</p>}
+          {note && <p class="mt-1 text-body-large text-sub">{note}</p>}
         </div>
         {watchable && <WatchButton href={searchHref(search)} />}
       </div>
